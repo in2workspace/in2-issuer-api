@@ -1,0 +1,22 @@
+@startuml
+
+autonumber
+
+boundary "Context Broker" as broker
+boundary "Blockchain Connector" as connector
+boundary "Blockchain" as blockchain
+
+broker -> connector++: new notification
+connector -> connector: Get entity data from notification
+connector -> connector: Find Entity in Transactions recorded
+alt "Entity found"
+    connector -> connector: Get entity hash
+    connector -> connector: Build intertwined hashes
+else "Entity not found"
+    connector -> connector: Build new entity hash
+end
+connector -> connector: Build Event
+connector -> blockchain++: Publish Event
+blockchain -> connector--: Event published
+
+@enduml

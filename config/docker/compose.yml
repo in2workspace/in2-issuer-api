@@ -1,0 +1,90 @@
+services:
+
+  # Access Node
+
+  # Context Broker
+  scorpio:
+    image: scorpiobroker/all-in-one-runner:java-latest
+    environment:
+      DBHOST: postgis
+    ports:
+      - "9090:9090"
+    depends_on:
+      - postgis
+
+  postgis:
+    image: postgis/postgis
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: ngb
+      POSTGRES_PASSWORD: ngb
+      POSTGRES_DB: ngb
+    volumes:
+      - postgis:/var/lib/postgresql/data
+
+  # Blockchain Connector
+  desmos:
+    image: desmos:latest
+    environment:
+      LOGGING_LEVEL_ES_IN2_CONNECTOR: "INFO"
+      SPRING_R2DBC_URL: "r2dbc:postgresql://postgres:5432/postgres"
+      SPRING_R2DBC_USERNAME: "guest"
+      SPRING_R2DBC_PASSWORD: "guest"
+      SPRING_FLYWAY_URL: "jdbc:postgresql://postgres:5432/postgres"
+      OPENAPI_SERVER_URL: "https://localhost:9091"
+      OPENAPI_SERVER_DESCRIPTION: "Blockchain Connector Test Server"
+      OPENAPI_INFO_TITLE: "Blockchain Connector"
+      OPENAPI_INFO_DESCRIPTION: "Blockchain Connector Component"
+      OPENAPI_INFO_VERSION: "2.0.0-SNAPSHOT"
+      OPENAPI_INFO_TERMS_OF_SERVICE: "https://example.com/terms"
+      OPENAPI_INFO_LICENSE_NAME: "Apache 2.0"
+      OPENAPI_INFO_LICENSE_URL: "https://www.apache.org/licenses/LICENSE-2.0.html"
+      OPENAPI_INFO_CONTACT_NAME: "IN2, Ingeniería de la Información"
+      OPENAPI_INFO_CONTACT_URL: "https://in2.es"
+      OPENAPI_INFO_CONTACT_EMAIL: "contacto@in2.es"
+      OPERATOR_ORGANIZATION_ID: "VATES-00869735"
+      DLT_ADAPTER_INTERNAL_DOMAIN: "http://dlt-adapter:8080"
+      DLT_ADAPTER_EXTERNAL_DOMAIN: "https://digitel.es/dlt-adapter"
+      DLT_ADAPTER_PATHS_CONFIGURE_NODE: "/api/v1/configureNode"
+      DLT_ADAPTER_PATHS_PUBLISH: "/api/v1/publishEvent"
+      DLT_ADAPTER_PATHS_SUBSCRIBE: "/api/v1/subscribe"
+      DLT_ADAPTER_PATHS_EVENTS: "/api/v1/events"
+      BLOCKCHAIN_RPC_ADDRESS: "https://red-t.alastria.io/v0/9461d9f4292b41230527d57ee90652a6"
+      BLOCKCHAIN_USER_ETHEREUM_ADDRESS: "0xb794f5ea0ba39494ce839613fffba74279579268"
+      BLOCKCHAIN_SUBSCRIPTION_ACTIVE: "true"
+      BLOCKCHAIN_SUBSCRIPTION_NOTIFICATION_ENDPOINT: "http://blockchain-connector:8080/notifications/dlt"
+      BLOCKCHAIN_SUBSCRIPTION_EVENT_TYPES: "ProductOffering,ProductOrder"
+      BROKER_PROVIDER: "scorpio"
+      BROKER_EXTERNAL_DOMAIN: "https://example.org/scorpio"
+      BROKER_INTERNAL_DOMAIN: "http://scorpio:9090"
+      NGSI_SUBSCRIPTION_NOTIFICATION_ENDPOINT: "http://blockchain-connector:8080/notifications/broker"
+      NGSI_SUBSCRIPTION_ENTITY_TYPES: "ProductOffering,ProductOrder"
+    ports:
+      - "9091:8080"
+    depends_on:
+      - blockchain-adapter
+      - postgres
+
+  postgres:
+    image: postgres:16.1
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PASSWORD: "guest"
+      POSTGRES_USER: "guest"
+      POSTGRES_DB: "postgres"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  # Blockchain Adapter
+  blockchain-adapter:
+    image: quay.io/digitelts/dlt-adapter:1.2.1
+    environment:
+      - "PRIVATE_KEY=0xe2afef2c880b138d741995ba56936e389b0b5dd2943e21e4363cc70d81c89346"
+    ports:
+      - "9091:8080"
+
+volumes:
+  postgis:
+  postgres:
