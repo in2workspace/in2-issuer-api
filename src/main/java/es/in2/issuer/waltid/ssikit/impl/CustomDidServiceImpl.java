@@ -1,6 +1,6 @@
 package es.in2.issuer.waltid.ssikit.impl;
 
-import es.in2.issuer.api.utils.Utils;
+import es.in2.issuer.api.util.Utils;
 import es.in2.issuer.waltid.ssikit.CustomDidService;
 import es.in2.issuer.waltid.ssikit.CustomKeyService;
 import id.walt.model.DidMethod;

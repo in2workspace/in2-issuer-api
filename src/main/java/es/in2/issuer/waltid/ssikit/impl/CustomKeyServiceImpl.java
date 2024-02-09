@@ -2,7 +2,7 @@ package es.in2.issuer.waltid.ssikit.impl;
 
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
-import es.in2.issuer.api.utils.Utils;
+import es.in2.issuer.api.util.Utils;
 import es.in2.issuer.waltid.ssikit.CustomKeyService;
 import id.walt.crypto.KeyAlgorithm;
 import id.walt.crypto.KeyId;
