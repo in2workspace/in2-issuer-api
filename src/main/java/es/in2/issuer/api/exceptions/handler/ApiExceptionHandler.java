@@ -1,8 +1,8 @@
 package es.in2.issuer.api.exceptions.handler;
 
-import es.in2.issuer.api.domain.CredentialResponseErrorCodes;
-import es.in2.issuer.api.domain.dtos.CredentialResponseError;
-import es.in2.issuer.api.domain.dtos.GenericResponseError;
+import es.in2.issuer.api.model.CredentialResponseErrorCodes;
+import es.in2.issuer.api.model.dtos.CredentialResponseError;
+import es.in2.issuer.api.model.dtos.GenericResponseError;
 import es.in2.issuer.api.exceptions.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
