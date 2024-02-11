@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 
 @Configuration
 @Slf4j
-public class IssuerVciConfiguration {
+public class IssuerApplicationConfig {
 
     @Value("classpath:credentials/LEARCredentialExample.json")
     private Resource learCredentialResource;
