@@ -15,9 +15,9 @@ logging:
     es.in2: DEBUG
 
 server:
-  port: 8088
+  #port: 8088
   # Local port
-  #port: 8071
+  port: 8071
 
 # Actuator Configuration
 management:
