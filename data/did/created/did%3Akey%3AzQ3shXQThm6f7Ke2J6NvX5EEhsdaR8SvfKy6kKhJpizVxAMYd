@@ -1,0 +1,32 @@
+{
+    "assertionMethod" : [
+        "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd#zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd"
+    ],
+    "authentication" : [
+        "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd#zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd"
+    ],
+    "capabilityDelegation" : [
+        "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd#zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd"
+    ],
+    "capabilityInvocation" : [
+        "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd#zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd"
+    ],
+    "@context" : "https://www.w3.org/ns/did/v1",
+    "id" : "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd",
+    "verificationMethod" : [
+        {
+            "controller" : "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd",
+            "id" : "did:key:zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd#zQ3shXQThm6f7Ke2J6NvX5EEhsdaR8SvfKy6kKhJpizVxAMYd",
+            "publicKeyJwk" : {
+                "alg" : "ES256K",
+                "crv" : "secp256k1",
+                "kid" : "5a7831bf35e0438984360177833ab8b5",
+                "kty" : "EC",
+                "use" : "sig",
+                "x" : "lH9Ta0KVwvnVuoe_MafkVn4JH6hPlZBhmAc7ptIBoRI",
+                "y" : "XZzQBxHRjyNky5IQzWjFUMIMN7jFrrniZDLteStZNTg"
+            },
+            "type" : "EcdsaSecp256k1VerificationKey2019"
+        }
+    ]
+}
