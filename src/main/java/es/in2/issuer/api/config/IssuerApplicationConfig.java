@@ -7,6 +7,7 @@ import es.in2.issuer.api.util.Utils;
 import id.walt.credentials.w3c.VerifiableCredential;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import id.walt.servicematrix.ServiceMatrix;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -27,11 +28,12 @@ public class IssuerApplicationConfig {
     @Value("classpath:credentials/CustomerCredentialExample.json")
     private Resource customerCredentialResource;
 
-    @Bean
+    @PostConstruct
     public void addCustomerCredentialTemplateToInMemoryVcLibrary() {
         // Load walt.id SSI-Kit services from workingDirectory service-matrix.properties
         new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
         try {
+
             String learCredentialJsonData = new String(learCredentialResource.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
             VerifiableCredential learCredential = VerifiableCredential.Companion.fromJson(learCredentialJsonData);
             VcTemplateService.Companion.getService().register("LEARCredential", learCredential);
