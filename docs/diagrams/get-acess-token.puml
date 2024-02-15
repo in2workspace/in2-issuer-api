@@ -1,0 +1,19 @@
+@startuml
+
+autonumber
+
+boundary "Wallet" as wallet
+boundary "Issuer" as issuer
+
+wallet -> wallet++: Building dynamic url to get Access Token
+wallet -> issuer++: Request Access Token
+issuer -> issuer: Validate pre-authorized_code
+issuer -> issuer: Generate Access Token
+issuer -> issuer++: Create Access Token Response
+issuer -> issuer: Create c_nonce and c_nonce_expires_in
+issuer -> issuer: Save the c_nonce related to the Access Token
+issuer -> issuer--: Token Response
+issuer -> wallet: 200 OK
+
+
+@enduml

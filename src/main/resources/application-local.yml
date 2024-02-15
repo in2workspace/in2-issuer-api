@@ -1,0 +1,27 @@
+aca-issuer-vci-ms-uri: "http://localhost:8071"
+aca-issuer-auth-src-ms-uri: "http://localhost:8072"
+aca-cross-rmt-sign-ms-uri: "http://localhost:8050"
+aca-cross-keycloak-ms-uri: "http://localhost:8080"
+key-vault-uri: "http://localhost:8081" # this uri doesn't matter as long as it has protocol and port, it's only for local development
+issuer-keycloak-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, loggers, metrics
+      base-path: /
+      path-mapping:
+        health: health
+        info: info
+        loggers: loggers
+        metrics: metrics
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true

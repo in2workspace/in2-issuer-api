@@ -1,1 +1,76 @@
+spring:
+  application:
+    name: credential-issuer
+
+# AZURE APP CONFIG
+azure:
+  app:
+    config:
+      endpoint: ${APP_CONFIG_ENDPOINT}
+      label:
+        global: service-discovery
+logging:
+  level:
+    org.springframework.security: INFO
+    es.in2: DEBUG
+
+server:
+  port: 8080
+  # Local port
+  #port: 8071
+
+# Actuator Configuration
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, loggers, metrics
+      base-path: /
+      path-mapping:
+        health: health
+        info: info
+        loggers: loggers
+        metrics: metrics
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+
+# Documentation Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui
+    tags-sorter: alpha
+    operations-sorter: method
+
+openapi:
+  server:
+    description: SSI VCI Issuer MS API
+  info:
+    title: IN2 SSI VCI Issuer MS project
+    version: 1.0.0
+    termsOfService: https://example.com/terms-of-service
+    license:
+      name: Apache 2.0
+      url: https://www.apache.org/licenses/LICENSE-2.0.html
+    contact:
+      email: contacto@in2.es
+      name: IN2
+      url: https://in2.es
+    description: IN2 SSI VCI Issuer MS project
+
+
+authentic-sources:
+  routes:
+    get-user: /api/credential-source-data
+remote-signature:
+  routes:
+    sign: /signature/sign
 

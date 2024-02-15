@@ -1,2 +1,56 @@
 services:
 
+  keycloak:
+    image: keycloak-ms:latest
+    command:
+      - "-Djgroups.dns.query=keycloak"
+    environment:
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 9099
+      KC_DB: postgres
+      KC_DB_URL: "jdbc:postgresql://postgres/keycloak"
+      KC_DB_URL_PORT: 5432
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: postgres
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      PROXY_ADDRESS_FORWARDING: "true"
+#      KC_HOSTNAME_URL: http://keycloak:8088 # commented for local deployment, if not, master console will not work
+      KC_HOSTNAME_ADMIN_URL: http://localhost:9099
+      ISSUER_API_URL: http://host.docker.internal:8088
+    ports:
+      - '9099:9099'
+    volumes:
+      - ./imports:/opt/keycloak/data/import
+    links:
+      - postgres
+
+  postgres:
+    image: postgres:latest
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres:/var/lib/postgresql/data
+
+  vci:
+    image: vci-ms:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      APP_CONFIG_ENDPOINT: "https://app-conf-shared-iep-dev.azconfig.io"
+      ACA_CROSS_KEYCLOAK_MS_URI: "http://keycloak:9099"
+    ports:
+      - "8088:8088"
+    depends_on:
+      - keycloak
+
+volumes:
+  postgres:
+

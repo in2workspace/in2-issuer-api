@@ -1,0 +1,12 @@
+@startuml
+
+autonumber
+
+boundary "Wallet" as wallet
+boundary "Issuer" as issuer
+
+wallet -> wallet++: Building dynamic url to get issuer metadata
+wallet -> issuer++: GET \n https://<domain>/.well-known/openid-credential-issuer
+issuer -> wallet: 200 OK \n {"data": "issuer_credential_metadata"}
+
+@enduml
