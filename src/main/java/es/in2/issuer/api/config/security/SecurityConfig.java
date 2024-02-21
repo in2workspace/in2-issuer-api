@@ -1,6 +1,7 @@
 package es.in2.issuer.api.config.security;
 
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.service.AppConfigService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +31,13 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final AppConfigService appConfigService;
+    private final ConfigProvider configProvider;
     private String issuerUri;
 
     @PostConstruct
     private void initializeIssuerUri() {
-        issuerUri = getIssuerUri().block();
+        //issuerUri = getIssuerUri().block();
+        issuerUri = configProvider.getBaseUrl();
     }
 
     private Mono<String> getIssuerUri() {
