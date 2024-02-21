@@ -17,5 +17,5 @@ public class AppConfig {
     public ConfigProvider ConfigProviderImpl() {
         return new ConfigProviderImpl(configAdapterFactory);
     }
-
+    
 }

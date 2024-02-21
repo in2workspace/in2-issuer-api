@@ -3,7 +3,8 @@ spring:
     name: credential-issuer
 
 app:
-  config-provider: yaml
+  config-source:
+    name: yaml
 
 # AZURE APP CONFIG
 azure:
