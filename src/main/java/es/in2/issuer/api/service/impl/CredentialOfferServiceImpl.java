@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Base64URL;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
@@ -12,8 +11,7 @@ import es.in2.issuer.api.model.dto.Grant;
 import es.in2.issuer.api.exception.CredentialTypeUnsuportedException;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
+import es.in2.issuer.api.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.service.CredentialOfferService;
 import es.in2.issuer.api.util.HttpUtils;
@@ -37,7 +35,6 @@ import static es.in2.issuer.api.util.Constants.LEAR_CREDENTIAL;
 @Slf4j
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
-    private final AppConfigService appConfigService;
     private final AzureKeyVaultService azureKeyVaultService;
     private final CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;

@@ -1,9 +1,7 @@
-package es.in2.issuer.api.config.swagger;
+package es.in2.issuer.api.config;
 
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.properties.OpenApiProperties;
 import es.in2.issuer.api.config.provider.ConfigProvider;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.util.HttpUtils;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -18,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 

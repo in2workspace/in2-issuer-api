@@ -1,9 +1,10 @@
-package es.in2.issuer.api.config.azure;
+package es.in2.issuer.api.config;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.data.appconfiguration.ConfigurationClient;
 import com.azure.data.appconfiguration.ConfigurationClientBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
+import es.in2.issuer.api.config.properties.AzureProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +17,7 @@ import org.springframework.context.annotation.Profile;
 @Profile("!local")
 public class AzureAppConfigurationConfig {
 
-    private final AzureAppConfigProperties azureAppConfigProperties;
+    private final AzureProperties azureProperties;
 
     @Bean
     public TokenCredential azureTokenCredential() {
@@ -27,11 +28,11 @@ public class AzureAppConfigurationConfig {
 
     @Bean
     public ConfigurationClient azureConfigurationClient(TokenCredential azureTokenCredential) {
-        log.info("ENDPOINT --> {}", azureAppConfigProperties.getAzureConfigEndpoint());
+        log.info("ENDPOINT --> {}", azureProperties.endpoint());
 
         return new ConfigurationClientBuilder()
                 .credential(azureTokenCredential)
-                .endpoint(azureAppConfigProperties.getAzureConfigEndpoint())
+                .endpoint(azureProperties.endpoint())
                 .buildClient();
     }
 }

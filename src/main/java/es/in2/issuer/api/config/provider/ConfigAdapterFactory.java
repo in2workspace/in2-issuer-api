@@ -9,7 +9,6 @@ import java.util.List;
 public class ConfigAdapterFactory {
     List<GenericConfigAdapter> configAdapters;
 
-    @Autowired
     public ConfigAdapterFactory(List<GenericConfigAdapter> configServices) {
         this.configAdapters = configServices;
     }

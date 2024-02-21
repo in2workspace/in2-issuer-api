@@ -2,11 +2,9 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.service.RemoteSignatureService;
 import es.in2.issuer.api.util.HttpUtils;
 import jakarta.annotation.PostConstruct;
@@ -31,7 +29,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     @Value("${remote-signature.routes.sign}")
     private String sign;
 
-    private final AppConfigService appConfigService;
     private final ConfigProvider configProvider;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;

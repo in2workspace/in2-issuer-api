@@ -1,50 +1,62 @@
 package es.in2.issuer.api.config.provider.adapter;
 
+import com.azure.data.appconfiguration.ConfigurationClient;
+import es.in2.issuer.api.config.properties.AzureProperties;
 import es.in2.issuer.api.config.provider.ConfigSourceName;
 import es.in2.issuer.api.config.provider.GenericConfigAdapter;
+import es.in2.issuer.api.config.properties.SecretProperties;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConfigSourceName(name = "azure")
 
 public class AzureConfigAdapter implements GenericConfigAdapter {
-    @Override
-    public String getBaseUrl() {
-        return "baseUrl from Azure";
+    private final ConfigurationClient configurationClient;
+    private final AzureProperties azureProperties;
+    private final SecretProperties secretProperties;
+
+    public AzureConfigAdapter(ConfigurationClient configurationClient, AzureProperties azureProperties, SecretProperties secretProperties) {
+        this.configurationClient = configurationClient;
+        this.azureProperties = azureProperties;
+        this.secretProperties = secretProperties;
     }
 
     @Override
     public String getKeycloakDomain() {
-        return null;
+        return getConfigurationValue(secretProperties.keycloakDomain());
     }
 
     @Override
     public String getIssuerDomain() {
-        return null;
+        return getConfigurationValue(secretProperties.issuerDomain());
     }
 
     @Override
     public String getAuthenticSourcesDomain() {
-        return null;
+        return getConfigurationValue(secretProperties.authenticSourcesDomain());
     }
 
     @Override
     public String getKeyVaultDomain() {
-        return null;
+        return getConfigurationValue(secretProperties.keyVaultDomain());
     }
 
     @Override
     public String getRemoteSignatureDomain() {
-        return null;
+        return getConfigurationValue(secretProperties.remoteSignatureDomain());
     }
 
     @Override
     public String getKeycloakDid() {
-        return null;
+        return getConfigurationValue(secretProperties.keycloakDid());
     }
 
     @Override
     public String getIssuerDid() {
-        return null;
+        return getConfigurationValue(secretProperties.issuerDid());
+    }
+
+    private String getConfigurationValue(String key) {
+        return configurationClient.getConfigurationSetting(key, azureProperties.label()).getValue();
     }
 }

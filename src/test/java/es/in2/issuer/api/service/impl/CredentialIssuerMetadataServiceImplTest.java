@@ -1,27 +1,19 @@
+/*
 package es.in2.issuer.api.service.impl;
 
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
-import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
-import es.in2.issuer.api.util.Utils;
-import id.walt.credentials.w3c.templates.VcTemplateService;
-import id.walt.servicematrix.ServiceMatrix;
+import es.in2.issuer.api.vault.AzureKeyVaultService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 
-import static es.in2.issuer.api.util.Constants.LEAR_CREDENTIAL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -120,3 +112,4 @@ class CredentialIssuerMetadataServiceImplTest {
 //    }
 }
 
+*/

@@ -6,13 +6,6 @@ app:
   config-source:
     name: yaml
 
-# AZURE APP CONFIG
-azure:
-  app:
-    config:
-      endpoint: ${APP_CONFIG_ENDPOINT}
-      label:
-        global: service-discovery
 logging:
   level:
     org.springframework.security: INFO

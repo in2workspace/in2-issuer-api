@@ -1,8 +1,6 @@
-package es.in2.issuer.api.config.security;
+package es.in2.issuer.api.config;
 
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.provider.ConfigProvider;
-import es.in2.issuer.api.service.AppConfigService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +18,6 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import reactor.core.publisher.Mono;
 
 import java.util.Arrays;
 
@@ -30,7 +27,6 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AppConfigService appConfigService;
     private final ConfigProvider configProvider;
     private String keycloakUrl;
 
@@ -38,12 +34,6 @@ public class SecurityConfig {
     private void initializeIssuerUri() {
         //issuerUri = getIssuerUri().block();
         keycloakUrl = configProvider.getKeycloakDomain();
-    }
-
-    private Mono<String> getIssuerUri() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY)
-                .doOnSuccess(value -> log.info("Propertie retrieved successfully {}",  value))
-                .doOnError(throwable -> log.error("Error loading Propertie: {}",throwable.getMessage()));
     }
 
     @Bean

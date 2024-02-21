@@ -1,4 +1,4 @@
-package es.in2.issuer.api.config.swagger;
+package es.in2.issuer.api.config;
 
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;

@@ -1,5 +1,6 @@
 package es.in2.issuer.api.service.impl;
 
+import es.in2.issuer.api.vault.LocalKeyVaultServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

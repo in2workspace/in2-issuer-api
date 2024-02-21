@@ -1,7 +1,6 @@
 package es.in2.issuer.api.config.provider;
 
 public interface GenericConfigAdapter {
-    String getBaseUrl();
     String getKeycloakDomain();
     String getIssuerDomain();
     String getAuthenticSourcesDomain();

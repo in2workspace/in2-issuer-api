@@ -2,8 +2,7 @@ package es.in2.issuer.api.config.provider.adapter;
 
 import es.in2.issuer.api.config.provider.ConfigSourceName;
 import es.in2.issuer.api.config.provider.GenericConfigAdapter;
-import es.in2.issuer.api.config.provider.properties.SecretProperties;
-import org.springframework.beans.factory.annotation.Autowired;
+import es.in2.issuer.api.config.properties.SecretProperties;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,14 +10,8 @@ import org.springframework.stereotype.Component;
 public class YamlConfigAdapter implements GenericConfigAdapter {
     private final SecretProperties secretProperties;
 
-    @Autowired
     public YamlConfigAdapter(SecretProperties secretProperties) {
         this.secretProperties = secretProperties;
-    }
-
-    @Override
-    public String getBaseUrl() {
-        return "http://localhost:8080";
     }
 
     @Override

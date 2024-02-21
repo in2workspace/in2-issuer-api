@@ -1,6 +1,6 @@
 package es.in2.issuer.api.controller;
 
-import es.in2.issuer.api.config.swagger.SwaggerConfig;
+import es.in2.issuer.api.config.SwaggerConfig;
 import es.in2.issuer.api.model.dto.CredentialResponseError;
 import es.in2.issuer.api.exception.VcTemplateDoesNotExistException;
 import es.in2.issuer.api.service.IssuerVcTemplateService;

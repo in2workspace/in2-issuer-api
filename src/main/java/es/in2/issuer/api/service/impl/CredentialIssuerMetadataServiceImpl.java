@@ -1,11 +1,9 @@
 package es.in2.issuer.api.service.impl;
 
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
+import es.in2.issuer.api.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;

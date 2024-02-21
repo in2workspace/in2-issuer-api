@@ -1,7 +1,7 @@
 package es.in2.issuer.api.controller;
 
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.api.config.swagger.SwaggerConfig;
+import es.in2.issuer.api.config.SwaggerConfig;
 import es.in2.issuer.api.model.dto.CredentialRequestDTO;
 import es.in2.issuer.api.model.dto.CredentialResponseError;
 import es.in2.issuer.api.model.dto.GenericResponseError;

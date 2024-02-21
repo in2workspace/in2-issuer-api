@@ -1,6 +1,6 @@
 package es.in2.issuer.api.controller;
 
-import es.in2.issuer.api.config.swagger.SwaggerConfig;
+import es.in2.issuer.api.config.SwaggerConfig;
 import es.in2.issuer.api.model.dto.GenericResponseError;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.util.Utils;

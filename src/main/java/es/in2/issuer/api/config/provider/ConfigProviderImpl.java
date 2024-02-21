@@ -6,10 +6,6 @@ public class ConfigProviderImpl implements ConfigProvider {
     public ConfigProviderImpl(ConfigAdapterFactory configAdapterFactory){
         this.genericConfigAdapter = configAdapterFactory.getAdapter();
     }
-    @Override
-    public String getBaseUrl() {
-        return genericConfigAdapter.getBaseUrl();
-    }
 
     @Override
     public String getKeycloakDomain() {

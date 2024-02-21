@@ -2,12 +2,10 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.AuthenticSourcesGetUserResponseDTO;
 import es.in2.issuer.api.model.dto.CommitCredentialDTO;
 import es.in2.issuer.api.exception.UserDoesNotExistException;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.api.util.HttpUtils;
 import jakarta.annotation.PostConstruct;
