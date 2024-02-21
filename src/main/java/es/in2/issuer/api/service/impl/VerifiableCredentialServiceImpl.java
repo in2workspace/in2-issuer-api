@@ -6,6 +6,7 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.util.Base64URL;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.*;
 import es.in2.issuer.api.model.enums.SignatureType;
 import es.in2.issuer.api.exception.*;
@@ -57,11 +58,13 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final CacheStore<VerifiableCredentialJWT> credentialCacheStore;
     private final CacheStore<String> cacheStore;
+    private final ConfigProvider configProvider;
 
     private String didElsi;
     @PostConstruct
     private void initializeAzureProperties() {
-        didElsi = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_INFO_ID_SECRET).block();
+        didElsi = configProvider.getIssuerDid();
+        //didElsi = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_INFO_ID_SECRET).block();
     }
 
     private Mono<String> getKeyVaultConfiguration(String keyConfig) {

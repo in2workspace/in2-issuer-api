@@ -2,6 +2,7 @@ package es.in2.issuer.api.config.swagger;
 
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
 import es.in2.issuer.api.config.properties.OpenApiProperties;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.util.HttpUtils;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
@@ -35,17 +36,13 @@ public class OpenApiConfig {
 
     private final OpenApiProperties openApiProperties;
 
-    private final AppConfigService appConfigService;
+    private final ConfigProvider configProvider;
+
 
     private String openApiServerUrl;
     @PostConstruct
     private void initializeOpenApiServerUrl() {
-        openApiServerUrl = getOpenApiServerUrl().block();
-    }
-    private Mono<String> getOpenApiServerUrl() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
+        openApiServerUrl = configProvider.getIssuerDomain();
     }
 
     @Bean

@@ -1,9 +1,12 @@
-aca-issuer-vci-ms-uri: "http://localhost:8071"
-aca-issuer-auth-src-ms-uri: "http://localhost:8072"
-aca-cross-rmt-sign-ms-uri: "http://localhost:8050"
-aca-cross-keycloak-ms-uri: "http://localhost:8080"
-key-vault-uri: "http://localhost:8081" # this uri doesn't matter as long as it has protocol and port, it's only for local development
-issuer-keycloak-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+app:
+  secrets:
+    keycloak-domain: http://localhost:8080
+    issuer-domain: http://localhost:8071
+    authentic-sources-domain: http://localhost:8072
+    key-vault-domain: http://localhost:8081
+    remote-signature-domain: http://localhost:8050
+    keycloak-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    issuer-did: ""
 
 management:
   endpoints:

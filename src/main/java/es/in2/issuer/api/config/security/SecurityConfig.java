@@ -32,12 +32,12 @@ public class SecurityConfig {
 
     private final AppConfigService appConfigService;
     private final ConfigProvider configProvider;
-    private String issuerUri;
+    private String keycloakUrl;
 
     @PostConstruct
     private void initializeIssuerUri() {
         //issuerUri = getIssuerUri().block();
-        issuerUri = configProvider.getBaseUrl();
+        keycloakUrl = configProvider.getKeycloakDomain();
     }
 
     private Mono<String> getIssuerUri() {
@@ -50,7 +50,7 @@ public class SecurityConfig {
     @Profile("!local")
     public ReactiveJwtDecoder jwtDecoder(){
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-                .withJwkSetUri("https://" + issuerUri + "/realms/EAAProvider/protocol/openid-connect/certs")
+                .withJwkSetUri("https://" + keycloakUrl + "/realms/EAAProvider/protocol/openid-connect/certs")
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
 
@@ -62,7 +62,7 @@ public class SecurityConfig {
     @Bean
     @Profile("local")
     public ReactiveJwtDecoder jwtDecoderLocal(){
-        return ReactiveJwtDecoders.fromIssuerLocation(issuerUri + "/realms/EAAProvider");
+        return ReactiveJwtDecoders.fromIssuerLocation(keycloakUrl + "/realms/EAAProvider");
     }
 
     @Bean

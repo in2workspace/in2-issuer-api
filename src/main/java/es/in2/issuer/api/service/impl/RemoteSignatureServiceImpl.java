@@ -3,6 +3,7 @@ package es.in2.issuer.api.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
 import es.in2.issuer.api.service.AppConfigService;
@@ -31,18 +32,14 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private String sign;
 
     private final AppConfigService appConfigService;
+    private final ConfigProvider configProvider;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
     private String remoteSignatureBaseUrl;
     @PostConstruct
     private void initializeRemoteSignatureBaseUrl() {
-        remoteSignatureBaseUrl = getRemoteSignatureBaseUrl().block();
-    }
-    private Mono<String> getRemoteSignatureBaseUrl() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.CROSS_REMOTE_SIGNATURE_BASE_URL_KEY)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
+        remoteSignatureBaseUrl = configProvider.getRemoteSignatureDomain();
     }
 
     @Override

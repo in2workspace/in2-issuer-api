@@ -3,6 +3,7 @@ package es.in2.issuer.api.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.AuthenticSourcesGetUserResponseDTO;
 import es.in2.issuer.api.model.dto.CommitCredentialDTO;
 import es.in2.issuer.api.exception.UserDoesNotExistException;
@@ -28,20 +29,16 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     @Value("${authentic-sources.routes.get-user}")
     private String apiUsers;
 
-    private final AppConfigService appConfigService;
+    private final ConfigProvider configProvider;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
     private String authenticSourcesBaseUrl;
     @PostConstruct
     private void initializeAuthenticSourcesBaseUrl() {
-        authenticSourcesBaseUrl = getAuthenticSourcesBaseUrl().block();
+        authenticSourcesBaseUrl = configProvider.getAuthenticSourcesDomain();
     }
-    private Mono<String> getAuthenticSourcesBaseUrl() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
+
     @Override
     public Mono<AuthenticSourcesGetUserResponseDTO> getUser(String token) {
         return Mono.defer(() ->

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Base64URL;
 import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.model.dto.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.model.dto.Grant;
@@ -42,21 +43,18 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
+    private final ConfigProvider configProvider;
 
     private String issuerApiBaseUrl;
-    private String issuerUri;
+    private String keycloakUrl;
     private String did;
-    @PostConstruct
-    private void initializeAzureProperties() {
-        issuerApiBaseUrl = getAppConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY).block();
-        issuerUri = getAppConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY).block();
-        did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
-    }
 
-    private Mono<String> getAppConfiguration(String keyConfig) {
-        return appConfigService.getConfiguration(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
+    @PostConstruct
+    private void initializeProperties() {
+        issuerApiBaseUrl = configProvider.getIssuerDomain();
+        keycloakUrl = configProvider.getKeycloakDomain();
+        did = configProvider.getKeycloakDid();
+        //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
 
     private Mono<String> getKeyVaultConfiguration(String keyConfig) {
@@ -120,7 +118,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     private Mono<String> getPreAuthorizationCodeFromKeycloak(String accessToken) {
-        String preAuthCodeUri = issuerUri + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
+        String preAuthCodeUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
         return Mono.fromCallable(() -> executeGetRequest(url, accessToken))
                 .flatMap(responseMono -> responseMono.flatMap(response -> {
