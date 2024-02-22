@@ -1,12 +1,13 @@
 package es.in2.issuer.api.config.provider.adapter;
 
+import es.in2.issuer.api.config.provider.ConfigProviderNameEnum;
 import es.in2.issuer.api.config.provider.ConfigSourceName;
 import es.in2.issuer.api.config.provider.GenericConfigAdapter;
-import es.in2.issuer.api.config.properties.SecretProperties;
+import es.in2.issuer.api.config.provider.properties.SecretProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigSourceName(name = "yaml")
+@ConfigSourceName(name = ConfigProviderNameEnum.YAML)
 public class YamlConfigAdapter implements GenericConfigAdapter {
     private final SecretProperties secretProperties;
 

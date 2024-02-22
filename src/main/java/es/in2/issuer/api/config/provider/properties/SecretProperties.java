@@ -1,4 +1,4 @@
-package es.in2.issuer.api.config.properties;
+package es.in2.issuer.api.config.provider.properties;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;

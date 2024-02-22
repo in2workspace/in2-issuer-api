@@ -24,7 +24,7 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    private final AzureKeyVaultService azureKeyVaultService;
+    //private final AzureKeyVaultService azureKeyVaultService;
     private final ConfigProvider configProvider;
     private String issuerApiBaseUrl;
     private String keycloakUrl;
@@ -70,10 +70,12 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                 )
         );
     }
-
+/*
     private Mono<String> getKeyVaultConfiguration(String keyConfig) {
         return azureKeyVaultService.getSecretByKey(keyConfig)
                 .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
                 .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
     }
+
+ */
 }

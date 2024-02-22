@@ -1,4 +1,4 @@
-package es.in2.issuer.api.config;
+package es.in2.issuer.api.config.provider;
 
 import es.in2.issuer.api.config.provider.ConfigAdapterFactory;
 import es.in2.issuer.api.config.provider.ConfigProvider;
@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
-public class AppConfig {
+public class ProviderAppConfig {
 
     private final ConfigAdapterFactory configAdapterFactory;
 

@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Conditional(ConfigSourceNameCondition.class)
 public @interface ConfigSourceName {
-    String name();
+    ConfigProviderNameEnum name();
 }

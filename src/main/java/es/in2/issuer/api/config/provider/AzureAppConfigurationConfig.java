@@ -1,10 +1,10 @@
-package es.in2.issuer.api.config;
+package es.in2.issuer.api.config.provider;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.data.appconfiguration.ConfigurationClient;
 import com.azure.data.appconfiguration.ConfigurationClientBuilder;
 import com.azure.identity.DefaultAzureCredentialBuilder;
-import es.in2.issuer.api.config.properties.AzureProperties;
+import es.in2.issuer.api.config.provider.properties.AzureProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
-@Profile("!local")
+@ConfigSourceName(name = ConfigProviderNameEnum.AZURE)
 public class AzureAppConfigurationConfig {
 
     private final AzureProperties azureProperties;

@@ -1,14 +1,15 @@
 package es.in2.issuer.api.config.provider.adapter;
 
 import com.azure.data.appconfiguration.ConfigurationClient;
-import es.in2.issuer.api.config.properties.AzureProperties;
+import es.in2.issuer.api.config.provider.properties.AzureProperties;
+import es.in2.issuer.api.config.provider.ConfigProviderNameEnum;
 import es.in2.issuer.api.config.provider.ConfigSourceName;
 import es.in2.issuer.api.config.provider.GenericConfigAdapter;
-import es.in2.issuer.api.config.properties.SecretProperties;
+import es.in2.issuer.api.config.provider.properties.SecretProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigSourceName(name = "azure")
+@ConfigSourceName(name = ConfigProviderNameEnum.AZURE)
 
 public class AzureConfigAdapter implements GenericConfigAdapter {
     private final ConfigurationClient configurationClient;
@@ -57,6 +58,6 @@ public class AzureConfigAdapter implements GenericConfigAdapter {
     }
 
     private String getConfigurationValue(String key) {
-        return configurationClient.getConfigurationSetting(key, azureProperties.label()).getValue();
+        return configurationClient.getConfigurationSetting(key, azureProperties.label().global()).getValue();
     }
 }

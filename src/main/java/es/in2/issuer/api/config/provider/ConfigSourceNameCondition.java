@@ -8,11 +8,16 @@ public class ConfigSourceNameCondition implements Condition {
 
     @Override
     public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+
         String expectedImplementation = context.getEnvironment().getProperty("app.config-source.name");
 
         if (expectedImplementation != null) {
-            String actualImplementation = (String) metadata.getAnnotationAttributes(ConfigSourceName.class.getName()).get("name");
-            return expectedImplementation.equals(actualImplementation);
+            try {
+                String actualImplementation = metadata.getAnnotationAttributes(ConfigSourceName.class.getName()).get("name").toString();
+                return expectedImplementation.equals(actualImplementation);
+            } catch (Exception e) {
+                return false;
+            }
         }
         return false;
     }
