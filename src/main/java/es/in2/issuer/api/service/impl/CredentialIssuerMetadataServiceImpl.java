@@ -1,9 +1,8 @@
 package es.in2.issuer.api.service.impl;
 
-import es.in2.issuer.api.config.provider.ConfigProvider;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
-import es.in2.issuer.api.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
@@ -25,16 +24,16 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
     //private final AzureKeyVaultService azureKeyVaultService;
-    private final ConfigProvider configProvider;
+    private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
     private String keycloakUrl;
     private String did;
 
     @PostConstruct
     private void initializeIssuerApiBaseUrl() {
-        issuerApiBaseUrl = configProvider.getIssuerDomain();
-        keycloakUrl = configProvider.getKeycloakDomain();
-        did = configProvider.getKeycloakDid();
+        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+        keycloakUrl = appConfiguration.getKeycloakDomain();
+        did = appConfiguration.getKeycloakDid();
         //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
     @Override

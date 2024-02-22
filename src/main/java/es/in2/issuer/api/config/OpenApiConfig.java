@@ -1,7 +1,6 @@
 package es.in2.issuer.api.config;
 
 import es.in2.issuer.api.config.properties.OpenApiProperties;
-import es.in2.issuer.api.config.provider.ConfigProvider;
 import es.in2.issuer.api.util.HttpUtils;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -33,13 +32,13 @@ public class OpenApiConfig {
 
     private final OpenApiProperties openApiProperties;
 
-    private final ConfigProvider configProvider;
+    private final AppConfiguration appConfiguration;
 
 
     private String openApiServerUrl;
     @PostConstruct
     private void initializeOpenApiServerUrl() {
-        openApiServerUrl = configProvider.getIssuerDomain();
+        openApiServerUrl = appConfiguration.getIssuerDomain();
     }
 
     @Bean

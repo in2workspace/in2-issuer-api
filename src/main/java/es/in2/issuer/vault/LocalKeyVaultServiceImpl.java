@@ -1,6 +1,5 @@
-package es.in2.issuer.api.vault;
+package es.in2.issuer.vault;
 
-import es.in2.issuer.api.vault.AzureKeyVaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;

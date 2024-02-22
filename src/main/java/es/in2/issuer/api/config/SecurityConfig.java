@@ -1,6 +1,5 @@
 package es.in2.issuer.api.config;
 
-import es.in2.issuer.api.config.provider.ConfigProvider;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +26,13 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final ConfigProvider configProvider;
+    private final AppConfiguration appConfiguration;
     private String keycloakUrl;
 
     @PostConstruct
     private void initializeIssuerUri() {
         //issuerUri = getIssuerUri().block();
-        keycloakUrl = configProvider.getKeycloakDomain();
+        keycloakUrl = appConfiguration.getKeycloakDomain();
     }
 
     @Bean

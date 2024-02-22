@@ -1,12 +1,12 @@
-package es.in2.issuer.api.config.provider;
+package es.in2.issuer.configuration.model;
 
-public enum ConfigProviderNameEnum {
+public enum ConfigProviderName {
     AZURE("azure"),
     YAML("yaml");
 
     private final String providerName;
 
-    ConfigProviderNameEnum(String providerName) {
+    ConfigProviderName(String providerName) {
         this.providerName = providerName;
     }
 

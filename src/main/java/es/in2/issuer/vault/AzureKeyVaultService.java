@@ -1,4 +1,4 @@
-package es.in2.issuer.api.vault;
+package es.in2.issuer.vault;
 
 import reactor.core.publisher.Mono;
 

@@ -1,13 +1,13 @@
-package es.in2.issuer.api.config.provider.properties;
+package es.in2.issuer.api.config.properties;
 
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "app.secrets")
+@ConfigurationProperties(prefix = "app.configs")
 @Validated
-public record SecretProperties(
+public record AppConfigurationProperties(
         @NotNull String keycloakDomain,
         @NotNull String issuerDomain,
         @NotNull String authenticSourcesDomain,
@@ -17,7 +17,7 @@ public record SecretProperties(
         @NotNull String issuerDid
 ) {
     @ConstructorBinding
-    public SecretProperties(String keycloakDomain, String issuerDomain, String authenticSourcesDomain, String keyVaultDomain, String remoteSignatureDomain, String keycloakDid, String issuerDid) {
+    public AppConfigurationProperties(String keycloakDomain, String issuerDomain, String authenticSourcesDomain, String keyVaultDomain, String remoteSignatureDomain, String keycloakDid, String issuerDid) {
         this.keycloakDomain = keycloakDomain;
         this.issuerDomain = issuerDomain;
         this.authenticSourcesDomain = authenticSourcesDomain;

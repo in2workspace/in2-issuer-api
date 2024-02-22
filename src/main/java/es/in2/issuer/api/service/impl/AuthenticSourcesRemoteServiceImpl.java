@@ -2,7 +2,7 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.provider.ConfigProvider;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.AuthenticSourcesGetUserResponseDTO;
 import es.in2.issuer.api.model.dto.CommitCredentialDTO;
 import es.in2.issuer.api.exception.UserDoesNotExistException;
@@ -27,14 +27,14 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     @Value("${authentic-sources.routes.get-user}")
     private String apiUsers;
 
-    private final ConfigProvider configProvider;
+    private final AppConfiguration appConfiguration;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
     private String authenticSourcesBaseUrl;
     @PostConstruct
     private void initializeAuthenticSourcesBaseUrl() {
-        authenticSourcesBaseUrl = configProvider.getAuthenticSourcesDomain();
+        authenticSourcesBaseUrl = appConfiguration.getAuthenticSourcesDomain();
     }
 
     @Override

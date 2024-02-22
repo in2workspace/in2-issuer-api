@@ -1,4 +1,4 @@
-package es.in2.issuer.api.config.provider;
+package es.in2.issuer.configuration.util;
 
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;

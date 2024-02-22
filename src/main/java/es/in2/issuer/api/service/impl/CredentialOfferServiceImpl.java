@@ -4,14 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Base64URL;
-import es.in2.issuer.api.config.provider.ConfigProvider;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.model.dto.Grant;
 import es.in2.issuer.api.exception.CredentialTypeUnsuportedException;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.api.vault.AzureKeyVaultService;
+import es.in2.issuer.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.service.CredentialOfferService;
 import es.in2.issuer.api.util.HttpUtils;
@@ -40,7 +40,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
-    private final ConfigProvider configProvider;
+    private final AppConfiguration appConfiguration;
 
     private String issuerApiBaseUrl;
     private String keycloakUrl;
@@ -48,9 +48,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     @PostConstruct
     private void initializeProperties() {
-        issuerApiBaseUrl = configProvider.getIssuerDomain();
-        keycloakUrl = configProvider.getKeycloakDomain();
-        did = configProvider.getKeycloakDid();
+        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+        keycloakUrl = appConfiguration.getKeycloakDomain();
+        did = appConfiguration.getKeycloakDid();
         //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
 

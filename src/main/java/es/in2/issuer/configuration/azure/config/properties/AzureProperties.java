@@ -1,16 +1,15 @@
-package es.in2.issuer.api.config.provider.properties;
+package es.in2.issuer.configuration.azure.config.properties;
 
-import es.in2.issuer.api.config.provider.ConfigProviderNameEnum;
-import es.in2.issuer.api.config.provider.ConfigSourceName;
+import es.in2.issuer.configuration.model.ConfigProviderName;
+import es.in2.issuer.configuration.util.ConfigSourceName;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
-import org.springframework.context.annotation.Profile;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Optional;
-@ConfigSourceName(name = ConfigProviderNameEnum.AZURE)
+@ConfigSourceName(name = ConfigProviderName.AZURE)
 @ConfigurationProperties(prefix = "azure.app.config")
 @Validated
 public record AzureProperties(

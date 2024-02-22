@@ -1,6 +1,6 @@
-package es.in2.issuer.api.config.provider;
+package es.in2.issuer.configuration.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import es.in2.issuer.configuration.service.GenericConfigAdapter;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
