@@ -1,5 +1,8 @@
 package es.in2.issuer.api.config.provider;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class ConfigProviderImpl implements ConfigProvider {
     private final GenericConfigAdapter genericConfigAdapter;
 
