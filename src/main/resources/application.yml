@@ -5,6 +5,8 @@ spring:
 app:
   config-source:
     name: yaml
+  iam-source:
+    name: keycloak
 
 logging:
   level:
