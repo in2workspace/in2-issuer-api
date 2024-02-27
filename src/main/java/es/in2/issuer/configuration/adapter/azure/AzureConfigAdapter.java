@@ -14,12 +14,10 @@ import org.springframework.stereotype.Component;
 public class AzureConfigAdapter implements GenericConfigAdapter {
     private final ConfigurationClient configurationClient;
     private final AzureProperties azureProperties;
-    private final AppConfigurationProperties appConfigurationProperties;
 
     public AzureConfigAdapter(ConfigurationClient configurationClient, AzureProperties azureProperties, AppConfigurationProperties appConfigurationProperties) {
         this.configurationClient = configurationClient;
         this.azureProperties = azureProperties;
-        this.appConfigurationProperties = appConfigurationProperties;
     }
 
     @Override
