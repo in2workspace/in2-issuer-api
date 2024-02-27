@@ -1,13 +1,11 @@
-/*
+
 package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.util.HttpUtils;
 import org.junit.jupiter.api.Test;
@@ -27,13 +25,9 @@ import static org.mockito.Mockito.*;
 class CredentialOfferServiceImplTest {
 
     @Mock
-    private AppConfigService appConfigService;
-
-    @Mock
-    private AzureKeyVaultService azureKeyVaultService;
-
-    @Mock
     private CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
+    @Mock
+    private AppConfiguration appConfiguration;
 
     @Mock
     private HttpUtils httpUtils;
@@ -49,52 +43,33 @@ class CredentialOfferServiceImplTest {
 
 
     @Test
-    void testInitializeAzureProperties() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
-        lenient().when(azureKeyVaultService.getSecretByKey(any())).thenReturn(Mono.just("dummyValue"));
+    void testInitializeProperties() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        lenient().when(appConfiguration.getIssuerDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+        lenient().when(appConfiguration.getKeycloakDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+        lenient().when(appConfiguration.getKeycloakDid()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
-        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeAzureProperties");
+        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeProperties");
         privateMethod.setAccessible(true);
 
         privateMethod.invoke(credentialOfferService);
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY);
-        verify(azureKeyVaultService, times(1)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
+        verify(appConfiguration, times(1)).getIssuerDomain();
+        verify(appConfiguration, times(1)).getKeycloakDomain();
+        verify(appConfiguration, times(1)).getKeycloakDid();
 
     }
 
     @Test
-    void testInitializeAzurePropertiesThrowsErrorOnKeyVaultService() throws NoSuchMethodException {
+    void testInitializePropertiesThrowsErrorOnAppConfigService() throws NoSuchMethodException {
 
-        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeAzureProperties");
+        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeProperties");
         privateMethod.setAccessible(true);
 
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
-        lenient().when(azureKeyVaultService.getSecretByKey(any())).thenReturn(Mono.error(new RuntimeException("Simulated error")));
+        when(appConfiguration.getIssuerDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
 
         assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(credentialOfferService));
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY);
-        verify(azureKeyVaultService, times(1)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
-
-    }
-
-    @Test
-    void testInitializeAzurePropertiesThrowsErrorOnAppConfigService() throws NoSuchMethodException {
-
-        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeAzureProperties");
-        privateMethod.setAccessible(true);
-
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.error(new RuntimeException("Simulated error")));
-        lenient().when(azureKeyVaultService.getSecretByKey(any())).thenReturn(Mono.just("dummyValue"));
-
-        assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(credentialOfferService));
-
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(azureKeyVaultService, times(0)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
-
+        verify(appConfiguration, times(1)).getIssuerDomain();
     }
 
     // TODO : Mock waltid services call
@@ -297,4 +272,3 @@ class CredentialOfferServiceImplTest {
 
     }
 }
-*/

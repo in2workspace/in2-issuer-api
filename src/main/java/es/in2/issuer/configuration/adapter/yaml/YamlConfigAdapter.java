@@ -1,4 +1,4 @@
-package es.in2.issuer.configuration.yaml.adapter;
+package es.in2.issuer.configuration.adapter.yaml;
 
 import es.in2.issuer.configuration.model.ConfigProviderName;
 import es.in2.issuer.configuration.util.ConfigSourceName;
