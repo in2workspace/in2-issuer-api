@@ -1,11 +1,11 @@
 app:
   configs:
-    keycloak-domain: http://localhost:8080
+    iam-domain: http://localhost:8080
     issuer-domain: http://localhost:8071
     authentic-sources-domain: http://localhost:8072
     key-vault-domain: http://localhost:8081
     remote-signature-domain: http://localhost:8050
-    keycloak-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    iam-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
     issuer-did: ""
 
 management:

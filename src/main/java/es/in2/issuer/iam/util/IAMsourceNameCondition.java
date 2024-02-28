@@ -17,7 +17,7 @@ public class IAMsourceNameCondition implements Condition {
 
         if (expectedImplementation != null) {
             try {
-                String actualImplementation = Objects.requireNonNull(metadata.getAnnotationAttributes(ConfigSourceName.class.getName())).get("name").toString();
+                String actualImplementation = Objects.requireNonNull(metadata.getAnnotationAttributes(IAMsourceName.class.getName())).get("name").toString();
                 return expectedImplementation.equals(actualImplementation);
             } catch (Exception e) {
                 return false;

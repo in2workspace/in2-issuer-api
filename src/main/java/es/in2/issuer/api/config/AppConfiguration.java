@@ -15,8 +15,8 @@ public class AppConfiguration {
         this.appConfigurationProperties = appConfigurationProperties;
     }
 
-    public String getKeycloakDomain() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.keycloakDomain());
+    public String getIAMdomain() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamDomain());
     }
 
     public String getIssuerDomain() {
@@ -35,8 +35,8 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.remoteSignatureDomain());
     }
 
-    public String getKeycloakDid() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.keycloakDid());
+    public String getIAMdid() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamDid());
     }
 
     public String getIssuerDid() {

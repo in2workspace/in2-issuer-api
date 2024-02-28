@@ -4,6 +4,7 @@ import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
+import es.in2.issuer.iam.service.GenericIAMadapter;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -24,22 +25,25 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
     //private final AzureKeyVaultService azureKeyVaultService;
+    private final GenericIAMadapter genericIAMadapter;
+
     private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
-    private String keycloakUrl;
-    private String did;
+    //private String keycloakUrl;
+    //private String did;
 
     @PostConstruct
     private void initializeIssuerApiBaseUrl() {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-        keycloakUrl = appConfiguration.getKeycloakDomain();
-        did = appConfiguration.getKeycloakDid();
+        //keycloakUrl = appConfiguration.getKeycloakDomain();
+        //did = appConfiguration.getKeycloakDid();
         //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String issuerApiBaseUrlWithProtocol = ensureUrlHasProtocol(issuerApiBaseUrl);
-        String tokenUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
+        //String tokenUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
+        String tokenUri = genericIAMadapter.getTokenUri();
 
         return Mono.just(new CredentialIssuerMetadata(
                 issuerApiBaseUrlWithProtocol,

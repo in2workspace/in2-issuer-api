@@ -8,22 +8,22 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app.configs")
 @Validated
 public record AppConfigurationProperties(
-        @NotNull String keycloakDomain,
+        @NotNull String iamDomain,
         @NotNull String issuerDomain,
         @NotNull String authenticSourcesDomain,
         @NotNull String keyVaultDomain,
         @NotNull String remoteSignatureDomain,
-        @NotNull String keycloakDid,
+        @NotNull String iamDid,
         @NotNull String issuerDid
 ) {
     @ConstructorBinding
-    public AppConfigurationProperties(String keycloakDomain, String issuerDomain, String authenticSourcesDomain, String keyVaultDomain, String remoteSignatureDomain, String keycloakDid, String issuerDid) {
-        this.keycloakDomain = keycloakDomain;
+    public AppConfigurationProperties(String iamDomain, String issuerDomain, String authenticSourcesDomain, String keyVaultDomain, String remoteSignatureDomain, String iamDid, String issuerDid) {
+        this.iamDomain = iamDomain;
         this.issuerDomain = issuerDomain;
         this.authenticSourcesDomain = authenticSourcesDomain;
         this.keyVaultDomain = keyVaultDomain;
         this.remoteSignatureDomain = remoteSignatureDomain;
-        this.keycloakDid = keycloakDid;
+        this.iamDid = iamDid;
         this.issuerDid = issuerDid;
     }
 }
