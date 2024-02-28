@@ -1,5 +1,6 @@
 package es.in2.issuer.configuration.util;
 
+import es.in2.issuer.configuration.exception.ConfigAdapterFactoryException;
 import es.in2.issuer.configuration.service.GenericConfigAdapter;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ public class ConfigAdapterFactory {
     public GenericConfigAdapter getAdapter() {
         //check if list is empty or size is greater than 1
         if (configAdapters.isEmpty() || configAdapters.size() > 1) {
-            throw new RuntimeException("Invalid number of config services found");
+            throw new ConfigAdapterFactoryException(configAdapters.size());
         }
 
         return configAdapters.get(0);
