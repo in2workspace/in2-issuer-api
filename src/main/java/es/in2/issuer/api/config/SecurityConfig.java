@@ -1,6 +1,6 @@
 package es.in2.issuer.api.config;
 
-import es.in2.issuer.iam.service.GenericIAMadapter;
+import es.in2.issuer.iam.util.IAMadapterFactory;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final GenericIAMadapter genericIAMadapter;
+    private final IAMadapterFactory iamAdapterFactory;
     //private final AppConfiguration appConfiguration;
     //private String keycloakUrl;
 
@@ -42,7 +42,7 @@ public class SecurityConfig {
     public ReactiveJwtDecoder jwtDecoder(){
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
                 //.withJwkSetUri("https://" + keycloakUrl + "/realms/EAAProvider/protocol/openid-connect/certs")
-                .withJwkSetUri(genericIAMadapter.getJwtDecoder())
+                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
 
@@ -55,7 +55,7 @@ public class SecurityConfig {
     @Profile("local")
     public ReactiveJwtDecoder jwtDecoderLocal(){
         //return ReactiveJwtDecoders.fromIssuerLocation(keycloakUrl + "/realms/EAAProvider");
-        return ReactiveJwtDecoders.fromIssuerLocation(genericIAMadapter.getJwtDecoderLocal());
+        return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());
     }
 
     @Bean

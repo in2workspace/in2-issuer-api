@@ -1,7 +1,8 @@
 package es.in2.issuer.iam.model;
 
 public enum IAMproviderName {
-    KEYCLOAK("keycloak");
+    KEYCLOAK("keycloak"),
+    OTHER("other");
 
     private final String providerName;
 

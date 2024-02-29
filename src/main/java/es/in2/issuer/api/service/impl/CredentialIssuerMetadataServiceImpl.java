@@ -4,7 +4,7 @@ import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
-import es.in2.issuer.iam.service.GenericIAMadapter;
+import es.in2.issuer.iam.util.IAMadapterFactory;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
     //private final AzureKeyVaultService azureKeyVaultService;
-    private final GenericIAMadapter genericIAMadapter;
+    private final IAMadapterFactory iamAdapterFactory;
 
     private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
@@ -43,7 +43,7 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String issuerApiBaseUrlWithProtocol = ensureUrlHasProtocol(issuerApiBaseUrl);
         //String tokenUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
-        String tokenUri = genericIAMadapter.getTokenUri();
+        String tokenUri = iamAdapterFactory.getAdapter().getTokenUri();
 
         return Mono.just(new CredentialIssuerMetadata(
                 issuerApiBaseUrlWithProtocol,

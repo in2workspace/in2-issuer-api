@@ -11,7 +11,7 @@ import es.in2.issuer.api.model.dto.Grant;
 import es.in2.issuer.api.exception.CredentialTypeUnsuportedException;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.iam.service.GenericIAMadapter;
+import es.in2.issuer.iam.util.IAMadapterFactory;
 import es.in2.issuer.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.service.CredentialOfferService;
@@ -43,7 +43,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final ObjectMapper objectMapper;
 
     private final AppConfiguration appConfiguration;
-    private final GenericIAMadapter genericIAMadapter;
+    private final IAMadapterFactory iamAdapterFactory;
     private String issuerApiBaseUrl;
     //private String keycloakUrl;
     //private String did;
@@ -118,7 +118,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     private Mono<String> getPreAuthorizationCodeFromKeycloak(String accessToken) {
         //String preAuthCodeUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
-        String preAuthCodeUri = genericIAMadapter.getPreAuthCodeUri();
+        String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
         return Mono.fromCallable(() -> executeGetRequest(url, accessToken))
                 .flatMap(responseMono -> responseMono.flatMap(response -> {
