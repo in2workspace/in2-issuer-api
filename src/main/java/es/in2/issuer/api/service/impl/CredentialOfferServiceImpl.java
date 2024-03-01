@@ -51,15 +51,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
         keycloakUrl = appConfiguration.getKeycloakDomain();
         did = appConfiguration.getKeycloakDid();
-        //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
 
     @Override
     public Mono<String> createCredentialOfferUriForPreAuthorizedCodeFlow(String accessToken, String credentialType) {

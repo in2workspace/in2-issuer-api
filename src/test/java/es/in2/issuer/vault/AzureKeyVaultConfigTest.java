@@ -26,7 +26,7 @@ class AzureKeyVaultConfigTest {
     private AzureKeyVaultConfig azureKeyVaultConfig;
 
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this); // Initialize mocks
     }
 

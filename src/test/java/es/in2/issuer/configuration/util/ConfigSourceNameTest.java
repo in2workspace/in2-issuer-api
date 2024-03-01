@@ -29,10 +29,10 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class ConfigSourceNameTest {
+class ConfigSourceNameTest {
 
     @Test
-    public void testConditionMatches() {
+    void testConditionMatches() {
         // Mock Environment
         Environment environment = mock(Environment.class);
         when(environment.getProperty("app.config-source.name")).thenReturn("yaml");

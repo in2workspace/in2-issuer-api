@@ -6,10 +6,10 @@ import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class GenericResponseErrorTest {
+class GenericResponseErrorTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;
@@ -35,7 +35,7 @@ public class GenericResponseErrorTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;

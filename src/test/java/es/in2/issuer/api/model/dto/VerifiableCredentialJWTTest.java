@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class VerifiableCredentialJWTTest {
+class VerifiableCredentialJWTTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedToken = "sampleToken";
 
@@ -19,7 +19,7 @@ public class VerifiableCredentialJWTTest {
     }
 
     @Test
-    public void testSetters() {
+    void testSetters() {
         // Arrange
         VerifiableCredentialJWT jwt = new VerifiableCredentialJWT();
 
@@ -31,7 +31,7 @@ public class VerifiableCredentialJWTTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedToken = "sampleToken";
 

@@ -65,11 +65,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     }
 
-    private SignedData toSignedData(String signedSignatureResponse) {
+    private SignedData toSignedData(String signedSignatureResponse){
         try {
             return objectMapper.readValue(signedSignatureResponse, SignedData.class);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            log.error("Error: {}", e.getMessage());
+            return null;
         }
     }
 }

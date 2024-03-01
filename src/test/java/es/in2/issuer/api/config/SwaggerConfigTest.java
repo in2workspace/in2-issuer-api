@@ -2,12 +2,9 @@ package es.in2.issuer.api.config;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
 
 class SwaggerConfigTest {
 
@@ -20,13 +17,13 @@ class SwaggerConfigTest {
     }
 
     @Test
-    public void testPublicApiGroupedOpenApiNotNull() {
+    void testPublicApiGroupedOpenApiNotNull() {
         GroupedOpenApi publicApi = swaggerConfig.publicApi();
         assertNotNull(publicApi, "Public API GroupedOpenApi should not be null");
     }
 
     @Test
-    public void testPrivateApiGroupedOpenApiNotNull() {
+    void testPrivateApiGroupedOpenApiNotNull() {
         GroupedOpenApi privateApi = swaggerConfig.privateApi();
         assertNotNull(privateApi, "Private API GroupedOpenApi should not be null");
     }

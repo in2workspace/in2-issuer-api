@@ -30,7 +30,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetKeycloakDomain() {
+    void testGetKeycloakDomain() {
         String expected = "keycloak-domain";
         when(appConfigurationProperties.keycloakDomain()).thenReturn("keycloak.domain");
         when(genericConfigAdapter.getConfiguration("keycloak.domain")).thenReturn(expected);
@@ -38,7 +38,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetIssuerDomain() {
+    void testGetIssuerDomain() {
         String expected = "issuer-domain";
         when(appConfigurationProperties.issuerDomain()).thenReturn("issuer.domain");
         when(genericConfigAdapter.getConfiguration("issuer.domain")).thenReturn(expected);
@@ -46,7 +46,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetAuthenticSourcesDomain() {
+    void testGetAuthenticSourcesDomain() {
         String expected = "authentic-sources-domain";
         when(appConfigurationProperties.authenticSourcesDomain()).thenReturn("authentic.sources.domain");
         when(genericConfigAdapter.getConfiguration("authentic.sources.domain")).thenReturn(expected);
@@ -54,7 +54,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetKeyVaultDomain() {
+    void testGetKeyVaultDomain() {
         String expected = "key-vault-domain";
         when(appConfigurationProperties.keyVaultDomain()).thenReturn("key.vault.domain");
         when(genericConfigAdapter.getConfiguration("key.vault.domain")).thenReturn(expected);
@@ -62,7 +62,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetRemoteSignatureDomain() {
+    void testGetRemoteSignatureDomain() {
         String expected = "remote-signature-domain";
         when(appConfigurationProperties.remoteSignatureDomain()).thenReturn("remote.signature.domain");
         when(genericConfigAdapter.getConfiguration("remote.signature.domain")).thenReturn(expected);
@@ -70,7 +70,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetKeycloakDid() {
+    void testGetKeycloakDid() {
         String expected = "keycloak-did";
         when(appConfigurationProperties.keycloakDid()).thenReturn("keycloak.did");
         when(genericConfigAdapter.getConfiguration("keycloak.did")).thenReturn(expected);
@@ -78,7 +78,7 @@ class AppConfigurationTest {
     }
 
     @Test
-    public void testGetIssuerDid() {
+    void testGetIssuerDid() {
         String expected = "issuer-did";
         when(appConfigurationProperties.issuerDid()).thenReturn("issuer.did");
         when(genericConfigAdapter.getConfiguration("issuer.did")).thenReturn(expected);

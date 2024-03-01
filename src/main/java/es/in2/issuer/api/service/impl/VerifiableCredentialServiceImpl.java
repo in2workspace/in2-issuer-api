@@ -63,13 +63,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     @PostConstruct
     private void initializeAzureProperties() {
         didElsi = appConfiguration.getIssuerDid();
-        //didElsi = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_INFO_ID_SECRET).block();
-    }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
     }
 
     @Override

@@ -33,7 +33,7 @@ class SecurityConfigTest {
     }
 
     @Test
-    public void testJwtDecoderLocal() {
+    void testJwtDecoderLocal() {
         try (MockedStatic<ReactiveJwtDecoders> mocked = Mockito.mockStatic(ReactiveJwtDecoders.class)) {
             // Mock the static method call
             mocked.when(() -> ReactiveJwtDecoders.fromIssuerLocation(anyString()))
@@ -49,26 +49,26 @@ class SecurityConfigTest {
     }
 
     @Test
-    public void testJwtDecoder() {
+    void testJwtDecoder() {
         // Test for the non-"local" profile
         ReactiveJwtDecoder jwtDecoder = securityConfig.jwtDecoder();
         assertNotNull(jwtDecoder, "JwtDecoder should not be null for non-'local' profiles");
     }
 
     @Test
-    public void testCorsConfigurationSource() {
+    void testCorsConfigurationSource() {
         var corsConfigurationSource = securityConfig.corsConfigurationSource();
         assertNotNull(corsConfigurationSource, "CorsConfigurationSource should not be null");
     }
 
     @Test
-    public void testWebSecurityCustomizer() {
+    void testWebSecurityCustomizer() {
         var webSecurityCustomizer = securityConfig.webSecurityCustomizer();
         assertNotNull(webSecurityCustomizer, "WebSecurityCustomizer should not be null");
     }
 
     @Test
-    public void testGetSwaggerPaths() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    void testGetSwaggerPaths() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         SecurityConfig securityConfig = new SecurityConfig(appConfiguration);
 
         // Access the private method

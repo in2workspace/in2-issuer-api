@@ -6,10 +6,10 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class VerifiableCredentialResponseDTOTest {
+class VerifiableCredentialResponseDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
 
         String expectedFormat = "jwt_vc_json";
@@ -33,7 +33,7 @@ public class VerifiableCredentialResponseDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
 
         String expectedFormat = "jwt_vc_json";

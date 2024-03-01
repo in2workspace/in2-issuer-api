@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class NonceResponseDTOTest {
+class NonceResponseDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedNonce = "J_8u2wAflTi2l2wQh7P_HQ";
         String expectedNonceExpiresIn = "600";
@@ -21,7 +21,7 @@ public class NonceResponseDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedNonce = "J_8u2wAflTi2l2wQh7P_HQ";
         String expectedNonceExpiresIn = "600";

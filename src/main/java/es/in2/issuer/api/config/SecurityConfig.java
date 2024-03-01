@@ -31,7 +31,6 @@ public class SecurityConfig {
 
     @PostConstruct
     private void initializeIssuerUri() {
-        //issuerUri = getIssuerUri().block();
         keycloakUrl = appConfiguration.getKeycloakDomain();
     }
 

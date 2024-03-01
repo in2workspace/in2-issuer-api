@@ -23,7 +23,6 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    //private final AzureKeyVaultService azureKeyVaultService;
     private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
     private String keycloakUrl;
@@ -34,7 +33,6 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
         keycloakUrl = appConfiguration.getKeycloakDomain();
         did = appConfiguration.getKeycloakDid();
-        //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
@@ -69,12 +67,4 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                 )
         );
     }
-/*
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
- */
 }

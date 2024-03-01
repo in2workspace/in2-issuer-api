@@ -25,7 +25,7 @@ class AzureAppConfigurationConfigTest {
     }
 
     @Test
-    public void testAzureTokenCredential() {
+    void testAzureTokenCredential() {
         // Execution
         TokenCredential tokenCredential = azureAppConfigurationConfig.azureTokenCredential();
 
@@ -35,7 +35,7 @@ class AzureAppConfigurationConfigTest {
     }
 
     @Test
-    public void testAzureConfigurationClient() {
+    void testAzureConfigurationClient() {
         // Setup
         TokenCredential tokenCredential = mock(TokenCredential.class);
         when(azureProperties.endpoint()).thenReturn("https://your-endpoint-here");

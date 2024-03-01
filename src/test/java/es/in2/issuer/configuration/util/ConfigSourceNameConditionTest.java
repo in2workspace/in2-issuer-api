@@ -7,12 +7,11 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.env.Environment;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ConfigSourceNameConditionTest {
     @Test
-    public void testMatchesWhenPropertyMatchesAnnotation() {
+    void testMatchesWhenPropertyMatchesAnnotation() {
         // Mock Environment
         Environment environment = mock(Environment.class);
         when(environment.getProperty("app.config-source.name")).thenReturn("value");
@@ -34,7 +33,7 @@ class ConfigSourceNameConditionTest {
     }
 
     @Test
-    public void testMatchesWhenPropertyDoesNotMatchAnnotation() {
+    void testMatchesWhenPropertyDoesNotMatchAnnotation() {
         // Mock Environment
         Environment environment = mock(Environment.class);
         when(environment.getProperty("app.config-source.name")).thenReturn("value");
@@ -56,7 +55,7 @@ class ConfigSourceNameConditionTest {
     }
 
     @Test
-    public void testMatchesWhenPropertyIsNull() {
+    void testMatchesWhenPropertyIsNull() {
         // Mock Environment
         Environment environment = mock(Environment.class);
         when(environment.getProperty("app.config-source.name")).thenReturn(null);
@@ -76,7 +75,7 @@ class ConfigSourceNameConditionTest {
     }
 
     @Test
-    public void testMatchesWhenExceptionIsThrown() {
+    void testMatchesWhenExceptionIsThrown() {
         // Mock Environment
         Environment environment = mock(Environment.class);
         when(environment.getProperty("app.config-source.name")).thenReturn("value");
@@ -85,15 +84,15 @@ class ConfigSourceNameConditionTest {
         ConditionContext context = mock(ConditionContext.class);
         when(context.getEnvironment()).thenReturn(environment);
 
-        // Mock AnnotationMetadata to throw exception
-        AnnotatedTypeMetadata metadata = mock(AnnotatedTypeMetadata.class);
+        // Mock AnnotationMetadata
+        AnnotationMetadata metadata = mock(AnnotationMetadata.class);
         when(metadata.getAnnotationAttributes(ConfigSourceName.class.getName()))
-                .thenThrow(NullPointerException.class);
+                .thenThrow(new RuntimeException("Exception occurred"));
 
         // Instantiate ConfigSourceNameCondition
         ConfigSourceNameCondition condition = new ConfigSourceNameCondition();
 
-        // This should throw NullPointerException
-        condition.matches(context, metadata);
+        // Test
+        assertFalse(condition.matches(context, metadata));
     }
 }

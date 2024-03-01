@@ -27,7 +27,7 @@ class AzureConfigAdapterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        azureConfigAdapter = new AzureConfigAdapter(configurationClient, azureProperties, null);
+        azureConfigAdapter = new AzureConfigAdapter(configurationClient, azureProperties);
     }
 
     @Test

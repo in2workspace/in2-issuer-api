@@ -15,7 +15,7 @@ import java.util.Date;
 
 public class Utils {
 
-    public Utils() {
+    private Utils() {
         throw new IllegalStateException("Utility class");
     }
 
@@ -37,7 +37,7 @@ public class Utils {
         return objectMapper.writeValueAsString(data);
     }
 
-    public static String toJsonString(Object data) throws Exception {
+    public static String toJsonString(Object data) throws JsonProcessingException {
         return toJsonString(data, PropertyNamingStrategies.SNAKE_CASE);
     }
 
