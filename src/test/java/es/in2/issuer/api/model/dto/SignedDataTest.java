@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SignedDataTest {
+class SignedDataTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         SignatureType expectedType = SignatureType.COSE;
         String expectedData = "sampleData";
@@ -22,7 +22,7 @@ public class SignedDataTest {
     }
 
     @Test
-    public void defaultConstructorTest() {
+    void defaultConstructorTest() {
         // Arrange
         SignatureType expectedDefaultType = SignatureType.JADES;
         String expectedDefaultData = "";
@@ -36,7 +36,7 @@ public class SignedDataTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         SignatureType expectedType = SignatureType.COSE;
         String expectedData = "sampleData";

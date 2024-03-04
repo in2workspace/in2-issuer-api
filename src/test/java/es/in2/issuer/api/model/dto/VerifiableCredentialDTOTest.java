@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class VerifiableCredentialDTOTest {
+class VerifiableCredentialDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedFormat = "jwt_vc_json";
         String expectedCredential = "LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L";
@@ -30,7 +30,7 @@ public class VerifiableCredentialDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedFormat = "jwt_vc_json";
         String expectedCredential = "LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L";

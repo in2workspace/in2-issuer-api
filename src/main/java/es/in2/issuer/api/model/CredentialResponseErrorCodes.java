@@ -12,5 +12,11 @@ public class CredentialResponseErrorCodes {
     public static final String USER_DOES_NOT_EXIST = "user_does_not_exist";
 
     public static final String DEFAULT_ERROR = "An error occurred";
+
+    // Private constructor to prevent instantiation
+    private CredentialResponseErrorCodes() {
+        // Private constructor to prevent instantiation
+        throw new IllegalStateException("Utility class");
+    }
 }
 

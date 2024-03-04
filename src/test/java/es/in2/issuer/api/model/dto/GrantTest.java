@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-public class GrantTest {
+class GrantTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedPreAuthorizedCode = "1234";
         boolean expectedUserPinRequired = true;
@@ -22,7 +22,7 @@ public class GrantTest {
     }
 
     @Test
-    public void testSetters() {
+    void testSetters() {
         // Arrange
         Grant grant = new Grant();
 
@@ -35,7 +35,7 @@ public class GrantTest {
         assertFalse(grant.isUserPinRequired());
     }
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedPreAuthorizedCode = "1234";
         boolean expectedUserPinRequired = true;

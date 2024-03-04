@@ -1,27 +1,17 @@
+
 package es.in2.issuer.api.service.impl;
 
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
-import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
-import es.in2.issuer.api.util.Utils;
-import id.walt.credentials.w3c.templates.VcTemplateService;
-import id.walt.servicematrix.ServiceMatrix;
+import es.in2.issuer.api.config.AppConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.publisher.Mono;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 
-import static es.in2.issuer.api.util.Constants.LEAR_CREDENTIAL;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -29,58 +19,37 @@ import static org.mockito.Mockito.*;
 class CredentialIssuerMetadataServiceImplTest {
 
     @Mock
-    private AppConfigService appConfigService;
-
-    @Mock
-    private AzureKeyVaultService azureKeyVaultService;
+    private AppConfiguration appConfiguration;
 
     @InjectMocks
     private CredentialIssuerMetadataServiceImpl credentialIssuerMetadataService;
 
     @Test
     void testInitializeIssuerApiBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
-        lenient().when(azureKeyVaultService.getSecretByKey(any())).thenReturn(Mono.just("dummySecret"));
+        lenient().when(appConfiguration.getIssuerDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+        lenient().when(appConfiguration.getKeycloakExternalDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+        lenient().when(appConfiguration.getKeycloakDid()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
         Method privateMethod = CredentialIssuerMetadataServiceImpl.class.getDeclaredMethod("initializeIssuerApiBaseUrl");
         privateMethod.setAccessible(true);
 
         privateMethod.invoke(credentialIssuerMetadataService);
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY);
-        verify(azureKeyVaultService, times(1)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
+        verify(appConfiguration, times(1)).getIssuerDomain();
+        verify(appConfiguration, times(1)).getKeycloakExternalDomain();
+        verify(appConfiguration, times(1)).getKeycloakDid();
     }
 
     @Test
     void testInitializeAppConfigThrowsError() throws NoSuchMethodException {
-
         Method privateMethod = CredentialIssuerMetadataServiceImpl.class.getDeclaredMethod("initializeIssuerApiBaseUrl");
         privateMethod.setAccessible(true);
 
-        lenient().when(appConfigService.getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY)).thenReturn(Mono.error(new RuntimeException("Simulated error")));
+        when(appConfiguration.getIssuerDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
 
         assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(credentialIssuerMetadataService));
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(appConfigService, times(0)).getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY);
-        verify(azureKeyVaultService, times(0)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
-    }
-
-    @Test
-    void testGetKeyVaultConfigurationWithError() throws NoSuchMethodException {
-
-        Method privateMethod = CredentialIssuerMetadataServiceImpl.class.getDeclaredMethod("initializeIssuerApiBaseUrl");
-        privateMethod.setAccessible(true);
-
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
-        lenient().when(azureKeyVaultService.getSecretByKey(any())).thenReturn(Mono.error(new RuntimeException("Simulated error")));
-
-        assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(credentialIssuerMetadataService));
-
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY);
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY);
-        verify(azureKeyVaultService, times(1)).getSecretByKey(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET);
+        verify(appConfiguration, times(1)).getIssuerDomain();
     }
 
     // TODO : Mock waltid services call
@@ -119,4 +88,3 @@ class CredentialIssuerMetadataServiceImplTest {
 //        assertEquals(expectedCredentials.size(), result.getCredentialsSupported().size());
 //    }
 }
-

@@ -5,10 +5,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SignatureRequestTest {
+class SignatureRequestTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         SignatureConfiguration expectedConfiguration = new SignatureConfiguration(SignatureType.COSE, null);
         String expectedData = "sampleData";
@@ -22,7 +22,7 @@ public class SignatureRequestTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         SignatureConfiguration expectedConfiguration = new SignatureConfiguration(SignatureType.COSE, null);
         String expectedData = "sampleData";

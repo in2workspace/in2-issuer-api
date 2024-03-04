@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 import java.util.Date;
 
@@ -18,8 +20,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class UtilsTest {
 
     @Test
-    void testConstructor() {
-        assertThrows(IllegalStateException.class, Utils::new);
+    void testConstructor() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+        Constructor<Utils> constructor = Utils.class.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        assertThrows(InvocationTargetException.class, constructor::newInstance);
     }
 
     @Test

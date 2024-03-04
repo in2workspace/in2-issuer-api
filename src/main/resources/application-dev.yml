@@ -1,0 +1,30 @@
+app:
+  configs:
+    keycloak-external-domain: http://localhost:8080
+    issuer-domain: http://localhost:8071
+    authentic-sources-domain: http://localhost:8072
+    key-vault-domain: http://localhost:8081
+    remote-signature-domain: http://localhost:8050
+    keycloak-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    issuer-did: ""
+
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, loggers, metrics
+      base-path: /
+      path-mapping:
+        health: health
+        info: info
+        loggers: loggers
+        metrics: metrics
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true

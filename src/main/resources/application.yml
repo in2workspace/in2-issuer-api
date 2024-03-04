@@ -2,22 +2,19 @@ spring:
   application:
     name: credential-issuer
 
-# AZURE APP CONFIG
-azure:
-  app:
-    config:
-      endpoint: ${APP_CONFIG_ENDPOINT}
-      label:
-        global: service-discovery
+app:
+  config-source:
+    name: yaml
+
 logging:
   level:
     org.springframework.security: INFO
     es.in2: DEBUG
 
 server:
-  port: 8080
+  #port: 8080
   # Local port
-  #port: 8071
+  port: 8071
 
 # Actuator Configuration
 management:

@@ -2,12 +2,12 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.SignatureConfiguration;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
 import es.in2.issuer.api.model.enums.SignatureType;
-import es.in2.issuer.api.service.AppConfigService;
+import es.in2.issuer.api.service.RemoteSignatureService;
 import es.in2.issuer.api.util.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.*;
 class RemoteSignatureServiceImplTest {
 
     @Mock
-    private AppConfigService appConfigService;
+    private AppConfiguration appConfiguration;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -46,14 +46,16 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testInitializeRemoteSignatureBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
+        //lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
+        lenient().when(appConfiguration.getRemoteSignatureDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
         Method privateMethod = RemoteSignatureServiceImpl.class.getDeclaredMethod("initializeRemoteSignatureBaseUrl");
         privateMethod.setAccessible(true);
 
         privateMethod.invoke(remoteSignatureService);
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.CROSS_REMOTE_SIGNATURE_BASE_URL_KEY);
+        //verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY);
+        verify(appConfiguration, times(1)).getRemoteSignatureDomain();
     }
 
     @Test
@@ -62,11 +64,11 @@ class RemoteSignatureServiceImplTest {
         Method privateMethod = RemoteSignatureServiceImpl.class.getDeclaredMethod("initializeRemoteSignatureBaseUrl");
         privateMethod.setAccessible(true);
 
-        lenient().when(appConfigService.getConfiguration(AppConfigurationKeys.CROSS_REMOTE_SIGNATURE_BASE_URL_KEY)).thenReturn(Mono.error(new RuntimeException("Simulated error")));
+        when(appConfiguration.getRemoteSignatureDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
 
         assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(remoteSignatureService));
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.CROSS_REMOTE_SIGNATURE_BASE_URL_KEY);
+        verify(appConfiguration, times(1)).getRemoteSignatureDomain();
     }
 
     @Test
@@ -122,11 +124,12 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void sign_JsonProcessingException_whenObjectMapper_readValue() throws JsonProcessingException {
-        ReflectionTestUtils.setField(remoteSignatureService,"remoteSignatureBaseUrl","http://baseurl");
-        ReflectionTestUtils.setField(remoteSignatureService,"sign","/sign");
+        // Set up
+        ReflectionTestUtils.setField(remoteSignatureService, "remoteSignatureBaseUrl", "http://baseurl");
+        ReflectionTestUtils.setField(remoteSignatureService, "sign", "/sign");
 
-        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(SignatureType.COSE,new HashMap<>());
-        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration,"data");
+        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(SignatureType.COSE, new HashMap<>());
+        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, "data");
         String expectedSignedDataJson = "{\"signature\":\"testSignature\",\"timestamp\":123456789}";
 
         String url = "http://baseurl" + "/api/v1" + "/sign";
@@ -136,19 +139,22 @@ class RemoteSignatureServiceImplTest {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
+        // Set up mocks
         when(objectMapper.writeValueAsString(signatureRequest)).thenReturn("signedSignature");
         when(objectMapper.readValue(anyString(), eq(SignedData.class))).thenThrow(new JsonProcessingException("Json processing error") {});
         when(httpUtils.postRequest(url, headers, "signedSignature")).thenReturn(Mono.just(expectedSignedDataJson));
 
-        assertThrows(RuntimeException.class, () -> {
-            try {
-                remoteSignatureService.sign(signatureRequest, token).block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        // Assert and verify
+        assertThrows(RuntimeException.class, () -> handleSignJsonProcessingError(remoteSignatureService, signatureRequest, token));
         verify(httpUtils).postRequest(url, headers, "signedSignature");
+    }
 
+    private void handleSignJsonProcessingError(RemoteSignatureService remoteSignatureService, SignatureRequest signatureRequest, String token) {
+        try {
+            remoteSignatureService.sign(signatureRequest, token).block();
+        } catch (Exception e) {
+            throw new RuntimeException("Error signing data", e);
+        }
     }
 
 }

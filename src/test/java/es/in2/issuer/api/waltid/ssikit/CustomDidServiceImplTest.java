@@ -1,6 +1,7 @@
 package es.in2.issuer.api.waltid.ssikit;
 
 import es.in2.issuer.api.util.Utils;
+import es.in2.issuer.waltid.ssikit.CustomDidService;
 import es.in2.issuer.waltid.ssikit.CustomKeyService;
 import es.in2.issuer.waltid.ssikit.impl.CustomDidServiceImpl;
 import id.walt.crypto.KeyAlgorithm;
@@ -69,10 +70,18 @@ class CustomDidServiceImplTest {
         when(customKeyService.generateKey()).thenReturn(Mono.error(new RuntimeException("Key generation failed")));
 
         // Act & Assert
-        assertThrows(RuntimeException.class, () -> customDidService.generateDidKey().block());
+        assertThrows(RuntimeException.class, () -> handleGenerateDidKeyError(customDidService));
 
         // Verify
         verify(customKeyService, times(1)).generateKey();
+    }
+
+    private void handleGenerateDidKeyError(CustomDidService customDidService) {
+        try {
+            customDidService.generateDidKey().block();
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating DID key", e);
+        }
     }
 
 }

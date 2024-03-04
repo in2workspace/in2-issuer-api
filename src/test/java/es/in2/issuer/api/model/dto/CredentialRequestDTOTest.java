@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CredentialRequestDTOTest {
+class CredentialRequestDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedFormat = "sampleFormat";
         ProofDTO expectedProofDTO = new ProofDTO("jwt_vc_json", "sampleJwt");
@@ -21,7 +21,7 @@ public class CredentialRequestDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedFormat = "sampleFormat";
         ProofDTO expectedProofDTO = new ProofDTO("jwt_vc_json", "sampleJwt");

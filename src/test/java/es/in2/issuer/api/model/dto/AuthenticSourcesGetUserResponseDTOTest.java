@@ -7,10 +7,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AuthenticSourcesGetUserResponseDTOTest {
+class AuthenticSourcesGetUserResponseDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         Map<String, Map<String, String>> expectedCredentialSubjectData = new HashMap<>();
         // Add sample data to expectedCredentialSubjectData if needed
@@ -23,7 +23,7 @@ public class AuthenticSourcesGetUserResponseDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         Map<String, Map<String, String>> expectedCredentialSubjectData = new HashMap<>();
         // Add sample data to expectedCredentialSubjectData if needed

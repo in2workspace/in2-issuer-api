@@ -3,6 +3,8 @@ package es.in2.issuer.api.util;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -128,41 +130,20 @@ class HttpUtilsTest {
         assertThrows(RuntimeException.class, () -> httpUtils.postRequest(url, headers, body));
     }
 
-    @Test
-    void ensureUrlHasProtocol_WithoutProtocol_ReturnsHttpsUrl() {
-        // Given
-        String url = "example.com";
-
+    @ParameterizedTest
+    @ValueSource(strings = {"example.com", "http://example.com", "https://example.com"})
+    void ensureUrlHasProtocol_ReturnsUrlWithHttpsProtocol(String url) {
         // When
         String result = HttpUtils.ensureUrlHasProtocol(url);
 
         // Then
-        assertEquals("https://example.com", result);
+        if (url.startsWith("http://")) {
+            assertEquals(url, result);
+        } else if (url.startsWith("https://")) {
+            assertEquals(url, result);
+        } else {
+            assertEquals("https://" + url, result);
+        }
     }
-
-    @Test
-    void ensureUrlHasProtocol_WithHttpProtocol_ReturnsOriginalUrl() {
-        // Given
-        String url = "http://example.com";
-
-        // When
-        String result = HttpUtils.ensureUrlHasProtocol(url);
-
-        // Then
-        assertEquals("http://example.com", result);
-    }
-
-    @Test
-    void ensureUrlHasProtocol_WithHttpsProtocol_ReturnsOriginalUrl() {
-        // Given
-        String url = "https://example.com";
-
-        // When
-        String result = HttpUtils.ensureUrlHasProtocol(url);
-
-        // Then
-        assertEquals("https://example.com", result);
-    }
-
 
 }

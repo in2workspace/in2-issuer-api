@@ -4,15 +4,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.util.Base64URL;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.model.dto.Grant;
 import es.in2.issuer.api.exception.CredentialTypeUnsuportedException;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
+import es.in2.issuer.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.service.CredentialOfferService;
 import es.in2.issuer.api.util.HttpUtils;
@@ -36,35 +35,23 @@ import static es.in2.issuer.api.util.Constants.LEAR_CREDENTIAL;
 @Slf4j
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
-    private final AppConfigService appConfigService;
     private final AzureKeyVaultService azureKeyVaultService;
     private final CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
+    private final AppConfiguration appConfiguration;
 
     private String issuerApiBaseUrl;
-    private String issuerUri;
+    private String keycloakUrl;
     private String did;
+
     @PostConstruct
-    private void initializeAzureProperties() {
-        issuerApiBaseUrl = getAppConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY).block();
-        issuerUri = getAppConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY).block();
-        did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
+    private void initializeProperties() {
+        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+        keycloakUrl = appConfiguration.getKeycloakExternalDomain();
+        did = appConfiguration.getKeycloakDid();
     }
-
-    private Mono<String> getAppConfiguration(String keyConfig) {
-        return appConfigService.getConfiguration(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
 
     @Override
     public Mono<String> createCredentialOfferUriForPreAuthorizedCodeFlow(String accessToken, String credentialType) {
@@ -120,7 +107,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     private Mono<String> getPreAuthorizationCodeFromKeycloak(String accessToken) {
-        String preAuthCodeUri = issuerUri + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
+        String preAuthCodeUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
         return Mono.fromCallable(() -> executeGetRequest(url, accessToken))
                 .flatMap(responseMono -> responseMono.flatMap(response -> {

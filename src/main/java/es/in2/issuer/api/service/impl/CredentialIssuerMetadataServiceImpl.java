@@ -1,10 +1,8 @@
 package es.in2.issuer.api.service.impl;
 
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
-import es.in2.issuer.api.service.AppConfigService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
@@ -25,22 +23,21 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    private final AppConfigService appConfigService;
-    private final AzureKeyVaultService azureKeyVaultService;
+    private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
-    private String issuerUri;
+    private String keycloakUrl;
     private String did;
 
     @PostConstruct
     private void initializeIssuerApiBaseUrl() {
-        issuerApiBaseUrl = getAppConfiguration(AppConfigurationKeys.ISSUER_VCI_BASE_URL_KEY).block();
-        issuerUri = getAppConfiguration(AppConfigurationKeys.KEYCLOAK_URI_KEY).block();
-        did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
+        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+        keycloakUrl = appConfiguration.getKeycloakExternalDomain();
+        did = appConfiguration.getKeycloakDid();
     }
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String issuerApiBaseUrlWithProtocol = ensureUrlHasProtocol(issuerApiBaseUrl);
-        String tokenUri = issuerUri + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
+        String tokenUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
 
         return Mono.just(new CredentialIssuerMetadata(
                 issuerApiBaseUrlWithProtocol,
@@ -69,17 +66,5 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                         VcTemplateService.Companion.getService().getTemplate("LEARCredential",true,VcTemplateService.SAVED_VC_TEMPLATES_KEY)
                 )
         );
-    }
-
-    private Mono<String> getAppConfiguration(String keyConfig) {
-        return appConfigService.getConfiguration(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
     }
 }

@@ -1,9 +1,8 @@
 package es.in2.issuer.api.service.impl;
 
-
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
-import org.assertj.core.api.Assertions;
+import es.in2.issuer.vault.AzureKeyVaultServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -13,6 +12,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import reactor.core.publisher.Mono;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -53,7 +53,7 @@ class AzureKeyVaultServiceImplTest {
 
         // Verify that the result contains the expected exception message
         Exception exception = assertThrows(Exception.class, resultMono::block);
-        Assertions.assertThat(exception.getMessage().contains("Communication with AppConfiguration failed. KeyVault not available"));
+        assertThat(exception.getMessage()).contains("Communication with AppConfiguration failed. KeyVault not available");
 
         // Verify that the SecretClient method was called once with the correct key
         verify(secretClient, times(1)).getSecret("nonExistingKey");

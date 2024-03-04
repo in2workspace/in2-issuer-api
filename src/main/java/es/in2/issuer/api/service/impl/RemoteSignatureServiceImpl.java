@@ -2,10 +2,10 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
+import es.in2.issuer.api.exception.SignedDataParsingException;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.service.RemoteSignatureService;
 import es.in2.issuer.api.util.HttpUtils;
 import jakarta.annotation.PostConstruct;
@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,27 +31,34 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     @Value("${remote-signature.routes.sign}")
     private String sign;
 
-    private final AppConfigService appConfigService;
+    private final AppConfiguration appConfiguration;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
     private String remoteSignatureBaseUrl;
     @PostConstruct
     private void initializeRemoteSignatureBaseUrl() {
-        remoteSignatureBaseUrl = getRemoteSignatureBaseUrl().block();
-    }
-    private Mono<String> getRemoteSignatureBaseUrl() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.CROSS_REMOTE_SIGNATURE_BASE_URL_KEY)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
+        remoteSignatureBaseUrl = appConfiguration.getRemoteSignatureDomain();
     }
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
         return getSignedSignature(signatureRequest, token)
-                .map(this::toSignedData)
+                .flatMap(response -> {
+                    try {
+                        return Mono.just(toSignedData(response));
+                    } catch (SignedDataParsingException ex) {
+                        return Mono.error(ex);
+                    }
+                })
                 .doOnSuccess(result -> log.info("Signature signed!"))
-                .doOnError(throwable -> log.error("Error: {}", throwable.getMessage()));
+                .doOnError(throwable -> {
+                    if (throwable instanceof SignedDataParsingException) {
+                        log.error("Error parsing signed data: {}", throwable.getMessage());
+                    } else {
+                        log.error("Error: {}", throwable.getMessage());
+                    }
+                });
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
@@ -71,11 +79,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     }
 
-    private SignedData toSignedData(String signedSignatureResponse) {
+    private SignedData toSignedData(String signedSignatureResponse) throws SignedDataParsingException {
         try {
             return objectMapper.readValue(signedSignatureResponse, SignedData.class);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        } catch (IOException e) {
+            log.error("Error: {}", e.getMessage());
+            throw new SignedDataParsingException("Error parsing signed data");
         }
     }
 }

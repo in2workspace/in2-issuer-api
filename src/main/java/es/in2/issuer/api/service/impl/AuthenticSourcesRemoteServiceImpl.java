@@ -2,11 +2,10 @@ package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.AuthenticSourcesGetUserResponseDTO;
 import es.in2.issuer.api.model.dto.CommitCredentialDTO;
 import es.in2.issuer.api.exception.UserDoesNotExistException;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.api.util.HttpUtils;
 import jakarta.annotation.PostConstruct;
@@ -28,20 +27,16 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     @Value("${authentic-sources.routes.get-user}")
     private String apiUsers;
 
-    private final AppConfigService appConfigService;
+    private final AppConfiguration appConfiguration;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
     private String authenticSourcesBaseUrl;
     @PostConstruct
     private void initializeAuthenticSourcesBaseUrl() {
-        authenticSourcesBaseUrl = getAuthenticSourcesBaseUrl().block();
+        authenticSourcesBaseUrl = appConfiguration.getAuthenticSourcesDomain();
     }
-    private Mono<String> getAuthenticSourcesBaseUrl() {
-        return appConfigService.getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
+
     @Override
     public Mono<AuthenticSourcesGetUserResponseDTO> getUser(String token) {
         return Mono.defer(() ->
@@ -86,12 +81,12 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
         return httpUtils.getRequest(authenticSourceUserApiEndpoint, headers);
     }
 
-    private AuthenticSourcesGetUserResponseDTO toAuthenticSourcesUserResponseDTO(String value){
+    private AuthenticSourcesGetUserResponseDTO toAuthenticSourcesUserResponseDTO(String value) throws JsonProcessingException {
         try {
             return objectMapper.readValue(value, AuthenticSourcesGetUserResponseDTO.class);
         } catch (JsonProcessingException e) {
             log.error("JsonProcessingException --> {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 }

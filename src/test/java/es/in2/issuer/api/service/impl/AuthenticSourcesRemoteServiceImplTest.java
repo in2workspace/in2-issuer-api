@@ -1,12 +1,12 @@
+
 package es.in2.issuer.api.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.AuthenticSourcesGetUserResponseDTO;
 import es.in2.issuer.api.model.dto.CommitCredentialDTO;
 import es.in2.issuer.api.exception.UserDoesNotExistException;
-import es.in2.issuer.api.service.AppConfigService;
 import es.in2.issuer.api.util.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,9 +28,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticSourcesRemoteServiceImplTest {
-
     @Mock
-    private AppConfigService appConfigService;
+    private AppConfiguration appConfiguration;
     @Mock
     private HttpUtils httpUtils;
 
@@ -42,29 +41,27 @@ class AuthenticSourcesRemoteServiceImplTest {
 
     @Test
     void testInitializeAuthenticSourcesBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
+        lenient().when(appConfiguration.getAuthenticSourcesDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
         Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
         privateMethod.setAccessible(true);
 
         privateMethod.invoke(authenticSourcesRemoteService);
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY);
+        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
     }
 
     @Test
     void testInitializeAuthenticSourcesBaseUrlThrowsError() throws NoSuchMethodException {
-
         Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
         privateMethod.setAccessible(true);
 
-        lenient().when(appConfigService.getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY)).thenReturn(Mono.error(new RuntimeException("Simulated error")));
+        when(appConfiguration.getAuthenticSourcesDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
 
         assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(authenticSourcesRemoteService));
 
-        verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY);
+        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
     }
-
     @Test
     void getUser_Success() throws JsonProcessingException {
 
@@ -97,15 +94,17 @@ class AuthenticSourcesRemoteServiceImplTest {
         when(httpUtils.getRequest(anyString(), anyList()))
                 .thenReturn(Mono.error(new UserDoesNotExistException("invalidToken")));
 
-        assertThrows(UserDoesNotExistException.class, () -> {
-            try {
-                authenticSourcesRemoteService.getUser("invalidToken").block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        assertThrows(UserDoesNotExistException.class, this::handleUserDoesNotExist);
 
         verify(httpUtils, times(1)).getRequest(anyString(), anyList());
+    }
+
+    private void handleUserDoesNotExist() throws Throwable {
+        try {
+            authenticSourcesRemoteService.getUser("invalidToken").block();
+        } catch (Exception e) {
+            throw Exceptions.unwrap(e);
+        }
     }
 
     @Test
@@ -123,13 +122,15 @@ class AuthenticSourcesRemoteServiceImplTest {
         when(objectMapper.readValue(anyString(), eq(AuthenticSourcesGetUserResponseDTO.class)))
                 .thenThrow(new JsonProcessingException("Json processing error") {});
 
-        assertThrows(RuntimeException.class, () -> {
-            try {
-                authenticSourcesRemoteService.getUser(token).block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        assertThrows(RuntimeException.class, () -> handleJsonProcessingException(token));
+    }
+
+    private void handleJsonProcessingException(String token) throws Throwable {
+        try {
+            authenticSourcesRemoteService.getUser(token).block();
+        } catch (Exception e) {
+            throw Exceptions.unwrap(e);
+        }
     }
 
     @Test
@@ -198,4 +199,3 @@ class AuthenticSourcesRemoteServiceImplTest {
         verify(httpUtils, times(1)).postRequest(url, headers,commitCredentialDTO.toString());
     }
 }
-

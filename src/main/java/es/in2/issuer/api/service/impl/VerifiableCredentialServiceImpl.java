@@ -5,13 +5,13 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.util.Base64URL;
 import com.upokecenter.cbor.CBORObject;
-import es.in2.issuer.api.config.azure.AppConfigurationKeys;
+import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.*;
 import es.in2.issuer.api.model.enums.SignatureType;
 import es.in2.issuer.api.exception.*;
 import es.in2.issuer.api.repository.CacheStore;
 import es.in2.issuer.api.service.AuthenticSourcesRemoteService;
-import es.in2.issuer.api.service.AzureKeyVaultService;
+import es.in2.issuer.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.RemoteSignatureService;
 import es.in2.issuer.api.service.VerifiableCredentialService;
 import es.in2.issuer.api.util.Utils;
@@ -57,17 +57,12 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final CacheStore<VerifiableCredentialJWT> credentialCacheStore;
     private final CacheStore<String> cacheStore;
+    private final AppConfiguration appConfiguration;
 
     private String didElsi;
     @PostConstruct
     private void initializeAzureProperties() {
-        didElsi = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_INFO_ID_SECRET).block();
-    }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
+        didElsi = appConfiguration.getIssuerDid();
     }
 
     @Override
