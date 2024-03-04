@@ -7,7 +7,7 @@ azure:
 
 app:
   configs:
-    keycloak-domain: aca-cross-keycloak-ms-uri
+    keycloak-external-domain: aca-cross-keycloak-ms-uri
     issuer-domain: aca-issuer-vci-ms-uri
     authentic-sources-domain: aca-issuer-auth-src-ms-uri
     key-vault-domain: key-vault-uri

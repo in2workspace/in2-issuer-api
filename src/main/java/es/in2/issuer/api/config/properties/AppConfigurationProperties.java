@@ -7,7 +7,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app.configs")
 @Validated
 public record AppConfigurationProperties(
-        @NotNull String keycloakDomain,
+        @NotNull String keycloakExternalDomain,
         @NotNull String issuerDomain,
         @NotNull String authenticSourcesDomain,
         @NotNull String keyVaultDomain,

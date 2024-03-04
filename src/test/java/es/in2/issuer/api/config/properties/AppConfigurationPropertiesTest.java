@@ -11,7 +11,7 @@ class AppConfigurationPropertiesTest {
     void bindingProperties() {
         // Setup a MockEnvironment with your properties
         MockEnvironment environment = new MockEnvironment();
-        environment.setProperty("keycloakDomain", "example.com");
+        environment.setProperty("keycloakExternalDomain", "example.com");
         environment.setProperty("issuerDomain", "issuer.example.com");
         environment.setProperty("authenticSourcesDomain", "authsources.example.com");
         environment.setProperty("keyVaultDomain", "keyvault.example.com");
@@ -29,7 +29,7 @@ class AppConfigurationPropertiesTest {
         // Assert the properties are correctly bound
         assertThat(bindResult.isBound()).isTrue();
         AppConfigurationProperties properties = bindResult.get();
-        assertThat(properties.keycloakDomain()).isEqualTo("example.com");
+        assertThat(properties.keycloakExternalDomain()).isEqualTo("example.com");
         assertThat(properties.issuerDomain()).isEqualTo("issuer.example.com");
         assertThat(properties.authenticSourcesDomain()).isEqualTo("authsources.example.com");
         assertThat(properties.keyVaultDomain()).isEqualTo("keyvault.example.com");

@@ -1,6 +1,6 @@
 app:
   configs:
-    keycloak-domain: http://localhost:8080
+    keycloak-external-domain: http://localhost:8080
     issuer-domain: http://localhost:8071
     authentic-sources-domain: http://localhost:8072
     key-vault-domain: http://localhost:8081

@@ -174,4 +174,10 @@ public class ApiExceptionHandler {
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
+    @ExceptionHandler(SignedDataParsingException.class)
+    public Mono<ResponseEntity<Void>> handleSignedDataParsingException(SignedDataParsingException e) {
+        log.error(e.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
 }

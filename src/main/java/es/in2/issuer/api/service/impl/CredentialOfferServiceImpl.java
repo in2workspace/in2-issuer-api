@@ -49,7 +49,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     @PostConstruct
     private void initializeProperties() {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-        keycloakUrl = appConfiguration.getKeycloakDomain();
+        keycloakUrl = appConfiguration.getKeycloakExternalDomain();
         did = appConfiguration.getKeycloakDid();
     }
 

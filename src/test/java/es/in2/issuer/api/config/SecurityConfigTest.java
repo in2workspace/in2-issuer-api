@@ -28,7 +28,7 @@ class SecurityConfigTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(appConfiguration.getKeycloakDomain()).thenReturn("localhost:9090");
+        when(appConfiguration.getKeycloakExternalDomain()).thenReturn("localhost:9090");
         securityConfig = new SecurityConfig(appConfiguration);
     }
 

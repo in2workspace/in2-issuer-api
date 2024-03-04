@@ -15,8 +15,8 @@ public class AppConfiguration {
         this.appConfigurationProperties = appConfigurationProperties;
     }
 
-    public String getKeycloakDomain() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.keycloakDomain());
+    public String getKeycloakExternalDomain() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.keycloakExternalDomain());
     }
 
     public String getIssuerDomain() {

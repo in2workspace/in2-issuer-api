@@ -31,7 +31,7 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     @PostConstruct
     private void initializeIssuerApiBaseUrl() {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-        keycloakUrl = appConfiguration.getKeycloakDomain();
+        keycloakUrl = appConfiguration.getKeycloakExternalDomain();
         did = appConfiguration.getKeycloakDid();
     }
     @Override

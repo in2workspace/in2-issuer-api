@@ -32,9 +32,9 @@ class AppConfigurationTest {
     @Test
     void testGetKeycloakDomain() {
         String expected = "keycloak-domain";
-        when(appConfigurationProperties.keycloakDomain()).thenReturn("keycloak.domain");
+        when(appConfigurationProperties.keycloakExternalDomain()).thenReturn("keycloak.domain");
         when(genericConfigAdapter.getConfiguration("keycloak.domain")).thenReturn(expected);
-        assertEquals(expected, appConfiguration.getKeycloakDomain());
+        assertEquals(expected, appConfiguration.getKeycloakExternalDomain());
     }
 
     @Test
