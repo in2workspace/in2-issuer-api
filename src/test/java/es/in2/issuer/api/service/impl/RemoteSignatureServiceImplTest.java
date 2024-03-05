@@ -7,6 +7,10 @@ import es.in2.issuer.api.model.dto.SignatureConfiguration;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
 import es.in2.issuer.api.model.enums.SignatureType;
+<<<<<<< HEAD
+=======
+import es.in2.issuer.api.service.RemoteSignatureService;
+>>>>>>> main
 import es.in2.issuer.api.util.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -123,11 +127,12 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void sign_JsonProcessingException_whenObjectMapper_readValue() throws JsonProcessingException {
-        ReflectionTestUtils.setField(remoteSignatureService,"remoteSignatureBaseUrl","http://baseurl");
-        ReflectionTestUtils.setField(remoteSignatureService,"sign","/sign");
+        // Set up
+        ReflectionTestUtils.setField(remoteSignatureService, "remoteSignatureBaseUrl", "http://baseurl");
+        ReflectionTestUtils.setField(remoteSignatureService, "sign", "/sign");
 
-        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(SignatureType.COSE,new HashMap<>());
-        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration,"data");
+        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(SignatureType.COSE, new HashMap<>());
+        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, "data");
         String expectedSignedDataJson = "{\"signature\":\"testSignature\",\"timestamp\":123456789}";
 
         String url = "http://baseurl" + "/api/v1" + "/sign";
@@ -137,19 +142,22 @@ class RemoteSignatureServiceImplTest {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
+        // Set up mocks
         when(objectMapper.writeValueAsString(signatureRequest)).thenReturn("signedSignature");
         when(objectMapper.readValue(anyString(), eq(SignedData.class))).thenThrow(new JsonProcessingException("Json processing error") {});
         when(httpUtils.postRequest(url, headers, "signedSignature")).thenReturn(Mono.just(expectedSignedDataJson));
 
-        assertThrows(RuntimeException.class, () -> {
-            try {
-                remoteSignatureService.sign(signatureRequest, token).block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        // Assert and verify
+        assertThrows(RuntimeException.class, () -> handleSignJsonProcessingError(remoteSignatureService, signatureRequest, token));
         verify(httpUtils).postRequest(url, headers, "signedSignature");
+    }
 
+    private void handleSignJsonProcessingError(RemoteSignatureService remoteSignatureService, SignatureRequest signatureRequest, String token) {
+        try {
+            remoteSignatureService.sign(signatureRequest, token).block();
+        } catch (Exception e) {
+            throw new RuntimeException("Error signing data", e);
+        }
     }
 
 }

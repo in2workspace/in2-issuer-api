@@ -7,10 +7,10 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CommitCredentialDTOTest {
+class CommitCredentialDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         UUID expectedCredentialId = UUID.randomUUID();
         String expectedGicarId = "sampleGicarId";
@@ -26,7 +26,7 @@ public class CommitCredentialDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         UUID expectedCredentialId = UUID.randomUUID();
         String expectedGicarId = "sampleGicarId";

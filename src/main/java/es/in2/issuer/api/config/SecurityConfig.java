@@ -38,7 +38,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("!local")
+    @Profile("!dev")
     public ReactiveJwtDecoder jwtDecoder(){
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
                 //.withJwkSetUri("https://" + keycloakUrl + "/realms/EAAProvider/protocol/openid-connect/certs")
@@ -52,7 +52,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("local")
+    @Profile("dev")
     public ReactiveJwtDecoder jwtDecoderLocal(){
         //return ReactiveJwtDecoders.fromIssuerLocation(keycloakUrl + "/realms/EAAProvider");
         return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());

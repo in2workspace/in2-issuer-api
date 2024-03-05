@@ -12,7 +12,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-public class CacheStoreTest {
+class CacheStoreTest {
 
     private Cache<String, String> mockCache;
     private CacheStore<String> cacheStore;
@@ -24,7 +24,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void constructorWithExpiryDurationAndTimeUnit() {
+    void constructorWithExpiryDurationAndTimeUnit() {
         // Arrange
         long expiryDuration = 10;
         TimeUnit timeUnit = TimeUnit.MINUTES;
@@ -35,7 +35,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void getExistingKey() {
+    void getExistingKey() {
         // Arrange
         String key = "existingKey";
         String value = "existingValue";
@@ -50,7 +50,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void getNonExistingKey() {
+    void getNonExistingKey() {
         // Arrange
         String key = "nonExistingKey";
         when(mockCache.getIfPresent(key)).thenReturn(null);
@@ -64,7 +64,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void deleteKey() {
+    void deleteKey() {
         // Arrange
         String key = "keyToDelete";
 
@@ -76,7 +76,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void addValidKeyAndValue() {
+    void addValidKeyAndValue() {
         // Arrange
         String key = "validKey";
         String value = "validValue";
@@ -89,7 +89,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void addNullKey() {
+    void addNullKey() {
         // Arrange
         String value = "validValue";
 
@@ -101,7 +101,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void addEmptyKey() {
+    void addEmptyKey() {
         // Arrange
         String key = "   ";
         String value = "validValue";
@@ -114,7 +114,7 @@ public class CacheStoreTest {
     }
 
     @Test
-    public void addNullValue() {
+    void addNullValue() {
         // Arrange
         String key = "validKey";
         // Act

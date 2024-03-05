@@ -19,7 +19,7 @@ public class otherIAMadapter implements GenericIAMadapter {
 
     @PostConstruct
     private void initializeKeycloakIAMadapter() {
-        keycloakBaseUrl = appConfiguration.getIAMdomain();
+        keycloakBaseUrl = appConfiguration.getIAMexternalDomain();
         did = appConfiguration.getIAMdid();
     }
 

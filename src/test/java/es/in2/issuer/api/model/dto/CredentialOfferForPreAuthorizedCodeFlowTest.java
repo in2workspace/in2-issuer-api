@@ -8,10 +8,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CredentialOfferForPreAuthorizedCodeFlowTest {
+class CredentialOfferForPreAuthorizedCodeFlowTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
         List<String> expectedCredentials = List.of("UniversityDegree");
@@ -33,7 +33,7 @@ public class CredentialOfferForPreAuthorizedCodeFlowTest {
     }
 
     @Test
-    public void testSetters() {
+    void testSetters() {
         // Arrange
         CredentialOfferForPreAuthorizedCodeFlow offer = new CredentialOfferForPreAuthorizedCodeFlow();
         String newCredentialIssuer = "https://new-credential-issuer.example.com";
@@ -52,7 +52,7 @@ public class CredentialOfferForPreAuthorizedCodeFlowTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
         List<String> expectedCredentials = List.of("UniversityDegree");

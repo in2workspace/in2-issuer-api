@@ -41,7 +41,6 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
-
     private final AppConfiguration appConfiguration;
     private final IAMadapterFactory iamAdapterFactory;
     private String issuerApiBaseUrl;
@@ -61,7 +60,6 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                 .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
                 .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
     }
-
 
     @Override
     public Mono<String> createCredentialOfferUriForPreAuthorizedCodeFlow(String accessToken, String credentialType) {

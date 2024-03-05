@@ -5,7 +5,6 @@ import es.in2.issuer.configuration.adapter.azure.config.properties.AzureProperti
 import es.in2.issuer.configuration.model.ConfigProviderName;
 import es.in2.issuer.configuration.util.ConfigSourceName;
 import es.in2.issuer.configuration.service.GenericConfigAdapter;
-import es.in2.issuer.api.config.properties.AppConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -15,7 +14,7 @@ public class AzureConfigAdapter implements GenericConfigAdapter {
     private final ConfigurationClient configurationClient;
     private final AzureProperties azureProperties;
 
-    public AzureConfigAdapter(ConfigurationClient configurationClient, AzureProperties azureProperties, AppConfigurationProperties appConfigurationProperties) {
+    public AzureConfigAdapter(ConfigurationClient configurationClient, AzureProperties azureProperties) {
         this.configurationClient = configurationClient;
         this.azureProperties = azureProperties;
     }

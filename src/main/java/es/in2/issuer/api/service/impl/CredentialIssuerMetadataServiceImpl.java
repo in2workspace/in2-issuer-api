@@ -23,7 +23,6 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @RequiredArgsConstructor
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
-
     //private final AzureKeyVaultService azureKeyVaultService;
     private final IAMadapterFactory iamAdapterFactory;
 

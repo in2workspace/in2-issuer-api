@@ -8,10 +8,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public class CredentialsSupportedParameterTest {
+class CredentialsSupportedParameterTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedFormat = "sampleFormat";
         String expectedId = "sampleId";
@@ -39,7 +39,7 @@ public class CredentialsSupportedParameterTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedFormat = "sampleFormat";
         String expectedId = "sampleId";

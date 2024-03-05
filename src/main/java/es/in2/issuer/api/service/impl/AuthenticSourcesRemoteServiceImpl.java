@@ -81,12 +81,12 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
         return httpUtils.getRequest(authenticSourceUserApiEndpoint, headers);
     }
 
-    private AuthenticSourcesGetUserResponseDTO toAuthenticSourcesUserResponseDTO(String value){
+    private AuthenticSourcesGetUserResponseDTO toAuthenticSourcesUserResponseDTO(String value) throws JsonProcessingException {
         try {
             return objectMapper.readValue(value, AuthenticSourcesGetUserResponseDTO.class);
         } catch (JsonProcessingException e) {
             log.error("JsonProcessingException --> {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 }

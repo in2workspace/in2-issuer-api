@@ -15,8 +15,9 @@ public class AppConfiguration {
         this.appConfigurationProperties = appConfigurationProperties;
     }
 
-    public String getIAMdomain() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamDomain());
+
+    public String getIAMexternalDomain() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamExternalDomain());
     }
 
     public String getIssuerDomain() {

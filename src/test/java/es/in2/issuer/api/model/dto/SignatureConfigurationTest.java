@@ -8,10 +8,10 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class SignatureConfigurationTest {
+class SignatureConfigurationTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         SignatureType expectedType = SignatureType.COSE;
         Map<String, String> expectedParameters = new HashMap<>();
@@ -27,7 +27,7 @@ public class SignatureConfigurationTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         SignatureType expectedType = SignatureType.COSE;
         Map<String, String> expectedParameters = new HashMap<>();

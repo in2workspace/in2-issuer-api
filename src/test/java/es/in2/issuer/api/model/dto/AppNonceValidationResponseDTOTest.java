@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AppNonceValidationResponseDTOTest {
+class AppNonceValidationResponseDTOTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedAccessToken = "eyJhbGciOiJSUzI1Ni...yE1XAP-LrbAtaX-wln0wQgdXfu4dephCsMA";
 
@@ -19,7 +19,7 @@ public class AppNonceValidationResponseDTOTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedAccessToken = "eyJhbGciOiJSUzI1Ni...yE1XAP-LrbAtaX-wln0wQgdXfu4dephCsMA";
         String toStringDto = "AppNonceValidationResponseDTO(accessToken=eyJhbGciOiJSUzI1Ni...yE1XAP-LrbAtaX-wln0wQgdXfu4dephCsMA)";

@@ -94,15 +94,17 @@ class AuthenticSourcesRemoteServiceImplTest {
         when(httpUtils.getRequest(anyString(), anyList()))
                 .thenReturn(Mono.error(new UserDoesNotExistException("invalidToken")));
 
-        assertThrows(UserDoesNotExistException.class, () -> {
-            try {
-                authenticSourcesRemoteService.getUser("invalidToken").block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        assertThrows(UserDoesNotExistException.class, this::handleUserDoesNotExist);
 
         verify(httpUtils, times(1)).getRequest(anyString(), anyList());
+    }
+
+    private void handleUserDoesNotExist() throws Throwable {
+        try {
+            authenticSourcesRemoteService.getUser("invalidToken").block();
+        } catch (Exception e) {
+            throw Exceptions.unwrap(e);
+        }
     }
 
     @Test
@@ -120,13 +122,15 @@ class AuthenticSourcesRemoteServiceImplTest {
         when(objectMapper.readValue(anyString(), eq(AuthenticSourcesGetUserResponseDTO.class)))
                 .thenThrow(new JsonProcessingException("Json processing error") {});
 
-        assertThrows(RuntimeException.class, () -> {
-            try {
-                authenticSourcesRemoteService.getUser(token).block();
-            } catch (Exception e) {
-                throw Exceptions.unwrap(e);
-            }
-        });
+        assertThrows(RuntimeException.class, () -> handleJsonProcessingException(token));
+    }
+
+    private void handleJsonProcessingException(String token) throws Throwable {
+        try {
+            authenticSourcesRemoteService.getUser(token).block();
+        } catch (Exception e) {
+            throw Exceptions.unwrap(e);
+        }
     }
 
     @Test

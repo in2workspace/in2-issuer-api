@@ -45,7 +45,11 @@ class CredentialOfferServiceImplTest {
     @Test
     void testInitializeProperties() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         lenient().when(appConfiguration.getIssuerDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+<<<<<<< HEAD
         lenient().when(appConfiguration.getKeycloakDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+=======
+        lenient().when(appConfiguration.getKeycloakExternalDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+>>>>>>> main
         lenient().when(appConfiguration.getKeycloakDid()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
         Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeProperties");
@@ -54,7 +58,11 @@ class CredentialOfferServiceImplTest {
         privateMethod.invoke(credentialOfferService);
 
         verify(appConfiguration, times(1)).getIssuerDomain();
+<<<<<<< HEAD
         verify(appConfiguration, times(1)).getKeycloakDomain();
+=======
+        verify(appConfiguration, times(1)).getKeycloakExternalDomain();
+>>>>>>> main
         verify(appConfiguration, times(1)).getKeycloakDid();
 
     }

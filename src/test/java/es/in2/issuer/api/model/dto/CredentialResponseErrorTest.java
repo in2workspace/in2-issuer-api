@@ -4,10 +4,10 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class CredentialResponseErrorTest {
+class CredentialResponseErrorTest {
 
     @Test
-    public void testConstructorAndGetters() {
+    void testConstructorAndGetters() {
         // Arrange
         String expectedError = "sampleError";
         String expectedDescription = "sampleDescription";
@@ -21,7 +21,7 @@ public class CredentialResponseErrorTest {
     }
 
     @Test
-    public void lombokGeneratedMethodsTest() {
+    void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedError = "sampleError";
         String expectedDescription = "sampleDescription";
