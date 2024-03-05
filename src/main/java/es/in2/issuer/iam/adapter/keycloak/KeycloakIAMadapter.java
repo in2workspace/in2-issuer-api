@@ -14,32 +14,34 @@ import org.springframework.stereotype.Component;
 public class KeycloakIAMadapter implements GenericIAMadapter {
 
     private final AppConfiguration appConfiguration;
-    private String keycloakBaseUrl;
+    private String keycloakInternalDomain;
+    private String keycloakExternalDomain;
     private String did;
 
     @PostConstruct
     private void initializeKeycloakIAMadapter() {
-        keycloakBaseUrl = appConfiguration.getIAMexternalDomain();
+        keycloakInternalDomain = appConfiguration.getIAMinternalDomain();
+        keycloakExternalDomain = appConfiguration.getIAMexternalDomain();
         did = appConfiguration.getIAMdid();
     }
 
     @Override
     public String getJwtDecoder() {
-        return "https://" + keycloakBaseUrl + "/realms/EAAProvider/protocol/openid-connect/certs";
+        return "https://" + keycloakExternalDomain + "/realms/EAAProvider/protocol/openid-connect/certs";
     }
 
     @Override
     public String getJwtDecoderLocal() {
-        return keycloakBaseUrl + "/realms/EAAProvider";
+        return keycloakInternalDomain + "/realms/EAAProvider";
     }
 
     @Override
     public String getPreAuthCodeUri() {
-        return keycloakBaseUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
+        return keycloakInternalDomain + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
     }
 
     @Override
     public String getTokenUri() {
-        return keycloakBaseUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
+        return keycloakInternalDomain + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
     }
 }

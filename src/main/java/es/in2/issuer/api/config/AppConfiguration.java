@@ -20,6 +20,10 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamExternalDomain());
     }
 
+    public String getIAMinternalDomain() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamInternalDomain());
+    }
+
     public String getIssuerDomain() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.issuerDomain());
     }
