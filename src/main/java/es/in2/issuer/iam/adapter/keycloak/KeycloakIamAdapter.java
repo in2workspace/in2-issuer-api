@@ -19,7 +19,7 @@ public class KeycloakIamAdapter implements GenericIamAdapter {
     private String did;
 
     @PostConstruct
-    private void initializeKeycloakIAMadapter() {
+    void initializeKeycloakIamAdapter() {
         keycloakInternalDomain = appConfiguration.getIamInternalDomain();
         keycloakExternalDomain = appConfiguration.getIamExternalDomain();
         did = appConfiguration.getIamDid();
