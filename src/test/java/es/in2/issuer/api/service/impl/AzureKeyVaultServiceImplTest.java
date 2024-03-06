@@ -3,10 +3,6 @@ package es.in2.issuer.api.service.impl;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.models.KeyVaultSecret;
 import es.in2.issuer.vault.AzureKeyVaultServiceImpl;
-<<<<<<< HEAD
-import org.assertj.core.api.Assertions;
-=======
->>>>>>> main
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

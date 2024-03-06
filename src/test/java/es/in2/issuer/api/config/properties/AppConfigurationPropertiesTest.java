@@ -11,12 +11,12 @@ class AppConfigurationPropertiesTest {
     void bindingProperties() {
         // Setup a MockEnvironment with your properties
         MockEnvironment environment = new MockEnvironment();
-        environment.setProperty("keycloakExternalDomain", "example.com");
+        environment.setProperty("iamInternalDomain", "example.com");
         environment.setProperty("issuerDomain", "issuer.example.com");
         environment.setProperty("authenticSourcesDomain", "authsources.example.com");
         environment.setProperty("keyVaultDomain", "keyvault.example.com");
         environment.setProperty("remoteSignatureDomain", "remotesignature.example.com");
-        environment.setProperty("keycloakDid", "keycloak-did");
+        environment.setProperty("iamDid", "keycloak-did");
         environment.setProperty("issuerDid", "issuer-did");
 
         // Create a Binder instance
@@ -29,12 +29,12 @@ class AppConfigurationPropertiesTest {
         // Assert the properties are correctly bound
         assertThat(bindResult.isBound()).isTrue();
         AppConfigurationProperties properties = bindResult.get();
-        assertThat(properties.keycloakExternalDomain()).isEqualTo("example.com");
+        assertThat(properties.iamInternalDomain()).isEqualTo("example.com");
         assertThat(properties.issuerDomain()).isEqualTo("issuer.example.com");
         assertThat(properties.authenticSourcesDomain()).isEqualTo("authsources.example.com");
         assertThat(properties.keyVaultDomain()).isEqualTo("keyvault.example.com");
         assertThat(properties.remoteSignatureDomain()).isEqualTo("remotesignature.example.com");
-        assertThat(properties.keycloakDid()).isEqualTo("keycloak-did");
+        assertThat(properties.iamDid()).isEqualTo("keycloak-did");
         assertThat(properties.issuerDid()).isEqualTo("issuer-did");
     }
 }

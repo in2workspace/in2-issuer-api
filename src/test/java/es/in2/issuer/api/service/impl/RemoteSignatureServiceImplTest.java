@@ -7,10 +7,7 @@ import es.in2.issuer.api.model.dto.SignatureConfiguration;
 import es.in2.issuer.api.model.dto.SignatureRequest;
 import es.in2.issuer.api.model.dto.SignedData;
 import es.in2.issuer.api.model.enums.SignatureType;
-<<<<<<< HEAD
-=======
 import es.in2.issuer.api.service.RemoteSignatureService;
->>>>>>> main
 import es.in2.issuer.api.util.HttpUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

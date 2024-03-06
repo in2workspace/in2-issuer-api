@@ -1,5 +1,7 @@
 package es.in2.issuer.api.config;
 
+import es.in2.issuer.iam.service.GenericIAMadapter;
+import es.in2.issuer.iam.util.IAMadapterFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -21,15 +23,18 @@ import static org.mockito.Mockito.when;
 class SecurityConfigTest {
 
     @Mock
-    private AppConfiguration appConfiguration;
+    private IAMadapterFactory iamAdapterFactory;
 
     private SecurityConfig securityConfig;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        when(appConfiguration.getKeycloakExternalDomain()).thenReturn("localhost:9090");
-        securityConfig = new SecurityConfig(appConfiguration);
+        GenericIAMadapter mockAdapter = Mockito.mock(GenericIAMadapter.class);
+        Mockito.when(iamAdapterFactory.getAdapter()).thenReturn(mockAdapter);
+        when(iamAdapterFactory.getAdapter().getJwtDecoder()).thenReturn("localhost:9090");
+        when(iamAdapterFactory.getAdapter().getJwtDecoderLocal()).thenReturn("localhost:9090");
+        securityConfig = new SecurityConfig(iamAdapterFactory);
     }
 
     @Test
@@ -69,7 +74,7 @@ class SecurityConfigTest {
 
     @Test
     void testGetSwaggerPaths() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        SecurityConfig securityConfig = new SecurityConfig(appConfiguration);
+        SecurityConfig securityConfig = new SecurityConfig(iamAdapterFactory);
 
         // Access the private method
         Method method = SecurityConfig.class.getDeclaredMethod("getSwaggerPaths");
