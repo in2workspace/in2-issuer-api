@@ -2,7 +2,6 @@ package es.in2.issuer.configuration.util;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
 import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.env.Environment;
 

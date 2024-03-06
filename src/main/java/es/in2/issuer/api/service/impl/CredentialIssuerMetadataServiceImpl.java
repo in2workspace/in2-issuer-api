@@ -23,25 +23,18 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @RequiredArgsConstructor
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
-    //private final AzureKeyVaultService azureKeyVaultService;
     private final IamAdapterFactory iamAdapterFactory;
 
     private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;
-    //private String keycloakUrl;
-    //private String did;
 
     @PostConstruct
     private void initializeIssuerApiBaseUrl() {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-        //keycloakUrl = appConfiguration.getKeycloakDomain();
-        //did = appConfiguration.getKeycloakDid();
-        //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
     }
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String issuerApiBaseUrlWithProtocol = ensureUrlHasProtocol(issuerApiBaseUrl);
-        //String tokenUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
         String tokenUri = iamAdapterFactory.getAdapter().getTokenUri();
 
         return Mono.just(new CredentialIssuerMetadata(
@@ -72,12 +65,4 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                 )
         );
     }
-/*
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
-    }
-
- */
 }

@@ -44,21 +44,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final AppConfiguration appConfiguration;
     private final IamAdapterFactory iamAdapterFactory;
     private String issuerApiBaseUrl;
-    //private String keycloakUrl;
-    //private String did;
-
     @PostConstruct
     private void initializeProperties() {
         issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-        //keycloakUrl = appConfiguration.getKeycloakDomain();
-        //did = appConfiguration.getKeycloakDid();
-        //did = getKeyVaultConfiguration(AppConfigurationKeys.DID_ISSUER_KEYCLOAK_SECRET).block();
-    }
-
-    private Mono<String> getKeyVaultConfiguration(String keyConfig) {
-        return azureKeyVaultService.getSecretByKey(keyConfig)
-                .doOnSuccess(value -> log.info("Secret retrieved successfully {}", value))
-                .doOnError(throwable -> log.error("Error loading Secret: {}", throwable.getMessage()));
     }
 
     @Override
@@ -115,7 +103,6 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     private Mono<String> getPreAuthorizationCodeFromKeycloak(String accessToken) {
-        //String preAuthCodeUri = keycloakUrl + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
         String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
         return Mono.fromCallable(() -> executeGetRequest(url, accessToken))
