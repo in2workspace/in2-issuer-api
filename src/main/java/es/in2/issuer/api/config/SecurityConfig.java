@@ -1,6 +1,6 @@
 package es.in2.issuer.api.config;
 
-import es.in2.issuer.iam.util.IAMadapterFactory;
+import es.in2.issuer.iam.util.IamAdapterFactory;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +27,7 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final IAMadapterFactory iamAdapterFactory;
+    private final IamAdapterFactory iamAdapterFactory;
     //private final AppConfiguration appConfiguration;
     //private String keycloakUrl;
 

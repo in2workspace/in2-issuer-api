@@ -1,17 +1,17 @@
 package es.in2.issuer.iam.adapter.keycloak;
 
 import es.in2.issuer.api.config.AppConfiguration;
-import es.in2.issuer.iam.model.IAMproviderName;
-import es.in2.issuer.iam.service.GenericIAMadapter;
-import es.in2.issuer.iam.util.IAMsourceName;
+import es.in2.issuer.iam.model.IamProviderName;
+import es.in2.issuer.iam.service.GenericIamAdapter;
+import es.in2.issuer.iam.util.IamSourceName;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@IAMsourceName(name = IAMproviderName.KEYCLOAK)
-public class KeycloakIAMadapter implements GenericIAMadapter {
+@IamSourceName(name = IamProviderName.KEYCLOAK)
+public class KeycloakIamAdapter implements GenericIamAdapter {
 
     private final AppConfiguration appConfiguration;
     private String keycloakInternalDomain;
@@ -20,9 +20,9 @@ public class KeycloakIAMadapter implements GenericIAMadapter {
 
     @PostConstruct
     private void initializeKeycloakIAMadapter() {
-        keycloakInternalDomain = appConfiguration.getIAMinternalDomain();
-        keycloakExternalDomain = appConfiguration.getIAMexternalDomain();
-        did = appConfiguration.getIAMdid();
+        keycloakInternalDomain = appConfiguration.getIamInternalDomain();
+        keycloakExternalDomain = appConfiguration.getIamExternalDomain();
+        did = appConfiguration.getIamDid();
     }
 
     @Override

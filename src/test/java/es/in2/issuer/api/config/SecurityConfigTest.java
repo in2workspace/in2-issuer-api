@@ -1,7 +1,7 @@
 package es.in2.issuer.api.config;
 
-import es.in2.issuer.iam.service.GenericIAMadapter;
-import es.in2.issuer.iam.util.IAMadapterFactory;
+import es.in2.issuer.iam.service.GenericIamAdapter;
+import es.in2.issuer.iam.util.IamAdapterFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -23,14 +23,14 @@ import static org.mockito.Mockito.when;
 class SecurityConfigTest {
 
     @Mock
-    private IAMadapterFactory iamAdapterFactory;
+    private IamAdapterFactory iamAdapterFactory;
 
     private SecurityConfig securityConfig;
 
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        GenericIAMadapter mockAdapter = Mockito.mock(GenericIAMadapter.class);
+        GenericIamAdapter mockAdapter = Mockito.mock(GenericIamAdapter.class);
         Mockito.when(iamAdapterFactory.getAdapter()).thenReturn(mockAdapter);
         when(iamAdapterFactory.getAdapter().getJwtDecoder()).thenReturn("localhost:9090");
         when(iamAdapterFactory.getAdapter().getJwtDecoderLocal()).thenReturn("localhost:9090");

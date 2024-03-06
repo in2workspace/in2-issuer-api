@@ -4,7 +4,7 @@ import es.in2.issuer.api.config.AppConfiguration;
 import es.in2.issuer.api.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.api.model.dto.CredentialsSupportedParameter;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
-import es.in2.issuer.iam.util.IAMadapterFactory;
+import es.in2.issuer.iam.util.IamAdapterFactory;
 import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ import static es.in2.issuer.api.util.HttpUtils.ensureUrlHasProtocol;
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
     //private final AzureKeyVaultService azureKeyVaultService;
-    private final IAMadapterFactory iamAdapterFactory;
+    private final IamAdapterFactory iamAdapterFactory;
 
     private final AppConfiguration appConfiguration;
     private String issuerApiBaseUrl;

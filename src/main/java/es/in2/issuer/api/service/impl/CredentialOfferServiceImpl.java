@@ -11,7 +11,7 @@ import es.in2.issuer.api.model.dto.Grant;
 import es.in2.issuer.api.exception.CredentialTypeUnsuportedException;
 import es.in2.issuer.api.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.api.repository.CacheStore;
-import es.in2.issuer.iam.util.IAMadapterFactory;
+import es.in2.issuer.iam.util.IamAdapterFactory;
 import es.in2.issuer.vault.AzureKeyVaultService;
 import es.in2.issuer.api.service.CredentialIssuerMetadataService;
 import es.in2.issuer.api.service.CredentialOfferService;
@@ -42,7 +42,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
     private final AppConfiguration appConfiguration;
-    private final IAMadapterFactory iamAdapterFactory;
+    private final IamAdapterFactory iamAdapterFactory;
     private String issuerApiBaseUrl;
     //private String keycloakUrl;
     //private String did;

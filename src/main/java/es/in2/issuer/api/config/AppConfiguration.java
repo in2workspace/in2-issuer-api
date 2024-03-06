@@ -16,11 +16,11 @@ public class AppConfiguration {
     }
 
 
-    public String getIAMexternalDomain() {
+    public String getIamExternalDomain() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamExternalDomain());
     }
 
-    public String getIAMinternalDomain() {
+    public String getIamInternalDomain() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamInternalDomain());
     }
 
@@ -40,7 +40,7 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.remoteSignatureDomain());
     }
 
-    public String getIAMdid() {
+    public String getIamDid() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamDid());
     }
 

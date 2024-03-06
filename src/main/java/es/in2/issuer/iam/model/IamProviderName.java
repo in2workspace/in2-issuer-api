@@ -1,12 +1,12 @@
 package es.in2.issuer.iam.model;
 
-public enum IAMproviderName {
+public enum IamProviderName {
     KEYCLOAK("keycloak"),
     OTHER("other");
 
     private final String providerName;
 
-    IAMproviderName(String providerName) {
+    IamProviderName(String providerName) {
         this.providerName = providerName;
     }
 

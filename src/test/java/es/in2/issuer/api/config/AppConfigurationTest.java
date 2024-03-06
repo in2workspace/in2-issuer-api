@@ -34,7 +34,7 @@ class AppConfigurationTest {
         String expected = "keycloak-domain";
         when(appConfigurationProperties.iamInternalDomain()).thenReturn("keycloak.domain");
         when(genericConfigAdapter.getConfiguration("keycloak.domain")).thenReturn(expected);
-        assertEquals(expected, appConfiguration.getIAMinternalDomain());
+        assertEquals(expected, appConfiguration.getIamInternalDomain());
     }
 
     @Test
@@ -74,7 +74,7 @@ class AppConfigurationTest {
         String expected = "keycloak-did";
         when(appConfigurationProperties.iamDid()).thenReturn("keycloak.did");
         when(genericConfigAdapter.getConfiguration("keycloak.did")).thenReturn(expected);
-        assertEquals(expected, appConfiguration.getIAMdid());
+        assertEquals(expected, appConfiguration.getIamDid());
     }
 
     @Test
