@@ -43,6 +43,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.CREDENTIAL_SUBJECT;
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
 
 @Service
 @RequiredArgsConstructor
@@ -63,31 +64,36 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String username, CredentialRequest credentialRequest, String token) {
+    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
+            String username,
+            CredentialRequest credentialRequest,
+            String token
+    ) {
         return getNonceClaim(credentialRequest.proof().jwt())
                 .flatMap(nonceClaim -> checkIfCacheExistsById(nonceClaim)
                         .flatMap(verifyToken -> verifyIfUserAccessTokenIsAssociatedWithNonceOnCache(token, verifyToken)
                                 .then(Mono.fromRunnable(() -> cacheStore.delete(nonceClaim)))
-                                .thenReturn(nonceClaim))).flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt()).zipWith(generateVerifiableCredential(username, token, nonceClaim),
-                                (subjectDid, credential) -> {
-                                    String format = credentialRequest.format();
-                                    return generateVerifiableCredentialInCWTFormat(username, token, subjectDid)
-                                            .flatMap(credentialCWTFormat ->
-                                                    storeTokenInCache(token)
-                                                            .flatMap(cNonce -> storeCredentialResponseInMemoryCache(cNonce,credential)
-                                                                    .then(Mono.just(cNonce))
-                                                                    .flatMap(savedCNonce -> {
-                                                                        int cNonceExpiresIn = 600;
-                                                                        List<VerifiableCredential> credentialsList = new ArrayList<>();
-                                                                        credentialsList.add(new VerifiableCredential(format, credential, savedCNonce, cNonceExpiresIn));
-                                                                        return generateVerifiableCredentialInCWTFormat(username, token, subjectDid)
-                                                                                .map(credentialCWTFormatted -> {
-                                                                                    credentialsList.add(new VerifiableCredential("cwt_vc_json", credentialCWTFormatted, savedCNonce, cNonceExpiresIn));
-                                                                                    return new VerifiableCredentialResponse(credentialsList);
-                                                                                });
-                                                                    })));
-                                }))
-                .flatMap(result -> result); // Unwrap one layer of Mono
+                                .thenReturn(nonceClaim)))
+                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
+                        .flatMap(subjectDid -> {
+                            String format = credentialRequest.format();
+                            Mono<VerifiableCredentialResponse> credentialMono;
+
+                            if ("jwt_vc".equals(format)) {
+                                credentialMono = generateVerifiableCredential(username, token, nonceClaim)
+                                        .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
+                            } else if ("cwt_vc".equals(format)) {
+                                credentialMono = generateVerifiableCredentialInCWTFormat(username, token, subjectDid)
+                                        .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
+                            } else {
+                                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
+                            }
+
+                            return storeTokenInCache(token)
+                                    .flatMap(cNonce -> storeCredentialResponseInMemoryCache(cNonce, String.valueOf(credentialMono))
+                                            .then(Mono.just(cNonce))
+                                            .flatMap(savedCNonce -> credentialMono));
+                        }));
     }
 
 
