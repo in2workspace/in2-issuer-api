@@ -11,11 +11,14 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +54,22 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
                 return Mono.error(e);
             }
         });
+    }
+
+    @Override
+    public Mono<SubjectDataResponse> getUserFromLocalFile() {
+        return Mono.fromCallable(() -> {
+                    // Adjusted resource path to include the 'credentials' subdirectory
+                    String resourcePath = "credentials/LEARCredentialSubjectDataDemo.json";
+                    // Use ClassPathResource to get the file from the resources folder
+                    ClassPathResource classPathResource = new ClassPathResource(resourcePath);
+                    // Read the content of the file
+                    String jsonContent = new String(Files.readAllBytes(Paths.get(classPathResource.getURI())));
+                    // Convert JSON content to AuthenticSourcesGetUserResponseDTO object
+                    return objectMapper.readValue(jsonContent, SubjectDataResponse.class);
+                })
+                .doOnSuccess(result -> log.info("Successfully parsed user data from local file."))
+                .onErrorMap(Exception.class, e -> new RuntimeException("Failed to parse user data from local file.", e));
     }
 
     @Override

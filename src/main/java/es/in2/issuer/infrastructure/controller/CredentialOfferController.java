@@ -4,6 +4,8 @@ import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.SubjectDataResponse;
+import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -31,6 +33,7 @@ import reactor.core.publisher.Mono;
 public class CredentialOfferController {
 
     private final CredentialOfferService credentialOfferService;
+    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -153,6 +156,13 @@ public class CredentialOfferController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialOfferForPreAuthorizedCodeFlow> getCredentialOffer(@PathVariable("id") String id) {
         return credentialOfferService.getCredentialOffer(id);
+    }
+
+    @GetMapping("/api/v2/test-user")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<SubjectDataResponse> test(ServerWebExchange request) {
+
+        return authenticSourcesRemoteService.getUserFromLocalFile();
     }
 
 }
