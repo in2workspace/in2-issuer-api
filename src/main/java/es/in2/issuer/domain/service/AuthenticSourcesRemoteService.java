@@ -9,7 +9,7 @@ public interface AuthenticSourcesRemoteService {
 
     Mono<SubjectDataResponse> getUser(String token) throws UserDoesNotExistException;
 
-    Mono<SubjectDataResponse> getUserFromLocalFile();
+    Mono<SubjectDataResponse> getUserFromLocalFile() throws UserDoesNotExistException;
 
     Mono<Void> commitCredentialSourceData(IDEPCommitCredential idepCommitCredential, String token);
 }

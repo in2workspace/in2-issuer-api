@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.InvalidTokenException;
+import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
@@ -160,7 +161,7 @@ public class CredentialOfferController {
 
     @GetMapping("/api/v2/test-user")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SubjectDataResponse> test(ServerWebExchange request) {
+    public Mono<SubjectDataResponse> test(ServerWebExchange request) throws UserDoesNotExistException {
 
         return authenticSourcesRemoteService.getUserFromLocalFile();
     }

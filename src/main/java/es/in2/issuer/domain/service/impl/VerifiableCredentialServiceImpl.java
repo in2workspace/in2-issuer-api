@@ -93,7 +93,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
-            //try {
+            try {
                 // Load walt.id SSI-Kit services from "$workingDirectory/service-matrix.properties"
                 new ServiceMatrix("service-matrix.properties");
                 // Define used services
@@ -145,16 +145,16 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
 
                         });
-            //} catch (UserDoesNotExistException e) {
-            //    log.error("UserDoesNotExistException {}", e.getMessage());
-            //    return Mono.error(new RuntimeException(e));
-            //}
+            } catch (UserDoesNotExistException e) {
+                log.error("UserDoesNotExistException {}", e.getMessage());
+                return Mono.error(new RuntimeException(e));
+            }
         });
     }
 
     private Mono<String> generateVerifiableCredentialInCWTFormat(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
-            //try {
+            try {
                 // Load walt.id SSI-Kit services from "$workingDirectory/service-matrix.properties"
                 new ServiceMatrix("service-matrix.properties");
                 // Define used services
@@ -201,10 +201,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                     .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
                                     .flatMap(this::compressAndConvertToBase45FromCOSE);
                         });
-            //} catch (UserDoesNotExistException e) {
-            //    log.error("UserDoesNotExistException {}", e.getMessage());
-            //    return Mono.error(new RuntimeException(e));
-            //}
+            } catch (UserDoesNotExistException e) {
+                log.error("UserDoesNotExistException {}", e.getMessage());
+                return Mono.error(new RuntimeException(e));
+            }
         });
     }
 
