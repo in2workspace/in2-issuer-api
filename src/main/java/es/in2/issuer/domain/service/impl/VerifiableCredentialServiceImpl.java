@@ -128,10 +128,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                             }
                             Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
 
-
-                            // Create the VC
                             // todo get issuer did from dss module
-                            // todo la credencial se genera aquí pero se firma en el dss
+                            // Get Credential template from local file
                             String LEARtemplate;
                             try {
                                 LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -139,25 +137,21 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 throw new RuntimeException(e);
                             }
 
-                            String vcString = null;
-                            try {
-                                vcString = generateVcPayLoad(LEARtemplate, subjectDid, didElsi, data, expiration);
-                            } catch (JSONException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            log.info(vcString);
-                            log.info("Signing credential in JADES remotely ...");
-                            SignatureRequest signatureRequest = new SignatureRequest(
-                                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                    vcString
-                            );
-                            return remoteSignatureService.sign(signatureRequest, token)
-                                    .publishOn(Schedulers.boundedElastic())
-                                    //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
-                                    .map(SignedData::data);
-
-
+                            // Create VC and sign it
+                            return Mono.just(LEARtemplate)
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, didElsi, data, expiration))
+                                    .flatMap(vcString -> {
+                                        log.info(vcString);
+                                        log.info("Signing credential in JADES remotely ...");
+                                        SignatureRequest signatureRequest = new SignatureRequest(
+                                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                                                vcString
+                                        );
+                                        return remoteSignatureService.sign(signatureRequest, token)
+                                                .publishOn(Schedulers.boundedElastic())
+                                                //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
+                                                .map(SignedData::data);
+                                    });
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());
@@ -186,10 +180,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                             }
                             Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
 
-
                             // Create the VC
-                            // todo get issuer did from dss module
-                            // todo la credencial se genera aquí pero se firma en el dss
                             String LEARtemplate;
                             try {
                                 LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
@@ -197,25 +188,20 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 throw new RuntimeException(e);
                             }
 
-                            String vcString = null;
-                            try {
-                                vcString = generateVcPayLoad2(LEARtemplate, subjectDid, "issuer-did", data, expiration);
-                            } catch (JSONException | JsonProcessingException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            log.info(vcString);
-                            log.info("Signing credential in JADES remotely ...");
-                            SignatureRequest signatureRequest = new SignatureRequest(
-                                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                    vcString
-                            );
-                            return remoteSignatureService.sign(signatureRequest, token)
-                                    .publishOn(Schedulers.boundedElastic())
-                                    //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
-                                    .map(SignedData::data);
-
-
+                            return Mono.just(LEARtemplate)
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, "issuer-did", data, expiration))
+                                    .flatMap(vcString -> {
+                                        log.info(vcString);
+                                        log.info("Signing credential in JADES remotely ...");
+                                        SignatureRequest signatureRequest = new SignatureRequest(
+                                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                                                vcString
+                                        );
+                                        return remoteSignatureService.sign(signatureRequest, token)
+                                                .publishOn(Schedulers.boundedElastic())
+                                                //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
+                                                .map(SignedData::data);
+                                    });
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());
@@ -370,95 +356,48 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         });
     }
 
-    private String generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration) throws JSONException {
-        // Parse vcTemplate to a JSON object
-        JSONObject vcObject = new JSONObject(vcTemplate);
+    private Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration) throws JSONException {
+        return Mono.fromCallable(()->{
+            // Parse vcTemplate to a JSON object
+            JSONObject vcObject = new JSONObject(vcTemplate);
 
-        // Generate a unique UUID for jti and vc.id
-        String uuid = UUID.randomUUID().toString();
+            // Generate a unique UUID for jti and vc.id
+            String uuid = "urn:uuid:" + UUID.randomUUID().toString();
 
-        // Calculate timestamps
-        Instant nowInstant = Instant.now();
-        long nowTimestamp = nowInstant.getEpochSecond();
-        long expTimestamp = expiration.getEpochSecond();
+            // Calculate timestamps
+            Instant nowInstant = Instant.now();
+            long nowTimestamp = nowInstant.getEpochSecond();
+            long expTimestamp = expiration.getEpochSecond();
 
 
-        // Update vcObject with dynamic values
-        vcObject.put("id", "urn:uuid:" + uuid);
-        vcObject.put("issuer", new JSONObject().put("id", issuerDid));
-        // Update issuanceDate, issued, validFrom, expirationDate in vcObject using ISO 8601 format
-        String nowDateStr = nowInstant.toString();
-        String expirationDateStr = expiration.toString();
-        vcObject.put("issuanceDate", nowDateStr);
-        vcObject.put("issued", nowDateStr);
-        vcObject.put("validFrom", nowDateStr);
-        vcObject.put("expirationDate", expirationDateStr);
+            // Update vcObject with dynamic values
+            vcObject.put("id", uuid);
+            vcObject.put("issuer", new JSONObject().put("id", issuerDid));
+            // Update issuanceDate, issued, validFrom, expirationDate in vcObject using ISO 8601 format
+            String nowDateStr = nowInstant.toString();
+            String expirationDateStr = expiration.toString();
+            vcObject.put("issuanceDate", nowDateStr);
+            vcObject.put("issued", nowDateStr);
+            vcObject.put("validFrom", nowDateStr);
+            vcObject.put("expirationDate", expirationDateStr);
 
-        // Convert userData map to JSONObject and set as credentialSubject
-        //JSONObject credentialSubject = new JSONObject(userData);
-        //vcObject.put("credentialSubject", credentialSubject);
+            // Convert userData map contents to Object and set as credentialSubject
+            Object credentialSubjectValue = userData.get("credentialSubject");
+            vcObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue));
 
-        Object credentialSubjectValue = userData.get("credentialSubject");
-        vcObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue));
+            // Construct final JSON Object
+            JSONObject finalObject = new JSONObject();
+            finalObject.put("sub", subjectDid);
+            finalObject.put("nbf", nowTimestamp);
+            finalObject.put("iss", issuerDid);
+            finalObject.put("exp", expTimestamp);
+            finalObject.put("iat", nowTimestamp);
+            finalObject.put("jti", uuid);
+            finalObject.put("vc", vcObject);
 
-        // Construct final JSON Object
-        JSONObject finalObject = new JSONObject();
-        finalObject.put("sub", subjectDid);
-        finalObject.put("nbf", nowTimestamp);
-        finalObject.put("iss", issuerDid);
-        finalObject.put("exp", expTimestamp);
-        finalObject.put("iat", nowTimestamp);
-        finalObject.put("jti", "urn:uuid:" + uuid);
-        finalObject.put("vc", vcObject);
-
-        // Return final object as String
-        return finalObject.toString();
-    }
-
-    private String generateVcPayLoad2 (String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration) throws JsonProcessingException {
-        ObjectMapper mapper = new ObjectMapper();
-
-        // Parse vcTemplate to an ObjectNode
-        ObjectNode vcObject = (ObjectNode) mapper.readTree(vcTemplate);
-
-        // Generate a unique UUID for jti and vc.id
-        String uuid = UUID.randomUUID().toString();
-
-        // Calculate timestamps (nbf, iat, exp) based on the expiration Instant
-        Instant nowInstant = Instant.now();
-        long nowTimestamp = nowInstant.getEpochSecond();
-        long expTimestamp = expiration.getEpochSecond();
-
-        // Update vcObject with dynamic values
-        vcObject.put("id", "urn:uuid:" + uuid);
-        ObjectNode issuerNode = vcObject.putObject("issuer");
-        issuerNode.put("id", issuerDid);
-        String nowDateStr = nowInstant.toString();
-        String expirationDateStr = expiration.toString();
-        vcObject.put("issuanceDate", nowDateStr);
-        vcObject.put("issued", nowDateStr);
-        vcObject.put("validFrom", nowDateStr);
-        vcObject.put("expirationDate", expirationDateStr);
-
-        // Convert userData map to ObjectNode and set as credentialSubject
-        ObjectNode credentialSubjectNode = mapper.valueToTree(userData);
-        vcObject.put("credentialSubject", credentialSubjectNode);
-
-        //Object credentialSubjectValue = userData.get("credentialSubject");
-        //vcObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue).length());
-
-        // Construct final JSON Object
-        ObjectNode finalObject = mapper.createObjectNode();
-        finalObject.put("sub", subjectDid);
-        finalObject.put("nbf", nowTimestamp);
-        finalObject.put("iss", issuerDid);
-        finalObject.put("exp", expTimestamp);
-        finalObject.put("iat", nowTimestamp);
-        finalObject.put("jti", "urn:uuid:" + uuid);
-        finalObject.set("vc", vcObject);
-
-        // Return final object as String
-        return mapper.writerWithDefaultPrettyPrinter().writeValueAsString(finalObject);
+            // Return final object as String
+            return finalObject.toString();
+        });
     }
 
     @Override
