@@ -7,4 +7,5 @@ import reactor.core.publisher.Mono;
 public interface VerifiableCredentialService {
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String username, CredentialRequest credentialRequest, String token);
     Mono<String> getVerifiableCredential(String credentialId);
+    Mono<String> testPayLoad(String username, String token, String subjectDid);
 }
