@@ -1,8 +1,9 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.service.IssuerVcTemplateService;
-import id.walt.credentials.w3c.templates.VcTemplate;
-import id.walt.credentials.w3c.templates.VcTemplateService;
+import es.in2.issuer.domain.model.VcTemplate;
+//import id.walt.credentials.w3c.templates.VcTemplate;
+//import id.walt.credentials.w3c.templates.VcTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -34,20 +35,20 @@ public class IssuerVcTemplateServiceImpl implements IssuerVcTemplateService {
     @Override
     public Mono<List<VcTemplate>> getAllVcTemplates() {
         return Flux.fromIterable(vcTemplateNames)
-                .concatMap(vc -> Mono.fromCallable(() -> new VcTemplate(vc,null,false)))
+                .concatMap(vc -> Mono.fromCallable(() -> new VcTemplate(false, vc,null)))
                 .collectList();
     }
 
     @Override
     public Mono<List<VcTemplate>> getAllDetailedVcTemplates() {
         return Flux.fromIterable(vcTemplateNames)
-                .concatMap(name -> Mono.fromCallable(() -> VcTemplateService.Companion.getService().getTemplate(name, true, VcTemplateService.SAVED_VC_TEMPLATES_KEY)))
+                .concatMap(name -> Mono.fromCallable(() -> new VcTemplate(false, name,null)))
                 .collectList();
     }
 
     @Override
     public Mono<VcTemplate> getTemplate(String templateName) {
-        return Mono.fromCallable(() -> VcTemplateService.Companion.getService().getTemplate(templateName,true,VcTemplateService.SAVED_VC_TEMPLATES_KEY))
+        return Mono.fromCallable(() -> new VcTemplate(false, templateName,null))
                 .onErrorMap(IllegalArgumentException.class, e -> new IllegalArgumentException("Error getting template: " + e.getMessage(), e));
     }
 
