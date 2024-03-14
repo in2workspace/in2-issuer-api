@@ -2,8 +2,6 @@ package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.service.IssuerVcTemplateService;
 import es.in2.issuer.domain.model.VcTemplate;
-//import id.walt.credentials.w3c.templates.VcTemplate;
-//import id.walt.credentials.w3c.templates.VcTemplateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +11,7 @@ import reactor.core.publisher.Mono;
 import java.util.Arrays;
 import java.util.List;
 
-// fixme: esta clase la debemos eliminar y buscar un sistema de configuración para los templates
+// fixme: esta clase la debemos eliminar y buscar un sistema de configuración para los templates, actualmente esta devolviendo data dummy
 @Slf4j
 @Service
 @RequiredArgsConstructor

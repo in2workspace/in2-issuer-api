@@ -2,8 +2,6 @@ package es.in2.issuer.domain.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-//import id.walt.credentials.w3c.templates.VcTemplate;
-import es.in2.issuer.domain.model.VcTemplate;
 import lombok.Builder;
 
 import java.util.List;

@@ -15,7 +15,6 @@ import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-//import id.walt.credentials.w3c.templates.VcTemplate;
 import es.in2.issuer.domain.model.VcTemplate;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;

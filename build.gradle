@@ -51,8 +51,6 @@ configurations {
 repositories {
 	mavenCentral()
 	maven { setUrl('https://jitpack.io') }
-	maven { setUrl('https://maven.walt.id/repository/waltid/') }
-	maven { setUrl('https://maven.walt.id/repository/waltid-ssi-kit/') }
 	maven { setUrl('https://repo.danubetech.com/repository/maven-public/') }
 }
 
@@ -87,19 +85,12 @@ dependencies {
 	// Base 45
 	implementation('io.github.ehn-digital-green-development:base45:0.0.3')
 
-	// walt.id
-	// https://github.com/walt-id/waltid-ssikit
-	// to update this versions go to
-	// https://maven.walt.id/repository/waltid-ssi-kit/id/walt/waltid-sd-jwt-jvm/
-	// https://maven.walt.id/repository/waltid-ssi-kit/id/walt/waltid-ssikit
-	// and pick the one with the newest version number
-	// make sure to update all other implementations in wallet
-	implementation('id.walt:waltid-ssikit:1.2309221938.0'){
-		// conflict with swagger-model from openapi-starter dependency when app is containerized
-		exclude group: 'io.swagger.core.v3', module: 'swagger-models'
-	}
-	implementation('id.walt:waltid-sd-jwt-jvm:1.2309211114.0')
-	implementation('id.walt.servicematrix:WaltID-ServiceMatrix:1.1.3')
+	// UTILS
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
+	implementation 'org.jetbrains:annotations:13.0'
+
+	// CACHE
+	implementation 'com.google.guava:guava:31.0.1-android'
 
 	// DevTools
 	compileOnly('org.projectlombok:lombok:1.18.26')

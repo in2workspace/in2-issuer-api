@@ -6,7 +6,6 @@ import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
-import id.walt.credentials.w3c.templates.VcTemplateService;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

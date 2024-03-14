@@ -5,7 +5,6 @@ import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.service.IssuerVcTemplateService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import es.in2.issuer.domain.model.VcTemplate;
-//import id.walt.credentials.w3c.templates.VcTemplate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -27,6 +26,7 @@ import java.util.List;
 @RequestMapping("/api/vc-templates")
 @RequiredArgsConstructor
 public class VcTemplateController {
+// todo: este controller debe devolver los templates soportados por el Credential Issuer, por ahora esta devolviendo data dummy
 
     private final IssuerVcTemplateService issuerVcTemplateService;
 
