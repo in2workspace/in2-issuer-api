@@ -1,9 +1,5 @@
 package es.in2.issuer.domain.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.nimbusds.jose.JOSEObject;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.util.Base64URL;
@@ -16,17 +12,6 @@ import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-import id.walt.crypto.KeyAlgorithm;
-import id.walt.crypto.KeyId;
-import id.walt.model.DidMethod;
-import id.walt.servicematrix.ServiceMatrix;
-import id.walt.services.did.DidService;
-import id.walt.services.key.KeyService;
-import id.walt.signatory.Ecosystem;
-import id.walt.signatory.ProofConfig;
-import id.walt.signatory.ProofType;
-import id.walt.signatory.Signatory;
-import id.walt.signatory.dataproviders.MergingDataProvider;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -213,14 +198,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private Mono<String> generateVerifiableCredentialInCWTFormat(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
             try {
-                // Load walt.id SSI-Kit services from "$workingDirectory/service-matrix.properties"
-                new ServiceMatrix("service-matrix.properties");
-                // Define used services
-                Signatory signatory = Signatory.Companion.getService();
-                KeyService keyService = KeyService.Companion.getService();
-                // generate key pairs for issuer
-                KeyId issuerKey = keyService.generate(KeyAlgorithm.ECDSA_Secp256k1);
-                String issuerDid = DidService.INSTANCE.create(DidMethod.key, issuerKey.getId(),null);
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
                 // Prepare desired custom data that should replace the default template data
                 log.info("Fetching information from authentic sources ...");
@@ -236,28 +213,24 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
                             }
                             Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-                            // Create the VC in jwt format.
-                            String jwtVC = signatory.issue(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL,
-                                    new ProofConfig(issuerDid, subjectDid,null,null, ProofType.JWT,null,null,null,null,null,null, expiration,null,null,null, Ecosystem.DEFAULT,null,"",null,null),
-                                    new MergingDataProvider(data),
-                                    null,
-                                    false
-                            );
-                            //generate the signed JWT
-                            Payload vcPayload;
+
+                            // Get Credential template from local file
+                            String LEARtemplate;
                             try {
-                                vcPayload = JOSEObject.parse(jwtVC).getPayload();
-                            } catch (ParseException e) {
-                                log.error("ParseException {}", e.getMessage());
-                                return Mono.error(new RuntimeException(e));
+                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
                             }
-                            String vcString = setIssuerDid(vcPayload).toString();
 
-                            log.info(vcString);
-
-                            return generateCborFromJson(vcString)
-                                    .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                                    .flatMap(this::compressAndConvertToBase45FromCOSE);
+                            // Create VC and sign it
+                            return Mono.just(LEARtemplate)
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, didElsi, data, expiration))
+                                    .flatMap(vcString -> {
+                                        log.info(vcString);
+                                        return generateCborFromJson(vcString)
+                                                .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
+                                                .flatMap(this::compressAndConvertToBase45FromCOSE);
+                                    });
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());
