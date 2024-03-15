@@ -129,7 +129,7 @@ public class CredentialOfferController {
     @Operation(
             summary = "Returns a credential offer by ID",
             description = "This operation is used to retrieve a specific credential offer. Users should provide the ID of the desired credential offer in the URL path. The response will contain detailed information about the credential offer.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PUBLIC}
     )
     @Parameter(
             name = "id",

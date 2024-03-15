@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
+import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.domain.util.Utils;
@@ -44,13 +45,9 @@ public class CredentialIssuerMetadataController {
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<String> getOpenIdCredentialIssuer() {
-        // fixme: no necesitamos un try catch, devolvemos el happy path y la exceptions es manejada por el GlobalAdvice
-        try {
-            return Mono.just(Utils.toJsonString(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()));
-        } catch (Exception e) {
-            return Mono.error(new RuntimeException(e));
-        }
+    public Mono<CredentialIssuerMetadata> getOpenIdCredentialIssuer() {
+        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer()
+                .onErrorResume(e -> Mono.error(new RuntimeException(e)));
     }
 
 }

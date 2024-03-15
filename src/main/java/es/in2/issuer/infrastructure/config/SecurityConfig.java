@@ -9,16 +9,20 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -46,13 +50,30 @@ public class SecurityConfig {
         return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());
     }
 
+//    @Bean
+//    public WebSecurityCustomizer webSecurityCustomizer() {
+//        return web -> web
+//                .ignoring()
+//                .requestMatchers(getSwaggerPaths())
+//                // fixme: parameter hardcoded
+//                .requestMatchers("/health", "/credential-offer/**");
+//    }
+
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() {
-        return web -> web
-                .ignoring()
-                .requestMatchers(getSwaggerPaths())
-                // fixme: parameter hardcoded
-                .requestMatchers("/health");
+    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+        http
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(getSwaggerPaths()).permitAll()
+                        .pathMatchers("/health").permitAll()
+                        .pathMatchers("/credential-offer/**").permitAll()
+                        .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
+                        .anyExchange().authenticated()
+                ).csrf(csrf -> csrf.disable())
+                .oauth2ResourceServer(oauth2ResourceServer ->
+                        oauth2ResourceServer
+                                .jwt(withDefaults()));
+
+        return http.build();
     }
 
     @Bean

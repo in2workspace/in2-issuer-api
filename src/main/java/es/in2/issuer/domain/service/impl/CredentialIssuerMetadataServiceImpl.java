@@ -45,9 +45,15 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String credentialIssuerDomain = ensureUrlHasProtocol(issuerApiBaseUrl);
-        return Mono.just(CredentialIssuerMetadata.builder().credentialIssuer(credentialIssuerDomain)
-                // fixme: Este path debe capturarse de la configuración
-                .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential").credentialToken(iamAdapterFactory.getAdapter().getTokenUri()).credentialsSupported(generateCredentialsSupportedList()).build());
+        return Mono.just(
+                CredentialIssuerMetadata.builder()
+                        .credentialIssuer(credentialIssuerDomain)
+                        // fixme: Este path debe capturarse de la configuración
+                        .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
+                        .credentialToken(iamAdapterFactory.getAdapter().getTokenUri())
+                        .credentialsSupported(generateCredentialsSupportedList())
+                        .build()
+        );
     }
 
     private List<CredentialsSupported> generateCredentialsSupportedList() {

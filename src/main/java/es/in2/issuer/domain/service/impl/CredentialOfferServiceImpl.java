@@ -60,14 +60,30 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     public Mono<String> generateCredentialOffer(String accessToken, String credentialType) {
+
         String credentialTypeAux = (credentialType != null) ? credentialType : LEAR_CREDENTIAL;
+
         return checkCredentialInCredentialsSupported(credentialTypeAux)
+
                 .then(generateCredentialOfferAux(accessToken, credentialTypeAux))
                 .flatMap(this::storeCredentialOfferInMemoryCache);
+
     }
 
     private Mono<CredentialOfferForPreAuthorizedCodeFlow> generateCredentialOfferAux(String accessToken, String credentialType) {
-        return getPreAuthorizationCodeFromKeycloak(accessToken).map(preAuthorizedCode -> CredentialOfferForPreAuthorizedCodeFlow.builder().credentialIssuer(HttpUtils.ensureUrlHasProtocol(issuerApiBaseUrl)).credentials(Collections.singletonList(credentialType)).grants(Collections.singletonMap(GRANT_TYPE, new Grant(preAuthorizedCode, false))).build());
+        return getPreAuthorizationCodeFromKeycloak(accessToken)
+                .map(preAuthorizedCode -> CredentialOfferForPreAuthorizedCodeFlow.builder()
+
+                        .credentialIssuer(HttpUtils.ensureUrlHasProtocol(issuerApiBaseUrl))
+                        .credentials(
+                                Arrays.asList(
+                                        new CredentialOfferForPreAuthorizedCodeFlow.Credential("jwt_vc", Collections.singletonList(credentialType)),
+                                        new CredentialOfferForPreAuthorizedCodeFlow.Credential("cwt_vc", Collections.singletonList(credentialType))
+                                )
+                        )
+                        .grants(Collections.singletonMap(GRANT_TYPE, new Grant(preAuthorizedCode, false)))
+
+                        .build());
     }
 
     private Mono<Void> checkCredentialInCredentialsSupported(String credentialType) {
