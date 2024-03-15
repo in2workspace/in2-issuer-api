@@ -2,8 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.VcTemplateDoesNotExistException;
 import es.in2.issuer.domain.service.IssuerVcTemplateService;
-import es.in2.issuer.infrastructure.controller.VcTemplateController;
-import id.walt.credentials.w3c.templates.VcTemplate;
+import es.in2.issuer.domain.model.VcTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,8 +28,8 @@ class VcTemplateControllerTest {
     void testGetAllVcTemplatesByName_Success() {
         // Arrange
         List<VcTemplate> mockTemplateList = List.of(
-                new VcTemplate("LegalPerson", null, false),
-                new VcTemplate("Email", null, false)
+                new VcTemplate(false, "LegalPerson", null),
+                new VcTemplate(false, "Email", null)
         );
         when(issuerVcTemplateService.getAllVcTemplates()).thenReturn(Mono.just(mockTemplateList));
 
@@ -46,8 +45,8 @@ class VcTemplateControllerTest {
     void testGetAllVcTemplatesDetail_Success() {
         // Arrange
         List<VcTemplate> mockDetailedTemplateList = List.of(
-                new VcTemplate("LegalPerson", null, false),
-                new VcTemplate("Email", null, false)
+                new VcTemplate(false, "LegalPerson", null),
+                new VcTemplate(false, "Email", null)
         );
         when(issuerVcTemplateService.getAllDetailedVcTemplates()).thenReturn(Mono.just(mockDetailedTemplateList));
 
@@ -63,7 +62,7 @@ class VcTemplateControllerTest {
     void testGetTemplateByName_Success() {
         // Arrange
         String templateName = "LegalPerson";
-        VcTemplate mockTemplate = new VcTemplate(templateName, null, false);
+        VcTemplate mockTemplate = new VcTemplate(false, templateName, null);
         when(issuerVcTemplateService.getTemplate(templateName)).thenReturn(Mono.just(mockTemplate));
 
         // Act

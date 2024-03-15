@@ -1,9 +1,7 @@
 package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.service.impl.IssuerVcTemplateServiceImpl;
-import es.in2.issuer.domain.util.Utils;
-import id.walt.credentials.w3c.templates.VcTemplate;
-import id.walt.servicematrix.ServiceMatrix;
+import es.in2.issuer.domain.model.VcTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,13 +57,10 @@ class IssuerVcTemplateServiceImplTest {
 
     @Test
     void getTemplate() {
-
-        new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
-
         Mono<VcTemplate> resultMono = issuerVcTemplateService.getTemplate("LegalPerson");
         VcTemplate result = resultMono.block();
 
-        assertEquals("LegalPerson", Objects.requireNonNull(result).getName());
+        assertEquals("LegalPerson", Objects.requireNonNull(result).name());
     }
 
 }

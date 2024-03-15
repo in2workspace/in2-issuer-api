@@ -1,24 +1,37 @@
 package es.in2.issuer.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.ExpiredPreAuthorizedCodeException;
+import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
-import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
+import es.in2.issuer.domain.model.CredentialsSupported;
+import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
+import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import es.in2.issuer.infrastructure.repository.CacheStore;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.*;
 
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
@@ -29,6 +42,12 @@ class CredentialOfferServiceImplTest {
     private CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
     @Mock
     private AppConfiguration appConfiguration;
+
+    @Mock
+    private IamAdapterFactory iamAdapterFactory;
+
+    @Mock
+    private GenericIamAdapter genericIamAdapter;
 
     @Mock
     private HttpUtils httpUtils;
@@ -68,171 +87,166 @@ class CredentialOfferServiceImplTest {
         verify(appConfiguration, times(1)).getIssuerDomain();
     }
 
-    // TODO : Mock waltid services call
+    @Test
+    void testCreateCredentialOfferUriForPreAuthorizedCodeFlow() throws JsonProcessingException, JsonProcessingException {
+        // Mock the getPreAuthCodeUri() response
+        String mockPreAuthCodeUri = "http://mocktokenuri";
+        when(iamAdapterFactory.getAdapter()).thenReturn(genericIamAdapter);
+        when(genericIamAdapter.getPreAuthCodeUri()).thenReturn(mockPreAuthCodeUri);
 
-//    @Test
-//    void testCreateCredentialOfferUriForPreAuthorizedCodeFlow() throws JsonProcessingException {
-//        new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
-//
-//        ReflectionTestUtils.setField(credentialOfferService,"issuerApiBaseUrl","http://baseUrl");
-//        ReflectionTestUtils.setField(credentialOfferService,"issuerUri","issuerUri");
-//        ReflectionTestUtils.setField(credentialOfferService,"did","did");
-//
-//        String preAuthCodeUri = "issuerUri/realms/EAAProvider/verifiable-credential/did/credential-offer";
-//        String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
-//
-//        String accessToken = "dummyAccessToken";
-//        List<CredentialsSupportedParameter> supportedParameters = Arrays.asList(
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        "VerifiableId_JWT",
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("VerifiableId",true,VcTemplateService.SAVED_VC_TEMPLATES_KEY)
-//                ),
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        LEAR_CREDENTIAL,
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("LEARCredential",true,"")
-//                ));
-//
-//        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
-//
-//        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
-//
-//        List<Map.Entry<String, String>> headers = new ArrayList<>();
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
-//
-//        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
-//        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
-//        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
-//        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
-//
-//        String result = credentialOfferService.createCredentialOfferUriForPreAuthorizedCodeFlow(accessToken, LEAR_CREDENTIAL).block();
-//
-//        assertNotNull(result);
-//
-//    }
+        ReflectionTestUtils.setField(credentialOfferService,"issuerApiBaseUrl","http://baseUrl");
+        String url = "http://mocktokenuri?type=VerifiableId&format=jwt_vc_json";
 
-    // TODO : Mock waltid services call
+        String accessToken = "dummyAccessToken";
+        List<CredentialsSupported> supportedParameters = Arrays.asList(
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        "VerifiableId_JWT",
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name("VerifiableId_JWT").template(null).build()
+                ),
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        LEAR_CREDENTIAL,
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name(LEAR_CREDENTIAL).template(null).build()
+                )
+        );
 
-//    @Test
-//    void testGenerateCredentialOffer() throws JsonProcessingException {
-//        new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
-//
-//        ReflectionTestUtils.setField(credentialOfferService,"issuerUri","issuerUri");
-//        ReflectionTestUtils.setField(credentialOfferService,"did","did");
-//
-//        String preAuthCodeUri = "issuerUri/realms/EAAProvider/verifiable-credential/did/credential-offer";
-//        String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
-//
-//        String accessToken = "dummyAccessToken";
-//        List<CredentialsSupportedParameter> supportedParameters = Arrays.asList(
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        "VerifiableId_JWT",
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("VerifiableId",true,VcTemplateService.SAVED_VC_TEMPLATES_KEY)
-//                ),
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        LEAR_CREDENTIAL,
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("LEARCredential",true,"")
-//                ));
-//
-//        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
-//
-//        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
-//
-//        List<Map.Entry<String, String>> headers = new ArrayList<>();
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
-//
-//        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
-//        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
-//        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
-//        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
-//
-//        // Call method
-//        Mono<String> result = credentialOfferService.generateCredentialOffer(accessToken, LEAR_CREDENTIAL);
-//
-//        String dummyNonce = "XvmPFalLQWKdfnXcDUvAOA";
-//        // Assertions
-//        assertNotNull(result);
-//        assertEquals(dummyNonce.length(), result.block().length());
-//        verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
-//        verify(httpUtils, times(1)).getRequest(url,headers);
-//        verify(objectMapper, times(1)).readTree(jsonString);
-//
-//    }
+        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
 
+        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
 
-    // TODO : Mock waltid services call
+        List<Map.Entry<String, String>> headers = new ArrayList<>();
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
 
-//    @Test
-//    void testGenerateCredentialOfferWithNullCredentialType() throws JsonProcessingException {
-//        new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
-//
-//        ReflectionTestUtils.setField(credentialOfferService,"issuerUri","issuerUri");
-//        ReflectionTestUtils.setField(credentialOfferService,"did","did");
-//
-//        String preAuthCodeUri = "issuerUri/realms/EAAProvider/verifiable-credential/did/credential-offer";
-//        String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
-//
-//        String accessToken = "dummyAccessToken";
-//        List<CredentialsSupportedParameter> supportedParameters = Arrays.asList(
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        "VerifiableId_JWT",
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("VerifiableId",true,VcTemplateService.SAVED_VC_TEMPLATES_KEY)
-//                ),
-//                new CredentialsSupportedParameter(
-//                        "jwt_vc_json",
-//                        LEAR_CREDENTIAL,
-//                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
-//                        List.of("did"),
-//                        new ArrayList<>(),
-//                        VcTemplateService.Companion.getService().getTemplate("LEARCredential",true,"")
-//                ));
-//
-//        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
-//
-//        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
-//
-//        List<Map.Entry<String, String>> headers = new ArrayList<>();
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
-//
-//        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
-//        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
-//        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
-//        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
-//
-//        // Call method
-//        Mono<String> result = credentialOfferService.generateCredentialOffer(accessToken, null);
-//
-//        String dummyNonce = "XvmPFalLQWKdfnXcDUvAOA";
-//        // Assertions
-//        assertNotNull(result);
-//        assertEquals(dummyNonce.length(), result.block().length());
-//        verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
-//        verify(httpUtils, times(1)).getRequest(url,headers);
-//        verify(objectMapper, times(1)).readTree(jsonString);
-//
-//    }
+        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
+        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
+        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
+        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
+
+        String result = credentialOfferService.createCredentialOfferUriForPreAuthorizedCodeFlow(accessToken, LEAR_CREDENTIAL).block();
+
+        Assertions.assertNotNull(result);
+
+    }
+
+    @Test
+    void testGenerateCredentialOffer() throws JsonProcessingException {
+        // Mock the getPreAuthCodeUri() response
+        String mockPreAuthCodeUri = "http://mocktokenuri";
+        when(iamAdapterFactory.getAdapter()).thenReturn(genericIamAdapter);
+        when(genericIamAdapter.getPreAuthCodeUri()).thenReturn(mockPreAuthCodeUri);
+
+        ReflectionTestUtils.setField(credentialOfferService,"issuerApiBaseUrl","http://baseUrl");
+        String url = "http://mocktokenuri?type=VerifiableId&format=jwt_vc_json";
+
+        String accessToken = "dummyAccessToken";
+        List<CredentialsSupported> supportedParameters = Arrays.asList(
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        "VerifiableId_JWT",
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name("VerifiableId_JWT").template(null).build()
+                ),
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        LEAR_CREDENTIAL,
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name(LEAR_CREDENTIAL).template(null).build()
+                )
+        );
+
+        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
+
+        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
+
+        List<Map.Entry<String, String>> headers = new ArrayList<>();
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
+
+        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
+        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
+        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
+        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
+
+        // Call method
+        Mono<String> result = credentialOfferService.generateCredentialOffer(accessToken, LEAR_CREDENTIAL);
+
+        String dummyNonce = "XvmPFalLQWKdfnXcDUvAOA";
+        // Assertions
+        assertNotNull(result);
+        assertEquals(dummyNonce.length(), result.block().length());
+        verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
+        verify(httpUtils, times(1)).getRequest(url,headers);
+        verify(objectMapper, times(1)).readTree(jsonString);
+
+    }
+
+    @Test
+    void testGenerateCredentialOfferWithNullCredentialType() throws JsonProcessingException {
+        // Mock the getPreAuthCodeUri() response
+        String mockPreAuthCodeUri = "http://mocktokenuri";
+        when(iamAdapterFactory.getAdapter()).thenReturn(genericIamAdapter);
+        when(genericIamAdapter.getPreAuthCodeUri()).thenReturn(mockPreAuthCodeUri);
+
+        ReflectionTestUtils.setField(credentialOfferService,"issuerApiBaseUrl","http://baseUrl");
+        String url = "http://mocktokenuri?type=VerifiableId&format=jwt_vc_json";
+
+        String accessToken = "dummyAccessToken";
+        List<CredentialsSupported> supportedParameters = Arrays.asList(
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        "VerifiableId_JWT",
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name("VerifiableId_JWT").template(null).build()
+                ),
+                new CredentialsSupported(
+                        "jwt_vc_json",
+                        LEAR_CREDENTIAL,
+                        Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential"),
+                        List.of("did"),
+                        List.of(),
+                        VcTemplate.builder().mutable(false).name(LEAR_CREDENTIAL).template(null).build()
+                )
+        );
+
+        CredentialIssuerMetadata credentialIssuerMetadata = new CredentialIssuerMetadata("credentialIssuer","credentialEndpoint","credentialToken", supportedParameters );
+
+        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(credentialIssuerMetadata));
+
+        List<Map.Entry<String, String>> headers = new ArrayList<>();
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
+
+        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
+        when(httpUtils.getRequest(url,headers)).thenReturn(Mono.just(jsonString));
+        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
+        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
+
+        // Call method
+        Mono<String> result = credentialOfferService.generateCredentialOffer(accessToken, null);
+
+        String dummyNonce = "XvmPFalLQWKdfnXcDUvAOA";
+        // Assertions
+        assertNotNull(result);
+        assertEquals(dummyNonce.length(), result.block().length());
+        verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
+        verify(httpUtils, times(1)).getRequest(url,headers);
+        verify(objectMapper, times(1)).readTree(jsonString);
+
+    }
 
     @Test
     void testGetCredentialOffer() {
