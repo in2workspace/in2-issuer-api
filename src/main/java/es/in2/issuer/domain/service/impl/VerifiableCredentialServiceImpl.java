@@ -321,14 +321,13 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             ByteArrayOutputStream stream = new ByteArrayOutputStream();
             try (CompressorOutputStream deflateOut = new CompressorStreamFactory()
                     .createCompressorOutputStream(CompressorStreamFactory.DEFLATE, stream)) {
-                // fixme: posible blocking
                 deflateOut.write(cose);
-                byte[] zip = stream.toByteArray();
-                return Base45.getEncoder().encodeToString(zip);
-            } catch (IOException e) {
-                log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
-                throw new Base45Exception("Error compressing and converting to Base45");
-            }
+            } // Automatically closed by try-with-resources
+            byte[] zip = stream.toByteArray();
+            return Base45.getEncoder().encodeToString(zip);
+        }).onErrorResume(e -> {
+            log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
+            return Mono.error(new Base45Exception("Error compressing and converting to Base45"));
         });
     }
 
