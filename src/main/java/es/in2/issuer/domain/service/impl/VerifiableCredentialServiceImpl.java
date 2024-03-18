@@ -67,10 +67,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             String token
     ) {
         return getNonceClaim(credentialRequest.proof().jwt())
-                .flatMap(nonceClaim -> checkIfCacheExistsById(nonceClaim)
-                        .flatMap(verifyToken -> verifyIfUserAccessTokenIsAssociatedWithNonceOnCache(token, verifyToken)
-                                .then(Mono.fromRunnable(() -> cacheStore.delete(nonceClaim)))
-                                .thenReturn(nonceClaim)))
+                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
+                            .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
@@ -145,8 +143,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         });
     }
 
-    @Override
-    public Mono<String> testPayLoad(String username, String token, String subjectDid) {
+    //@Override
+    public Mono<String> testPayLoad1(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -194,7 +192,50 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             }
         });
     }
+    @Override
+    public Mono<String> testPayLoad(String username, String token, String subjectDid) {
+        return Mono.defer(() -> {
+            try {
+                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
+                // Prepare desired custom data that should replace the default template data
+                log.info("Fetching information from authentic sources ...");
+                //return authenticSourcesRemoteService.getUser(token)
+                return authenticSourcesRemoteService.getUserFromLocalFile()
+                        .flatMap(appUser -> {
+                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
+                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
+                            Map<String, String> credentialSubjectData;
+                            if (!credentialSubject.isEmpty()) {
+                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
+                            } else {
+                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
+                            }
+                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
 
+                            // Get Credential template from local file
+                            String LEARtemplate;
+                            try {
+                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            // Create VC and sign it
+                            return Mono.just(LEARtemplate)
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, "issuer-did", data, expiration))
+                                    .flatMap(vcString -> {
+                                        log.info(vcString);
+                                        return generateCborFromJson(vcString)
+                                                .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
+                                                .flatMap(this::compressAndConvertToBase45FromCOSE);
+                                    });
+                        });
+            } catch (UserDoesNotExistException e) {
+                log.error("UserDoesNotExistException {}", e.getMessage());
+                return Mono.error(new RuntimeException(e));
+            }
+        });
+    }
     private Mono<String> generateVerifiableCredentialInCWTFormat(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
             try {

@@ -17,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
@@ -64,7 +65,7 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
                     // Use ClassPathResource to get the file from the resources folder
                     ClassPathResource classPathResource = new ClassPathResource(resourcePath);
                     // Read the content of the file
-                    String jsonContent = new String(Files.readAllBytes(Paths.get(classPathResource.getURI())));
+                    String jsonContent = Files.readString(Paths.get(classPathResource.getURI()));
                     // Convert JSON content to AuthenticSourcesGetUserResponseDTO object
                     return objectMapper.readValue(jsonContent, SubjectDataResponse.class);
                 })
