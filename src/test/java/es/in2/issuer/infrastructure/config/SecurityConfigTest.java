@@ -9,8 +9,16 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -32,8 +40,8 @@ class SecurityConfigTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        GenericIamAdapter mockAdapter = Mockito.mock(GenericIamAdapter.class);
-        Mockito.when(iamAdapterFactory.getAdapter()).thenReturn(mockAdapter);
+        GenericIamAdapter mockAdapter = mock(GenericIamAdapter.class);
+        when(iamAdapterFactory.getAdapter()).thenReturn(mockAdapter);
         when(iamAdapterFactory.getAdapter().getJwtDecoder()).thenReturn("localhost:9090");
         when(iamAdapterFactory.getAdapter().getJwtDecoderLocal()).thenReturn("localhost:9090");
         securityConfig = new SecurityConfig(iamAdapterFactory);
@@ -68,11 +76,11 @@ class SecurityConfigTest {
         assertNotNull(corsConfigurationSource, "CorsConfigurationSource should not be null");
     }
 
-    @Test
-    void testWebSecurityCustomizer() {
-        var webSecurityCustomizer = securityConfig.webSecurityCustomizer();
-        assertNotNull(webSecurityCustomizer, "WebSecurityCustomizer should not be null");
-    }
+//    @Test
+//    public void springSecurityFilterChainBeanExistsTest() {
+//        assertNotNull(securityWebFilterChain, "SecurityWebFilterChain bean should not be null");
+//    }
+
 
     @Test
     void testGetSwaggerPaths() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {

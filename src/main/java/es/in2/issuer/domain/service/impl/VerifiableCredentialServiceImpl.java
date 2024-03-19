@@ -36,7 +36,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.CREDENTIAL_SUBJECT;
-import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
 
 @Service
 @RequiredArgsConstructor
@@ -53,11 +52,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
 
-    // fixme: ¿Por qué está aquí el didElsi?
-    private String didElsi;
+    private String issuerDid;
     @PostConstruct
     private void initializeAzureProperties() {
-        didElsi = appConfiguration.getIssuerDid();
+        issuerDid = appConfiguration.getIssuerDid();
     }
 
     @Override
@@ -122,7 +120,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
                             // Create VC and sign it
                             return Mono.just(LEARtemplate)
-                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, didElsi, data, expiration))
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
                                     .flatMap(vcString -> {
                                         log.info(vcString);
                                         log.info("Signing credential in JADES remotely ...");
@@ -265,7 +263,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
                             // Create VC and sign it
                             return Mono.just(LEARtemplate)
-                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, didElsi, data, expiration))
+                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
                                     .flatMap(vcString -> {
                                         log.info(vcString);
                                         return generateCborFromJson(vcString)
@@ -354,18 +352,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                         log.error("Error committing credential source data: " + e.getMessage());
                         return Mono.empty();
                     });
-        });
-    }
-
-    public Mono<Payload> setIssuerDid(Payload vcPayload) {
-        return Mono.fromSupplier(() -> {
-            Map<String, Object> vcJSON = vcPayload.toJSONObject();
-            vcJSON.put("iss", didElsi);
-            Map<String, Object> issuerInfo = new LinkedHashMap<>();
-            issuerInfo.put("id", didElsi);
-            Map<String, Object> vcInfo = (Map<String, Object>) vcJSON.get("vc");
-            vcInfo.put("issuer", issuerInfo);
-            return new Payload(vcJSON);
         });
     }
 
@@ -460,28 +446,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         return Mono.fromCallable(() -> {
             JWSObject jwsObject = JWSObject.parse(jwtProof);
             return jwsObject.getPayload().toJSONObject().get("nonce").toString();
-        });
-    }
-
-    private Mono<Void> verifyIfUserAccessTokenIsAssociatedWithNonceOnCache(String userToken, String cacheToken) {
-        return Mono.defer(() -> {
-            if (userToken.equals(cacheToken)) {
-                log.debug("The access token associated with the nonce matches a record in the cache");
-                return Mono.empty();
-            } else {
-                return Mono.error(new RuntimeException("The access token associated with the nonce does not match with a record in the cache"));
-            }
-        });
-    }
-
-    private Mono<String> checkIfCacheExistsById(String nonce) {
-        return Mono.defer(() -> {
-            String cachedValue = cacheStore.get(nonce);
-            if (cachedValue != null) {
-                return Mono.just(cachedValue);
-            } else {
-                return Mono.error(new InvalidOrMissingProofException("Nonce " + nonce + " is expired or used"));
-            }
         });
     }
 
