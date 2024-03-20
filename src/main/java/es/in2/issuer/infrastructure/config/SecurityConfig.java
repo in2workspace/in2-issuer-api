@@ -50,15 +50,6 @@ public class SecurityConfig {
         return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());
     }
 
-//    @Bean
-//    public WebSecurityCustomizer webSecurityCustomizer() {
-//        return web -> web
-//                .ignoring()
-//                .requestMatchers(getSwaggerPaths())
-//                // fixme: parameter hardcoded
-//                .requestMatchers("/health", "/credential-offer/**");
-//    }
-
     @Bean
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
@@ -68,7 +59,7 @@ public class SecurityConfig {
                         .pathMatchers("/credential-offer/**").permitAll()
                         .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
                         .anyExchange().authenticated()
-                ).csrf(csrf -> csrf.disable())
+                ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
                         oauth2ResourceServer
                                 .jwt(withDefaults()));

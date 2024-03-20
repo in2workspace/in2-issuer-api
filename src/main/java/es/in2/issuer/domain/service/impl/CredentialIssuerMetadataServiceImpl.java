@@ -6,7 +6,6 @@ import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,16 +34,9 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     @Value("classpath:credentials/templates/VerifiableIdTemplate.json")
     private Resource verifiableIdTemplate;
 
-    // fixme: ¿Por qué hay un postconstruct aquí con el issuerAPIBaseUrl?
-    private String issuerApiBaseUrl;
-    @PostConstruct
-    private void initializeIssuerApiBaseUrl() {
-        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
-    }
-
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
-        String credentialIssuerDomain = ensureUrlHasProtocol(issuerApiBaseUrl);
+        String credentialIssuerDomain = ensureUrlHasProtocol(appConfiguration.getIssuerDomain());
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)

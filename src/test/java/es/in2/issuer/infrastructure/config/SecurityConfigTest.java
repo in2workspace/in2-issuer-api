@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.SecurityConfig;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,23 +8,14 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
-import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
-import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,7 +49,6 @@ class SecurityConfigTest {
 
             // Verify
             assertNotNull(jwtDecoder, "JwtDecoder should not be null for 'local' profile");
-            // You can add more verifications if needed
         }
     }
 
@@ -75,12 +64,6 @@ class SecurityConfigTest {
         var corsConfigurationSource = securityConfig.corsConfigurationSource();
         assertNotNull(corsConfigurationSource, "CorsConfigurationSource should not be null");
     }
-
-//    @Test
-//    public void springSecurityFilterChainBeanExistsTest() {
-//        assertNotNull(securityWebFilterChain, "SecurityWebFilterChain bean should not be null");
-//    }
-
 
     @Test
     void testGetSwaggerPaths() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {

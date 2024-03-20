@@ -73,7 +73,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                             Mono<VerifiableCredentialResponse> credentialMono;
 
                             if ("jwt_vc".equals(format)) {
-                                credentialMono = generateVerifiableCredential(username, token, nonceClaim)
+                                credentialMono = generateVerifiableCredentialInJWTFormat(username, token, nonceClaim)
                                         .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
                             } else if ("cwt_vc".equals(format)) {
                                 credentialMono = generateVerifiableCredentialInCWTFormat(username, token, subjectDid)
@@ -90,7 +90,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
 
-    private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid) {
+    private Mono<String> generateVerifiableCredentialInJWTFormat(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -141,99 +141,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         });
     }
 
-    //@Override
-    public Mono<String> testPayLoad1(String username, String token, String subjectDid) {
-        return Mono.defer(() -> {
-            try {
-                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-                // Prepare desired custom data that should replace the default template data
-                log.info("Fetching information from authentic sources ...");
-                //return authenticSourcesRemoteService.getUser(token)
-                return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(appUser -> {
-                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-                            Map<String, String> credentialSubjectData;
-                            if (!credentialSubject.isEmpty()) {
-                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-                            } else {
-                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-                            }
-                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-
-                            // Create the VC
-                            String LEARtemplate;
-                            try {
-                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            return Mono.just(LEARtemplate)
-                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, "issuer-did", data, expiration))
-                                    .flatMap(vcString -> {
-                                        log.info(vcString);
-                                        log.info("Signing credential in JADES remotely ...");
-                                        SignatureRequest signatureRequest = new SignatureRequest(
-                                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                                vcString
-                                        );
-                                        return remoteSignatureService.sign(signatureRequest, token)
-                                                .publishOn(Schedulers.boundedElastic())
-                                                //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
-                                                .map(SignedData::data);
-                                    });
-                        });
-            } catch (UserDoesNotExistException e) {
-                log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new RuntimeException(e));
-            }
-        });
-    }
-    @Override
-    public Mono<String> testPayLoad(String username, String token, String subjectDid) {
-        return Mono.defer(() -> {
-            try {
-                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-                // Prepare desired custom data that should replace the default template data
-                log.info("Fetching information from authentic sources ...");
-                //return authenticSourcesRemoteService.getUser(token)
-                return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(appUser -> {
-                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-                            Map<String, String> credentialSubjectData;
-                            if (!credentialSubject.isEmpty()) {
-                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-                            } else {
-                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-                            }
-                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-
-                            // Get Credential template from local file
-                            String LEARtemplate;
-                            try {
-                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            // Create VC and sign it
-                            return Mono.just(LEARtemplate)
-                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, "issuer-did", data, expiration))
-                                    .flatMap(vcString -> {
-                                        log.info(vcString);
-                                        return generateCborFromJson(vcString)
-                                                .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                                                .flatMap(this::compressAndConvertToBase45FromCOSE);
-                                    });
-                        });
-            } catch (UserDoesNotExistException e) {
-                log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new RuntimeException(e));
-            }
-        });
-    }
     private Mono<String> generateVerifiableCredentialInCWTFormat(String username, String token, String subjectDid) {
         return Mono.defer(() -> {
             try {
@@ -358,7 +265,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration) throws JSONException {
         return Mono.fromCallable(()->{
             // Parse vcTemplate to a JSON object
-            JSONObject vcObject = new JSONObject(vcTemplate);
+            JSONObject vcTemplateObject = new JSONObject(vcTemplate);
 
             // Generate a unique UUID for jti and vc.id
             String uuid = "urn:uuid:" + UUID.randomUUID().toString();
@@ -369,20 +276,20 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             long expTimestamp = expiration.getEpochSecond();
 
 
-            // Update vcObject with dynamic values
-            vcObject.put("id", uuid);
-            vcObject.put("issuer", new JSONObject().put("id", issuerDid));
-            // Update issuanceDate, issued, validFrom, expirationDate in vcObject using ISO 8601 format
+            // Update vcTemplateObject with dynamic values
+            vcTemplateObject.put("id", uuid);
+            vcTemplateObject.put("issuer", new JSONObject().put("id", issuerDid));
+            // Update issuanceDate, issued, validFrom, expirationDate in vcTemplateObject using ISO 8601 format
             String nowDateStr = nowInstant.toString();
             String expirationDateStr = expiration.toString();
-            vcObject.put("issuanceDate", nowDateStr);
-            vcObject.put("issued", nowDateStr);
-            vcObject.put("validFrom", nowDateStr);
-            vcObject.put("expirationDate", expirationDateStr);
+            vcTemplateObject.put("issuanceDate", nowDateStr);
+            vcTemplateObject.put("issued", nowDateStr);
+            vcTemplateObject.put("validFrom", nowDateStr);
+            vcTemplateObject.put("expirationDate", expirationDateStr);
 
             // Convert userData map contents to Object and set as credentialSubject
             Object credentialSubjectValue = userData.get("credentialSubject");
-            vcObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue));
+            vcTemplateObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue));
 
             // Construct final JSON Object
             JSONObject finalObject = new JSONObject();
@@ -392,7 +299,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             finalObject.put("exp", expTimestamp);
             finalObject.put("iat", nowTimestamp);
             finalObject.put("jti", uuid);
-            finalObject.put("vc", vcObject);
+            finalObject.put("vc", vcTemplateObject);
 
             // Return final object as String
             return finalObject.toString();

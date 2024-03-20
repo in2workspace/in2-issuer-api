@@ -34,7 +34,6 @@ import reactor.core.publisher.Mono;
 public class CredentialOfferController {
 
     private final CredentialOfferService credentialOfferService;
-    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -158,12 +157,4 @@ public class CredentialOfferController {
     public Mono<CredentialOfferForPreAuthorizedCodeFlow> getCredentialOffer(@PathVariable("id") String id) {
         return credentialOfferService.getCredentialOffer(id);
     }
-
-    @GetMapping("/api/v2/test-user")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<SubjectDataResponse> test(ServerWebExchange request) throws UserDoesNotExistException {
-
-        return authenticSourcesRemoteService.getUserFromLocalFile();
-    }
-
 }

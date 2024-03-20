@@ -104,17 +104,4 @@ public class VerifiableCredentialController {
                 .doOnSuccess(result -> exchange.getResponse().getHeaders().set(HttpHeaders.LOCATION, result))
                 .then();
     }
-    @GetMapping("/test-payload")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<String> testPayload(ServerWebExchange request) {
-        String accessToken;
-        try {
-            accessToken = Utils.getToken(request).getParsedString();
-        } catch (InvalidTokenException e) {
-            log.error("InvalidTokenException --> {}", e.getMessage());
-            return Mono.error(new InvalidTokenException());
-        }
-
-        return verifiableCredentialService.testPayLoad("user-name", accessToken, "subject-did");
-    }
 }
