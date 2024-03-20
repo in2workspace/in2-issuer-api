@@ -180,4 +180,10 @@ public class GlobalExceptionHandler {
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
+    @ExceptionHandler(AuthenticSourcesUserParsingException.class)
+    public Mono<ResponseEntity<Void>> handleSignedDataParsingException(AuthenticSourcesUserParsingException e) {
+        log.error(e.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
 }

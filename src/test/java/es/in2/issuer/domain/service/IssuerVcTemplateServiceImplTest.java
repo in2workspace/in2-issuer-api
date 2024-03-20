@@ -34,26 +34,19 @@ class IssuerVcTemplateServiceImplTest {
 
     @Test
     void getAllVcTemplates() {
-
         Mono<List<VcTemplate>> resultMono = issuerVcTemplateService.getAllVcTemplates();
         List<VcTemplate> result = resultMono.block();
 
         assertEquals(vcTemplateNames.size(), Objects.requireNonNull(result).size());
     }
-    /*
+
     @Test
     void getAllDetailedVcTemplates() {
-
-        new ServiceMatrix(Utils.SERVICE_MATRIX_PATH);
-
         Mono<List<VcTemplate>> resultMono = issuerVcTemplateService.getAllDetailedVcTemplates();
         List<VcTemplate> result = resultMono.block();
 
-        // Assert the result
-        assertNotNull(result);
-
+        assertEquals(vcTemplateNames.size(), Objects.requireNonNull(result).size());
     }
-    */
 
     @Test
     void getTemplate() {

@@ -22,20 +22,23 @@ public class NonceManagementServiceImpl implements NonceManagementService {
 
     @Override
     public Mono<NonceResponse> saveAccessTokenAndNonce(AppNonceValidationResponse appNonceValidationResponse) {
-        return Mono.just(NonceResponse.builder().nonce(storeCredentialResponseInMemoryCache(appNonceValidationResponse.accessToken())).nonceExpiresIn("600").build());
+        return generateNonce()
+                .flatMap(nonce -> storeCredentialResponseInMemoryCache(nonce, appNonceValidationResponse.accessToken())
+                        .thenReturn(NonceResponse.builder()
+                                .nonce(nonce)
+                                .nonceExpiresIn("600")
+                                .build()));
     }
 
-    // fixme: todo método debe ser reactivo, si no rompes el flujo y es un anti-pattern
-    private String storeCredentialResponseInMemoryCache(String token) {
-        String nonce = generateNonce();
-        log.info("***** Nonce code: " + nonce);
-        cacheStore.add(nonce, token);
-        return nonce;
+    private Mono<String> generateNonce() {
+        return Mono.fromCallable(() -> Base64.getUrlEncoder().encodeToString(convertUUIDToBytes(UUID.randomUUID())));
     }
 
-    // fixme: todo método debe ser reactivo, si no rompes el flujo y es un anti-pattern
-    private String generateNonce() {
-        return Base64.getUrlEncoder().encodeToString(convertUUIDToBytes(UUID.randomUUID()));
+    private Mono<Void> storeCredentialResponseInMemoryCache(String nonce, String token) {
+        return Mono.fromRunnable(() -> {
+            log.info("***** Nonce code: " + nonce);
+            cacheStore.add(nonce, token);
+        });
     }
 
     private byte[] convertUUIDToBytes(UUID uuid) {

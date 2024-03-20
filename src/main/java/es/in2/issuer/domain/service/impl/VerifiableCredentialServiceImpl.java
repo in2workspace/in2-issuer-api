@@ -111,15 +111,15 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
                             // todo get issuer did from dss module
                             // Get Credential template from local file
-                            String LEARtemplate;
+                            String learTemplate;
                             try {
-                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
 
                             // Create VC and sign it
-                            return Mono.just(LEARtemplate)
+                            return Mono.just(learTemplate)
                                     .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
                                     .flatMap(vcString -> {
                                         log.info(vcString);
@@ -161,15 +161,15 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                             Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
 
                             // Get Credential template from local file
-                            String LEARtemplate;
+                            String learTemplate;
                             try {
-                                LEARtemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
 
                             // Create VC and sign it
-                            return Mono.just(LEARtemplate)
+                            return Mono.just(learTemplate)
                                     .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
                                     .flatMap(vcString -> {
                                         log.info(vcString);
