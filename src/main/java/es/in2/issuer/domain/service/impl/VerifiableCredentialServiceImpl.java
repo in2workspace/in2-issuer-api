@@ -58,6 +58,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         issuerDid = appConfiguration.getIssuerDid();
     }
 
+
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String username,
@@ -66,22 +67,13 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     ) {
         return getNonceClaim(credentialRequest.proof().jwt())
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
-                            .thenReturn(nonceClaim))
+                        .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
                             Mono<VerifiableCredentialResponse> credentialMono;
-
-                            if ("jwt_vc".equals(format)) {
-                                credentialMono = generateVerifiableCredentialInJWTFormat(username, token, nonceClaim)
-                                        .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
-                            } else if ("cwt_vc".equals(format)) {
-                                credentialMono = generateVerifiableCredentialInCWTFormat(username, token, subjectDid)
-                                        .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
-                            } else {
-                                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
-                            }
-
+                            credentialMono = generateVerifiableCredential(username, token, subjectDid, format)
+                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
                             return storeTokenInCache(token)
                                     .flatMap(cNonce -> storeCredentialResponseInMemoryCache(cNonce, String.valueOf(credentialMono))
                                             .then(Mono.just(cNonce))
@@ -89,8 +81,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                         }));
     }
 
-
-    private Mono<String> generateVerifiableCredentialInJWTFormat(String username, String token, String subjectDid) {
+    private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid, String format) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -118,64 +109,29 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 throw new RuntimeException(e);
                             }
 
-                            // Create VC and sign it
+                            // Create VC according to the format and sign it
                             return Mono.just(learTemplate)
                                     .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
                                     .flatMap(vcString -> {
-                                        log.info(vcString);
-                                        log.info("Signing credential in JADES remotely ...");
-                                        SignatureRequest signatureRequest = new SignatureRequest(
-                                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                                vcString
-                                        );
-                                        return remoteSignatureService.sign(signatureRequest, token)
-                                                .publishOn(Schedulers.boundedElastic())
-                                                //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
-                                                .map(SignedData::data);
-                                    });
-                        });
-            } catch (UserDoesNotExistException e) {
-                log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new RuntimeException(e));
-            }
-        });
-    }
-
-    private Mono<String> generateVerifiableCredentialInCWTFormat(String username, String token, String subjectDid) {
-        return Mono.defer(() -> {
-            try {
-                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-                // Prepare desired custom data that should replace the default template data
-                log.info("Fetching information from authentic sources ...");
-                //return authenticSourcesRemoteService.getUser(token)
-                return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(appUser -> {
-                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-                            Map<String, String> credentialSubjectData;
-                            if (!credentialSubject.isEmpty()) {
-                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-                            } else {
-                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-                            }
-                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-
-                            // Get Credential template from local file
-                            String learTemplate;
-                            try {
-                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            // Create VC and sign it
-                            return Mono.just(learTemplate)
-                                    .flatMap(template -> generateVcPayLoad(template, subjectDid, issuerDid, data, expiration))
-                                    .flatMap(vcString -> {
-                                        log.info(vcString);
-                                        return generateCborFromJson(vcString)
-                                                .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                                                .flatMap(this::compressAndConvertToBase45FromCOSE);
+                                        if(format.equals("jwt_vc")){
+                                            log.info(vcString);
+                                            log.info("Signing credential in JADES remotely ...");
+                                            SignatureRequest signatureRequest = new SignatureRequest(
+                                                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                                                    vcString
+                                            );
+                                            return remoteSignatureService.sign(signatureRequest, token)
+                                                    .publishOn(Schedulers.boundedElastic())
+                                                    //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
+                                                    .map(SignedData::data);
+                                        } else if (format.equals("cwt_vc")) {
+                                            log.info(vcString);
+                                            return generateCborFromJson(vcString)
+                                                    .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
+                                                    .flatMap(this::compressAndConvertToBase45FromCOSE);
+                                        } else {
+                                            return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
+                                        }
                                     });
                         });
             } catch (UserDoesNotExistException e) {
