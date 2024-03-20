@@ -22,14 +22,6 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // fixme: no debería tener el AzureException. Esa exceptión debe ser capturada por el servicio
-    //  y este debe lanzar una custom de la propia solución
-    @ExceptionHandler(AzureConfigurationSettingException.class)
-    public Mono<ResponseEntity<Void>> handleAzureConfigurationSettingError(AzureConfigurationSettingException e) {
-        log.error(e.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-    }
-
     @ExceptionHandler(CredentialTypeUnsuportedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleCredentialTypeUnsupported(Exception e) {
