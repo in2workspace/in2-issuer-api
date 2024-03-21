@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.exception.VcTemplateDoesNotExistException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.service.IssuerVcTemplateService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -96,12 +95,7 @@ public class VcTemplateController {
     @GetMapping("/{templateName}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<VcTemplate> getTemplateByName(@PathVariable("templateName") String templateName) {
-        // fixme: no necesitamos un try catch, devolvemos el happy path y la exceptions es manejada por el GlobalAdvice
-        try {
             return issuerVcTemplateService.getTemplate(templateName);
-        } catch (Exception e) {
-            return Mono.error(new VcTemplateDoesNotExistException("Template: '" + templateName + "' is not supported"));
-        }
     }
 
 }

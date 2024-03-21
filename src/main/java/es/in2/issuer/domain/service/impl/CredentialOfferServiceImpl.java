@@ -31,7 +31,6 @@ import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
 import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
@@ -39,14 +38,19 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
-    private final AppConfiguration appConfiguration;
     private final IamAdapterFactory iamAdapterFactory;
+    private final String issuerApiBaseUrl;
 
-    // fixme: ¿Por qué hay un postconstruct aquí con el issuerAPIBaseUrl?
-    private String issuerApiBaseUrl;
-    @PostConstruct
-    private void initializeProperties() {
-        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+    public CredentialOfferServiceImpl(CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore,
+                                      CredentialIssuerMetadataService credentialIssuerMetadataService,
+                                      HttpUtils httpUtils, ObjectMapper objectMapper,
+                                      AppConfiguration appConfiguration, IamAdapterFactory iamAdapterFactory) {
+        this.cacheStore = cacheStore;
+        this.credentialIssuerMetadataService = credentialIssuerMetadataService;
+        this.httpUtils = httpUtils;
+        this.objectMapper = objectMapper;
+        this.iamAdapterFactory = iamAdapterFactory;
+        this.issuerApiBaseUrl = appConfiguration.getIssuerDomain();
     }
 
     @Override

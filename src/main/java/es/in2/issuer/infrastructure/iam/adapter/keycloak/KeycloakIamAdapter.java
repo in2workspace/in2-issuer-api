@@ -12,7 +12,6 @@ import java.util.Map;
 @IamSourceName(name = IamProviderName.KEYCLOAK)
 public class KeycloakIamAdapter implements GenericIamAdapter {
 
-    private final AppConfiguration appConfiguration;
     private final String keycloakInternalDomain;
     private final String keycloakExternalDomain;
     private final String jwtDecoderPath;
@@ -22,7 +21,6 @@ public class KeycloakIamAdapter implements GenericIamAdapter {
     private final String did;
 
     public KeycloakIamAdapter(AppConfiguration appConfiguration) {
-        this.appConfiguration = appConfiguration;
         this.keycloakInternalDomain = appConfiguration.getIamInternalDomain();
         this.keycloakExternalDomain = appConfiguration.getIamExternalDomain();
         this.jwtDecoderPath = appConfiguration.getJwtDecoderPath();

@@ -8,8 +8,7 @@ import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
+import es.in2.issuer.infrastructure.config.properties.AuthenticSourcesProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,15 +24,10 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemoteService {
 
-    // fixme: debe ir en un archivo Properties
-    @Value("${authentic-sources.routes.get-user}")
-    private String apiUsers;
-
-    private final AppConfiguration appConfiguration;
+    private final String apiUsers;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
     @Value("classpath:credentials/LEARCredentialSubjectDataDemo.json")
@@ -42,9 +36,12 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     // todo: delete authenticSourcesBaseUrl
     private String authenticSourcesBaseUrl;
 
-    @PostConstruct
-    private void initializeAuthenticSourcesBaseUrl() {
-        authenticSourcesBaseUrl = appConfiguration.getAuthenticSourcesDomain();
+    public AuthenticSourcesRemoteServiceImpl(AuthenticSourcesProperties authenticSourcesProperties, AppConfiguration appConfiguration, ObjectMapper objectMapper, HttpUtils httpUtils) {
+        this.authenticSourcesBaseUrl = appConfiguration.getAuthenticSourcesDomain();
+        this.apiUsers = authenticSourcesProperties.getUser();
+        this.objectMapper = objectMapper;
+        this.httpUtils = httpUtils;
+
     }
 
     @Override

@@ -8,6 +8,7 @@ import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.impl.AuthenticSourcesRemoteServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.properties.AuthenticSourcesProperties;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,8 @@ class AuthenticSourcesRemoteServiceImplTest {
     private HttpUtils httpUtils;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private AuthenticSourcesProperties authenticSourcesProperties;
     @InjectMocks
     private AuthenticSourcesRemoteServiceImpl authenticSourcesRemoteService;
     @BeforeEach
@@ -48,6 +51,7 @@ class AuthenticSourcesRemoteServiceImplTest {
         Resource mockResource = mock(Resource.class);
         String templateContent = "{\"credentialSubjectData\":{\"key1\":{\"subKey\":\"value\"}}}";
         lenient().when(mockResource.getInputStream()).thenReturn(new ByteArrayInputStream(templateContent.getBytes(StandardCharsets.UTF_8)));
+        lenient().when(authenticSourcesProperties.getUser()).thenReturn("/api/credential-source-data");
 
         ReflectionTestUtils.setField(authenticSourcesRemoteService, "userLocalFileData", mockResource);
 
@@ -73,29 +77,6 @@ class AuthenticSourcesRemoteServiceImplTest {
                 .verifyComplete();
     }
 
-    @Test
-    void testInitializeAuthenticSourcesBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfiguration.getAuthenticSourcesDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
-
-        Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
-        privateMethod.setAccessible(true);
-
-        privateMethod.invoke(authenticSourcesRemoteService);
-
-        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
-    }
-
-    @Test
-    void testInitializeAuthenticSourcesBaseUrlThrowsError() throws NoSuchMethodException {
-        Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
-        privateMethod.setAccessible(true);
-
-        when(appConfiguration.getAuthenticSourcesDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
-
-        assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(authenticSourcesRemoteService));
-
-        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
-    }
     @Test
     void getUser_Success() throws JsonProcessingException {
 

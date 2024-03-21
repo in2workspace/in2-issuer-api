@@ -10,8 +10,6 @@ import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,21 +24,17 @@ import java.util.List;
         bearerFormat = "JWT",
         scheme = "bearer"
 )
-@RequiredArgsConstructor
 public class OpenApiConfig {
 
     public static final String BEARER_AUTHENTICATION = "bearer_authentication";
 
     private final OpenApiProperties openApiProperties;
 
-    private final AppConfiguration appConfiguration;
+    private final String openApiServerUrl;
 
-    // fixme: postconstruct?
-    private String openApiServerUrl;
-
-    @PostConstruct
-    private void initializeOpenApiServerUrl() {
-        openApiServerUrl = appConfiguration.getIssuerDomain();
+    public OpenApiConfig(OpenApiProperties openApiProperties, AppConfiguration appConfiguration) {
+        this.openApiProperties = openApiProperties;
+        this.openApiServerUrl = appConfiguration.getIssuerDomain();
     }
 
     @Bean

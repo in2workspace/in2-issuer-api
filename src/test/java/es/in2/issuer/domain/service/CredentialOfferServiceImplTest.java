@@ -61,32 +61,6 @@ class CredentialOfferServiceImplTest {
     @InjectMocks
     private CredentialOfferServiceImpl credentialOfferService;
 
-
-    @Test
-    void testInitializeProperties() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfiguration.getIssuerDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
-
-        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeProperties");
-        privateMethod.setAccessible(true);
-
-        privateMethod.invoke(credentialOfferService);
-
-        verify(appConfiguration, times(1)).getIssuerDomain();
-    }
-
-    @Test
-    void testInitializePropertiesThrowsErrorOnAppConfigService() throws NoSuchMethodException {
-
-        Method privateMethod = CredentialOfferServiceImpl.class.getDeclaredMethod("initializeProperties");
-        privateMethod.setAccessible(true);
-
-        when(appConfiguration.getIssuerDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
-
-        assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(credentialOfferService));
-
-        verify(appConfiguration, times(1)).getIssuerDomain();
-    }
-
     @Test
     void testCreateCredentialOfferUriForPreAuthorizedCodeFlow() throws JsonProcessingException, JsonProcessingException {
         // Mock the getPreAuthCodeUri() response

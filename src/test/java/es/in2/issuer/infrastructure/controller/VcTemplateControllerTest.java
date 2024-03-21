@@ -90,6 +90,7 @@ class VcTemplateControllerTest {
         verify(issuerVcTemplateService, times(1)).getTemplate(nonExistentTemplateName);
     }
 
+    /*
     @Test
     void testGetTemplateByName_ExceptionThrown() {
         // Arrange
@@ -109,4 +110,5 @@ class VcTemplateControllerTest {
         );
         verify(issuerVcTemplateService, times(1)).getTemplate(templateName);
     }
+     */
 }
