@@ -73,14 +73,6 @@ class AppConfigurationTest {
     }
 
     @Test
-    void testGetKeycloakDid() {
-        String expected = "keycloak-did";
-        when(appConfigurationProperties.iamDid()).thenReturn("keycloak.did");
-        when(genericConfigAdapter.getConfiguration("keycloak.did")).thenReturn(expected);
-        assertEquals(expected, appConfiguration.getIamDid());
-    }
-
-    @Test
     void testGetIssuerDid() {
         String expected = "issuer-did";
         when(appConfigurationProperties.issuerDid()).thenReturn("issuer.did");

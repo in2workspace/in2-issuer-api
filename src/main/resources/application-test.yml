@@ -12,5 +12,4 @@ app:
     authentic-sources-domain: aca-issuer-auth-src-ms-uri
     key-vault-domain: key-vault-uri
     remote-signature-domain: aca-cross-rmt-sign-ms-uri
-    iam-did: issuer-keycloak-did
     issuer-did: issuer-info-id-did

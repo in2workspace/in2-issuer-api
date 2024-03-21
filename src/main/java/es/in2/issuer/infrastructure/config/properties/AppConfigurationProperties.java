@@ -13,7 +13,10 @@ public record AppConfigurationProperties(
         @NotNull String authenticSourcesDomain,
         @NotNull String keyVaultDomain,
         @NotNull String remoteSignatureDomain,
-        @NotNull String iamDid,
-        @NotNull String issuerDid
+        @NotNull String issuerDid,
+        @NotNull String jwtDecoderPath,
+        @NotNull String jwtDecoderLocalPath,
+        @NotNull String preAuthCodeUriTemplate,
+        @NotNull String tokenUriTemplate
 ) {}
 

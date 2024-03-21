@@ -6,8 +6,11 @@ app:
     authentic-sources-domain: http://localhost:8072
     key-vault-domain: http://localhost:8081
     remote-signature-domain: http://localhost:8050
-    iam-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
-    issuer-did: ""
+    issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    jwt-decoder-path: "/realms/EAAProvider/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/EAAProvider"
+    pre-auth-code-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/credential-offer"
+    token-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/token"
 
 management:
   endpoints:

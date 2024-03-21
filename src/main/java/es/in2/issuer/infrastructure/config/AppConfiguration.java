@@ -40,12 +40,22 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.remoteSignatureDomain());
     }
 
-    public String getIamDid() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamDid());
-    }
-
     public String getIssuerDid() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.issuerDid());
     }
 
+    public String getJwtDecoderPath() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.jwtDecoderPath());
+    }
+
+    public String getJwtDecoderLocalPath() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.jwtDecoderLocalPath());
+    }
+
+    public String getPreAuthCodeUriTemplate() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.preAuthCodeUriTemplate());
+    }
+    public String getTokenUriTemplate() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.tokenUriTemplate());
+    }
 }

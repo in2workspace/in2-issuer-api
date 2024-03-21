@@ -8,8 +8,12 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -20,10 +24,25 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest(properties = {
+        "app.configs.iamExternalDomain=example.com",
+        "app.configs.iamInternalDomain=internal.example.com",
+        "app.configs.issuerDomain=issuer.example.com",
+        "app.configs.authenticSourcesDomain=sources.example.com",
+        "app.configs.keyVaultDomain=vault.example.com",
+        "app.configs.remoteSignatureDomain=signature.example.com",
+        "app.configs.issuerDid=did:example:issuer",
+        "app.configs.jwtDecoderPath=did:example:jwtDecoderPath",
+        "app.configs.jwtDecoderLocalPath=did:example:jwtDecoderLocalPath",
+        "app.configs.preAuthCodeUriTemplate=/realms/EAAProvider/verifiable-credential/{{did}}/credential-offer",
+        "app.configs.tokenUriTemplate=/realms/EAAProvider/verifiable-credential/{{did}}/token"
+})
 class SecurityConfigTest {
 
     @Mock
     private IamAdapterFactory iamAdapterFactory;
+    @Autowired
+    private ApplicationContext context;
 
     private SecurityConfig securityConfig;
 
@@ -57,6 +76,12 @@ class SecurityConfigTest {
         // Test for the non-"local" profile
         ReactiveJwtDecoder jwtDecoder = securityConfig.jwtDecoder();
         assertNotNull(jwtDecoder, "JwtDecoder should not be null for non-'local' profiles");
+    }
+
+    @Test
+    void springSecurityFilterChainBeanIsNotNull() {
+        SecurityWebFilterChain filterChain = context.getBean(SecurityWebFilterChain.class);
+        assertNotNull(filterChain, "The SecurityWebFilterChain bean should not be null");
     }
 
     @Test
