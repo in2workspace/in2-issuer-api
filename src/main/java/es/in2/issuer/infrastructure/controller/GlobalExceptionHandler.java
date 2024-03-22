@@ -70,7 +70,7 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.EXPIRED_PRE_AUTHORIZED_CODE,
                 "The pre-authorized code has expired, has been used, or does not exist.");
 
-        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
 
     @ExceptionHandler(InvalidOrMissingProofException.class)
@@ -83,7 +83,7 @@ public class GlobalExceptionHandler {
                 "Credential Request did not contain a proof, or proof was invalid, " +
                         "i.e. it was not bound to a Credential Issuer provided nonce");
 
-        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
 
     @ExceptionHandler(InvalidTokenException.class)
@@ -95,7 +95,7 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.INVALID_TOKEN,
                 "Credential Request contains the wrong Access Token or the Access Token is missing");
 
-        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
 
     @ExceptionHandler(UserDoesNotExistException.class)
@@ -173,7 +173,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticSourcesUserParsingException.class)
-    public Mono<ResponseEntity<Void>> handleSignedDataParsingException(AuthenticSourcesUserParsingException e) {
+    public Mono<ResponseEntity<Void>> handleAuthenticSourcesUserParsingException(AuthenticSourcesUserParsingException e) {
         log.error(e.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
