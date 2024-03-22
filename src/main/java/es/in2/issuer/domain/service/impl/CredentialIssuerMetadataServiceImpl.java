@@ -28,9 +28,11 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
 
     private final IamAdapterFactory iamAdapterFactory;
     private final AppConfiguration appConfiguration;
+
     // fixme: this is a temporary solution to load credential templates from resources
     @Value("classpath:credentials/templates/LEARCredentialTemplate.json")
     private Resource learCredentialTemplate;
+
     @Value("classpath:credentials/templates/VerifiableIdTemplate.json")
     private Resource verifiableIdTemplate;
 
@@ -56,9 +58,9 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
             learCredentialVcTemplate = VcTemplate.builder().mutable(true).name(LEAR_CREDENTIAL).template(new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8)).build();
             verifiableIdVcTemplate = VcTemplate.builder().mutable(true).name("VerifiableId").template(new String(verifiableIdTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8)).build();
         } catch (IOException e) {
+            // fixme: need a custom exception
             throw new RuntimeException(e);
         }
-
         CredentialsSupported verifiableIdJWT = CredentialsSupported.builder().format("jwt_vc_json").id("VerifiableId_JWT").types(Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId")).cryptographicBindingMethodsSupported(List.of("did")).cryptographicSuitesSupported(List.of()).credentialSubject(learCredentialVcTemplate).build();
         CredentialsSupported learCredential = CredentialsSupported.builder().format("jwt_vc_json").id(LEAR_CREDENTIAL).types(Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential")).cryptographicBindingMethodsSupported(List.of("did")).cryptographicSuitesSupported(List.of()).credentialSubject(verifiableIdVcTemplate).build();
         return List.of(verifiableIdJWT, learCredential);

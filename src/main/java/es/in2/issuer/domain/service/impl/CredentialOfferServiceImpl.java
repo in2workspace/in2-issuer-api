@@ -30,8 +30,8 @@ import java.util.*;
 import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
 import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
 
-@Service
 @Slf4j
+@Service
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     private final CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;

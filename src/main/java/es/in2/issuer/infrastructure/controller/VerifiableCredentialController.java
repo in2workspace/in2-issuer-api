@@ -58,7 +58,6 @@ public class VerifiableCredentialController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestBody CredentialRequest credentialRequest, ServerWebExchange exchange) {
         // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
-
         return Mono.defer(() -> {
                     try {
                         SignedJWT token = Utils.getToken(exchange);
@@ -70,7 +69,6 @@ public class VerifiableCredentialController {
                 }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
-
 
     @Operation(summary = "Retrieve a Verifiable Credential with its ID", tags = {SwaggerConfig.TAG_PRIVATE})
     @Parameter(
@@ -104,4 +102,5 @@ public class VerifiableCredentialController {
                 .doOnSuccess(result -> exchange.getResponse().getHeaders().set(HttpHeaders.LOCATION, result))
                 .then();
     }
+
 }
