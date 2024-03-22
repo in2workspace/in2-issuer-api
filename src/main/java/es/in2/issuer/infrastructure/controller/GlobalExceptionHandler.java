@@ -1,4 +1,4 @@
-package es.in2.issuer.domain.exception.handler;
+package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.CredentialErrorResponse;

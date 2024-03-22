@@ -30,6 +30,7 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     private final String apiUsers;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
+
     @Value("classpath:credentials/LEARCredentialSubjectDataDemo.json")
     private Resource userLocalFileData;
 

@@ -58,11 +58,9 @@ public class HttpUtils {
         if (url == null) {
             return null;
         }
-
         if (!url.startsWith("http://") && !url.startsWith("https://")) {
             return "https://" + url;
         }
-
         return url;
     }
 

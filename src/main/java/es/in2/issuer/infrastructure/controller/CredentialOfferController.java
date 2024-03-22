@@ -157,4 +157,5 @@ public class CredentialOfferController {
     public Mono<CredentialOfferForPreAuthorizedCodeFlow> getCredentialOffer(@PathVariable("id") String id) {
         return credentialOfferService.getCredentialOffer(id);
     }
+
 }
