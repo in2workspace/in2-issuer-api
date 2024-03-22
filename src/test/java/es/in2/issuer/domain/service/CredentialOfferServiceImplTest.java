@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.ExpiredPreAuthorizedCodeException;
 import es.in2.issuer.domain.model.CredentialIssuerMetadata;
-import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.CredentialsSupported;
 import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
@@ -26,8 +26,6 @@ import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
 import com.fasterxml.jackson.databind.JsonNode;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
@@ -39,7 +37,7 @@ import static org.mockito.Mockito.*;
 class CredentialOfferServiceImplTest {
 
     @Mock
-    private CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
+    private CacheStore<CustomCredentialOffer> cacheStore;
     @Mock
     private AppConfiguration appConfiguration;
 
@@ -225,12 +223,12 @@ class CredentialOfferServiceImplTest {
     @Test
     void testGetCredentialOffer() {
         String id = "dummyId";
-        CredentialOfferForPreAuthorizedCodeFlow credentialOffer = CredentialOfferForPreAuthorizedCodeFlow.builder().build();
+        CustomCredentialOffer credentialOffer = CustomCredentialOffer.builder().build();
 
         when(cacheStore.get(id)).thenReturn(credentialOffer);
         doNothing().when(cacheStore).delete(any());
 
-        Mono<CredentialOfferForPreAuthorizedCodeFlow> result = credentialOfferService.getCredentialOffer(id);
+        Mono<CustomCredentialOffer> result = credentialOfferService.getCredentialOffer(id);
 
         assertEquals(credentialOffer, result.block());
         verify(cacheStore, times(1)).delete(id);

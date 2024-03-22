@@ -15,7 +15,7 @@ import java.util.Map;
    For more information: https://openid.net/specs/openid-4-verifiable-credential-issuance-1_0.html#name-sending-credential-offer-by-
 """)
 @Builder
-public record CredentialOfferForPreAuthorizedCodeFlow(
+public record CustomCredentialOffer(
         @Schema(example = "https://client-issuer.com")
         @JsonProperty("credential_issuer")
         @NotBlank

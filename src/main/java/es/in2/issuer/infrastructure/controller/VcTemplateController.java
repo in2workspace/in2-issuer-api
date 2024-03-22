@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.service.IssuerVcTemplateService;
+import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import es.in2.issuer.domain.model.VcTemplate;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +27,7 @@ import java.util.List;
 public class VcTemplateController {
 // todo: este controller debe devolver los templates soportados por el Credential Issuer, por ahora esta devolviendo data dummy
 
-    private final IssuerVcTemplateService issuerVcTemplateService;
+    private final VcSchemaService vcSchemaService;
 
     @Operation(
             summary = "Retrieve All Verifiable Credential Templates",
@@ -46,7 +46,7 @@ public class VcTemplateController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Mono<List<VcTemplate>> getAllVcTemplatesByName() {
-        return issuerVcTemplateService.getAllVcTemplates();
+        return vcSchemaService.getAllVcTemplates();
     }
 
     @Operation(
@@ -65,7 +65,7 @@ public class VcTemplateController {
     @GetMapping("/detail")
     @ResponseStatus(HttpStatus.OK)
     public Mono<List<VcTemplate>> getAllVcTemplatesDetail() {
-        return issuerVcTemplateService.getAllDetailedVcTemplates();
+        return vcSchemaService.getAllDetailedVcTemplates();
     }
 
     @Operation(
@@ -95,7 +95,7 @@ public class VcTemplateController {
     @GetMapping("/{templateName}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<VcTemplate> getTemplateByName(@PathVariable("templateName") String templateName) {
-            return issuerVcTemplateService.getTemplate(templateName);
+            return vcSchemaService.getTemplate(templateName);
     }
 
 }

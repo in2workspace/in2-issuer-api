@@ -11,6 +11,7 @@ app:
 logging:
   level:
     org.springframework.security: INFO
+    es.in2.infrastructure.controller: DEBUG
     es.in2: DEBUG
 
 server:

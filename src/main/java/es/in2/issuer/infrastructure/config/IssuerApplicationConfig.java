@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class IssuerApplicationConfig {
     }
 
     @Bean
-    public CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStoreForCredentialOffer() {
+    public CacheStore<CustomCredentialOffer> cacheStoreForCredentialOffer() {
         return new CacheStore<>(10, TimeUnit.MINUTES);
     }
 

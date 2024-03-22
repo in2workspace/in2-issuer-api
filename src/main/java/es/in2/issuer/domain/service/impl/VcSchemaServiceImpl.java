@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.service.IssuerVcTemplateService;
+import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.model.VcTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class IssuerVcTemplateServiceImpl implements IssuerVcTemplateService {
+public class VcSchemaServiceImpl implements VcSchemaService {
 
     private final List<String> vcTemplateNames = Arrays.asList(
             "LegalPerson", "Email", "Europass", "KybCredential", "UniversityDegree",
@@ -29,6 +29,11 @@ public class IssuerVcTemplateServiceImpl implements IssuerVcTemplateService {
             "EbsiDiplomaVerifiableAccreditation", "VerifiableMandate", "PeerReview", "ParticipantCredential",
             "VerifiableAttestation", "CustomerCredential", "LEARCredential"
     );
+
+    @Override
+    public Mono<Boolean> isSupportedVcSchema(String credentialType) {
+        return Mono.fromCallable(() -> vcTemplateNames.contains(credentialType));
+    }
 
     @Override
     public Mono<List<VcTemplate>> getAllVcTemplates() {

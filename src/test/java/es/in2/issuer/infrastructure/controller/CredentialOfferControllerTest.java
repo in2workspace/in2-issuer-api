@@ -1,9 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.InvalidTokenException;
-import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferService;
-import es.in2.issuer.infrastructure.controller.CredentialOfferController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -117,12 +116,12 @@ class CredentialOfferControllerTest {
     void testGetCredentialOffer_Success() {
         // Arrange
         String mockCredentialOfferId = "mockCredentialOfferId";
-        CredentialOfferForPreAuthorizedCodeFlow mockCredentialOffer = CredentialOfferForPreAuthorizedCodeFlow.builder().build();
+        CustomCredentialOffer mockCredentialOffer = CustomCredentialOffer.builder().build();
 
         when(credentialOfferService.getCredentialOffer(mockCredentialOfferId)).thenReturn(Mono.just(mockCredentialOffer));
 
         // Act
-        Mono<CredentialOfferForPreAuthorizedCodeFlow> result = controller.getCredentialOffer(mockCredentialOfferId);
+        Mono<CustomCredentialOffer> result = controller.getCredentialOffer(mockCredentialOfferId);
 
         // Assert
         result.subscribe(credentialOffer -> assertEquals(mockCredentialOffer, credentialOffer));

@@ -1,14 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.exception.InvalidTokenException;
-import es.in2.issuer.domain.exception.UserDoesNotExistException;
+import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
-import es.in2.issuer.domain.model.SubjectDataResponse;
-import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
-import es.in2.issuer.domain.service.CredentialOfferService;
-import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,13 +13,12 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -33,54 +27,7 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class CredentialOfferController {
 
-    private final CredentialOfferService credentialOfferService;
-
-    @Operation(
-            summary = "Creates a credential offer",
-            description = "Generates a Credential Offer of type credentialType for the Pre-Authorized Code Flow, using the user's JWT authentication token from the authorization server. " +
-                    "The generated Credential Offer is stored with a unique nonce as the key for later retrieval.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
-    )
-    @SecurityRequirement(name = "bearerAuth")
-    @ApiResponses(
-            value = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "Returns Credential Offer URI for Pre-Authorized Code Flow using DOME standard",
-                            content = @Content(mediaType = MediaType.TEXT_PLAIN_VALUE, schema = @Schema(implementation = String.class),
-                                    examples = @ExampleObject(name = "credentialOfferUri", value = "https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j"))
-                    ),
-                    @ApiResponse(
-                            responseCode = "400", description = "The request is invalid or missing authentication credentials. Ensure the 'Authorization' header is set with a valid Bearer Token.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "404", description = "The given credential type is not supported", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class),
-                                    examples = @ExampleObject(name = "unsupportedCredentialType", value = "{\"error\": \"unsupported_credential_type\", \"description\": \"Credential Type '3213' not in credentials supported\"}"))
-                    ),
-                    @ApiResponse(
-                            responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available. Ensure the 'Authorization' header is set with a valid Bearer Token.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class))
-                    )
-            }
-    )
-    @GetMapping("/api/v1/credential-offer")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> createCredentialOfferV1(
-            @RequestParam(name = "credentialType") String credentialType,
-            ServerWebExchange request) {
-        log.info("Creating credential offer for credential type: " + credentialType);
-        String accessToken;
-        // fixme: no necesitamos un try catch, devolvemos el happy path y la exceptions es manejada por el GlobalAdvice
-        try {
-            accessToken = Utils.getToken(request).getParsedString();
-        } catch (InvalidTokenException e) {
-            log.error("InvalidTokenException --> {}", e.getMessage());
-            return Mono.error(new InvalidTokenException());
-        }
-
-        log.info("Token: " + accessToken);
-        return credentialOfferService.createCredentialOfferUriForPreAuthorizedCodeFlow(accessToken, credentialType);
-    }
-
+    private final CredentialOfferIssuanceService credentialOfferIssuanceService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -108,21 +55,16 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping("/api/v2/credential-offer")
+    @GetMapping("/api/v1/credential-offer")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> createCredentialOfferV2(ServerWebExchange request) {
-        log.info("Creating credential offer");
-        String accessToken;
-        // fixme: no necesitamos un try catch, devolvemos el happy path y la exceptions es manejada por el GlobalAdvice
-        try {
-            accessToken = Utils.getToken(request).getParsedString();
-        } catch (InvalidTokenException e) {
-            log.error("InvalidTokenException --> {}", e.getMessage());
-            return Mono.error(new InvalidTokenException());
-        }
-
-        log.info("Token: " + accessToken);
-        return credentialOfferService.createCredentialOfferUriForPreAuthorizedCodeFlow(accessToken, null);
+    public Mono<String> buildCredentialOffer(@PathParam("credential-type") String credentialType) {
+        log.info("Building Credential Offer...");
+        return credentialOfferIssuanceService.buildCredentialOfferUri(credentialType)
+                .doOnSuccess(credentialOfferUri -> {
+                            log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
+                            log.info("Credential Offer created successfully.");
+                        }
+                );
     }
 
     @Operation(
@@ -142,7 +84,7 @@ public class CredentialOfferController {
                     @ApiResponse(
                             responseCode = "200",
                             description = "Returns the credential offer which matches the given ID in JSON format",
-                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialOfferForPreAuthorizedCodeFlow.class))
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomCredentialOffer.class))
                     ),
                     @ApiResponse(
                             responseCode = "404", description = "The pre-authorized code is either expired, has already been used, or does not exist.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class))
@@ -154,8 +96,9 @@ public class CredentialOfferController {
     )
     @GetMapping(value = "/credential-offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CredentialOfferForPreAuthorizedCodeFlow> getCredentialOffer(@PathVariable("id") String id) {
-        return credentialOfferService.getCredentialOffer(id);
+    public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id) {
+        log.info("Retrieving Credential Offer...");
+        return credentialOfferIssuanceService.getCustomCredentialOffer(id);
     }
 
 }

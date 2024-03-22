@@ -4,14 +4,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
 
+import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 public class Utils {
 
@@ -20,6 +24,21 @@ public class Utils {
     }
 
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+
+    public static Mono<String> generateCustomNonce() {
+        return convertUUIDToBytes(UUID.randomUUID())
+                .map(uuidBytes -> Base64URL.encode(uuidBytes).toString());
+    }
+
+    private static Mono<byte[]> convertUUIDToBytes(UUID uuid) {
+        return Mono.fromSupplier(() -> {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[16]);
+            byteBuffer.putLong(uuid.getMostSignificantBits());
+            byteBuffer.putLong(uuid.getLeastSignificantBits());
+            return byteBuffer.array();
+        });
+    }
 
     /**
      * Converts the input to a String representing a JSON.

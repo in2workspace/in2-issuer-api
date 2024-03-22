@@ -1,7 +1,5 @@
 package es.in2.issuer.domain.model;
 
-import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
-import es.in2.issuer.domain.model.Grant;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -10,18 +8,18 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CredentialOfferForPreAuthorizedCodeFlowTest {
+class CustomCredentialOfferTest {
 
     @Test
     void testConstructorAndGetters() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
-        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> expectedCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
+        List<CustomCredentialOffer.Credential> expectedCredentials = List.of(CustomCredentialOffer.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         expectedGrants.put("grant1", new Grant("type1", false));
         expectedGrants.put("grant2", new Grant("type2", false));
         // Act
-        CredentialOfferForPreAuthorizedCodeFlow credentialOffer = new CredentialOfferForPreAuthorizedCodeFlow(
+        CustomCredentialOffer credentialOffer = new CustomCredentialOffer(
                 expectedCredentialIssuer,
                 expectedCredentials,
                 expectedGrants
@@ -36,31 +34,31 @@ class CredentialOfferForPreAuthorizedCodeFlowTest {
     void testSetters() {
         // Arrange
         String newCredentialIssuer = "https://new-credential-issuer.example.com";
-        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> newCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
+        List<CustomCredentialOffer.Credential> newCredentials = List.of(CustomCredentialOffer.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> newGrants = new HashMap<>();
         // Act
-        CredentialOfferForPreAuthorizedCodeFlow credentialOfferForPreAuthorizedCodeFlow = CredentialOfferForPreAuthorizedCodeFlow.builder().credentialIssuer(newCredentialIssuer).credentials(newCredentials).grants(newGrants).build();
+        CustomCredentialOffer customCredentialOffer = CustomCredentialOffer.builder().credentialIssuer(newCredentialIssuer).credentials(newCredentials).grants(newGrants).build();
         // Assert
-        assertEquals(newCredentialIssuer, credentialOfferForPreAuthorizedCodeFlow.credentialIssuer());
-        assertEquals(newCredentials, credentialOfferForPreAuthorizedCodeFlow.credentials());
-        assertEquals(newGrants, credentialOfferForPreAuthorizedCodeFlow.grants());
+        assertEquals(newCredentialIssuer, customCredentialOffer.credentialIssuer());
+        assertEquals(newCredentials, customCredentialOffer.credentials());
+        assertEquals(newGrants, customCredentialOffer.grants());
     }
 
     @Test
     void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
-        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> expectedCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
+        List<CustomCredentialOffer.Credential> expectedCredentials = List.of(CustomCredentialOffer.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         expectedGrants.put("grant1", new Grant("type1", false));
         expectedGrants.put("grant2", new Grant("type2", false));
         // Act
-        CredentialOfferForPreAuthorizedCodeFlow offer1 = new CredentialOfferForPreAuthorizedCodeFlow(
+        CustomCredentialOffer offer1 = new CustomCredentialOffer(
                 expectedCredentialIssuer,
                 expectedCredentials,
                 expectedGrants
         );
-        CredentialOfferForPreAuthorizedCodeFlow offer2 = new CredentialOfferForPreAuthorizedCodeFlow(
+        CustomCredentialOffer offer2 = new CustomCredentialOffer(
                 expectedCredentialIssuer,
                 expectedCredentials,
                 expectedGrants
