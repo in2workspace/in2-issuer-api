@@ -57,7 +57,7 @@ public class CredentialOfferController {
     )
     @GetMapping("/api/v1/credential-offer")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@PathParam("credential-type") String credentialType) {
+    public Mono<String> buildCredentialOffer(@RequestParam("credential-type") String credentialType) {
         log.info("Building Credential Offer...");
         return credentialOfferIssuanceService.buildCredentialOfferUri(credentialType)
                 .doOnSuccess(credentialOfferUri -> {

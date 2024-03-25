@@ -15,7 +15,7 @@ import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-import eu.europa.ec.eudi.openid4vci.CredentialOffer;
+//import eu.europa.ec.eudi.openid4vci.CredentialOffer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -28,8 +28,8 @@ import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
 import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
-import static es.in2.issuer.domain.util.Utils.generateNonce;
-import static io.ktor.client.statement.HttpResponseKt.getRequest;
+//import static es.in2.issuer.domain.util.Utils.generateNonce;
+//import static io.ktor.client.statement.HttpResponseKt.getRequest;
 
 @Slf4j
 @Service
@@ -38,9 +38,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     private final AppConfiguration appConfiguration;
 
-    public Mono<CredentialOffer> buildCredentialOffer() {
-        return null;
-    }
+//    public Mono<CredentialOffer> buildCredentialOffer() {
+//        return null;
+//    }
 
     @Override
     public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType) {

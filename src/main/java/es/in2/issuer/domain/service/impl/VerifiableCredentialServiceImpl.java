@@ -269,14 +269,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
     private Mono<VerifiableCredentialJWT> checkIfCacheExistsByState(String key) {
-        return Mono.defer(() -> {
-            VerifiableCredentialJWT credential = credentialCacheStore.get(key);
-            if (credential != null) {
-                return Mono.just(credential);
-            } else {
-                return Mono.error(new ExpiredCacheException("Credential with id: '" + key + "' does not exist."));
-            }
-        });
+        return credentialCacheStore.get(key)
+                .cast(VerifiableCredentialJWT.class) // Ensure the returned Mono is of the correct type.
+                .onErrorMap(NullPointerException.class, e ->
+                        new ExpiredCacheException("Credential with id: '" + key + "' does not exist."));
     }
 
     private Mono<String> generateNonce() {
