@@ -7,8 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.*;
 
@@ -28,7 +30,7 @@ class CredentialIssuerMetadataControllerTest {
         when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(mockedMetadata));
 
         // Act
-        Mono<String> result = controller.getOpenIdCredentialIssuer();
+        Mono<CredentialIssuerMetadata> result = controller.getOpenIdCredentialIssuer();
 
         // Assert
         result.subscribe(issuerData -> {
@@ -43,23 +45,15 @@ class CredentialIssuerMetadataControllerTest {
     @Test
     void testGetOpenIdCredentialIssuer_Exception() {
         // Arrange
-        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenThrow(new RuntimeException("Mocked Exception"));
+        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.error(new RuntimeException("Mocked Exception")));
 
-        // Act
-        Mono<String> result = controller.getOpenIdCredentialIssuer();
-
-        // Assert
-        result.subscribe(
-                issuerData -> {
-                    // Should not reach here
-                    assert false;
-                },
-                throwable -> {
-                    // Check the exception
-                    assert throwable instanceof RuntimeException;
-                    assert throwable.getMessage().equals("Mocked Exception");
-                }
-        );
+        // Act & Assert
+        StepVerifier.create(controller.getOpenIdCredentialIssuer())
+                .expectErrorMatches(throwable ->
+                        throwable instanceof RuntimeException &&
+                                throwable.getCause() instanceof RuntimeException &&
+                                "Mocked Exception".equals(throwable.getCause().getMessage()))
+                .verify();
 
         // Verify service method was called
         verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();

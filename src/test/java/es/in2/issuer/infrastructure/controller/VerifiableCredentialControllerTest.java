@@ -40,7 +40,7 @@ class VerifiableCredentialControllerTest {
         CredentialRequest mockCredentialRequest = new CredentialRequest("format", new Proof("proofType", "jwt"));
         //Example Token with claim "preferred_username" : "username"
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
-        VerifiableCredentialResponse mockResponse = new VerifiableCredentialResponse(new ArrayList<>());
+        VerifiableCredentialResponse mockResponse = new VerifiableCredentialResponse("format", "credential", "nonce", 35);
 
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();

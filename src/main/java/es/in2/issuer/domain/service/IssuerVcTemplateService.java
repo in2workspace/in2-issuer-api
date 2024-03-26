@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import id.walt.credentials.w3c.templates.VcTemplate;
+import es.in2.issuer.domain.model.VcTemplate;
 import reactor.core.publisher.Mono;
 
 import java.util.List;

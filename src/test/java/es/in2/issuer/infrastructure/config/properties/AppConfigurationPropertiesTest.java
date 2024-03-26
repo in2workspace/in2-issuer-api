@@ -18,7 +18,6 @@ class AppConfigurationPropertiesTest {
         environment.setProperty("authenticSourcesDomain", "authsources.example.com");
         environment.setProperty("keyVaultDomain", "keyvault.example.com");
         environment.setProperty("remoteSignatureDomain", "remotesignature.example.com");
-        environment.setProperty("iamDid", "keycloak-did");
         environment.setProperty("issuerDid", "issuer-did");
 
         // Create a Binder instance
@@ -36,7 +35,6 @@ class AppConfigurationPropertiesTest {
         assertThat(properties.authenticSourcesDomain()).isEqualTo("authsources.example.com");
         assertThat(properties.keyVaultDomain()).isEqualTo("keyvault.example.com");
         assertThat(properties.remoteSignatureDomain()).isEqualTo("remotesignature.example.com");
-        assertThat(properties.iamDid()).isEqualTo("keycloak-did");
         assertThat(properties.issuerDid()).isEqualTo("issuer-did");
     }
 }

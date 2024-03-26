@@ -4,52 +4,55 @@ import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.model.IamProviderName;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
 import es.in2.issuer.infrastructure.iam.util.IamSourceName;
-import jakarta.annotation.PostConstruct;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Component
-@RequiredArgsConstructor
 @IamSourceName(name = IamProviderName.KEYCLOAK)
 public class KeycloakIamAdapter implements GenericIamAdapter {
 
-    private final AppConfiguration appConfiguration;
-    private String keycloakInternalDomain;
-    private String keycloakExternalDomain;
-    private String did;
+    private final String keycloakInternalDomain;
+    private final String keycloakExternalDomain;
+    private final String jwtDecoderPath;
+    private final String jwtDecoderLocalPath;
+    private final String preAuthCodeUriTemplate;
+    private final String tokenUriTemplate;
+    private final String did;
 
-    // todo: ¿Por qué necesitamos un PostConstruct?
-    @PostConstruct
-    private void initializeKeycloakIamAdapter() {
-        keycloakInternalDomain = appConfiguration.getIamInternalDomain();
-        keycloakExternalDomain = appConfiguration.getIamExternalDomain();
-        // fixme: el did no es del IAM sino del Credential Issuer y debería ser obtenido de la configuración del Credential Issuer.
-        //  Debe hacer match con el did:elsi del certificado eIDAS del módulo DSS
-        did = appConfiguration.getIamDid();
+    public KeycloakIamAdapter(AppConfiguration appConfiguration) {
+        this.keycloakInternalDomain = appConfiguration.getIamInternalDomain();
+        this.keycloakExternalDomain = appConfiguration.getIamExternalDomain();
+        this.jwtDecoderPath = appConfiguration.getJwtDecoderPath();
+        this.jwtDecoderLocalPath = appConfiguration.getJwtDecoderLocalPath();
+        this.preAuthCodeUriTemplate = appConfiguration.getPreAuthCodeUriTemplate();
+        this.tokenUriTemplate = appConfiguration.getTokenUriTemplate();
+        this.did = appConfiguration.getIssuerDid();
     }
-
     @Override
     public String getJwtDecoder() {
-        // fixme: los paths deberían ser obtenidos de la configuración
-        return "https://" + keycloakExternalDomain + "/realms/EAAProvider/protocol/openid-connect/certs";
+        return "https://" + keycloakExternalDomain + jwtDecoderPath;
     }
 
     @Override
     public String getJwtDecoderLocal() {
-        // fixme: los paths deberían ser obtenidos de la configuración
-        return keycloakInternalDomain + "/realms/EAAProvider";
+        return keycloakInternalDomain + jwtDecoderLocalPath;
     }
 
     @Override
     public String getPreAuthCodeUri() {
-        // fixme: los paths deberían ser obtenidos de la configuración
-        return keycloakInternalDomain + "/realms/EAAProvider/verifiable-credential/" + did + "/credential-offer";
+        return keycloakInternalDomain + resolveTemplate(preAuthCodeUriTemplate, Map.of("did", did));
     }
 
     @Override
     public String getTokenUri() {
-        // fixme: los paths deberían ser obtenidos de la configuración
-        return keycloakInternalDomain + "/realms/EAAProvider/verifiable-credential/" + did + "/token";
+        return keycloakInternalDomain + resolveTemplate(tokenUriTemplate, Map.of("did", did));
     }
 
+    private String resolveTemplate(String template, Map<String, String> placeholders) {
+        for (Map.Entry<String, String> entry : placeholders.entrySet()) {
+            template = template.replace("{{" + entry.getKey() + "}}", entry.getValue());
+        }
+        return template;
+    }
 }

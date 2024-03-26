@@ -8,6 +8,9 @@ import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.impl.AuthenticSourcesRemoteServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.properties.AuthenticSourcesProperties;
+import es.in2.issuer.infrastructure.repository.CacheStore;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,10 +21,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.core.Exceptions;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import org.springframework.core.io.Resource;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,36 +40,43 @@ class AuthenticSourcesRemoteServiceImplTest {
     private AppConfiguration appConfiguration;
     @Mock
     private HttpUtils httpUtils;
-
     @Mock
     private ObjectMapper objectMapper;
-
+    @Mock
+    private AuthenticSourcesProperties authenticSourcesProperties;
     @InjectMocks
     private AuthenticSourcesRemoteServiceImpl authenticSourcesRemoteService;
+    @BeforeEach
+    void setup() throws IOException {
+        Resource mockResource = mock(Resource.class);
+        String templateContent = "{\"credentialSubjectData\":{\"key1\":{\"subKey\":\"value\"}}}";
+        lenient().when(mockResource.getInputStream()).thenReturn(new ByteArrayInputStream(templateContent.getBytes(StandardCharsets.UTF_8)));
+        lenient().when(authenticSourcesProperties.getUser()).thenReturn("/api/credential-source-data");
 
+        ReflectionTestUtils.setField(authenticSourcesRemoteService, "userLocalFileData", mockResource);
+
+    }
     @Test
-    void testInitializeAuthenticSourcesBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        lenient().when(appConfiguration.getAuthenticSourcesDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
+    void testGetUserFromLocalFile() throws Exception {
 
-        Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
-        privateMethod.setAccessible(true);
+        Map<String, Map<String, String>> dataMap = new HashMap<>();
+        Map<String, String> innerMap = new HashMap<>();
+        innerMap.put("subKey", "value");
+        dataMap.put("key1", innerMap);
+        SubjectDataResponse expectedResponse = new SubjectDataResponse(dataMap);
+        when(objectMapper.readValue(anyString(), eq(SubjectDataResponse.class))).thenReturn(expectedResponse);
+        // Execute
+        Mono<SubjectDataResponse> resultMono = authenticSourcesRemoteService.getUserFromLocalFile();
 
-        privateMethod.invoke(authenticSourcesRemoteService);
-
-        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
+        // Assert
+        StepVerifier.create(resultMono)
+                .expectNextMatches(result -> {
+                    // Additional validation logic if needed
+                    return result.credentialSubjectData().equals(expectedResponse.credentialSubjectData());
+                })
+                .verifyComplete();
     }
 
-    @Test
-    void testInitializeAuthenticSourcesBaseUrlThrowsError() throws NoSuchMethodException {
-        Method privateMethod = AuthenticSourcesRemoteServiceImpl.class.getDeclaredMethod("initializeAuthenticSourcesBaseUrl");
-        privateMethod.setAccessible(true);
-
-        when(appConfiguration.getAuthenticSourcesDomain()).thenAnswer(invocation -> Mono.error(new RuntimeException("Simulated error")));
-
-        assertThrows(InvocationTargetException.class, () -> privateMethod.invoke(authenticSourcesRemoteService));
-
-        verify(appConfiguration, times(1)).getAuthenticSourcesDomain();
-    }
     @Test
     void getUser_Success() throws JsonProcessingException {
 

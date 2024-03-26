@@ -9,4 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for Configurations from Yaml file.
 - Support for Configurations from Azure App Configuration.
 
+## [Unreleased]: v0.4.0
+- Support for credential in JWT and CWT.
+- Remove of external libraries for CV generation
+- Native credential payload generation.
+
+
 [release]:

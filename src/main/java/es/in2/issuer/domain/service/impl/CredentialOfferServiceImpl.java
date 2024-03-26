@@ -15,7 +15,7 @@ import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-import id.walt.credentials.w3c.templates.VcTemplate;
+import es.in2.issuer.domain.model.VcTemplate;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,23 +30,27 @@ import java.util.*;
 import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
 import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
 
-@Service
-@RequiredArgsConstructor
 @Slf4j
+@Service
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     private final CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore;
     private final CredentialIssuerMetadataService credentialIssuerMetadataService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
-    private final AppConfiguration appConfiguration;
     private final IamAdapterFactory iamAdapterFactory;
+    private final String issuerApiBaseUrl;
 
-    // fixme: ¿Por qué hay un postconstruct aquí con el issuerAPIBaseUrl?
-    private String issuerApiBaseUrl;
-    @PostConstruct
-    private void initializeProperties() {
-        issuerApiBaseUrl = appConfiguration.getIssuerDomain();
+    public CredentialOfferServiceImpl(CacheStore<CredentialOfferForPreAuthorizedCodeFlow> cacheStore,
+                                      CredentialIssuerMetadataService credentialIssuerMetadataService,
+                                      HttpUtils httpUtils, ObjectMapper objectMapper,
+                                      AppConfiguration appConfiguration, IamAdapterFactory iamAdapterFactory) {
+        this.cacheStore = cacheStore;
+        this.credentialIssuerMetadataService = credentialIssuerMetadataService;
+        this.httpUtils = httpUtils;
+        this.objectMapper = objectMapper;
+        this.iamAdapterFactory = iamAdapterFactory;
+        this.issuerApiBaseUrl = appConfiguration.getIssuerDomain();
     }
 
     @Override
@@ -60,14 +64,30 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     public Mono<String> generateCredentialOffer(String accessToken, String credentialType) {
+
         String credentialTypeAux = (credentialType != null) ? credentialType : LEAR_CREDENTIAL;
+
         return checkCredentialInCredentialsSupported(credentialTypeAux)
+
                 .then(generateCredentialOfferAux(accessToken, credentialTypeAux))
                 .flatMap(this::storeCredentialOfferInMemoryCache);
+
     }
 
     private Mono<CredentialOfferForPreAuthorizedCodeFlow> generateCredentialOfferAux(String accessToken, String credentialType) {
-        return getPreAuthorizationCodeFromKeycloak(accessToken).map(preAuthorizedCode -> CredentialOfferForPreAuthorizedCodeFlow.builder().credentialIssuer(HttpUtils.ensureUrlHasProtocol(issuerApiBaseUrl)).credentials(Collections.singletonList(credentialType)).grants(Collections.singletonMap(GRANT_TYPE, new Grant(preAuthorizedCode, false))).build());
+        return getPreAuthorizationCodeFromKeycloak(accessToken)
+                .map(preAuthorizedCode -> CredentialOfferForPreAuthorizedCodeFlow.builder()
+
+                        .credentialIssuer(HttpUtils.ensureUrlHasProtocol(issuerApiBaseUrl))
+                        .credentials(
+                                Arrays.asList(
+                                        new CredentialOfferForPreAuthorizedCodeFlow.Credential("jwt_vc", Collections.singletonList(credentialType)),
+                                        new CredentialOfferForPreAuthorizedCodeFlow.Credential("cwt_vc", Collections.singletonList(credentialType))
+                                )
+                        )
+                        .grants(Collections.singletonMap(GRANT_TYPE, new Grant(preAuthorizedCode, false)))
+
+                        .build());
     }
 
     private Mono<Void> checkCredentialInCredentialsSupported(String credentialType) {
@@ -75,7 +95,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                 .flatMap(credentialIssuerMetadata -> {
                     for (CredentialsSupported credential : credentialIssuerMetadata.credentialsSupported()) {
                         VcTemplate vcTemplate = credential.credentialSubject();
-                        if (vcTemplate.getName().equals(credentialType)) {
+                        if (vcTemplate.name().equals(credentialType)) {
                             return Mono.empty();
                         }
                     }

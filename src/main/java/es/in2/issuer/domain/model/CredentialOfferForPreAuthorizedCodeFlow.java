@@ -1,7 +1,9 @@
 package es.in2.issuer.domain.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 
 import java.util.List;
@@ -14,7 +16,24 @@ import java.util.Map;
 """)
 @Builder
 public record CredentialOfferForPreAuthorizedCodeFlow(
-        @Schema(example = "https://credential-issuer.example.com") @JsonProperty("credential_issuer") String credentialIssuer,
-        @Schema(example = "[\"UniversityDegree\"]") @JsonProperty("credentials") List<String> credentials,
-        @Schema(implementation = Grant.class) @JsonProperty("grants") Map<String, Grant> grants) {
+        @Schema(example = "https://client-issuer.com")
+        @JsonProperty("credential_issuer")
+        @NotBlank
+        String credentialIssuer,
+        @Schema(example = "[\"UniversityDegree\"]")
+        @JsonProperty("credentials")
+        List<Credential> credentials,
+        @Schema(implementation = Grant.class)
+        @JsonProperty("grants")
+        Map<String, Grant> grants
+) {
+        @Builder
+        @JsonIgnoreProperties(ignoreUnknown = true)
+        public record Credential(
+                @JsonProperty("format")
+                String format,
+
+                @JsonProperty("types")
+                List<String> types
+        ){}
 }

@@ -16,7 +16,7 @@ class CredentialOfferForPreAuthorizedCodeFlowTest {
     void testConstructorAndGetters() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
-        List<String> expectedCredentials = List.of("UniversityDegree");
+        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> expectedCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         expectedGrants.put("grant1", new Grant("type1", false));
         expectedGrants.put("grant2", new Grant("type2", false));
@@ -36,7 +36,7 @@ class CredentialOfferForPreAuthorizedCodeFlowTest {
     void testSetters() {
         // Arrange
         String newCredentialIssuer = "https://new-credential-issuer.example.com";
-        List<String> newCredentials = List.of("UniversityDegree", "HighSchoolDiploma");
+        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> newCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> newGrants = new HashMap<>();
         // Act
         CredentialOfferForPreAuthorizedCodeFlow credentialOfferForPreAuthorizedCodeFlow = CredentialOfferForPreAuthorizedCodeFlow.builder().credentialIssuer(newCredentialIssuer).credentials(newCredentials).grants(newGrants).build();
@@ -50,7 +50,7 @@ class CredentialOfferForPreAuthorizedCodeFlowTest {
     void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedCredentialIssuer = "https://credential-issuer.example.com";
-        List<String> expectedCredentials = List.of("UniversityDegree");
+        List<CredentialOfferForPreAuthorizedCodeFlow.Credential> expectedCredentials = List.of(CredentialOfferForPreAuthorizedCodeFlow.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         expectedGrants.put("grant1", new Grant("type1", false));
         expectedGrants.put("grant2", new Grant("type2", false));

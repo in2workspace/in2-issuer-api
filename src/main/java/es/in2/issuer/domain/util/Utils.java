@@ -19,7 +19,6 @@ public class Utils {
         throw new IllegalStateException("Utility class");
     }
 
-    public static final String SERVICE_MATRIX_PATH = "service-matrix.properties";
     public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     /**

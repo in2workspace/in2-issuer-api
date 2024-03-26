@@ -1,9 +1,12 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.InvalidTokenException;
+import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CredentialOfferForPreAuthorizedCodeFlow;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.SubjectDataResponse;
+import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -125,7 +128,7 @@ public class CredentialOfferController {
     @Operation(
             summary = "Returns a credential offer by ID",
             description = "This operation is used to retrieve a specific credential offer. Users should provide the ID of the desired credential offer in the URL path. The response will contain detailed information about the credential offer.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PUBLIC}
     )
     @Parameter(
             name = "id",
