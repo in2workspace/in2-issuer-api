@@ -43,7 +43,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 //    }
 
     @Override
-    public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType) {
+    public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, String preAuthCode) {
         return Mono.just(CustomCredentialOffer.builder()
                 // todo: revisar getIssuerDomain si es necesario getIssuerExternalDomain (https://domain.org)
                 .credentialIssuer(appConfiguration.getIssuerDomain())
@@ -51,7 +51,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType)),
                         new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
                 ))
-                .grants(Map.of(GRANT_TYPE, new Grant(PRE_AUTHORIZATION_CODE, true)))
+                .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false)))
                 .build());
     }
 
