@@ -70,37 +70,4 @@ public class VerifiableCredentialController {
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
 
-    @Operation(summary = "Retrieve a Verifiable Credential with its ID", tags = {SwaggerConfig.TAG_PRIVATE})
-    @Parameter(
-            name = "id",
-            description = "The ID of the verifiable credential to retrieve",
-            required = true,
-            in = ParameterIn.PATH,
-            schema = @Schema(type = "string")
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Returns the Verifiable Credential in the location response header if exists in the memory cache and match with the ID presented."
-                    ),
-                    @ApiResponse(responseCode = "400", description = "The given credential ID does not match with any verifiable credentials", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class),
-                                    examples = @ExampleObject(name = "vcDoesNotExist", value = "{\"error\": \"vc_does_not_exist\", \"description\": \"Credential with id: 'edFrxZZ' does not exist.\"}"))
-                    ),
-                    @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class))
-                    )
-            }
-    )
-    @GetMapping("/id/{credentialId}")
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<Void> getVerifiableCredential(
-            @PathVariable("credentialId") String credentialId,
-            ServerWebExchange exchange
-    ) {
-        log.info("VerifiableCredentialController - getVerifiableCredential()");
-        return verifiableCredentialService.getVerifiableCredential(credentialId)
-                .doOnSuccess(result -> exchange.getResponse().getHeaders().set(HttpHeaders.LOCATION, result))
-                .then();
-    }
-
 }

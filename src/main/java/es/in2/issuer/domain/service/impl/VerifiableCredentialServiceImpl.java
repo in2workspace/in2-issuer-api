@@ -48,7 +48,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     private final RemoteSignatureService remoteSignatureService;
     private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
-    private final CacheStore<VerifiableCredentialJWT> credentialCacheStore;
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
 
@@ -66,18 +65,14 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             String token
     ) {
         return getNonceClaim(credentialRequest.proof().jwt())
+                //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
                         .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
-                            Mono<VerifiableCredentialResponse> credentialMono;
-                            credentialMono = generateVerifiableCredential(username, token, subjectDid, format)
+                            return generateVerifiableCredential(username, token, subjectDid, format)
                                     .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
-                            return storeTokenInCache(token)
-                                    .flatMap(cNonce -> storeCredentialResponseInMemoryCache(cNonce, String.valueOf(credentialMono))
-                                            .then(Mono.just(cNonce))
-                                            .flatMap(savedCNonce -> credentialMono));
                         }));
     }
 
@@ -260,45 +255,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             // Return final object as String
             return finalObject.toString();
         });
-    }
-
-    @Override
-    public Mono<String> getVerifiableCredential(String credentialId) {
-        log.info("credential ID = " + credentialId);
-        return checkIfCacheExistsByState(credentialId).map(VerifiableCredentialJWT::token);
-    }
-
-    private Mono<VerifiableCredentialJWT> checkIfCacheExistsByState(String key) {
-        return credentialCacheStore.get(key)
-                .cast(VerifiableCredentialJWT.class) // Ensure the returned Mono is of the correct type.
-                .onErrorMap(NullPointerException.class, e ->
-                        new ExpiredCacheException("Credential with id: '" + key + "' does not exist."));
-    }
-
-    private Mono<String> generateNonce() {
-        return convertUUIDToBytes(UUID.randomUUID())
-                .map(uuidBytes -> Base64URL.encode(uuidBytes).toString());
-    }
-
-    private Mono<byte[]> convertUUIDToBytes(UUID uuid) {
-        return Mono.fromSupplier(() -> {
-            ByteBuffer byteBuffer = ByteBuffer.wrap(new byte[16]);
-            byteBuffer.putLong(uuid.getMostSignificantBits());
-            byteBuffer.putLong(uuid.getLeastSignificantBits());
-            return byteBuffer.array();
-        });
-    }
-
-    private Mono<String> storeTokenInCache(String token) {
-        return generateNonce()
-                .doOnNext(nonce -> {
-                    log.debug("***** Credential Nonce code: " + nonce);
-                    cacheStore.add(nonce, token);
-                });
-    }
-
-    private Mono<Void> storeCredentialResponseInMemoryCache(String cNonce, String credential) {
-        return Mono.fromRunnable(() -> credentialCacheStore.add(cNonce, new VerifiableCredentialJWT(credential)));
     }
 
     private Mono<String> getNonceClaim(String jwtProof) {
