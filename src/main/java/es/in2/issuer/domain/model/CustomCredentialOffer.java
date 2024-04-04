@@ -21,6 +21,9 @@ public record CustomCredentialOffer(
         @NotBlank
         String credentialIssuer,
         @Schema(example = "[\"UniversityDegree\"]")
+        @JsonProperty("credential_configuration_ids")
+        List<String> credentialConfigurationIds,
+        @Schema(example = "[\"UniversityDegree\"]")
         @JsonProperty("credentials")
         List<Credential> credentials,
         @Schema(implementation = Grant.class)

@@ -1,0 +1,27 @@
+@startuml
+start
+:generateVerifiableCredentialResponse(username, credentialRequest, token);
+:getNonceClaim(credentialRequest.proof().jwt());
+if (Nonce Claim Exists) then (yes)
+  :cacheStore.delete(nonceClaim);
+  :extractDidFromJwtProof(credentialRequest.proof().jwt());
+  if (DID Extracted) then (yes)
+    :generateVerifiableCredential(username, token, subjectDid, format);
+    if (Format is "jwt_vc") then (jwt_vc)
+      :Sign Credential Remotely;
+    elseif (Format is "cwt_vc") then (cwt_vc)
+      :Generate CBOR from JSON;
+      :Generate COSE Bytes from CBOR;
+      :Compress COSE & Convert to Base45;
+    else (other)
+      :Return Error "Unsupported Credential Format";
+    endif
+  else (no)
+    :Return Error "DID Not Extracted";
+  endif
+else (no)
+  :Return Error "Nonce Claim Not Found";
+endif
+:Create VerifiableCredentialResponse with or without errors;
+stop
+@enduml

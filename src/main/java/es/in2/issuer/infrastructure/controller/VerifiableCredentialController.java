@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import com.nimbusds.jwt.SignedJWT;
+import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CredentialRequest;
@@ -35,6 +36,7 @@ import java.text.ParseException;
 public class VerifiableCredentialController {
 
     private final VerifiableCredentialService verifiableCredentialService;
+    private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
 
     @Operation(
             summary = "Generate a new Verifiable Credential",
@@ -62,7 +64,7 @@ public class VerifiableCredentialController {
                     try {
                         SignedJWT token = Utils.getToken(exchange);
                         String username = token.getJWTClaimsSet().getClaim("preferred_username").toString();
-                        return verifiableCredentialService.generateVerifiableCredentialResponse(username, credentialRequest, token.getParsedString());
+                        return verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(username, credentialRequest, token.getParsedString());
                     } catch (InvalidTokenException | ParseException e) {
                         return Mono.error(e);
                     }

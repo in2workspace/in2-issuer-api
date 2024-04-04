@@ -51,6 +51,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType)),
                         new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
                 ))
+                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL))
                 .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false)))
                 .build());
     }
