@@ -4,7 +4,6 @@ import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
-import es.in2.issuer.infrastructure.configuration.exception.AzureConfigurationSettingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +21,7 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(CredentialTypeUnsuportedException.class)
+    @ExceptionHandler(CredentialTypeUnsupportedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleCredentialTypeUnsupported(Exception e) {
         String description = "The given credential type is not supported";

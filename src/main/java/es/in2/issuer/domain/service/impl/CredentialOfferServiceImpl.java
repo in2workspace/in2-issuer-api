@@ -1,29 +1,15 @@
 package es.in2.issuer.domain.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.util.Base64URL;
-import es.in2.issuer.domain.exception.CredentialTypeUnsuportedException;
-import es.in2.issuer.domain.exception.ExpiredPreAuthorizedCodeException;
-import es.in2.issuer.domain.model.CredentialsSupported;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.Grant;
-import es.in2.issuer.domain.model.VcTemplate;
-import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
-import es.in2.issuer.infrastructure.repository.CacheStore;
 //import eu.europa.ec.eudi.openid4vci.CredentialOffer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
@@ -51,7 +37,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType)),
                         new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
                 ))
-                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL))
+                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT, LEAR_CREDENTIAL_CWT))
                 .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false)))
                 .build());
     }

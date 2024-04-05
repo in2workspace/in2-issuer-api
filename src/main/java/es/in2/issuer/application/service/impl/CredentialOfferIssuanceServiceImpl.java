@@ -1,16 +1,14 @@
 package es.in2.issuer.application.service.impl;
 
-import com.azure.json.implementation.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
-import es.in2.issuer.domain.exception.CredentialTypeUnsuportedException;
+import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
-import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,7 +33,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
         return vcSchemaService.isSupportedVcSchema(credentialType)
                 .flatMap(isSupported -> {
                     if (!isSupported) {
-                        return Mono.error(new CredentialTypeUnsuportedException(credentialType));
+                        return Mono.error(new CredentialTypeUnsupportedException(credentialType));
                     }
                     // Use flatMap to chain the Mono from getPreAuthorizationCodeFromIam
                     return getPreAuthorizationCodeFromIam(accessToken)
