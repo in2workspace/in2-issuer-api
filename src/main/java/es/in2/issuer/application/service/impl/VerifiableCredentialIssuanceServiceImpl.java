@@ -25,6 +25,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -69,6 +70,23 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             return generateVerifiableCredential(username, token, subjectDid, format)
                                     .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
                         }));
+    }
+
+    @Override
+    public Mono<BatchCredentialResponse> generateVerifiableCredentialBatchResponse(
+            String username,
+            BatchCredentialRequest batchCredentialRequest,
+            String token
+    ) {
+        return Flux.fromIterable(batchCredentialRequest.credentialRequests())
+                .flatMap(credentialRequest -> generateVerifiableCredentialResponse(username, credentialRequest, token)
+                .map(verifiableCredentialResponse -> new BatchCredentialResponse.CredentialResponse(verifiableCredentialResponse.credential())))
+                .collectList()
+                .map(credentialResponses -> new BatchCredentialResponse(
+                        credentialResponses,
+                        "cNonceValue",
+                        600
+                ));
     }
 
     private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid, String format) {

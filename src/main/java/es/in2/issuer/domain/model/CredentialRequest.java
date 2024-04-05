@@ -7,5 +7,6 @@ import lombok.Builder;
 @Builder
 public record CredentialRequest(
         @Schema(description = "Request body for creating a Verifiable Credential") @JsonProperty("format") String format,
+        @JsonProperty("credential_definition") CredentialDefinition credentialDefinition,
         @JsonProperty("proof") Proof proof) {
 }

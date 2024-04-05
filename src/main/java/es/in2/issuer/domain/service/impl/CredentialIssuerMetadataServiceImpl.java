@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.model.CredentialConfiguration;
+import es.in2.issuer.domain.model.CredentialDefinition;
 import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
@@ -38,13 +39,13 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                 .format(JWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
-                .credentialDefinition(CredentialConfiguration.CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
+                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
                 .build();
         CredentialConfiguration learCredentialCwt = CredentialConfiguration.builder()
                 .format(CWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
-                .credentialDefinition(CredentialConfiguration.CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
+                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
                 .build();
 
         return Mono.just(

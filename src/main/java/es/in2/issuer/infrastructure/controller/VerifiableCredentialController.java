@@ -3,10 +3,7 @@ package es.in2.issuer.infrastructure.controller;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.InvalidTokenException;
-import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.CredentialRequest;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
-import es.in2.issuer.domain.model.VerifiableCredentialResponse;
+import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -72,4 +69,19 @@ public class VerifiableCredentialController {
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
 
+    @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestBody BatchCredentialRequest batchCredentialRequest, ServerWebExchange exchange) {
+        // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
+        return Mono.defer(() -> {
+                    try {
+                        SignedJWT token = Utils.getToken(exchange);
+                        String username = token.getJWTClaimsSet().getClaim("preferred_username").toString();
+                        return verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(username, batchCredentialRequest, token.getParsedString());
+                    } catch (InvalidTokenException | ParseException e) {
+                        return Mono.error(e);
+                    }
+                }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+    }
 }

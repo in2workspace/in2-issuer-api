@@ -43,7 +43,7 @@ class CacheStoreTest {
         when(mockCache.getIfPresent(key)).thenReturn(value);
 
         // Act
-        String result = cacheStore.get(key);
+        String result = String.valueOf(cacheStore.get(key));
 
         // Assert
         assertEquals(value, result);
@@ -57,7 +57,7 @@ class CacheStoreTest {
         when(mockCache.getIfPresent(key)).thenReturn(null);
 
         // Act
-        String result = cacheStore.get(key);
+        String result = String.valueOf(cacheStore.get(key));
 
         // Assert
         assertNull(result);
