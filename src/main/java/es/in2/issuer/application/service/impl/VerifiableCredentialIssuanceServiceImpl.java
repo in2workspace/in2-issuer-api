@@ -9,6 +9,7 @@ import es.in2.issuer.domain.exception.CreateDateException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
+import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.Utils;
@@ -52,15 +53,39 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final VerifiableCredentialService verifiableCredentialService;
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
+    private final ProofValidationService proofValidationService;
 
 
-    @Override
+//    @Override
+//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
+//            String username,
+//            CredentialRequest credentialRequest,
+//            String token
+//    ) {
+//        return getNonceClaim(credentialRequest.proof().jwt())
+//                //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
+//                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
+//                        .thenReturn(nonceClaim))
+//                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
+//                        .flatMap(subjectDid -> {
+//                            String format = credentialRequest.format();
+//                            return generateVerifiableCredential(username, token, subjectDid, format)
+//                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
+//                        }));
+//    }
+
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String username,
             CredentialRequest credentialRequest,
             String token
     ) {
-        return getNonceClaim(credentialRequest.proof().jwt())
+        return proofValidationService.isProofValid(credentialRequest.proof().jwt())
+                .flatMap(isValid -> {
+                    if (!isValid) {
+                        return Mono.error(new IllegalArgumentException("Invalid proof"));
+                    }
+                    return getNonceClaim(credentialRequest.proof().jwt());
+                })
                 //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
                         .thenReturn(nonceClaim))

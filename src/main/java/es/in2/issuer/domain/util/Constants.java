@@ -21,4 +21,7 @@ public class Constants {
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
 
+    public static final String SUPPORTED_PROOF_ALG = "ES256";
+    public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
+
 }

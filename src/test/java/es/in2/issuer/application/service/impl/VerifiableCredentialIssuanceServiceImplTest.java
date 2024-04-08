@@ -115,7 +115,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         // Define your test input here
         String username = "testUser";
-        CredentialRequest request = new CredentialRequest("jwt_vc", new CredentialDefinition(List.of("")),new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ")); // Fill in with appropriate test data
+        CredentialRequest request = new CredentialRequest("jwt_vc", new CredentialDefinition(List.of("")),new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
         String token = "testToken";
 
         // Test the method
@@ -163,7 +163,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         // Define your test input here
         String username = "testUser";
-        CredentialRequest request = new CredentialRequest("cwt_vc", new CredentialDefinition(List.of("")), new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ")); // Fill in with appropriate test data
+        CredentialRequest request = new CredentialRequest("cwt_vc", new CredentialDefinition(List.of("")), new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
         String token = "testToken";
 
         // Test the method
@@ -180,5 +180,55 @@ class VerifiableCredentialIssuanceServiceImplTest {
         // Verify interactions
         verify(authenticSourcesRemoteService).getUserFromLocalFile();
         verify(remoteSignatureService).sign(any(SignatureRequest.class), eq(token));
+    }
+
+    @Test
+    void generateBatchVerifiableCredentialResponse_Success() throws UserDoesNotExistException {
+        // Creating the inner map for LEARCredential data
+        Map<String, String> learCredentialData = new HashMap<>();
+        learCredentialData.put("id", "did:key:zQ3shg2Mqz6NBj3afSySic9ynMrGk5Vgo9atHLXj4NWgxd7Xh");
+        learCredentialData.put("first_name", "Francisco");
+        learCredentialData.put("last_name", "Pérez García");
+        learCredentialData.put("email", "francisco.perez@in2.es");
+        learCredentialData.put("serialnumber", "IDCES-46521781J");
+        learCredentialData.put("employeeType", "T2");
+        learCredentialData.put("organizational_unit", "GDI010034");
+        learCredentialData.put("organization", "GDI01");
+        // Creating the outer map for credentialSubjectData
+        Map<String, Map<String, String>> credentialSubjectData = new HashMap<>();
+        credentialSubjectData.put("LEARCredential", learCredentialData);
+        // Creating an instance of SubjectDataResponse using the builder
+        SubjectDataResponse subjectDataResponse = SubjectDataResponse.builder()
+                .credentialSubjectData(credentialSubjectData)
+                .build();
+
+        String credential = "Credential";
+        String expectedCredential = "6BFA SZ-7INLM85C00K.5W0";
+        when(authenticSourcesRemoteService.getUserFromLocalFile())
+                .thenReturn(Mono.just(subjectDataResponse)); // Mock the necessary user details
+        when(remoteSignatureService.sign(any(SignatureRequest.class), anyString()))
+                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, credential)));
+
+        // Define your test input here
+        String username = "testUser";
+        CredentialRequest request1 = new CredentialRequest("jwt_vc", new CredentialDefinition(List.of("")),new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
+        CredentialRequest request2 = new CredentialRequest("cwt_vc", new CredentialDefinition(List.of("")), new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
+        BatchCredentialRequest batchCredentialRequest = new BatchCredentialRequest(List.of(request1, request2));
+        String token = "testToken";
+
+        // Test the method
+        Mono<BatchCredentialResponse> result = service.generateVerifiableCredentialBatchResponse(username, batchCredentialRequest, token);
+
+        // Verify the output
+        StepVerifier.create(result)
+                .assertNext(response -> {
+                    assertEquals(2, response.credentialResponses().size());
+                    // Additional assertions as necessary
+                })
+                .verifyComplete();
+
+        // Verify interactions
+        verify(authenticSourcesRemoteService, times(2)).getUserFromLocalFile();
+        verify(remoteSignatureService, times(2)).sign(any(SignatureRequest.class), eq(token));
     }
 }
