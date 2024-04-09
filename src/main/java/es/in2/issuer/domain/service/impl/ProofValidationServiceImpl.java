@@ -2,6 +2,7 @@ package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.domain.exception.ExpiredCacheException;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import io.jsonwebtoken.Claims;
@@ -44,6 +45,8 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 Instant expiration = Instant.ofEpochSecond(Long.parseLong(payload.get("exp").toString()));
                 // Extract nonce
                 String nonce = payload.get("nonce").toString();
+                //cacheStore.add("test1", "test2");
+                //Mono<String> nonceFromCache = cacheStore.get("test1");
 
                 // Validate header
                 if (jwsObject.getHeader().toJSONObject().get("alg") == null || jwsObject.getHeader().toJSONObject().get("typ") == null) {
@@ -62,9 +65,9 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                     return false;
                 }
                 // Validate nonce
-                if(Boolean.FALSE.equals(isNoncePresentInCache(nonce).block())){
-                    return false;
-                }
+//                if(Boolean.FALSE.equals(isNoncePresentInCache(nonce).block())){
+//                    return false;
+//                }
 
                 // Validate signature
 //                if(!verifyJwtSignature(jwtProof, decodeDidKey(encodedPublicKey))){
@@ -94,24 +97,6 @@ public class ProofValidationServiceImpl implements ProofValidationService {
         }
     }
 
-    private PublicKey decodeDidPublicKey(String didKey) throws Exception {
-        // Step 1: Strip the identifier
-        String base58Encoded = didKey.substring(1);
-
-        // Step 2: Decode from Base58
-        byte[] decodedBytes = Base58.decode(base58Encoded);
-
-        // Step 3: Strip the Multicodec Prefix
-        byte[] publicKeyBytes = new byte[decodedBytes.length - 2];
-        System.arraycopy(decodedBytes, 2, publicKeyBytes, 0, publicKeyBytes.length);
-
-        // Step 4: Construct the PublicKey Object
-        X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKeyBytes);
-        KeyFactory keyFactory = KeyFactory.getInstance("EC");
-        return keyFactory.generatePublic(spec);
-    }
-
-
 
     public PublicKey decodeDidKey(String didKey) throws Exception {
         // Remove the did:key:z prefix and decode from Base58
@@ -138,7 +123,16 @@ public class ProofValidationServiceImpl implements ProofValidationService {
             return false;
     }
 
-    private Mono<Boolean> isNoncePresentInCache(String nonce) {
+    @Override
+    public Mono<Boolean> isNoncePresentInCache(String nonce) {
         return Mono.fromCallable(() -> cacheStore.get(nonce) != null);
+    }
+
+    private Mono<String> getNonceFromCache(String nonce) {
+        return cacheStore.get(nonce)
+                .doOnSuccess(customCredentialOffer -> {
+                    log.debug("CustomCredentialOffer found for nonce: {}", nonce);
+                    //cacheStore.delete(nonce);
+                });
     }
 }

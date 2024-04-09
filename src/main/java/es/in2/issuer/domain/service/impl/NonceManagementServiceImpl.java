@@ -23,11 +23,18 @@ public class NonceManagementServiceImpl implements NonceManagementService {
     @Override
     public Mono<NonceResponse> saveAccessTokenAndNonce(AppNonceValidationResponse appNonceValidationResponse) {
         return generateNonce()
-                .flatMap(nonce -> storeCredentialResponseInMemoryCache(nonce, appNonceValidationResponse.accessToken())
+                .flatMap(nonce -> storeTokenInMemoryCache(nonce, appNonceValidationResponse.accessToken())
                         .thenReturn(NonceResponse.builder()
                                 .nonce(nonce)
                                 .nonceExpiresIn("600")
                                 .build()));
+    }
+
+    @Override
+    public Mono<String> getTokenFromCache(String nonce) {
+        return cacheStore.get(nonce)
+                .doOnSuccess(customCredentialOffer -> log.debug("Token found for nonce: {}", nonce))
+                .doOnError(error -> log.debug("error when getting token from cache"));
     }
 
     private Mono<String> generateNonce() {
@@ -38,7 +45,14 @@ public class NonceManagementServiceImpl implements NonceManagementService {
         return Mono.fromRunnable(() -> {
             log.info("***** Nonce code: " + nonce);
             cacheStore.add(nonce, token);
+            log.info("Token saved with nonce");
         });
+    }
+
+    private Mono<Void> storeTokenInMemoryCache(String nonce, String token) {
+        return cacheStore.add(nonce, token)
+                .doOnSuccess(nonceValue -> log.info("Token saved with nonce: {}", nonceValue))
+                .then();
     }
 
     private byte[] convertUUIDToBytes(UUID uuid) {

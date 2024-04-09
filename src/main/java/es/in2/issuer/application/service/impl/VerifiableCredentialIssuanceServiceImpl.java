@@ -8,10 +8,7 @@ import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.CreateDateException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
-import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
-import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.service.VerifiableCredentialService;
+import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.repository.CacheStore;
@@ -54,6 +51,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
+    private final NonceManagementService nonceManagementService;
 
 
 //    @Override
@@ -88,6 +86,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 })
                 //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
+                //.flatMap(nonceClaim -> Mono.fromRunnable(() -> nonceManagementService.getTokenFromCache(nonceClaim))
                         .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {

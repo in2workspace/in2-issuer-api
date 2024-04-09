@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
+import es.in2.issuer.domain.model.AppNonceValidationResponse;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
@@ -12,8 +13,6 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Slf4j
 public class IssuerApplicationConfig {
-
-
 
     @Bean
     public CacheStore<String> cacheStoreForString() {

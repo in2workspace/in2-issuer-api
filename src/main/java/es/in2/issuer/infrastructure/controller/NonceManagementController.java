@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.AppNonceValidationResponse;
+import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.NonceResponse;
 import es.in2.issuer.domain.service.NonceManagementService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -36,6 +37,12 @@ public class NonceManagementController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<NonceResponse> saveAccessTokenAndNonce(@RequestBody AppNonceValidationResponse appNonceValidationResponse) {
         return nonceManagementService.saveAccessTokenAndNonce(appNonceValidationResponse);
+    }
+
+    @GetMapping(value = "/cache-test/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<String> testCache(@PathVariable("id") String id) {
+        return nonceManagementService.getTokenFromCache(id);
     }
 
 }
