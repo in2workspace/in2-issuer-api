@@ -45,8 +45,6 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 Instant expiration = Instant.ofEpochSecond(Long.parseLong(payload.get("exp").toString()));
                 // Extract nonce
                 String nonce = payload.get("nonce").toString();
-                //cacheStore.add("test1", "test2");
-                //Mono<String> nonceFromCache = cacheStore.get("test1");
 
                 // Validate header
                 if (jwsObject.getHeader().toJSONObject().get("alg") == null || jwsObject.getHeader().toJSONObject().get("typ") == null) {
@@ -64,22 +62,26 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 if(Instant.now().isAfter(expiration)){
                     return false;
                 }
-                // Validate nonce
-//                if(Boolean.FALSE.equals(isNoncePresentInCache(nonce).block())){
-//                    return false;
-//                }
-
                 // Validate signature
 //                if(!verifyJwtSignature(jwtProof, decodeDidKey(encodedPublicKey))){
 //                    return false;
 //                }
 
-                return true; // All checks passed
+                // If all preliminary checks passed, proceed with nonce check
+                return isNoncePresentInCache(nonce);
             } catch (ParseException e) {
                 // Handle parsing exception
                 return false;
             }
-        });
+        }).flatMap(noncePresent -> {
+                    if (Boolean.FALSE.equals(noncePresent)) {
+                        // If nonce is not present in the cache, the proof is invalid
+                        return Mono.just(false);
+                    }
+                    // If nonce is not found, the proof is valid
+                    return Mono.just(true);
+                })
+                .onErrorReturn(false); // Handle any errors by returning false
     }
 
     private static boolean verifyJwtSignature(String jwtString, PublicKey publicKey) {
@@ -114,25 +116,9 @@ public class ProofValidationServiceImpl implements ProofValidationService {
         return publicKey;
     }
 
-    private Boolean isNonceInCache(String key) {
-            String nonceInCache = String.valueOf(cacheStore.get(key));
-            log.info(nonceInCache);
-            if (nonceInCache != null) {
-                return true;
-            }
-            return false;
-    }
-
     @Override
     public Mono<Boolean> isNoncePresentInCache(String nonce) {
         return Mono.fromCallable(() -> cacheStore.get(nonce) != null);
     }
 
-    private Mono<String> getNonceFromCache(String nonce) {
-        return cacheStore.get(nonce)
-                .doOnSuccess(customCredentialOffer -> {
-                    log.debug("CustomCredentialOffer found for nonce: {}", nonce);
-                    //cacheStore.delete(nonce);
-                });
-    }
 }
