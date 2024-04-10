@@ -84,6 +84,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());
                 })
+
                 //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
                 //.flatMap(nonceClaim -> Mono.fromRunnable(() -> nonceManagementService.getTokenFromCache(nonceClaim))

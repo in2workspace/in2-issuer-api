@@ -4,5 +4,4 @@ import reactor.core.publisher.Mono;
 
 public interface ProofValidationService {
     Mono<Boolean> isProofValid(String jwtProof);
-    public Mono<Boolean> isNoncePresentInCache(String nonce);
 }
