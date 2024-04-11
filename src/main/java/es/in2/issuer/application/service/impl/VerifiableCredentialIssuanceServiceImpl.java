@@ -64,8 +64,8 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());
                 })
-                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
-                        .thenReturn(nonceClaim))
+//                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
+//                        .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();

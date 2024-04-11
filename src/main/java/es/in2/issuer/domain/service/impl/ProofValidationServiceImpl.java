@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.security.interfaces.ECPublicKey;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
@@ -38,110 +37,123 @@ public class ProofValidationServiceImpl implements ProofValidationService {
     private final CacheStore<String> cacheStore;
     @Override
     public Mono<Boolean> isProofValid(String jwtProof) {
+        return Mono.just(jwtProof)
+                .doOnNext(jwt -> log.debug("Starting validation for JWT: {}", jwt))
+                .flatMap(this::parseAndValidateJwt)
+                .doOnNext(jws -> log.debug("JWT parsed successfully"))
+                .flatMap(jwsObject ->
+                        validateJwtSignatureReactive(jwsObject)
+                                .doOnSuccess(isValid -> log.debug("Signature validation result: {}", isValid))
+                                .map(isValid -> isValid ? jwsObject : null)
+                )
+                .doOnNext(jwsObject -> {
+                    if (jwsObject == null) log.debug("JWT signature validation failed");
+                    else log.debug("JWT signature validated, checking nonce...");
+                })
+                .flatMap(jwsObject ->
+                        jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
+                )
+                .doOnSuccess(result -> log.debug("Final validation result: {}", result))
+                .onErrorResume(e -> {
+                    log.error("Error during JWT validation", e);
+                    return Mono.just(false);
+                });
+    }
+
+    private Mono<JWSObject> parseAndValidateJwt(String jwtProof) {
+        return Mono.fromCallable(() -> {
+            JWSObject jwsObject = JWSObject.parse(jwtProof);
+            validateHeader(jwsObject);
+            validatePayload(jwsObject);
+            return jwsObject;
+        });
+    }
+
+    private void validateHeader(JWSObject jwsObject) {
+        Map<String, Object> headerParams = jwsObject.getHeader().toJSONObject();
+        if (headerParams.get("alg") == null || headerParams.get("typ") == null ||
+                !SUPPORTED_PROOF_ALG.equals(headerParams.get("alg")) ||
+                !SUPPORTED_PROOF_TYP.equals(headerParams.get("typ"))) {
+            throw new IllegalArgumentException("Invalid JWT header");
+        }
+    }
+
+    private void validatePayload(JWSObject jwsObject) {
+        var payload = jwsObject.getPayload().toJSONObject();
+        if (!payload.containsKey("aud") || !payload.containsKey("iat") ||
+                Instant.now().isAfter(Instant.ofEpochSecond(Long.parseLong(payload.get("exp").toString())))) {
+            throw new IllegalArgumentException("Invalid JWT payload");
+        }
+    }
+
+    private Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject) {
+        // Assuming decodeDidKey and validateJwtSignature are adapted to return Mono<Boolean>
+        String kid = jwsObject.getHeader().getKeyID();
+        String encodedPublicKey = kid.substring(kid.indexOf("#") + 1);
+        return decodeDidKey(encodedPublicKey)
+                .flatMap(publicKeyBytes -> validateJwtSignature(jwsObject.getParsedString(), publicKeyBytes));
+    }
+
+
+    private Mono<Boolean> validateJwtSignature(String jwtString, byte[] publicKeyBytes) {
         return Mono.fromCallable(() -> {
             try {
-                JWSObject jwsObject = JWSObject.parse(jwtProof);
-                Map<String, Object> headerParams = jwsObject.getHeader().toJSONObject();
-                var payload = jwsObject.getPayload().toJSONObject();
-                String kid = jwsObject.getHeader().getKeyID();
-                // Extract the public key identifier from the 'kid' value
-                String encodedPublicKey = kid.substring(kid.indexOf("#") + 1);
-                // Extract the expiration time
-                Instant expiration = Instant.ofEpochSecond(Long.parseLong(payload.get("exp").toString()));
-                // Extract nonce
-                String nonce = payload.get("nonce").toString();
+                // Set the curve as secp256r1
+                ECCurve curve = new SecP256R1Curve();
+                BigInteger x = new BigInteger(1, Arrays.copyOfRange(publicKeyBytes, 1, publicKeyBytes.length));
 
-                // Validate header
-                if (jwsObject.getHeader().toJSONObject().get("alg") == null || jwsObject.getHeader().toJSONObject().get("typ") == null) {
-                    return false;
-                }
-                // Validate specific 'alg' and 'typ' values for the proof type
-                if (!SUPPORTED_PROOF_ALG.equals(headerParams.get("alg")) || !SUPPORTED_PROOF_TYP.equals(headerParams.get("typ"))) {
-                    return false;
-                }
-                // Validate payload claims
-                if (!payload.containsKey("aud") || !payload.containsKey("iat")) {
-                    return false;
-                }
-                // Validate expiration
-                if(Instant.now().isAfter(expiration)){
-                    return false;
-                }
-                // Validate signature
-                if(!validateJwtSignature(jwtProof, decodeDidKey(encodedPublicKey))){
-                    return false;
-                }
+                // Recover the Y coordinate from the X coordinate and the curve
+                BigInteger y = curve.decodePoint(publicKeyBytes).getYCoord().toBigInteger();
 
-                // If all preliminary checks passed, proceed with nonce check
-                return isNoncePresentInCache(nonce);
-            } catch (ParseException e) {
-                // Handle parsing exception
-                return false;
+                ECPoint point = new ECPoint(x, y);
+
+                // Fetch the ECParameterSpec for secp256r1
+                ECNamedCurveParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256r1");
+                ECNamedCurveSpec params = new ECNamedCurveSpec("secp256r1", ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN());
+
+                // Create a KeyFactory and generate the public key
+                KeyFactory kf = KeyFactory.getInstance("EC");
+                ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
+                PublicKey publicKey = kf.generatePublic(pubKeySpec);
+
+                // Parse the JWT and create a verifier
+                SignedJWT signedJWT = SignedJWT.parse(jwtString);
+                ECDSAVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
+
+                // Verify the signature
+                return signedJWT.verify(verifier);
+            } catch (Exception e) {
+                return false; // In case of any exception, return false
             }
-        }).flatMap(noncePresent -> {
-                    if (Boolean.FALSE.equals(noncePresent)) {
-                        // If nonce is not present in the cache, the proof is invalid
-                        return Mono.just(false);
-                    }
-                    // If nonce is found, the proof is valid
-                    return Mono.just(true);
-                })
-                .onErrorReturn(false); // Handle any errors by returning false
+        });
     }
 
-    private boolean validateJwtSignature(String jwtString, byte[] publicKeyBytes) {
-        try {
-            // Set the curve as secp256r1
-            ECCurve curve = new SecP256R1Curve();
-            BigInteger x = new BigInteger(1, Arrays.copyOfRange(publicKeyBytes, 1, publicKeyBytes.length));
+    private Mono<byte[]> decodeDidKey(String didKey) {
+        return Mono.fromCallable(() -> {
+            // Remove the prefix "z" to get the multibase encoded string
+            if (!didKey.startsWith("z")) {
+                throw new IllegalArgumentException("Invalid DID format.");
+            }
+            String multibaseEncoded = didKey.substring(1);
 
-            // Recover the Y coordinate from the X coordinate and the curve
-            BigInteger y = curve.decodePoint(publicKeyBytes).getYCoord().toBigInteger();
+            // Multibase decode (Base58) the encoded part to get the bytes
+            byte[] decodedBytes = Base58.decode(multibaseEncoded);
 
-            ECPoint point = new ECPoint(x, y);
+            // Multicodec prefix is fixed for "0x1200" for the secp256r1 curve
+            int prefixLength = 2;
 
-            // Fetch the ECParameterSpec for secp256r1
-            ECNamedCurveParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256r1");
-            ECNamedCurveSpec params = new ECNamedCurveSpec("secp256r1", ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN());
+            // Extract public key bytes after the multicodec prefix
+            byte[] publicKeyBytes = new byte[decodedBytes.length - prefixLength];
+            System.arraycopy(decodedBytes, prefixLength, publicKeyBytes, 0, publicKeyBytes.length);
 
-            // Create a KeyFactory and generate the public key
-            KeyFactory kf = KeyFactory.getInstance("EC");
-            ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
-            PublicKey publicKey = kf.generatePublic(pubKeySpec);
-
-            // Parse the JWT and create a verifier
-            SignedJWT signedJWT = SignedJWT.parse(jwtString);
-            ECDSAVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
-
-            // Verify the signature
-            return signedJWT.verify(verifier);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false; // In case of any exception, return false
-        }
+            return publicKeyBytes;
+        });
     }
 
-    private byte[] decodeDidKey(String didKey) throws Exception {
-        // Remove the prefix "z" to get the multibase encoded string
-        if (!didKey.startsWith("z")) {
-            throw new IllegalArgumentException("Invalid DID format.");
-        }
-        String multibaseEncoded = didKey.substring(1);
-
-        // Multibase decode (Base58) the encoded part to get the bytes
-        byte[] decodedBytes = Base58.decode(multibaseEncoded);
-
-        // Multicodec prefix is fixed for "0x1200" for the secp256r1 curve
-        int prefixLength = 2;
-
-        // Extract public key bytes after the multicodec prefix
-        byte[] publicKeyBytes = new byte[decodedBytes.length - prefixLength];
-        System.arraycopy(decodedBytes, prefixLength, publicKeyBytes, 0, publicKeyBytes.length);
-
-        return publicKeyBytes;
-    }
-
-    private Mono<Boolean> isNoncePresentInCache(String nonce) {
+    private Mono<Boolean> isNoncePresentInCache(JWSObject jwsObject) {
+        // Extract nonce and check in cache
+        var payload = jwsObject.getPayload().toJSONObject();
+        String nonce = payload.get("nonce").toString();
         return Mono.fromCallable(() -> cacheStore.get(nonce) != null)
                 .onErrorReturn(false);
     }
