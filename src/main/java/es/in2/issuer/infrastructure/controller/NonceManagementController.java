@@ -38,11 +38,4 @@ public class NonceManagementController {
     public Mono<NonceResponse> saveAccessTokenAndNonce(@RequestBody AppNonceValidationResponse appNonceValidationResponse) {
         return nonceManagementService.saveAccessTokenAndNonce(appNonceValidationResponse);
     }
-
-    @GetMapping(value = "/cache-test/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    @ResponseStatus(HttpStatus.OK)
-    public Mono<String> testCache(@PathVariable("id") String id) {
-        return nonceManagementService.getTokenFromCache(id);
-    }
-
 }

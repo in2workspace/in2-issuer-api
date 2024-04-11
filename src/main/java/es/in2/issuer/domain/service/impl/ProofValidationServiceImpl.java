@@ -1,46 +1,32 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.JWSObject;
-import es.in2.issuer.domain.exception.ExpiredCacheException;
-import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtParser;
-import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.asn1.x9.X9ECParameters;
-import org.bouncycastle.crypto.ec.CustomNamedCurves;
-import org.bouncycastle.crypto.params.ECDomainParameters;
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.ECPointUtil;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
-import org.bouncycastle.jce.spec.ECNamedCurveSpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
-
-
-import org.bouncycastle.math.ec.ECCurve;
-
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-import java.security.AlgorithmParameters;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.spec.*;
+import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Arrays;
-import java.util.Base64;
 import java.util.Map;
-
 import io.ipfs.multibase.Base58;
+
 import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
+import java.math.BigInteger;
+import org.bouncycastle.math.ec.ECCurve;
+import org.bouncycastle.math.ec.custom.sec.SecP256R1Curve;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jwt.SignedJWT;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.bouncycastle.jce.ECNamedCurveTable;
 
 import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_ALG;
 import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_TYP;
@@ -82,7 +68,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                     return false;
                 }
                 // Validate signature
-                if(!validateJwtBC(jwtProof, decodeDidKeyV2(encodedPublicKey))){
+                if(!validateJwtSignature(jwtProof, decodeDidKey(encodedPublicKey))){
                     return false;
                 }
 
@@ -102,114 +88,50 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 })
                 .onErrorReturn(false); // Handle any errors by returning false
     }
-//    public static boolean validateJwt(String jwt, byte[] publicKeyBytes) throws Exception {
-//        String[] parts = jwt.split("\\.");
-//        if (parts.length != 3) {
-//            throw new IllegalArgumentException("Invalid JWT format.");
-//        }
-//
-//        String headerEncoded = parts[0];
-//        String payloadEncoded = parts[1];
-//        String signatureEncoded = parts[2];
-//
-//        String signedContent = headerEncoded + "." + payloadEncoded;
-//        byte[] signature = Base64.getUrlDecoder().decode(signatureEncoded);
-//
-//        AlgorithmParameters parameters = AlgorithmParameters.getInstance("EC");
-//        parameters.init(new ECGenParameterSpec("secp256r1"));
-//        ECParameterSpec ecParameters = parameters.getParameterSpec(ECParameterSpec.class);
-//
-//        BigInteger x = new BigInteger(1, Arrays.copyOfRange(publicKeyBytes, 0, 32));
-//        BigInteger y = new BigInteger(1, Arrays.copyOfRange(publicKeyBytes, 32, 64));
-//        ECPoint point = new ECPoint(x, y);
-//
-//        ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, ecParameters);
-//        PublicKey publicKey = KeyFactory.getInstance("EC").generatePublic(pubKeySpec);
-//
-//        Signature sig = Signature.getInstance("SHA256withECDSA");
-//        sig.initVerify(publicKey);
-//        sig.update(signedContent.getBytes());
-//
-//        return sig.verify(signature);
-//    }
-    public static boolean validateJwtBC(String jwt, byte[] publicKeyBytes) throws Exception {
-        try{
-            // Split the JWT into its components
-            String[] parts = jwt.split("\\.");
-            if (parts.length != 3) {
-                throw new IllegalArgumentException("Invalid JWT format.");
-            }
 
-            String headerEncoded = parts[0];
-            String payloadEncoded = parts[1];
-            String signatureEncoded = parts[2];
+    private boolean validateJwtSignature(String jwtString, byte[] publicKeyBytes) {
+        try {
+            // Set the curve as secp256r1
+            ECCurve curve = new SecP256R1Curve();
+            BigInteger x = new BigInteger(1, Arrays.copyOfRange(publicKeyBytes, 1, publicKeyBytes.length));
 
-            // Concatenate header and payload to form the signed content
-            String signedContent = headerEncoded + "." + payloadEncoded;
-            byte[] signature = Base64.getUrlDecoder().decode(signatureEncoded);
+            // Recover the Y coordinate from the X coordinate and the curve
+            BigInteger y = curve.decodePoint(publicKeyBytes).getYCoord().toBigInteger();
 
-            // Retrieve the curve and decode the point
-            ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256r1");
-            ECPoint point = spec.getCurve().decodePoint(publicKeyBytes);
+            ECPoint point = new ECPoint(x, y);
 
-            // Create the public key spec with the ECPoint and curve specification
-            ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, spec);
+            // Fetch the ECParameterSpec for secp256r1
+            ECNamedCurveParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256r1");
+            ECNamedCurveSpec params = new ECNamedCurveSpec("secp256r1", ecSpec.getCurve(), ecSpec.getG(), ecSpec.getN());
 
-            // Generate the PublicKey object
-            KeyFactory keyFactory = KeyFactory.getInstance("ECDSA", new BouncyCastleProvider());
-            PublicKey publicKey = keyFactory.generatePublic(pubKeySpec);
+            // Create a KeyFactory and generate the public key
+            KeyFactory kf = KeyFactory.getInstance("EC");
+            ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(point, params);
+            PublicKey publicKey = kf.generatePublic(pubKeySpec);
 
-            // Initialize signature verification
-            Signature sig = Signature.getInstance("SHA256withECDSA", new BouncyCastleProvider());
-            sig.initVerify(publicKey);
-            sig.update(signedContent.getBytes());
+            // Parse the JWT and create a verifier
+            SignedJWT signedJWT = SignedJWT.parse(jwtString);
+            ECDSAVerifier verifier = new ECDSAVerifier((ECPublicKey) publicKey);
 
             // Verify the signature
-            return sig.verify(signature);
+            return signedJWT.verify(verifier);
         } catch (Exception e) {
             e.printStackTrace();
-            // If there's any exception, the JWT validation failed
-            return false;
+            return false; // In case of any exception, return false
         }
     }
 
-    private static boolean verifyJwtSignatureV2(String jwt, byte[] publicKeyBytes) {
-        try {
-            // Convert the public key bytes to a PublicKey instance
-            X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
-            KeyFactory keyFactory = KeyFactory.getInstance("EC");
-            PublicKey publicKey = keyFactory.generatePublic(keySpec);
-
-            // Prepare the JWT parser with the signing key
-            JwtParser parser = Jwts.parserBuilder()
-                    .setSigningKey(publicKey)
-                    .build();
-
-            // Parse and validate the JWT. This will throw an exception if the JWT is not valid.
-            Jws<Claims> claims = parser.parseClaimsJws(jwt);
-
-            // If no exception was thrown, then the JWT is valid
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            // If there's any exception, the JWT validation failed
-            return false;
-        }
-    }
-
-
-
-    public static byte[] decodeDidKeyV2(String didKey) throws Exception {
-        // Step 1: Remove the prefix "z" to get the multibase encoded string
+    private byte[] decodeDidKey(String didKey) throws Exception {
+        // Remove the prefix "z" to get the multibase encoded string
         if (!didKey.startsWith("z")) {
             throw new IllegalArgumentException("Invalid DID format.");
         }
         String multibaseEncoded = didKey.substring(1);
 
-        // Step 2: Multibase decode (Base58) the encoded part to get the bytes
+        // Multibase decode (Base58) the encoded part to get the bytes
         byte[] decodedBytes = Base58.decode(multibaseEncoded);
 
-        // Step 3: Assume the multicodec prefix is fixed for "0x1200"
+        // Multicodec prefix is fixed for "0x1200" for the secp256r1 curve
         int prefixLength = 2;
 
         // Extract public key bytes after the multicodec prefix

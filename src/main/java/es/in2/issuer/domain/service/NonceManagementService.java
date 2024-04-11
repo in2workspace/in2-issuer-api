@@ -6,5 +6,4 @@ import reactor.core.publisher.Mono;
 
 public interface NonceManagementService {
     Mono<NonceResponse> saveAccessTokenAndNonce(AppNonceValidationResponse appNonceValidationResponse);
-    Mono<String> getTokenFromCache(String nonce);
 }

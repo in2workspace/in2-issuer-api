@@ -7,9 +7,7 @@ import lombok.Builder;
 import java.util.List;
 
 public record BatchCredentialResponse(
-        @JsonProperty("credential_responses") List<CredentialResponse> credentialResponses,
-        @JsonProperty("c_nonce") String cNonce,
-        @JsonProperty("c_nonce_expires_in") int cNonceExpiresIn) {
+        @JsonProperty("credential_responses") List<CredentialResponse> credentialResponses) {
     @Builder
     public record CredentialResponse(
             @JsonProperty("credential") String credential

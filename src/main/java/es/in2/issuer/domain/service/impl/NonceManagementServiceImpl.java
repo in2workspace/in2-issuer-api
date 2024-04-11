@@ -30,23 +30,8 @@ public class NonceManagementServiceImpl implements NonceManagementService {
                                 .build()));
     }
 
-    @Override
-    public Mono<String> getTokenFromCache(String nonce) {
-        return cacheStore.get(nonce)
-                .doOnSuccess(customCredentialOffer -> log.debug("Token found for nonce: {}", nonce))
-                .doOnError(error -> log.debug("error when getting token from cache"));
-    }
-
     private Mono<String> generateNonce() {
         return Mono.fromCallable(() -> Base64.getUrlEncoder().encodeToString(convertUUIDToBytes(UUID.randomUUID())));
-    }
-
-    private Mono<Void> storeCredentialResponseInMemoryCache(String nonce, String token) {
-        return Mono.fromRunnable(() -> {
-            log.info("***** Nonce code: " + nonce);
-            cacheStore.add(nonce, token);
-            log.info("Token saved with nonce");
-        });
     }
 
     private Mono<Void> storeTokenInMemoryCache(String nonce, String token) {

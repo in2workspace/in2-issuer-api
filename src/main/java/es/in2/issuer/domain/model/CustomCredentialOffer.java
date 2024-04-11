@@ -25,7 +25,7 @@ public record CustomCredentialOffer(
         List<String> credentialConfigurationIds,
         @Schema(example = "[\"UniversityDegree\"]")
         @JsonProperty("credentials")
-        List<Credential> credentials,
+        List<Credential> credentials, // Remove for DOME profile
         @Schema(implementation = Grant.class)
         @JsonProperty("grants")
         Map<String, Grant> grants

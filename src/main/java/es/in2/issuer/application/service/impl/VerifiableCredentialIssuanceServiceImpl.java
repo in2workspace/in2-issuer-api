@@ -51,26 +51,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
-    private final NonceManagementService nonceManagementService;
-
-
-//    @Override
-//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-//            String username,
-//            CredentialRequest credentialRequest,
-//            String token
-//    ) {
-//        return getNonceClaim(credentialRequest.proof().jwt())
-//                //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
-//                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
-//                        .thenReturn(nonceClaim))
-//                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
-//                        .flatMap(subjectDid -> {
-//                            String format = credentialRequest.format();
-//                            return generateVerifiableCredential(username, token, subjectDid, format)
-//                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
-//                        }));
-//    }
 
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String username,
@@ -84,10 +64,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());
                 })
-
-                //TODO: revisar si el nonce está en el cache, Eliminar el nonce del cache después de la comprobación. Si el nonce no está en el cache es que ya fue usado: lanzar una exception.
                 .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
-                //.flatMap(nonceClaim -> Mono.fromRunnable(() -> nonceManagementService.getTokenFromCache(nonceClaim))
                         .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
@@ -107,11 +84,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .flatMap(credentialRequest -> generateVerifiableCredentialResponse(username, credentialRequest, token)
                 .map(verifiableCredentialResponse -> new BatchCredentialResponse.CredentialResponse(verifiableCredentialResponse.credential())))
                 .collectList()
-                .map(credentialResponses -> new BatchCredentialResponse(
-                        credentialResponses,
-                        "cNonceValue",
-                        600
-                ));
+                .map(BatchCredentialResponse::new);
     }
 
     private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid, String format) {

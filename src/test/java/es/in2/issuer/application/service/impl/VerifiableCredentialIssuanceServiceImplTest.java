@@ -53,6 +53,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Mock
     private VerifiableCredentialService verifiableCredentialService;
 
+    @Mock
+    private ProofValidationService proofValidationService;
+
     @InjectMocks
     private VerifiableCredentialIssuanceServiceImpl service;
 
@@ -84,6 +87,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(verifiableCredentialService.generateVcPayLoad(any(),any(),any(),any(),any()))
                 .thenReturn(Mono.just("{\"type\": \"type\"}"));
+
+        when(proofValidationService.isProofValid(any()))
+                .thenReturn(Mono.just(true));
     }
 
 

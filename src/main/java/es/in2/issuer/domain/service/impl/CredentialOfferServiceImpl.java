@@ -38,7 +38,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
                 ))
                 .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT, LEAR_CREDENTIAL_CWT))
-                .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false)))
+                .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false, new Grant.TxCode(4,"numeric", "Please enter the PIN code"))))
                 .build());
     }
 
