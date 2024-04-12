@@ -87,7 +87,6 @@ public class ProofValidationServiceImpl implements ProofValidationService {
     }
 
     private Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject) {
-        // Assuming decodeDidKey and validateJwtSignature are adapted to return Mono<Boolean>
         String kid = jwsObject.getHeader().getKeyID();
         String encodedPublicKey = kid.substring(kid.indexOf("#") + 1);
         return decodeDidKey(encodedPublicKey)

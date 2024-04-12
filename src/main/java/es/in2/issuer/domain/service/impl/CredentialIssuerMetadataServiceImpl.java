@@ -51,10 +51,11 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)
+                        .authorizationServers(List.of(appConfiguration.getIamExternalDomain()))
                         // fixme: Este path debe capturarse de la configuración
                         .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
                         .batchCredentialEndpoint(credentialIssuerDomain + "/api/vc/batch_credential")
-                        .credentialToken(iamAdapterFactory.getAdapter().getTokenUri())
+                        .credentialToken(iamAdapterFactory.getAdapter().getTokenUri()) // Remove for DOME profile
                         .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_JWT, learCredentialJwt, LEAR_CREDENTIAL_CWT, learCredentialCwt))
                         .build()
         );

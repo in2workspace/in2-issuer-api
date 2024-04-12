@@ -20,21 +20,33 @@ public class CacheStore<T> {
                 .build();
     }
 
+//    public Mono<T> get(String key) {
+//        return Mono.just(Objects.requireNonNull(cache.getIfPresent(key)));
+//    }
     public Mono<T> get(String key) {
-        return Mono.just(Objects.requireNonNull(cache.getIfPresent(key)));
+        T value = cache.getIfPresent(key);
+        return Mono.justOrEmpty(value); // This will return an empty Mono if the value is null
     }
-
     public void delete(String key) {
         cache.invalidate(key);
     }
 
+//    public Mono<String> add(String key, T value) {
+//        return Mono.fromCallable(() -> {
+//            if (key != null && !key.trim().isEmpty() && value != null) {
+//                cache.put(key, value);
+//            }
+//            return key;
+//        });
+//    }
     public Mono<String> add(String key, T value) {
         return Mono.fromCallable(() -> {
             if (key != null && !key.trim().isEmpty() && value != null) {
                 cache.put(key, value);
+                return key;
             }
-            return key;
-        });
+            return null;  // Return null to indicate that nothing was added
+        }).filter(Objects::nonNull);  // Only emit if the result is non-null
     }
 
 }
