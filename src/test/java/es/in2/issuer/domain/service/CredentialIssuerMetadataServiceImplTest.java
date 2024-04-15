@@ -21,13 +21,12 @@ import reactor.test.StepVerifier;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialIssuerMetadataServiceImplTest {
-
+    @Mock
+    private GenericIamAdapter genericIamAdapter;
     @Mock
     private IamAdapterFactory iamAdapterFactory;
-
     @Mock
     private AppConfiguration appConfiguration;
-
     @InjectMocks
     private CredentialIssuerMetadataServiceImpl service;
 

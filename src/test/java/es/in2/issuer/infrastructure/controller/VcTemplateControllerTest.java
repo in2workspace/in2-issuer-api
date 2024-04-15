@@ -90,25 +90,4 @@ class VcTemplateControllerTest {
         verify(vcSchemaService, times(1)).getTemplate(nonExistentTemplateName);
     }
 
-    /*
-    @Test
-    void testGetTemplateByName_ExceptionThrown() {
-        // Arrange
-        String templateName = "TemplateName";
-        when(issuerVcTemplateService.getTemplate(templateName)).thenThrow(new RuntimeException("Some unexpected exception"));
-
-        // Act
-        Mono<VcTemplate> result = controller.getTemplateByName(templateName);
-
-        // Assert
-        result.subscribe(
-                template -> fail("Expected an error to be thrown"),
-                error -> {
-                    assertTrue(error instanceof VcTemplateDoesNotExistException);
-                    assertEquals("Template: '" + templateName + "' is not supported", error.getMessage());
-                }
-        );
-        verify(issuerVcTemplateService, times(1)).getTemplate(templateName);
-    }
-     */
 }

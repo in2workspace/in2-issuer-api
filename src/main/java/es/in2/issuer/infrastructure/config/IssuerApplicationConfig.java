@@ -12,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 @Slf4j
 public class IssuerApplicationConfig {
-
     @Bean
     public CacheStore<String> cacheStoreForString() {
         return new CacheStore<>(10, TimeUnit.MINUTES);

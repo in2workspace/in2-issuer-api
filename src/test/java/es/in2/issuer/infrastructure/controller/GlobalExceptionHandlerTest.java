@@ -83,7 +83,7 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.EXPIRED_PRE_AUTHORIZED_CODE, responseEntity.getBody().error());
                     assertEquals("The pre-authorized code has expired, has been used, or does not exist.", responseEntity.getBody().description());
@@ -99,7 +99,7 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.INVALID_OR_MISSING_PROOF, responseEntity.getBody().error());
                     assertEquals("Credential Request did not contain a proof, or proof was invalid, " +
@@ -116,7 +116,7 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.INVALID_TOKEN, responseEntity.getBody().error());
                     assertEquals("Credential Request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
