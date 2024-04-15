@@ -25,8 +25,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     @Override
     public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, String preAuthCode) {
         return Mono.just(CustomCredentialOffer.builder()
-                // todo: revisar getIssuerDomain si es necesario getIssuerExternalDomain (https://domain.org)
-                .credentialIssuer(appConfiguration.getIssuerDomain())
+                .credentialIssuer(appConfiguration.getIssuerExternalDomain())
                 .credentials(List.of(
                         new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType)),
                         new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
@@ -39,8 +38,8 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     @Override
     public Mono<String> createCredentialOfferUri(String nonce) {
         return Mono.just(
-                ensureUrlHasProtocol(appConfiguration.getIssuerDomain() + "/credential-offer?credential_offer_uri=") +
-                        ensureUrlHasProtocol(appConfiguration.getIssuerDomain() + "/credential-offer/" + nonce)
+                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/credential-offer?credential_offer_uri=") +
+                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/credential-offer/" + nonce)
         );
     }
 

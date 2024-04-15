@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(properties = {
         "app.configs.iamExternalDomain=example.com",
         "app.configs.iamInternalDomain=internal.example.com",
-        "app.configs.issuerDomain=issuer.example.com",
+        "app.configs.issuerExternalDomain=issuer.example.com",
         "app.configs.authenticSourcesDomain=sources.example.com",
         "app.configs.keyVaultDomain=vault.example.com",
         "app.configs.remoteSignatureDomain=signature.example.com",

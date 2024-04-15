@@ -34,7 +34,7 @@ class CredentialIssuerMetadataServiceImplTest {
     @BeforeEach
     void setUp() {
         // Setup mocks
-        when(appConfiguration.getIssuerDomain()).thenReturn("https://example.com");
+        when(appConfiguration.getIssuerExternalDomain()).thenReturn("https://example.com");
         GenericIamAdapter adapter = mock(GenericIamAdapter.class);
         when(iamAdapterFactory.getAdapter()).thenReturn(adapter);
         when(adapter.getTokenUri()).thenReturn("https://iam.example.com/token");
@@ -57,7 +57,7 @@ class CredentialIssuerMetadataServiceImplTest {
                 .verifyComplete();
 
         // Verify interactions
-        verify(appConfiguration).getIssuerDomain();
+        verify(appConfiguration).getIssuerExternalDomain();
         verify(iamAdapterFactory).getAdapter();
     }
 }

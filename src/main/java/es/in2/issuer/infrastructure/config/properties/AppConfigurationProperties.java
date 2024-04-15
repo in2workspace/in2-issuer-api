@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
 public record AppConfigurationProperties(
         @NotNull String iamExternalDomain,
         @NotNull String iamInternalDomain,
-        @NotNull String issuerDomain,
+        @NotNull String issuerExternalDomain,
         @NotNull String authenticSourcesDomain,
         @NotNull String keyVaultDomain,
         @NotNull String remoteSignatureDomain,

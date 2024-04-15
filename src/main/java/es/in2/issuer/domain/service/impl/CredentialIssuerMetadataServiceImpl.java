@@ -26,7 +26,7 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
 
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
-        String credentialIssuerDomain = ensureUrlHasProtocol(appConfiguration.getIssuerDomain());
+        String credentialIssuerDomain = ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain());
 
         CredentialConfiguration learCredentialJwt = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)

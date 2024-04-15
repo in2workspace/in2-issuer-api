@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config.properties;
 
-import es.in2.issuer.infrastructure.config.properties.AppConfigurationProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.bind.BindResult;
 import org.springframework.boot.context.properties.bind.Binder;
@@ -14,7 +13,7 @@ class AppConfigurationPropertiesTest {
         // Setup a MockEnvironment with your properties
         MockEnvironment environment = new MockEnvironment();
         environment.setProperty("iamInternalDomain", "example.com");
-        environment.setProperty("issuerDomain", "issuer.example.com");
+        environment.setProperty("issuerExternalDomain", "issuer.example.com");
         environment.setProperty("authenticSourcesDomain", "authsources.example.com");
         environment.setProperty("keyVaultDomain", "keyvault.example.com");
         environment.setProperty("remoteSignatureDomain", "remotesignature.example.com");
@@ -31,7 +30,7 @@ class AppConfigurationPropertiesTest {
         assertThat(bindResult.isBound()).isTrue();
         AppConfigurationProperties properties = bindResult.get();
         assertThat(properties.iamInternalDomain()).isEqualTo("example.com");
-        assertThat(properties.issuerDomain()).isEqualTo("issuer.example.com");
+        assertThat(properties.issuerExternalDomain()).isEqualTo("issuer.example.com");
         assertThat(properties.authenticSourcesDomain()).isEqualTo("authsources.example.com");
         assertThat(properties.keyVaultDomain()).isEqualTo("keyvault.example.com");
         assertThat(properties.remoteSignatureDomain()).isEqualTo("remotesignature.example.com");

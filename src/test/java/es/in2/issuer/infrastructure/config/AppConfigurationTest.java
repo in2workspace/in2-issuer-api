@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.config.properties.AppConfigurationProperties;
 import es.in2.issuer.infrastructure.configuration.service.GenericConfigAdapter;
 import es.in2.issuer.infrastructure.configuration.util.ConfigAdapterFactory;
@@ -43,9 +42,9 @@ class AppConfigurationTest {
     @Test
     void testGetIssuerDomain() {
         String expected = "issuer-domain";
-        when(appConfigurationProperties.issuerDomain()).thenReturn("issuer.domain");
+        when(appConfigurationProperties.issuerExternalDomain()).thenReturn("issuer.domain");
         when(genericConfigAdapter.getConfiguration("issuer.domain")).thenReturn(expected);
-        assertEquals(expected, appConfiguration.getIssuerDomain());
+        assertEquals(expected, appConfiguration.getIssuerExternalDomain());
     }
 
     @Test

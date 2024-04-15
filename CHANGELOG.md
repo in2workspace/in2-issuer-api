@@ -15,7 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Native credential payload generation.
 
 ## [Unreleased]: v0.4.0
-- hexagonal pattern
+- Hexagonal pattern
+- Credential Offer endpoint requiere type of credential
 - DOME profile refactor and fixes
+- Batch credential support (extra)
 
 [release]:

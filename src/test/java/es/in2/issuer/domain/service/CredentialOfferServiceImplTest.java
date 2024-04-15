@@ -16,7 +16,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
-import java.util.Map;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferServiceImplTest {
@@ -29,7 +28,7 @@ class CredentialOfferServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        when(appConfiguration.getIssuerDomain()).thenReturn("https://example.com");
+        when(appConfiguration.getIssuerExternalDomain()).thenReturn("https://example.com");
     }
 
     @Test

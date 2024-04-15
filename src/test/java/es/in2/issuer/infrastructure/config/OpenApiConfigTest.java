@@ -1,7 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.config.OpenApiConfig;
 import es.in2.issuer.infrastructure.config.properties.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -44,7 +42,7 @@ class OpenApiConfigTest {
         when(openApiProperties.server()).thenReturn(serverProperties);
 
         // Mock app configuration
-        when(appConfiguration.getIssuerDomain()).thenReturn("example.com");
+        when(appConfiguration.getIssuerExternalDomain()).thenReturn("example.com");
 
         // Invoke method to test
         OpenAPI openAPI = openApiConfig.openApi();

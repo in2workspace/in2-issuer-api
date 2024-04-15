@@ -24,8 +24,8 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.iamInternalDomain());
     }
 
-    public String getIssuerDomain() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.issuerDomain());
+    public String getIssuerExternalDomain() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.issuerExternalDomain());
     }
 
     public String getAuthenticSourcesDomain() {
