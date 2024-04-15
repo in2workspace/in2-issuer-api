@@ -6,6 +6,7 @@ import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.CreateDateException;
+import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.*;
@@ -60,7 +61,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         return proofValidationService.isProofValid(credentialRequest.proof().jwt())
                 .flatMap(isValid -> {
                     if (!isValid) {
-                        return Mono.error(new IllegalArgumentException("Invalid proof"));
+                        return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());
                 })

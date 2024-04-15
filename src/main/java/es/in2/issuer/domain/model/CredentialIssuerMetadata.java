@@ -8,7 +8,6 @@ import java.util.Map;
 
 @Builder
 public record CredentialIssuerMetadata(@JsonProperty("credential_issuer") String credentialIssuer,
-                                       @JsonProperty("authorization_servers") List<String> authorizationServers,
                                        @JsonProperty("credential_endpoint") String credentialEndpoint,
                                        @JsonProperty("batch_credential_endpoint") String batchCredentialEndpoint,
                                        @JsonProperty("credential_token") String credentialToken, // Remove for DOME profile

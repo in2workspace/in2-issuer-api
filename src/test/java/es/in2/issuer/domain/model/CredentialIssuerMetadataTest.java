@@ -13,7 +13,6 @@ class CredentialIssuerMetadataTest {
     void testConstructorAndGetters() {
         // Arrange
         String expectedCredentialIssuer = "sampleIssuer";
-        List<String> expectedAuthServers = List.of("auth-server");
         String expectedCredentialEndpoint = "https://example.com/credential";
         String expectedCredentialToken = "sampleToken";
         String expectedBatchCredentialEndpoint = "sampleBatchEndpoint";
@@ -21,7 +20,6 @@ class CredentialIssuerMetadataTest {
         // Act
         CredentialIssuerMetadata metadata = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
-                expectedAuthServers,
                 expectedCredentialEndpoint,
                 expectedBatchCredentialEndpoint,
                 expectedCredentialToken,
@@ -38,14 +36,12 @@ class CredentialIssuerMetadataTest {
     void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedCredentialIssuer = "sampleIssuer";
-        List<String> expectedAuthServers = List.of("auth-server");
         String expectedCredentialEndpoint = "https://example.com/credential";
         String expectedCredentialToken = "sampleToken";
         String expectedBatchCredentialEndpoint = "sampleBatchEndpoint";
         // Act
         CredentialIssuerMetadata metadata1 = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
-                expectedAuthServers,
                 expectedCredentialEndpoint,
                 expectedBatchCredentialEndpoint,
                 expectedCredentialToken,
@@ -53,7 +49,6 @@ class CredentialIssuerMetadataTest {
         );
         CredentialIssuerMetadata metadata2 = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
-                expectedAuthServers,
                 expectedCredentialEndpoint,
                 expectedBatchCredentialEndpoint,
                 expectedCredentialToken,

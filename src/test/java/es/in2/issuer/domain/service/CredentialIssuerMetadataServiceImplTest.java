@@ -35,8 +35,6 @@ class CredentialIssuerMetadataServiceImplTest {
     void setUp() {
         // Setup mocks
         when(appConfiguration.getIssuerDomain()).thenReturn("https://example.com");
-        when(appConfiguration.getIamExternalDomain()).thenReturn("https://iam.example.com");
-
         GenericIamAdapter adapter = mock(GenericIamAdapter.class);
         when(iamAdapterFactory.getAdapter()).thenReturn(adapter);
         when(adapter.getTokenUri()).thenReturn("https://iam.example.com/token");
@@ -51,7 +49,6 @@ class CredentialIssuerMetadataServiceImplTest {
         StepVerifier.create(result)
                 .assertNext(metadata -> {
                     assertEquals("https://example.com", metadata.credentialIssuer());
-                    assertTrue(metadata.authorizationServers().contains("https://iam.example.com"));
                     assertEquals("https://example.com/api/vc/credential", metadata.credentialEndpoint());
                     assertEquals("https://example.com/api/vc/batch_credential", metadata.batchCredentialEndpoint());
                     assertEquals("https://iam.example.com/token", metadata.credentialToken());

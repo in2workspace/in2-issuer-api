@@ -13,7 +13,7 @@ import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CredentialOfferCacheStorageServiceServiceImpl implements CredentialOfferCacheStorageService {
+public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCacheStorageService {
 
     private final CacheStore<CustomCredentialOffer> cacheStore;
 
@@ -27,7 +27,9 @@ public class CredentialOfferCacheStorageServiceServiceImpl implements Credential
         return cacheStore.get(nonce)
                 .doOnSuccess(customCredentialOffer -> {
                     log.debug("CustomCredentialOffer found for nonce: {}", nonce);
-                    cacheStore.delete(nonce);
+                    if(customCredentialOffer != null){
+                        cacheStore.delete(nonce);
+                    }
                 });
     }
 
