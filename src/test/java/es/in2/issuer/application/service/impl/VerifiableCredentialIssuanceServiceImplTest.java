@@ -3,6 +3,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.nimbusds.jose.Payload;
 import es.in2.issuer.domain.exception.ExpiredCacheException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
@@ -85,10 +86,10 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         ReflectionTestUtils.setField(service, "learCredentialTemplate", mockResource);
 
-        when(verifiableCredentialService.generateVcPayLoad(any(),any(),any(),any(),any()))
+        Mockito.lenient().when(verifiableCredentialService.generateVcPayLoad(any(),any(),any(),any(),any()))
                 .thenReturn(Mono.just("{\"type\": \"type\"}"));
 
-        when(proofValidationService.isProofValid(any()))
+        Mockito.lenient().when(proofValidationService.isProofValid(any()))
                 .thenReturn(Mono.just(true));
     }
 
@@ -236,5 +237,41 @@ class VerifiableCredentialIssuanceServiceImplTest {
         // Verify interactions
         verify(authenticSourcesRemoteService, times(2)).getUserFromLocalFile();
         verify(remoteSignatureService, times(2)).sign(any(SignatureRequest.class), eq(token));
+    }
+
+    @Test
+    void testCommitCredentialSourceData_Success() {
+        Payload mockPayload = mock(Payload.class);
+        String token = "testToken";
+        Map<String, Object> vcJSON = new HashMap<>();
+        Map<String, Object> vcInfo = new HashMap<>();
+        vcJSON.put("vc", vcInfo);
+        vcInfo.put("id", "vc:550e8400-e29b-41d4-a716-446655440000");
+        vcInfo.put("expirationDate", "2022-12-31T00:00:00Z");
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("serialNumber", "SN123456");
+        vcInfo.put("credentialSubject", userInfo);
+
+        when(mockPayload.toJSONObject()).thenReturn(vcJSON);
+        when(authenticSourcesRemoteService.commitCredentialSourceData(any(CommitCredential.class), eq(token)))
+                .thenReturn(Mono.empty());
+
+        StepVerifier.create(service.commitCredentialSourceData(mockPayload, token))
+                .verifyComplete();
+
+        verify(authenticSourcesRemoteService).commitCredentialSourceData(any(CommitCredential.class), eq(token));
+    }
+
+    @Test
+    void testCommitCredentialSourceData_Failure() {
+        Payload mockPayload = mock(Payload.class);
+        String token = "testToken";
+        when(mockPayload.toJSONObject()).thenThrow(new RuntimeException("Conversion failed"));
+
+        StepVerifier.create(service.commitCredentialSourceData(mockPayload, token))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException && throwable.getMessage().contains("Conversion failed"))
+                .verify();
+
+        verify(authenticSourcesRemoteService, never()).commitCredentialSourceData(any(), eq(token));
     }
 }

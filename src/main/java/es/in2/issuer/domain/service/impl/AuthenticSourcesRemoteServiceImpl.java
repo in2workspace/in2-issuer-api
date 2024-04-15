@@ -3,7 +3,7 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.AuthenticSourcesUserParsingException;
-import es.in2.issuer.domain.model.IDEPCommitCredential;
+import es.in2.issuer.domain.model.CommitCredential;
 import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
 import es.in2.issuer.domain.util.HttpUtils;
@@ -69,14 +69,14 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     }
 
     @Override
-    public Mono<Void> commitCredentialSourceData(IDEPCommitCredential idepCommitCredential, String token) {
+    public Mono<Void> commitCredentialSourceData(CommitCredential commitCredential, String token) {
         return Mono.defer(() -> {
             List<Map.Entry<String, String>> headers = prepareHeadersWithAuth(token);
             headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
             String authenticSourceUserApiEndpoint = authenticSourcesBaseUrl + apiUsers;
             String commitCredentialJsonString;
             try {
-                commitCredentialJsonString = objectMapper.writeValueAsString(idepCommitCredential);
+                commitCredentialJsonString = objectMapper.writeValueAsString(commitCredential);
             } catch (JsonProcessingException e) {
                 return Mono.error(e);
             }

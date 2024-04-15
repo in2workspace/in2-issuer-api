@@ -3,13 +3,12 @@ package es.in2.issuer.domain.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
-import es.in2.issuer.domain.model.IDEPCommitCredential;
+import es.in2.issuer.domain.model.CommitCredential;
 import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.impl.AuthenticSourcesRemoteServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.config.properties.AuthenticSourcesProperties;
-import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,8 +24,6 @@ import reactor.test.StepVerifier;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import org.springframework.core.io.Resource;
@@ -150,7 +147,7 @@ class AuthenticSourcesRemoteServiceImplTest {
 
     @Test
     void commitCredentialSourceData_Success() throws JsonProcessingException {
-        IDEPCommitCredential idepCommitCredential = new IDEPCommitCredential(new UUID(1L, 1L), "", new Date());
+        CommitCredential commitCredential = new CommitCredential(new UUID(1L, 1L), "", new Date());
 
         ReflectionTestUtils.setField(authenticSourcesRemoteService,"authenticSourcesBaseUrl","http://baseurl");
         ReflectionTestUtils.setField(authenticSourcesRemoteService,"apiUsers","/api/users");
@@ -161,27 +158,27 @@ class AuthenticSourcesRemoteServiceImplTest {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        when(objectMapper.writeValueAsString(idepCommitCredential)).thenReturn(idepCommitCredential.toString());
-        when(httpUtils.postRequest(url, headers, idepCommitCredential.toString()))
+        when(objectMapper.writeValueAsString(commitCredential)).thenReturn(commitCredential.toString());
+        when(httpUtils.postRequest(url, headers, commitCredential.toString()))
                 .thenReturn(Mono.just("{\"userId\":\"123\",\"username\":\"testUser\"}"));
 
-        Mono<Void> resultMono = authenticSourcesRemoteService.commitCredentialSourceData(idepCommitCredential, token);
+        Mono<Void> resultMono = authenticSourcesRemoteService.commitCredentialSourceData(commitCredential, token);
 
         assertDoesNotThrow(() -> resultMono.block());
 
-        verify(httpUtils, times(1)).postRequest(url, headers, idepCommitCredential.toString());
+        verify(httpUtils, times(1)).postRequest(url, headers, commitCredential.toString());
     }
 
     @Test
     void commitCredentialSourceData_JsonProcessingException() throws JsonProcessingException {
-        IDEPCommitCredential idepCommitCredential = new IDEPCommitCredential(new UUID(1L, 1L), "", new Date());
+        CommitCredential commitCredential = new CommitCredential(new UUID(1L, 1L), "", new Date());
         String token = "validToken";
-        when(objectMapper.writeValueAsString(idepCommitCredential))
+        when(objectMapper.writeValueAsString(commitCredential))
                 .thenThrow(new JsonProcessingException("Json processing error") {});
 
         assertThrows(JsonProcessingException.class, () -> {
             try {
-                authenticSourcesRemoteService.commitCredentialSourceData(idepCommitCredential, token).block();
+                authenticSourcesRemoteService.commitCredentialSourceData(commitCredential, token).block();
             } catch (Exception e) {
                 throw Exceptions.unwrap(e);
             }
@@ -192,7 +189,7 @@ class AuthenticSourcesRemoteServiceImplTest {
 
     @Test
     void commitCredentialSourceData_ExceptionThrown() throws JsonProcessingException {
-        IDEPCommitCredential idepCommitCredential = new IDEPCommitCredential(new UUID(1L, 1L), "", new Date());
+        CommitCredential commitCredential = new CommitCredential(new UUID(1L, 1L), "", new Date());
         ReflectionTestUtils.setField(authenticSourcesRemoteService,"authenticSourcesBaseUrl","http://baseurl");
         ReflectionTestUtils.setField(authenticSourcesRemoteService,"apiUsers","/api/users");
 
@@ -202,15 +199,15 @@ class AuthenticSourcesRemoteServiceImplTest {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        when(objectMapper.writeValueAsString(idepCommitCredential)).thenReturn(idepCommitCredential.toString());
-        when(httpUtils.postRequest(url, headers, idepCommitCredential.toString()))
+        when(objectMapper.writeValueAsString(commitCredential)).thenReturn(commitCredential.toString());
+        when(httpUtils.postRequest(url, headers, commitCredential.toString()))
                 .thenReturn(Mono.error(new RuntimeException("Simulated error")));
 
-        Mono<Void> resultMono = authenticSourcesRemoteService.commitCredentialSourceData(idepCommitCredential, token);
+        Mono<Void> resultMono = authenticSourcesRemoteService.commitCredentialSourceData(commitCredential, token);
 
         RuntimeException exception = assertThrows(RuntimeException.class, resultMono::block);
         assertTrue(exception.getMessage().contains("Simulated error"));
 
-        verify(httpUtils, times(1)).postRequest(url, headers, idepCommitCredential.toString());
+        verify(httpUtils, times(1)).postRequest(url, headers, commitCredential.toString());
     }
 }

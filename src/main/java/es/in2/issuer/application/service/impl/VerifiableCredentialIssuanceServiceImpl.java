@@ -13,14 +13,11 @@ import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.repository.CacheStore;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -206,9 +203,9 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
             Map<String, Object> vcJSON = vcPayload.toJSONObject();
             Map<String, Object> vcInfo = (Map<String, Object>) vcJSON.get("vc");
             Map<String, Object> userInfo = (Map<String, Object>) vcInfo.get(CREDENTIAL_SUBJECT);
-            IDEPCommitCredential idepCommitCredential;
+            CommitCredential commitCredential;
             try {
-                idepCommitCredential = new IDEPCommitCredential(
+                commitCredential = new CommitCredential(
                         UUID.fromString(((String) vcInfo.get("id")).split(":")[1]),
                         (String) userInfo.get("serialNumber"),
                         Utils.createDate((String) vcInfo.get("expirationDate"))
@@ -217,7 +214,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 log.error("Error creating Date {}", e.getMessage());
                 return Mono.error(new CreateDateException("Error creating Date"));
             }
-            return authenticSourcesRemoteService.commitCredentialSourceData(idepCommitCredential, token)
+            return authenticSourcesRemoteService.commitCredentialSourceData(commitCredential, token)
                     .onErrorResume(e -> {
                         // Handle the exception with a custom exception
                         log.error("Error committing credential source data: " + e.getMessage());
