@@ -1,7 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.AppNonceValidationResponse;
-import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.NonceResponse;
 import es.in2.issuer.domain.service.NonceManagementService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;

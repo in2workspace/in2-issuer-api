@@ -60,7 +60,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     ) {
         return proofValidationService.isProofValid(credentialRequest.proof().jwt())
                 .flatMap(isValid -> {
-                    if (!isValid) {
+                    if (Boolean.FALSE.equals(isValid)) {
                         return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());

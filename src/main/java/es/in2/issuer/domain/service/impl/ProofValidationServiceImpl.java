@@ -43,8 +43,8 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 .doOnNext(jws -> log.debug("JWT parsed successfully"))
                 .flatMap(jwsObject ->
                         validateJwtSignatureReactive(jwsObject)
-                                .doOnSuccess(isValid -> log.debug("Signature validation result: {}", isValid))
-                                .map(isValid -> isValid ? jwsObject : null)
+                                .doOnSuccess(isSignatureValid -> log.debug("Signature validation result: {}", isSignatureValid))
+                                .map(isSignatureValid -> Boolean.TRUE.equals(isSignatureValid) ? jwsObject : null)
                 )
                 .doOnNext(jwsObject -> {
                     if (jwsObject == null) log.debug("JWT signature validation failed");

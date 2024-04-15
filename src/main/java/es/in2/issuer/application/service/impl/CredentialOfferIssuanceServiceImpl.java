@@ -32,7 +32,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     public Mono<String> buildCredentialOfferUri(String accessToken, String credentialType) {
         return vcSchemaService.isSupportedVcSchema(credentialType)
                 .flatMap(isSupported -> {
-                    if (!isSupported) {
+                    if (Boolean.FALSE.equals(isSupported)) {
                         return Mono.error(new CredentialTypeUnsupportedException(credentialType));
                     }
                     // Use flatMap to chain the Mono from getPreAuthorizationCodeFromIam

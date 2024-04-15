@@ -48,8 +48,8 @@ class CredentialOfferCacheStorageServiceServiceImplTest {
         String nonce = "testNonce";
         CustomCredentialOffer offer = CustomCredentialOffer.builder().build(); // Populate this object as necessary
 
-        when(cacheStore.get(eq(nonce))).thenReturn(Mono.just(offer));
-        doNothing().when(cacheStore).delete(eq(nonce));
+        when(cacheStore.get(nonce)).thenReturn(Mono.just(offer));
+        doNothing().when(cacheStore).delete(nonce);
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
                 .expectNextMatches(retrievedOffer -> retrievedOffer.equals(offer))
@@ -61,7 +61,7 @@ class CredentialOfferCacheStorageServiceServiceImplTest {
     @Test
     void testGetCustomCredentialOfferNotFound() {
         String nonce = "testNonce";
-        when(cacheStore.get(eq(nonce))).thenReturn(Mono.empty());
+        when(cacheStore.get(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
                 .verifyComplete();

@@ -3,20 +3,13 @@ package es.in2.issuer.domain.service.impl;
 import es.in2.issuer.domain.model.CredentialConfiguration;
 import es.in2.issuer.domain.model.CredentialDefinition;
 import es.in2.issuer.domain.model.CredentialIssuerMetadata;
-import es.in2.issuer.domain.model.VcTemplate;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +44,8 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)
-                        // fixme: Este path debe capturarse de la configuración
+                        // oldfixme: Este path debe capturarse de la configuración
+                        // como es el nombre de los endpoints es estandar no es necesario que sea configurable
                         .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
                         .batchCredentialEndpoint(credentialIssuerDomain + "/api/vc/batch_credential")
                         .credentialToken(iamAdapterFactory.getAdapter().getTokenUri()) // Remove for DOME profile
