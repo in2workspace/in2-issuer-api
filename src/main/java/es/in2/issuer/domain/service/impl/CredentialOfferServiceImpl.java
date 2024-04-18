@@ -27,10 +27,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
         return Mono.just(CustomCredentialOffer.builder()
                 .credentialIssuer(appConfiguration.getIssuerExternalDomain())
                 .credentials(List.of(
-                        new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType)),
-                        new CustomCredentialOffer.Credential(CWT_VC, List.of(credentialType))
+                        new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType))
                 ))
-                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT, LEAR_CREDENTIAL_CWT))
+                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT))
                 .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false, new Grant.TxCode(4,"numeric", "Please enter the PIN code"))))
                 .build());
     }

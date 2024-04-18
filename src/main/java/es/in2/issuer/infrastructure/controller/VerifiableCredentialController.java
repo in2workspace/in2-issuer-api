@@ -60,8 +60,24 @@ public class VerifiableCredentialController {
         return Mono.defer(() -> {
                     try {
                         SignedJWT token = Utils.getToken(exchange);
-                        String username = token.getJWTClaimsSet().getClaim("preferred_username").toString();
-                        return verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(username, credentialRequest, token.getParsedString());
+                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
+                        return verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token.getParsedString());
+                    } catch (InvalidTokenException | ParseException e) {
+                        return Mono.error(e);
+                    }
+                }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+    }
+
+    @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public Mono<VerifiableCredentialResponse> getCredential(@RequestBody DeferredCredentialRequest deferredCredentialRequest, ServerWebExchange exchange) {
+        // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
+        return Mono.defer(() -> {
+                    try {
+                        SignedJWT token = Utils.getToken(exchange);
+                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
+                        return verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token.getParsedString());
                     } catch (InvalidTokenException | ParseException e) {
                         return Mono.error(e);
                     }

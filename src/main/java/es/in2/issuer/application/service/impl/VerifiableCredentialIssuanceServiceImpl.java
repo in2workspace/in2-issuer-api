@@ -49,9 +49,29 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
-
+//    @Override
+//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
+//            String username,
+//            CredentialRequest credentialRequest,
+//            String token
+//    ) {
+//        return proofValidationService.isProofValid(credentialRequest.proof().jwt())
+//                .flatMap(isValid -> {
+//                    if (Boolean.FALSE.equals(isValid)) {
+//                        return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
+//                    }
+//                    return getNonceClaim(credentialRequest.proof().jwt());
+//                })
+//                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
+//                        .flatMap(subjectDid -> {
+//                            String format = credentialRequest.format();
+//                            return generateUnsignedVerifiableCredential(username, token, subjectDid, format)
+//                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
+//                        }));
+//    }
+    @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-            String username,
+            String userId,
             CredentialRequest credentialRequest,
             String token
     ) {
@@ -62,13 +82,12 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     }
                     return getNonceClaim(credentialRequest.proof().jwt());
                 })
-//                .flatMap(nonceClaim -> Mono.fromRunnable(() -> cacheStore.delete(nonceClaim))
-//                        .thenReturn(nonceClaim))
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
-                            return generateVerifiableCredential(username, token, subjectDid, format)
-                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
+                            return generateUnsignedVerifiableCredential(userId, token, subjectDid, format)
+                                    .flatMap(credential -> commitCredential(credential, userId)
+                                        .map(transactionId -> new VerifiableCredentialResponse(format, credential, transactionId, nonceClaim, 600)));
                         }));
     }
 
@@ -85,6 +104,55 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .map(BatchCredentialResponse::new);
     }
 
+    @Override
+    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token){
+        return Mono.fromCallable(()->{
+            //todo: obtener la credencial de la db si su estado es "signed", borrar transaction_id de la db
+            return null;
+        });
+    }
+    private Mono<String> generateUnsignedVerifiableCredential(String username, String token, String subjectDid, String format) {
+        return Mono.defer(() -> {
+            try {
+                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
+                // Prepare desired custom data that should replace the default template data
+                log.info("Fetching information from authentic sources ...");
+                //return authenticSourcesRemoteService.getUser(token)
+                return authenticSourcesRemoteService.getUserFromLocalFile()
+                        .flatMap(appUser -> {
+                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
+                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
+                            Map<String, String> credentialSubjectData;
+                            if (!credentialSubject.isEmpty()) {
+                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
+                            } else {
+                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
+                            }
+                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
+
+                            // todo get issuer did from dss module
+                            // Get Credential template from local file
+                            String learTemplate;
+                            try {
+                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+
+                            // Create VC according to the format
+                            if(format.equals("jwt_vc")){
+                                return Mono.just(learTemplate)
+                                        .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), data, expiration));
+                            } else {
+                                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
+                            }
+                        });
+            } catch (UserDoesNotExistException e) {
+                log.error("UserDoesNotExistException {}", e.getMessage());
+                return Mono.error(new RuntimeException(e));
+            }
+        });
+    }
     private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid, String format) {
         return Mono.defer(() -> {
             try {
@@ -194,6 +262,14 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         }).onErrorResume(e -> {
             log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
             return Mono.error(new Base45Exception("Error compressing and converting to Base45"));
+        });
+    }
+
+    private Mono<String> commitCredential(String credential, String userId){
+        return Mono.fromCallable(()->{
+            String transactionId = UUID.randomUUID().toString();
+            //todo: persistir la credencial y la transactionId en la db
+            return transactionId;
         });
     }
 
