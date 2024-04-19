@@ -12,7 +12,6 @@ import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -33,7 +32,8 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
-import static es.in2.issuer.domain.util.Constants.CREDENTIAL_SUBJECT;
+import static es.in2.issuer.domain.util.Constants.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -46,9 +46,9 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final RemoteSignatureService remoteSignatureService;
     private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
-    private final CacheStore<String> cacheStore;
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
+    private final CredentialManagementService credentialManagementService;
 //    @Override
 //    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
 //            String username,
@@ -86,7 +86,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
                             return generateUnsignedVerifiableCredential(userId, token, subjectDid, format)
-                                    .flatMap(credential -> commitCredential(credential, userId)
+                                    .flatMap(credential -> credentialManagementService.commitCredential(credential, userId)
                                         .map(transactionId -> new VerifiableCredentialResponse(format, credential, transactionId, nonceClaim, 600)));
                         }));
     }
@@ -106,11 +106,26 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token){
-        return Mono.fromCallable(()->{
-            //todo: obtener la credencial de la db si su estado es "signed", borrar transaction_id de la db
-            return null;
-        });
+        return credentialManagementService.getCredentialByTransactionId(deferredCredentialRequest.transactionId(), userId)
+                .flatMap(credential -> {
+                    if (CREDENTIAL_SIGNED.equals(credential.getStatus())) {
+                        // If the credential status is "signed", set status to "emitted", then return the signed credential
+                        return credentialManagementService.setToEmitted(deferredCredentialRequest.transactionId(), userId)
+                                .then(Mono.just(VerifiableCredentialResponse.builder()
+                                        .format(JWT_VC)
+                                        .credential(credential.getCredentialData())
+                                        .build()));
+                    } else {
+                        // If the credential status is not "signed", update transactionId and return it
+                        return credentialManagementService.updateTransactionId(deferredCredentialRequest.transactionId(), userId)
+                                .map(newTransactionId -> VerifiableCredentialResponse.builder()
+                                        .transactionId(newTransactionId)
+                                        .build());
+                    }
+                })
+                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential.", e)));
     }
+
     private Mono<String> generateUnsignedVerifiableCredential(String username, String token, String subjectDid, String format) {
         return Mono.defer(() -> {
             try {
@@ -255,13 +270,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         });
     }
 
-    private Mono<String> commitCredential(String credential, String userId){
-        return Mono.fromCallable(()->{
-            String transactionId = UUID.randomUUID().toString();
-            //todo: persistir la credencial y la transactionId en la db
-            return transactionId;
-        });
-    }
 
     public Mono<Void> commitCredentialSourceData(Payload vcPayload, String token) {
         log.info("Committing credential source data ...");

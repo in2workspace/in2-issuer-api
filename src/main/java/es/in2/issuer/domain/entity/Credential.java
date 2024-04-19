@@ -6,7 +6,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-@Table(name = "credentials")
+@Table(name = "credentials", schema = "credentials")
 @Data
 @NoArgsConstructor
 public class Credential {
@@ -18,13 +18,13 @@ public class Credential {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @Column(nullable = false)
-    private String credential;
+    @Column(name = "credential_data", nullable = false)
+    private String credentialData;
 
     @Column(nullable = false)
     private String status;
 
-    @Column(name = "transaction_id", nullable = false)
+    @Column(name = "transaction_id")
     private String transactionId;
 
     @Temporal(TemporalType.TIMESTAMP)
