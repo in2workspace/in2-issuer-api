@@ -40,7 +40,7 @@ import static es.in2.issuer.domain.util.Constants.CREDENTIAL_SUBJECT;
 public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCredentialIssuanceService {
 
     // fixme: this is a temporary solution to load credential templates from resources
-    @Value("classpath:credentials/templates/LEARCredentialTemplate.json")
+    @Value("classpath:credentials/templates/LEARCredentialEmployee.json")
     private Resource learCredentialTemplate;
 
     private final RemoteSignatureService remoteSignatureService;
@@ -65,7 +65,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 //                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
 //                        .flatMap(subjectDid -> {
 //                            String format = credentialRequest.format();
-//                            return generateUnsignedVerifiableCredential(username, token, subjectDid, format)
+//                            return generateVerifiableCredential(username, token, subjectDid, format)
 //                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
 //                        }));
 //    }
@@ -119,17 +119,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 log.info("Fetching information from authentic sources ...");
                 //return authenticSourcesRemoteService.getUser(token)
                 return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(appUser -> {
-                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-                            Map<String, String> credentialSubjectData;
-                            if (!credentialSubject.isEmpty()) {
-                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-                            } else {
-                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-                            }
-                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-
+                        .flatMap(userData -> {
                             // todo get issuer did from dss module
                             // Get Credential template from local file
                             String learTemplate;
@@ -142,7 +132,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             // Create VC according to the format
                             if(format.equals("jwt_vc")){
                                 return Mono.just(learTemplate)
-                                        .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), data, expiration));
+                                        .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration));
                             } else {
                                 return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
                             }
@@ -161,16 +151,16 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 log.info("Fetching information from authentic sources ...");
                 //return authenticSourcesRemoteService.getUser(token)
                 return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(appUser -> {
-                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-                            Map<String, String> credentialSubjectData;
-                            if (!credentialSubject.isEmpty()) {
-                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-                            } else {
-                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-                            }
-                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
+                        .flatMap(userData -> {
+//                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
+//                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
+//                            Map<String, String> credentialSubjectData;
+//                            if (!credentialSubject.isEmpty()) {
+//                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
+//                            } else {
+//                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
+//                            }
+//                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
 
                             // todo get issuer did from dss module
                             // Get Credential template from local file
@@ -183,7 +173,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 
                             // Create VC according to the format and sign it
                             return Mono.just(learTemplate)
-                                    .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), data, expiration))
+                                    .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration))
                                     .flatMap(vcString -> {
                                         if(format.equals("jwt_vc")){
                                             log.info(vcString);
@@ -310,7 +300,9 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         return Mono.fromCallable(() -> {
             JWSObject jwsObject = JWSObject.parse(jwtProof);
             // Extract the issuer DID from the kid claim in the header
-            return jwsObject.getHeader().toJSONObject().get("kid").toString();
+            String kid = jwsObject.getHeader().toJSONObject().get("kid").toString();
+            // Split the kid string at '#' and take the first part
+            return kid.split("#")[0];
         });
     }
 }

@@ -31,7 +31,7 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
 
-    @Value("classpath:credentials/LEARCredentialSubjectDataDemo.json")
+    @Value("classpath:credentials/LEARCredentialEmployeeSubjectData.json")
     private Resource userLocalFileData;
 
     // todo: delete authenticSourcesBaseUrl
@@ -57,12 +57,12 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
     }
 
     @Override
-    public Mono<SubjectDataResponse> getUserFromLocalFile() {
+    public Mono<String> getUserFromLocalFile() {
         return Mono.fromCallable(() -> {
                     // Read the content of the file
                     String jsonContent = new String(userLocalFileData.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                     // Convert JSON content to AuthenticSourcesGetUserResponseDTO object
-                    return objectMapper.readValue(jsonContent, SubjectDataResponse.class);
+                    return jsonContent;
                 })
                 .doOnSuccess(result -> log.info("Successfully parsed user data from local file."))
                 .onErrorMap(Exception.class, e -> new RuntimeException("Failed to parse user data from local file.", e));

@@ -16,13 +16,13 @@ import java.util.*;
 @Slf4j
 public class VerifiableCredentialServiceImpl implements VerifiableCredentialService {
     @Override
-    public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration) throws JSONException {
+    public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) throws JSONException {
         return Mono.fromCallable(()->{
             // Parse vcTemplate to a JSON object
             JSONObject vcTemplateObject = new JSONObject(vcTemplate);
 
             // Generate a unique UUID for jti and vc.id
-            String uuid = "urn:uuid:" + UUID.randomUUID().toString();
+            String uuid = "urn:uuid:"+UUID.randomUUID().toString();
 
             // Calculate timestamps
             Instant nowInstant = Instant.now();
@@ -32,18 +32,18 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
             // Update vcTemplateObject with dynamic values
             vcTemplateObject.put("id", uuid);
-            vcTemplateObject.put("issuer", new JSONObject().put("id", issuerDid));
+            vcTemplateObject.put("issuer", issuerDid);
             // Update issuanceDate, issued, validFrom, expirationDate in vcTemplateObject using ISO 8601 format
             String nowDateStr = nowInstant.toString();
             String expirationDateStr = expiration.toString();
             vcTemplateObject.put("issuanceDate", nowDateStr);
-            vcTemplateObject.put("issued", nowDateStr);
             vcTemplateObject.put("validFrom", nowDateStr);
             vcTemplateObject.put("expirationDate", expirationDateStr);
 
-            // Convert userData map contents to Object and set as credentialSubject
-            Object credentialSubjectValue = userData.get("credentialSubject");
-            vcTemplateObject.put("credentialSubject", new JSONObject((Map) credentialSubjectValue));
+            // Convert userData to JSONObject and add the subjectDid
+            JSONObject credentialSubjectValue = new JSONObject(userData);
+            credentialSubjectValue.put("id", subjectDid);
+            vcTemplateObject.put("credentialSubject", credentialSubjectValue);
 
             // Construct final JSON Object
             JSONObject finalObject = new JSONObject();

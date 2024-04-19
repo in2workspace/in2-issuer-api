@@ -6,5 +6,5 @@ import java.time.Instant;
 import java.util.Map;
 
 public interface VerifiableCredentialService {
-    Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, Map<String, Object> userData, Instant expiration);
+    Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration);
 }
