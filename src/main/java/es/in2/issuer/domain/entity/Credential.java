@@ -1,37 +1,53 @@
 package es.in2.issuer.domain.entity;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import jakarta.persistence.*;
-import java.util.Date;
+import lombok.*;
+import org.springframework.data.annotation.Id;
+import java.util.UUID;
+import java.sql.Timestamp;
 
-@Entity
-@Table(name = "credentials", schema = "credentials")
-@Data
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
+@Getter
+@Setter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
+@ToString
+@Table("credentials.credentials")
 public class Credential {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column("id")
+    private UUID id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column("user_id")
     private String userId;
 
-    @Column(name = "credential_data", nullable = false)
+    @Column("first_name")
+    private String firstName;
+
+    @Column("last_name")
+    private String lastName;
+
+    @Column("email")
+    private String email;
+
+    @Column("phone_number")
+    private String phoneNumber;
+
+    @Column("credential_data")
     private String credentialData;
 
-    @Column(nullable = false)
+    @Column("status")
     private String status;
 
-    @Column(name = "transaction_id")
+    @Column("transaction_id")
     private String transactionId;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", nullable = false)
-    private Date createdAt;
+    @Column("created_at")
+    private Timestamp createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "modified_at", nullable = false)
-    private Date modifiedAt;
+    @Column("modified_at")
+    private Timestamp modifiedAt;
 }

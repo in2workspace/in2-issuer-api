@@ -145,7 +145,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             }
 
                             // Create VC according to the format
-                            if(format.equals("jwt_vc")){
+                            if(format.equals(JWT_VC)){
                                 return Mono.just(learTemplate)
                                         .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration));
                             } else {
@@ -190,7 +190,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             return Mono.just(learTemplate)
                                     .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration))
                                     .flatMap(vcString -> {
-                                        if(format.equals("jwt_vc")){
+                                        if(format.equals(JWT_VC)){
                                             log.info(vcString);
                                             log.info("Signing credential in JADES remotely ...");
                                             SignatureRequest signatureRequest = new SignatureRequest(

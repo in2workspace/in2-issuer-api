@@ -1,57 +1,39 @@
 package es.in2.issuer.infrastructure.config;
-import javax.sql.DataSource;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import io.r2dbc.spi.ConnectionFactories;
+import io.r2dbc.spi.ConnectionFactory;
+import io.r2dbc.spi.ConnectionFactoryOptions;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.orm.jpa.JpaTransactionManager;
-import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
-import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.data.r2dbc.config.AbstractR2dbcConfiguration;
+import org.springframework.data.r2dbc.repository.config.EnableR2dbcRepositories;
+import org.springframework.r2dbc.connection.init.ConnectionFactoryInitializer;
+import org.springframework.r2dbc.connection.init.DatabasePopulator;
 
-import java.util.Properties;
+import static io.r2dbc.spi.ConnectionFactoryOptions.*;
 
 @Configuration
-@RequiredArgsConstructor
-@Slf4j
-public class DatabaseConfig {
+@EnableR2dbcRepositories(basePackages = "es.in2.issuer.domain.repository")
+public class DatabaseConfig extends AbstractR2dbcConfiguration {
 
     private final AppConfiguration appConfiguration;
 
-    @Bean
-    public DataSource dataSource() {
-        return DataSourceBuilder.create()
-                .url(appConfiguration.getDbUrl())
-                .username(appConfiguration.getDbUser())
-                .password(appConfiguration.getDbPassword())
-                .driverClassName("org.postgresql.Driver")
-                .build();
+    public DatabaseConfig(AppConfiguration appConfiguration) {
+        this.appConfiguration = appConfiguration;
     }
 
+    @NotNull
+    @Override
     @Bean
-    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource) {
-        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
-        em.setDataSource(dataSource);
-        em.setPackagesToScan("es.in2.issuer.domain.entity"); // Specify the package of your entity classes
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-        em.setJpaVendorAdapter(vendorAdapter);
-
-        // Setting additional properties
-        Properties properties = new Properties();
-        properties.setProperty("hibernate.hbm2ddl.auto", "update"); // Use "update" to modify the schema according to entities
-        properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-        properties.setProperty("hibernate.show_sql", "true");
-        properties.setProperty("hibernate.format_sql", "true");
-
-        em.setJpaProperties(properties);
-        return em;
-    }
-    @Bean
-    public PlatformTransactionManager transactionManager(LocalContainerEntityManagerFactoryBean entityManagerFactory) {
-        JpaTransactionManager transactionManager = new JpaTransactionManager();
-        transactionManager.setEntityManagerFactory(entityManagerFactory.getObject());
-        return transactionManager;
+    public ConnectionFactory connectionFactory() {
+        return ConnectionFactories.get(ConnectionFactoryOptions.builder()
+                .option(DRIVER, "postgresql")
+                .option(HOST, "localhost")
+                .option(PORT, 5432) // Optional if default
+                .option(USER, appConfiguration.getDbUser())
+                .option(PASSWORD, appConfiguration.getDbPassword())
+                .option(DATABASE, "issuer")
+                .build());
     }
 }
