@@ -126,6 +126,22 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential.", e)));
     }
 
+    @Override
+    public Mono<Void> signCredential(String userId, UUID credentialId, String token){
+            return credentialManagementService.getCredential(credentialId, userId)
+                    .flatMap(credential -> {
+                        SignatureRequest signatureRequest = new SignatureRequest(
+                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                                credential.getCredentialData()
+                        );
+                        return remoteSignatureService.sign(signatureRequest, token)
+                                .publishOn(Schedulers.boundedElastic())
+                                .map(SignedData::data);
+                    })
+                    .flatMap(signedCredential -> credentialManagementService.updateCredential(signedCredential, credentialId, userId))
+                    .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
+    }
+
     private Mono<String> generateUnsignedVerifiableCredential(String username, String token, String subjectDid, String format) {
         return Mono.defer(() -> {
             try {

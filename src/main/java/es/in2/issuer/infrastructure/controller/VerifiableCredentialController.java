@@ -25,6 +25,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -81,7 +82,7 @@ public class VerifiableCredentialController {
                     } catch (InvalidTokenException | ParseException e) {
                         return Mono.error(e);
                     }
-                }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+                }).doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"))
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
 
@@ -92,12 +93,26 @@ public class VerifiableCredentialController {
         return Mono.defer(() -> {
                     try {
                         SignedJWT token = Utils.getToken(exchange);
-                        String username = token.getJWTClaimsSet().getClaim("preferred_username").toString();
+                        String username = token.getJWTClaimsSet().getClaim("sub").toString();
                         return verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(username, batchCredentialRequest, token.getParsedString());
                     } catch (InvalidTokenException | ParseException e) {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+    }
+    @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<Void> signVerifiableCredentials(@PathVariable UUID credentialId, ServerWebExchange exchange) {
+        return Mono.defer(() -> {
+                    try {
+                        SignedJWT token = Utils.getToken(exchange);
+                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
+                        return verifiableCredentialIssuanceService.signCredential(userId, credentialId, token.getParsedString());
+                    } catch (InvalidTokenException | ParseException e) {
+                        return Mono.error(e);
+                    }
+                }).doOnNext(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
 }
