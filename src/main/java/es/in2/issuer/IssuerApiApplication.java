@@ -6,12 +6,12 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class Application {
+public class IssuerApiApplication {
 
 	// todo: añadir el ObjectMapper centralizado
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(IssuerApiApplication.class, args);
 	}
 
 }
