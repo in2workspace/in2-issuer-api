@@ -57,6 +57,7 @@ public class SecurityConfig {
                         .pathMatchers("/health").permitAll()
                         .pathMatchers("/credential-offer/**").permitAll()
                         .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
+                        .pathMatchers("/.well-known/openid-configuration").permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->

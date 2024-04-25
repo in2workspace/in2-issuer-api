@@ -13,7 +13,7 @@ import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
-import io.ipfs.multibase.Base58;
+import io.github.novacrypto.base58.Base58;
 
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -136,7 +136,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
             String multibaseEncoded = didKey.substring(1);
 
             // Multibase decode (Base58) the encoded part to get the bytes
-            byte[] decodedBytes = Base58.decode(multibaseEncoded);
+            byte[] decodedBytes = Base58.base58Decode(multibaseEncoded);
 
             // Multicodec prefix is fixed for "0x1200" for the secp256r1 curve
             int prefixLength = 2;
