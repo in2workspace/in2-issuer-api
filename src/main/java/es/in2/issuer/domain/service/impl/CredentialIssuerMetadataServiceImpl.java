@@ -48,7 +48,8 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                         // como es el nombre de los endpoints es estandar no es necesario que sea configurable
                         .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
                         .batchCredentialEndpoint(credentialIssuerDomain + "/api/vc/batch_credential")
-                        .credentialToken(iamAdapterFactory.getAdapter().getTokenUri()) // Remove for DOME profile
+                        .deferredCredentialEndpoint(credentialIssuerDomain + "/api/vc/deferred_credential")
+                        //.credentialToken(iamAdapterFactory.getAdapter().getTokenUri()) // Remove for DOME profile
                         .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_JWT, learCredentialJwt, LEAR_CREDENTIAL_CWT, learCredentialCwt))
                         .build()
         );

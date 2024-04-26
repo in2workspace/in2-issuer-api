@@ -1,10 +1,12 @@
 package es.in2.issuer.application.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.service.VcSchemaService;
@@ -26,7 +28,8 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     private final CredentialOfferCacheStorageService credentialOfferCacheStorageService;
     private final IamAdapterFactory iamAdapterFactory;
     private final HttpUtils httpUtils;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     @Override
     public Mono<String> buildCredentialOfferUri(String accessToken, String credentialType) {
@@ -37,8 +40,8 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                     }
                     // Use flatMap to chain the Mono from getPreAuthorizationCodeFromIam
                     return getPreAuthorizationCodeFromIam(accessToken)
-                            .flatMap(preAuthorizationCode ->
-                                    credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthorizationCode)
+                            .flatMap(grant ->
+                                    credentialOfferService.buildCustomCredentialOffer(credentialType, grant)
                             )
                             .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                             .flatMap(credentialOfferService::createCredentialOfferUri);
@@ -49,8 +52,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
         return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce);
     }
-
-    private Mono<String> getPreAuthorizationCodeFromIam(String accessToken) {
+    private Mono<Grant> getPreAuthorizationCodeFromIam(String accessToken) {
         String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
@@ -59,8 +61,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                 .flatMap(headers -> httpUtils.getRequest(url, headers))
                 .flatMap(response -> {
                     try {
-                        JsonNode jsonObject = objectMapper.readTree(response);
-                        return Mono.just(jsonObject.path("grants").path("pre-authorized_code").asText());
+                        return Mono.just(objectMapper.readValue(response, Grant.class));
                     } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
                         return Mono.error(new RuntimeException("Error parsing JSON response", e));
                     }

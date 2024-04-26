@@ -9,7 +9,7 @@ import lombok.Builder;
     https://github.com/hesusruiz/EUDIMVP/blob/main/issuance.md#credential-response
     """)
 public record VerifiableCredentialResponse(
-        @Schema(example = "jwt_vc_json", description = "Format of the issued Credential.") @JsonProperty("format") String format,
+        //@Schema(example = "jwt_vc_json", description = "Format of the issued Credential.") @JsonProperty("format") String format,
         @Schema(example = "LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L", description = "Contains issued Credential") @JsonProperty("credential") String credential,
         @Schema(example = "958e84cf-888b-488a-bf30-7f3b14f70699", description = "Transaction id for deferred emission") @JsonProperty("transaction_id") String transactionId,
         @Schema(example = "fGFF7UkhLA",

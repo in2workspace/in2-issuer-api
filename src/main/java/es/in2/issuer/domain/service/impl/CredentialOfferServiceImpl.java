@@ -23,14 +23,14 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final AppConfiguration appConfiguration;
 
     @Override
-    public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, String preAuthCode) {
+    public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, Grant grant) {
         return Mono.just(CustomCredentialOffer.builder()
                 .credentialIssuer(appConfiguration.getIssuerExternalDomain())
                 .credentials(List.of(
                         new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType))
                 ))
                 .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT))
-                .grants(Map.of(GRANT_TYPE, new Grant(preAuthCode, false, new Grant.TxCode(4,"numeric", "Please enter the PIN code"))))
+                .grants(Map.of(GRANT_TYPE, grant))
                 .build());
     }
 

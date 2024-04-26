@@ -87,7 +87,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             String format = credentialRequest.format();
                             return generateUnsignedVerifiableCredential(userId, token, subjectDid, format)
                                     .flatMap(credential -> credentialManagementService.commitCredential(credential, userId)
-                                        .map(transactionId -> new VerifiableCredentialResponse(format, credential, transactionId, nonceClaim, 600)));
+                                        .map(transactionId -> new VerifiableCredentialResponse(credential, transactionId, nonceClaim, 600)));
                         }));
     }
 
@@ -112,7 +112,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                         // If the credential status is "signed", set status to "emitted", then return the signed credential
                         return credentialManagementService.setToEmitted(deferredCredentialRequest.transactionId(), userId)
                                 .then(Mono.just(VerifiableCredentialResponse.builder()
-                                        .format(JWT_VC)
                                         .credential(credential.getCredentialData())
                                         .build()));
                     } else {
