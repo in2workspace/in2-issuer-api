@@ -103,12 +103,12 @@ public class VerifiableCredentialController {
     }
     @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Void> signVerifiableCredentials(@PathVariable UUID credentialId, ServerWebExchange exchange) {
+    public Mono<Void> signVerifiableCredentials(@PathVariable UUID credentialId, @RequestBody String unsignedCredential, ServerWebExchange exchange) {
         return Mono.defer(() -> {
                     try {
                         SignedJWT token = Utils.getToken(exchange);
                         String userId = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return verifiableCredentialIssuanceService.signCredential(userId, credentialId, token.getParsedString());
+                        return verifiableCredentialIssuanceService.signCredential(unsignedCredential, userId, credentialId, token.getParsedString());
                     } catch (InvalidTokenException | ParseException e) {
                         return Mono.error(e);
                     }

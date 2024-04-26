@@ -126,12 +126,12 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     }
 
     @Override
-    public Mono<Void> signCredential(String userId, UUID credentialId, String token){
-            return credentialManagementService.getCredential(credentialId, userId)
-                    .flatMap(credential -> {
+    public Mono<Void> signCredential(String unsignedCredential, String userId, UUID credentialId, String token){
+            return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
+                    .flatMap(vcPayload -> {
                         SignatureRequest signatureRequest = new SignatureRequest(
                                 new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                credential.getCredentialData()
+                                vcPayload
                         );
                         return remoteSignatureService.sign(signatureRequest, token)
                                 .publishOn(Schedulers.boundedElastic())
@@ -162,7 +162,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             // Create VC according to the format
                             if(format.equals(JWT_VC)){
                                 return Mono.just(learTemplate)
-                                        .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration));
+                                        .flatMap(template -> verifiableCredentialService.generateVc(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration));
                             } else {
                                 return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
                             }

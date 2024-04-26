@@ -9,6 +9,6 @@ public interface VerifiableCredentialIssuanceService {
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String username, CredentialRequest credentialRequest, String token);
     Mono<BatchCredentialResponse> generateVerifiableCredentialBatchResponse(String username, BatchCredentialRequest batchCredentialRequest, String token);
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token);
-    Mono<Void> signCredential(String userId, UUID credentialId, String token);
+    Mono<Void> signCredential(String unsignedCredential, String userId, UUID credentialId, String token);
 
 }

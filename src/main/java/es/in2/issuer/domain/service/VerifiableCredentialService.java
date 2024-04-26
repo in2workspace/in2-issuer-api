@@ -7,4 +7,6 @@ import java.util.Map;
 
 public interface VerifiableCredentialService {
     Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration);
+    Mono<String> generateDeferredVcPayLoad(String vc);
+    Mono<String> generateVc(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration);
 }
