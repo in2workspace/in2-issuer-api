@@ -1,16 +1,13 @@
 package es.in2.issuer.application.service.impl;
 
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.Payload;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.Base45Exception;
-import es.in2.issuer.domain.exception.CreateDateException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.*;
-import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +24,6 @@ import reactor.core.scheduler.Schedulers;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -49,26 +45,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
     private final CredentialManagementService credentialManagementService;
-//    @Override
-//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-//            String username,
-//            CredentialRequest credentialRequest,
-//            String token
-//    ) {
-//        return proofValidationService.isProofValid(credentialRequest.proof().jwt())
-//                .flatMap(isValid -> {
-//                    if (Boolean.FALSE.equals(isValid)) {
-//                        return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
-//                    }
-//                    return getNonceClaim(credentialRequest.proof().jwt());
-//                })
-//                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
-//                        .flatMap(subjectDid -> {
-//                            String format = credentialRequest.format();
-//                            return generateVerifiableCredential(username, token, subjectDid, format)
-//                                    .map(credential -> new VerifiableCredentialResponse(format, credential, nonceClaim, 600));
-//                        }));
-//    }
+
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String userId,
@@ -85,7 +62,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
-                            return generateUnsignedVerifiableCredential(userId, token, subjectDid, format)
+                            return generateUnsignedVerifiableCredential(subjectDid, format)
                                     .flatMap(credential -> credentialManagementService.commitCredential(credential, userId, format)
                                         .map(transactionId -> new VerifiableCredentialResponse(credential, transactionId, nonceClaim, 600)));
                         }));
@@ -139,7 +116,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
     }
 
-    private Mono<String> generateUnsignedVerifiableCredential(String username, String token, String subjectDid, String format) {
+    private Mono<String> generateUnsignedVerifiableCredential(String subjectDid, String format) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -171,7 +148,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
             }
         });
     }
-    private Mono<String> generateVerifiableCredential(String username, String token, String subjectDid, String format) {
+    private Mono<String> generateVerifiableCredential(String token, String subjectDid, String format) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -180,16 +157,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 //return authenticSourcesRemoteService.getUser(token)
                 return authenticSourcesRemoteService.getUserFromLocalFile()
                         .flatMap(userData -> {
-//                            log.info("Getting credential subject data for credentialType: " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " ...");
-//                            Map<String, Map<String, String>> credentialSubject = appUser.credentialSubjectData();
-//                            Map<String, String> credentialSubjectData;
-//                            if (!credentialSubject.isEmpty()) {
-//                                credentialSubjectData = credentialSubject.getOrDefault(es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL, null);
-//                            } else {
-//                                return Mono.error(new NoSuchElementException("No data saved for CredentialType " + es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL + " and username " + username + "."));
-//                            }
-//                            Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-
                             // todo get issuer did from dss module
                             // Get Credential template from local file
                             String learTemplate;
@@ -212,8 +179,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                                             );
                                             return remoteSignatureService.sign(signatureRequest, token)
                                                     .publishOn(Schedulers.boundedElastic())
-                                                    // save credential in emitted credential list
-                                                    //.doOnSuccess(signedData -> commitCredentialSourceData(vcPayload, token).subscribe())
                                                     .map(SignedData::data);
                                         } else if (format.equals("cwt_vc")) {
                                             log.info(vcString);
@@ -280,33 +245,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         }).onErrorResume(e -> {
             log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
             return Mono.error(new Base45Exception("Error compressing and converting to Base45"));
-        });
-    }
-
-
-    public Mono<Void> commitCredentialSourceData(Payload vcPayload, String token) {
-        log.info("Committing credential source data ...");
-        return Mono.defer(() -> {
-            Map<String, Object> vcJSON = vcPayload.toJSONObject();
-            Map<String, Object> vcInfo = (Map<String, Object>) vcJSON.get("vc");
-            Map<String, Object> userInfo = (Map<String, Object>) vcInfo.get(CREDENTIAL_SUBJECT);
-            CommitCredential commitCredential;
-            try {
-                commitCredential = new CommitCredential(
-                        UUID.fromString(((String) vcInfo.get("id")).split(":")[1]),
-                        (String) userInfo.get("serialNumber"),
-                        Utils.createDate((String) vcInfo.get("expirationDate"))
-                );
-            } catch (ParseException e) {
-                log.error("Error creating Date {}", e.getMessage());
-                return Mono.error(new CreateDateException("Error creating Date"));
-            }
-            return authenticSourcesRemoteService.commitCredentialSourceData(commitCredential, token)
-                    .onErrorResume(e -> {
-                        // Handle the exception with a custom exception
-                        log.error("Error committing credential source data: " + e.getMessage());
-                        return Mono.empty();
-                    });
         });
     }
 
