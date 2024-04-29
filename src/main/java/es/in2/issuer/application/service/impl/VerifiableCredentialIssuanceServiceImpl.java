@@ -106,20 +106,18 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token){
-        return credentialManagementService.getCredentialByTransactionId(deferredCredentialRequest.transactionId(), userId)
-                .flatMap(credential -> {
-                    if (CREDENTIAL_VALID.equals(credential.getStatus())) {
-                        // If the credential status is "signed", set status to "emitted", then return the signed credential
-                        return credentialManagementService.setToEmitted(deferredCredentialRequest.transactionId(), userId)
-                                .then(Mono.just(VerifiableCredentialResponse.builder()
-                                        .credential(credential.getCredentialData())
-                                        .build()));
-                    } else {
-                        // If the credential status is not "signed", update transactionId and return it
-                        return credentialManagementService.updateTransactionId(deferredCredentialRequest.transactionId(), userId)
+        return credentialManagementService.getDeferredCredentialByTransactionId(deferredCredentialRequest.transactionId())
+                .flatMap(deferredCredential -> {
+                    if (deferredCredential.getCredentialSigned() == null || deferredCredential.getCredentialSigned().isBlank()) {
+                        return credentialManagementService.updateTransactionId(deferredCredentialRequest.transactionId())
                                 .map(newTransactionId -> VerifiableCredentialResponse.builder()
                                         .transactionId(newTransactionId)
                                         .build());
+                    } else {
+                        return credentialManagementService.deleteCredentialDeferred(deferredCredentialRequest.transactionId())
+                                .then(Mono.just(VerifiableCredentialResponse.builder()
+                                        .credential(deferredCredential.getCredentialSigned())
+                                        .build()));
                     }
                 })
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential.", e)));

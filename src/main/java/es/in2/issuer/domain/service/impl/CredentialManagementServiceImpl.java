@@ -90,19 +90,35 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                     existingCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli())); // Update modified time
                     return credentialManagementRepository.save(existingCredential); // Save the updated credential
                 })
+                .flatMap(savedCredential -> credentialDeferredRepository.findByCredentialId(savedCredential.getId())
+                        .flatMap(credentialDeferred -> {
+                            credentialDeferred.setCredentialSigned(credential);
+                            return credentialDeferredRepository.save(credentialDeferred);
+                        }))
                 .then(); // Return only completion signal
     }
 
+//    @Override
+//    public Mono<String> updateTransactionId(String transactionId, String userId) {
+//        String newTransactionId = UUID.randomUUID().toString(); // Generate a new transactionId
+//
+//        return credentialRepository.findByTransactionIdAndUserId(transactionId, userId)
+//                .flatMap(existingCredential -> {
+//                    existingCredential.setTransactionId(newTransactionId); // Update transactionId
+//                    return credentialRepository.save(existingCredential); // Save the updated credential
+//                })
+//                .map(updatedCredential -> updatedCredential.getTransactionId()); // Return new transactionId
+//    }
     @Override
-    public Mono<String> updateTransactionId(String transactionId, String userId) {
+    public Mono<String> updateTransactionId(String transactionId) {
         String newTransactionId = UUID.randomUUID().toString(); // Generate a new transactionId
 
-        return credentialRepository.findByTransactionIdAndUserId(transactionId, userId)
-                .flatMap(existingCredential -> {
-                    existingCredential.setTransactionId(newTransactionId); // Update transactionId
-                    return credentialRepository.save(existingCredential); // Save the updated credential
+        return credentialDeferredRepository.findByTransactionId(transactionId)
+                .flatMap(deferredCredential -> {
+                    deferredCredential.setTransactionId(newTransactionId); // Update transactionId
+                    return credentialDeferredRepository.save(deferredCredential); // Save the updated credential
                 })
-                .map(updatedCredential -> updatedCredential.getTransactionId()); // Return new transactionId
+                .map(updateDeferredCredential -> updateDeferredCredential.getTransactionId()); // Return new transactionId
     }
 
     @Override
@@ -115,6 +131,14 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                     return credentialRepository.save(existingCredential); // Save the updated credential
                 })
                 .then(); // Return only completion signal
+    }
+
+    @Override
+    public Mono<Void> deleteCredentialDeferred(String transactionId){
+        return credentialDeferredRepository.findByTransactionId(transactionId)
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No credential found with transactionId: " + transactionId)))
+                .flatMap(credentialDeferredRepository::delete)
+                .then();
     }
 
     @Override
@@ -131,8 +155,12 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                 .doOnError(error -> log.error("Error in getCredential method: {}", error.getMessage()));
     }
 
+//    @Override
+//    public Mono<Credential> getCredentialByTransactionId(String transactionId, String userId) {
+//        return credentialRepository.findByTransactionIdAndUserId(transactionId, userId);
+//    }
     @Override
-    public Mono<Credential> getCredentialByTransactionId(String transactionId, String userId) {
-        return credentialRepository.findByTransactionIdAndUserId(transactionId, userId);
+    public Mono<CredentialDeferred> getDeferredCredentialByTransactionId(String transactionId) {
+        return credentialDeferredRepository.findByTransactionId(transactionId);
     }
 }

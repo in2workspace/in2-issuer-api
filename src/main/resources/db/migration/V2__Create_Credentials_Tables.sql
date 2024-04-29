@@ -3,7 +3,7 @@ CREATE SCHEMA IF NOT EXISTS credentials;
 
 -- Create credential_management table if it doesn't exist
 CREATE TABLE IF NOT EXISTS credentials.credential_management (
-    id UUID PRIMARY KEY,
+    id uuid PRIMARY KEY UNIQUE DEFAULT uuid_generate_v4(),
     user_id VARCHAR(255),
     credential_format VARCHAR(255),
     credential_decoded TEXT,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS credentials.credential_management (
 
 -- Create credential_deferred table if it doesn't exist
 CREATE TABLE IF NOT EXISTS credentials.credential_deferred (
-    id UUID PRIMARY KEY,
+    id uuid PRIMARY KEY UNIQUE DEFAULT uuid_generate_v4(),
     transaction_id VARCHAR(255),
     credential_id UUID,
     credential_signed TEXT,

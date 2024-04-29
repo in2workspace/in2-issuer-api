@@ -16,7 +16,6 @@ import org.springframework.data.relational.core.mapping.Table;
 @ToString
 @Table("credentials.credentials")
 public class Credential {
-
     @Id
     @Column("id")
     private UUID id;
