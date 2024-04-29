@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,13 +8,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static es.in2.issuer.domain.util.Constants.*;
-import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
+
+import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_JWT;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferServiceImplTest {
@@ -34,15 +36,18 @@ class CredentialOfferServiceImplTest {
     void testBuildCustomCredentialOffer() {
         String credentialType = "type1";
         String preAuthCode = "code123";
+        Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
 
-        Mono<CustomCredentialOffer> result = credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCode);
+        when(appConfiguration.getIssuerExternalDomain()).thenReturn("https://example.com");
 
-        StepVerifier.create(result)
+        StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
                 .expectNextMatches(offer ->
                         offer.credentialIssuer().equals("https://example.com") &&
-                                offer.credentials().size() == 2 &&
-                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_JWT, LEAR_CREDENTIAL_CWT)) &&
-                                offer.grants().containsKey(GRANT_TYPE)
+                                offer.credentials().size() == 1 &&
+                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_JWT)) &&
+                                offer.grants().containsKey(GRANT_TYPE) &&
+                                offer.grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&
+                                offer.grants().get(GRANT_TYPE).txCode().length() == 4
                 )
                 .verifyComplete();
     }

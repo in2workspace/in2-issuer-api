@@ -5,11 +5,11 @@ import es.in2.issuer.domain.model.CredentialDefinition;
 import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +21,6 @@ import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 @Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    private final IamAdapterFactory iamAdapterFactory;
     private final AppConfiguration appConfiguration;
 
     @Override
