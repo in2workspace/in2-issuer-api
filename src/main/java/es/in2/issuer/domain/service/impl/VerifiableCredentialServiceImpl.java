@@ -8,15 +8,16 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
 import java.time.Instant;
-import java.util.*;
+import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class VerifiableCredentialServiceImpl implements VerifiableCredentialService {
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     @Override
     public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
         return Mono.fromCallable(() -> {
@@ -24,7 +25,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             JsonNode vcTemplateNode = objectMapper.readTree(vcTemplate);
 
             // Generate a unique UUID for jti and vc.id
-            String uuid = "urn:uuid:" + UUID.randomUUID().toString();
+            String uuid = "urn:uuid:" + UUID.randomUUID();
 
             // Calculate timestamps
             Instant nowInstant = Instant.now();
@@ -94,7 +95,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             JsonNode vcTemplateNode = objectMapper.readTree(vcTemplate);
 
             // Generate a unique UUID for jti and vc.id
-            String uuid = "urn:uuid:" + UUID.randomUUID().toString();
+            String uuid = "urn:uuid:" + UUID.randomUUID();
 
             // Calculate timestamps
             Instant nowInstant = Instant.now();

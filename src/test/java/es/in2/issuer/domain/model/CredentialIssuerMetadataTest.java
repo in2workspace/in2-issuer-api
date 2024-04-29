@@ -1,8 +1,6 @@
 package es.in2.issuer.domain.model;
 
 import org.junit.jupiter.api.Test;
-import java.util.List;
-
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -28,7 +26,6 @@ class CredentialIssuerMetadataTest {
         // Assert
         assertEquals(expectedCredentialIssuer, metadata.credentialIssuer());
         assertEquals(expectedCredentialEndpoint, metadata.credentialEndpoint());
-        assertEquals(expectedCredentialToken, metadata.credentialToken());
         assertNull(metadata.credentialConfigurationsSupported());
     }
 

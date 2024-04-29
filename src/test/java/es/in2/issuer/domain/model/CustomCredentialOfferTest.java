@@ -17,8 +17,8 @@ class CustomCredentialOfferTest {
         List<CustomCredentialOffer.Credential> expectedCredentials = List.of(CustomCredentialOffer.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         Grant.TxCode expectedTxCode = new Grant.TxCode(4, "numeric", "description");
-        expectedGrants.put("grant1", new Grant("type1", false, expectedTxCode));
-        expectedGrants.put("grant2", new Grant("type2", false, expectedTxCode));
+        expectedGrants.put("grant1", new Grant("type1", expectedTxCode));
+        expectedGrants.put("grant2", new Grant("type2", expectedTxCode));
         List<String> expectedCredentialConfigurationIds = List.of("id1", "id2");
         // Act
         CustomCredentialOffer credentialOffer = new CustomCredentialOffer(
@@ -55,8 +55,8 @@ class CustomCredentialOfferTest {
         List<CustomCredentialOffer.Credential> expectedCredentials = List.of(CustomCredentialOffer.Credential.builder().format("format").types(List.of("type")).build());
         Map<String, Grant> expectedGrants = new HashMap<>();
         Grant.TxCode expectedTxCode = new Grant.TxCode(4, "numeric", "description");
-        expectedGrants.put("grant1", new Grant("type1", false, expectedTxCode));
-        expectedGrants.put("grant2", new Grant("type2", false, expectedTxCode));
+        expectedGrants.put("grant1", new Grant("type1", expectedTxCode));
+        expectedGrants.put("grant2", new Grant("type2", expectedTxCode));
         List<String> expectedCredentialConfigurationIds = List.of("id1", "id2");
         // Act
         CustomCredentialOffer offer1 = new CustomCredentialOffer(

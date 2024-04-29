@@ -1,7 +1,5 @@
 package es.in2.issuer.application.service.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
@@ -10,12 +8,12 @@ import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.service.VcSchemaService;
+import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-import es.in2.issuer.domain.util.HttpUtils;
 
 
 @Slf4j
@@ -28,8 +26,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     private final CredentialOfferCacheStorageService credentialOfferCacheStorageService;
     private final IamAdapterFactory iamAdapterFactory;
     private final HttpUtils httpUtils;
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<String> buildCredentialOfferUri(String accessToken, String credentialType) {

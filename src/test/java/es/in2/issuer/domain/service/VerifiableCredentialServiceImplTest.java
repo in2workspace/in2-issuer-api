@@ -1,96 +1,119 @@
-//package es.in2.issuer.domain.service;
-//
-//import static es.in2.issuer.domain.util.Constants.CREDENTIAL_SUBJECT;
-//import static org.junit.jupiter.api.Assertions.*;
-//import es.in2.issuer.domain.model.*;
-//import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
-//import es.in2.issuer.infrastructure.config.AppConfiguration;
-//import es.in2.issuer.infrastructure.repository.CacheStore;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import reactor.core.publisher.Mono;
-//import reactor.test.StepVerifier;
-//
-//import java.time.Instant;
-//import java.time.temporal.ChronoUnit;
-//import java.util.HashMap;
-//import java.util.Map;
-//
-//@ExtendWith(MockitoExtension.class)
-//class VerifiableCredentialServiceImplTest {
-//    @Mock
-//    private RemoteSignatureService remoteSignatureService;
-//
-//    @Mock
-//    private AuthenticSourcesRemoteService authenticSourcesRemoteService;
-//
-//    @Mock
-//    private CacheStore<VerifiableCredentialJWT> credentialCacheStore;
-//
-//    @Mock
-//    private CacheStore<String> cacheStore;
-//
-//    @Mock
-//    private AppConfiguration appConfiguration;
-//
-//    @InjectMocks
-//    private VerifiableCredentialServiceImpl service;
-//
-//    @Test
-//    void generateVcPayloadTest(){
-//        String subjectDid = "subjectDid";
-//        String issuerDid = "issuerDid";
-//        Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-//        // Creating template
-//        String templateContent = "{\n" +
-//                "  \"type\": [\n" +
-//                "    \"VerifiableCredential\",\n" +
-//                "    \"LEARCredential\"\n" +
-//                "  ],\n" +
-//                "  \"@context\": [\n" +
-//                "    \"https://www.w3.org/2018/credentials/v1\",\n" +
-//                "    \"https://issueridp.dev.in2.es/2022/credentials/learcredential/v1\"\n" +
-//                "  ],\n" +
-//                "  \"id\": \"urn:uuid:84f6fe0b-7cc8-460e-bb54-f805f0984202\",\n" +
-//                "  \"issuer\": {\n" +
-//                "    \"id\": \"did:elsi:VATES-Q0801175A\"\n" +
-//                "  },\n" +
-//                "  \"issuanceDate\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"issued\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"validFrom\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"expirationDate\": \"2024-04-07T18:27:45Z\",\n" +
-//                "  \"credentialSubject\": {}\n" +
-//                "}";
-//        // Creating userData
-//        // Creating the inner map for LEARCredential data
-//        Map<String, String> learCredentialData = new HashMap<>();
-//        learCredentialData.put("id", "did:key:zQ3shg2Mqz6NBj3afSySic9ynMrGk5Vgo9atHLXj4NWgxd7Xh");
-//        learCredentialData.put("first_name", "Francisco");
-//        learCredentialData.put("last_name", "Pérez García");
-//        learCredentialData.put("email", "francisco.perez@in2.es");
-//        learCredentialData.put("serialnumber", "IDCES-46521781J");
-//        learCredentialData.put("employeeType", "T2");
-//        learCredentialData.put("organizational_unit", "GDI010034");
-//        learCredentialData.put("organization", "GDI01");
-//        // Creating the outer map for credentialSubjectData
-//        Map<String, Map<String, String>> credentialSubjectData = new HashMap<>();
-//        credentialSubjectData.put("LEARCredential", learCredentialData);
-//        Map<String, Object> data = Map.of(CREDENTIAL_SUBJECT, credentialSubjectData);
-//
-//        // Test the method
-//        Mono<String> result = service.generateVcPayLoad(templateContent, subjectDid, issuerDid, data, expiration);
-//
-//        // Verify the output
-//        StepVerifier.create(result)
-//                .assertNext(response -> {
-//                    //assertEquals("ssdasd", response);
-//                    assertTrue(response.contains("zQ3shg2Mqz6NBj3afSySic9ynMrGk5Vgo9atHLXj4NWgxd7Xh"), "The response does not contain the expected substring.");
-//                    // Additional assertions as necessary
-//                })
-//                .verifyComplete();
-//    }
-//
-//}
+package es.in2.issuer.domain.service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.test.StepVerifier;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class VerifiableCredentialServiceImplTest {
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @InjectMocks
+    private VerifiableCredentialServiceImpl verifiableCredentialService;
+
+    @Test
+    void testGenerateVcPayLoad() throws JsonProcessingException {
+        String vcTemplate = "{\"issuer\":\"did:example:123\",\"credentialSubject\":{}}";
+        String subjectDid = "did:example:456";
+        String issuerDid = "did:example:123";
+        String userData = "{\"name\":\"John Doe\"}";
+        Instant expiration = Instant.now().plusSeconds(3600);
+
+        // Create real ObjectMapper for node creation
+        ObjectMapper realMapper = new ObjectMapper();
+
+        // Mocking the template and user data JsonNode
+        JsonNode vcTemplateNode = realMapper.createObjectNode().put("issuer", issuerDid);
+        JsonNode userDataNode = realMapper.createObjectNode().put("name", "John Doe");
+
+        when(objectMapper.readTree(vcTemplate)).thenReturn(vcTemplateNode);
+        when(objectMapper.readTree(userData)).thenReturn(userDataNode);
+
+        // Use the real ObjectMapper to avoid issues with creating ObjectNode
+        when(objectMapper.createObjectNode()).thenAnswer(invocation -> realMapper.createObjectNode());
+
+        // Mocking final JSON output
+        String expectedUuid = UUID.randomUUID().toString();
+        String expectedJson = "{\"sub\":\"" + subjectDid + "\",\"vc\":{\"id\":\"" + expectedUuid + "\"}}";
+        when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
+
+        StepVerifier.create(verifiableCredentialService.generateVcPayLoad(vcTemplate, subjectDid, issuerDid, userData, expiration))
+                .expectNext(expectedJson)
+                .verifyComplete();
+    }
+
+    @Test
+    void testGenerateDeferredVcPayLoad() throws JsonProcessingException {
+        String vcTemplate = """
+        {
+            "issuer": "did:example:123",
+            "credentialSubject": {
+                "id": "did:example:456",
+                "name": "Joe"
+            },
+            "validFrom": "2024-01-01T00:00:00Z",
+            "expirationDate": "2024-01-02T00:00:00Z"
+        }
+        """;
+
+
+        // Create real ObjectMapper for node creation
+        ObjectMapper realMapper = new ObjectMapper();
+
+        JsonNode mockVcTemplateNode = realMapper.readTree(vcTemplate);
+        when(objectMapper.readTree(vcTemplate)).thenReturn(mockVcTemplateNode);
+
+        String expectedJson = "{\"sub\":\"did:example:456\",\"nbf\":\"2024-01-01T00:00:00Z\",\"iss\":\"did:example:123\",\"exp\":\"2024-01-02T00:00:00Z\",\"iat\":\"2024-01-01T00:00:00Z\",\"jti\":\"did:example:456\",\"vc\":" + vcTemplate + "}";
+        when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
+        when(objectMapper.createObjectNode()).thenAnswer(invocation -> realMapper.createObjectNode());
+
+        StepVerifier.create(verifiableCredentialService.generateDeferredVcPayLoad(vcTemplate))
+                .expectNext(expectedJson)
+                .verifyComplete();
+    }
+
+
+    @Test
+    void testGenerateVc() throws JsonProcessingException {
+        String vcTemplate = "{\"issuer\":\"did:example:123\"}";
+        String subjectDid = "did:example:456";
+        String issuerDid = "did:example:123";
+        String userData = "{\"name\":\"John Doe\"}";
+        Instant expiration = Instant.now().plusSeconds(3600);
+
+        JsonNode mockVcTemplateNode = new ObjectMapper().createObjectNode().put("issuer", issuerDid);
+        JsonNode mockUserDataNode = new ObjectMapper().createObjectNode().put("name", "John Doe");
+
+        when(objectMapper.readTree(vcTemplate)).thenReturn(mockVcTemplateNode);
+        when(objectMapper.readTree(userData)).thenReturn(mockUserDataNode);
+
+        // Set up additional mock for the final serialization
+        String expectedJson = "{\"id\":\"urn:uuid:<UUID>\",\"issuer\":\"did:example:123\",\"issuanceDate\":\"<DATE>\",\"validFrom\":\"<DATE>\",\"expirationDate\":\"<DATE>\",\"credentialSubject\":{\"id\":\"did:example:456\",\"name\":\"John Doe\"}}";
+        when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson.replace("<UUID>", UUID.randomUUID().toString()).replace("<DATE>", Instant.now().toString()));
+
+        StepVerifier.create(verifiableCredentialService.generateVc(vcTemplate, subjectDid, issuerDid, userData, expiration))
+                .expectNextMatches(json -> json.contains("John Doe") && json.contains(subjectDid))
+                .verifyComplete();
+    }
+
+
+
+
+
+
+
+}

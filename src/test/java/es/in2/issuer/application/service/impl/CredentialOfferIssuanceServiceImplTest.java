@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.VcSchemaService;
@@ -98,7 +99,7 @@ class CredentialOfferIssuanceServiceImplTest {
         JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
         when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
 
-        when(credentialOfferService.buildCustomCredentialOffer(credentialType, "")).thenReturn(Mono.just(credentialOffer));
+        when(credentialOfferService.buildCustomCredentialOffer(credentialType, Grant.builder().build())).thenReturn(Mono.just(credentialOffer));
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOffer)).thenReturn(Mono.just(nonce));
         when(credentialOfferService.createCredentialOfferUri(nonce)).thenReturn(Mono.just(credentialOfferUri));
 
