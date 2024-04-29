@@ -114,15 +114,57 @@
 //                .credentialSubjectData(credentialSubjectData)
 //                .build();
 //
+//        String jsonData = "{"
+//                + "\"mandate\": {"
+//                + "\"id\": \"4e3c02b8-5c57-4679-8aa5-502d62484af5\","
+//                + "\"life_span\": {"
+//                + "\"end_date_time\": \"2025-04-02 09:23:22.637345122 +0000 UTC\","
+//                + "\"start_date_time\": \"2024-04-02 09:23:22.637345122 +0000 UTC\""
+//                + "},"
+//                + "\"mandatee\": {"
+//                + "\"id\": \"did:key:zDnaeei6HxVe7ibR3mZmXa9SZgWs8UBj1FiTuwEKwmnChdUAu\","
+//                + "\"email\": \"oriol.canades@in2.es\","
+//                + "\"first_name\": \"Oriol\","
+//                + "\"gender\": \"M\","
+//                + "\"last_name\": \"Canadés\","
+//                + "\"mobile_phone\": \"+34666336699\""
+//                + "},"
+//                + "\"mandator\": {"
+//                + "\"commonName\": \"IN2\","
+//                + "\"country\": \"ES\","
+//                + "\"emailAddress\": \"rrhh@in2.es\","
+//                + "\"organization\": \"IN2, Ingeniería de la Información, S.L.\","
+//                + "\"organizationIdentifier\": \"VATES-B60645900\","
+//                + "\"serialNumber\": \"B60645900\""
+//                + "},"
+//                + "\"power\": ["
+//                + "{"
+//                + "\"id\": \"6b8f3137-a57a-46a5-97e7-1117a20142fb\","
+//                + "\"tmf_action\": \"Execute\","
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"Onboarding\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "},"
+//                + "{"
+//                + "\"id\": \"ad9b1509-60ea-47d4-9878-18b581d8e19b\","
+//                + "\"tmf_action\": [\"Create\", \"Update\"],"
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"ProductOffering\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "}"
+//                + "]"
+//                + "}"
+//                + "}";
+//
 //        String expectedCredential = "Credential";
 //        when(authenticSourcesRemoteService.getUserFromLocalFile())
-//                .thenReturn(Mono.just(subjectDataResponse)); // Mock the necessary user details
+//                .thenReturn(Mono.just(jsonData)); // Mock the necessary user details
 //        when(remoteSignatureService.sign(any(SignatureRequest.class), anyString()))
 //                .thenReturn(Mono.just(new SignedData(SignatureType.JADES, expectedCredential)));
 //
 //        // Define your test input here
 //        String username = "testUser";
-//        CredentialRequest request = new CredentialRequest("jwt_vc", new CredentialDefinition(List.of("")),new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
+//        CredentialRequest request = new CredentialRequest("jwt_vc_json", new CredentialDefinition(List.of("")),new Proof("type","eyJraWQiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIjekRuYWV0eTQ2SzNtUWJIaXUzdVppUllYVlY0d1JOMmpNZjk1R1RqTWlTMVNuOHpEUiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFldHk0NkszbVFiSGl1M3VaaVJZWFZWNHdSTjJqTWY5NUdUak1pUzFTbjh6RFIiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTE3ODc2NDMsImlhdCI6MTcxMDkyMzY0Mywibm9uY2UiOiJYQm5NSHROSVF4S2owTGJ6emtjWjBRPT0ifQ.zGVUzEY77jxmxjblvhO4rtoidJWVy6BCXK5ajlGYbFNIIhSdgXFdMi6xOeiLb1R6O8_R7rooLRMVt-1byOlSnQ"));
 //        String token = "testToken";
 //
 //        // Test the method
@@ -161,10 +203,53 @@
 //                .credentialSubjectData(credentialSubjectData)
 //                .build();
 //
+//        String jsonData = "{"
+//                + "\"mandate\": {"
+//                + "\"id\": \"4e3c02b8-5c57-4679-8aa5-502d62484af5\","
+//                + "\"life_span\": {"
+//                + "\"end_date_time\": \"2025-04-02 09:23:22.637345122 +0000 UTC\","
+//                + "\"start_date_time\": \"2024-04-02 09:23:22.637345122 +0000 UTC\""
+//                + "},"
+//                + "\"mandatee\": {"
+//                + "\"id\": \"did:key:zDnaeei6HxVe7ibR3mZmXa9SZgWs8UBj1FiTuwEKwmnChdUAu\","
+//                + "\"email\": \"oriol.canades@in2.es\","
+//                + "\"first_name\": \"Oriol\","
+//                + "\"gender\": \"M\","
+//                + "\"last_name\": \"Canadés\","
+//                + "\"mobile_phone\": \"+34666336699\""
+//                + "},"
+//                + "\"mandator\": {"
+//                + "\"commonName\": \"IN2\","
+//                + "\"country\": \"ES\","
+//                + "\"emailAddress\": \"rrhh@in2.es\","
+//                + "\"organization\": \"IN2, Ingeniería de la Información, S.L.\","
+//                + "\"organizationIdentifier\": \"VATES-B60645900\","
+//                + "\"serialNumber\": \"B60645900\""
+//                + "},"
+//                + "\"power\": ["
+//                + "{"
+//                + "\"id\": \"6b8f3137-a57a-46a5-97e7-1117a20142fb\","
+//                + "\"tmf_action\": \"Execute\","
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"Onboarding\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "},"
+//                + "{"
+//                + "\"id\": \"ad9b1509-60ea-47d4-9878-18b581d8e19b\","
+//                + "\"tmf_action\": [\"Create\", \"Update\"],"
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"ProductOffering\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "}"
+//                + "]"
+//                + "}"
+//                + "}";
+//
+//
 //        String credential = "Credential";
 //        String expectedCredential = "6BFA SZ-7INLM85C00K.5W0";
 //        when(authenticSourcesRemoteService.getUserFromLocalFile())
-//                .thenReturn(Mono.just(subjectDataResponse)); // Mock the necessary user details
+//                .thenReturn(Mono.just(jsonData)); // Mock the necessary user details
 //        when(remoteSignatureService.sign(any(SignatureRequest.class), anyString()))
 //                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, credential)));
 //
@@ -209,10 +294,52 @@
 //                .credentialSubjectData(credentialSubjectData)
 //                .build();
 //
+//        String jsonData = "{"
+//                + "\"mandate\": {"
+//                + "\"id\": \"4e3c02b8-5c57-4679-8aa5-502d62484af5\","
+//                + "\"life_span\": {"
+//                + "\"end_date_time\": \"2025-04-02 09:23:22.637345122 +0000 UTC\","
+//                + "\"start_date_time\": \"2024-04-02 09:23:22.637345122 +0000 UTC\""
+//                + "},"
+//                + "\"mandatee\": {"
+//                + "\"id\": \"did:key:zDnaeei6HxVe7ibR3mZmXa9SZgWs8UBj1FiTuwEKwmnChdUAu\","
+//                + "\"email\": \"oriol.canades@in2.es\","
+//                + "\"first_name\": \"Oriol\","
+//                + "\"gender\": \"M\","
+//                + "\"last_name\": \"Canadés\","
+//                + "\"mobile_phone\": \"+34666336699\""
+//                + "},"
+//                + "\"mandator\": {"
+//                + "\"commonName\": \"IN2\","
+//                + "\"country\": \"ES\","
+//                + "\"emailAddress\": \"rrhh@in2.es\","
+//                + "\"organization\": \"IN2, Ingeniería de la Información, S.L.\","
+//                + "\"organizationIdentifier\": \"VATES-B60645900\","
+//                + "\"serialNumber\": \"B60645900\""
+//                + "},"
+//                + "\"power\": ["
+//                + "{"
+//                + "\"id\": \"6b8f3137-a57a-46a5-97e7-1117a20142fb\","
+//                + "\"tmf_action\": \"Execute\","
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"Onboarding\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "},"
+//                + "{"
+//                + "\"id\": \"ad9b1509-60ea-47d4-9878-18b581d8e19b\","
+//                + "\"tmf_action\": [\"Create\", \"Update\"],"
+//                + "\"tmf_domain\": \"DOME\","
+//                + "\"tmf_function\": \"ProductOffering\","
+//                + "\"tmf_type\": \"Domain\""
+//                + "}"
+//                + "]"
+//                + "}"
+//                + "}";
+//
 //        String credential = "Credential";
 //        String expectedCredential = "6BFA SZ-7INLM85C00K.5W0";
 //        when(authenticSourcesRemoteService.getUserFromLocalFile())
-//                .thenReturn(Mono.just(subjectDataResponse)); // Mock the necessary user details
+//                .thenReturn(Mono.just(jsonData)); // Mock the necessary user details
 //        when(remoteSignatureService.sign(any(SignatureRequest.class), anyString()))
 //                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, credential)));
 //
@@ -239,39 +366,4 @@
 //        verify(remoteSignatureService, times(2)).sign(any(SignatureRequest.class), eq(token));
 //    }
 //
-//    @Test
-//    void testCommitCredentialSourceData_Success() {
-//        Payload mockPayload = mock(Payload.class);
-//        String token = "testToken";
-//        Map<String, Object> vcJSON = new HashMap<>();
-//        Map<String, Object> vcInfo = new HashMap<>();
-//        vcJSON.put("vc", vcInfo);
-//        vcInfo.put("id", "vc:550e8400-e29b-41d4-a716-446655440000");
-//        vcInfo.put("expirationDate", "2022-12-31T00:00:00Z");
-//        Map<String, Object> userInfo = new HashMap<>();
-//        userInfo.put("serialNumber", "SN123456");
-//        vcInfo.put("credentialSubject", userInfo);
-//
-//        when(mockPayload.toJSONObject()).thenReturn(vcJSON);
-//        when(authenticSourcesRemoteService.commitCredentialSourceData(any(CommitCredential.class), eq(token)))
-//                .thenReturn(Mono.empty());
-//
-//        StepVerifier.create(service.commitCredentialSourceData(mockPayload, token))
-//                .verifyComplete();
-//
-//        verify(authenticSourcesRemoteService).commitCredentialSourceData(any(CommitCredential.class), eq(token));
-//    }
-//
-//    @Test
-//    void testCommitCredentialSourceData_Failure() {
-//        Payload mockPayload = mock(Payload.class);
-//        String token = "testToken";
-//        when(mockPayload.toJSONObject()).thenThrow(new RuntimeException("Conversion failed"));
-//
-//        StepVerifier.create(service.commitCredentialSourceData(mockPayload, token))
-//                .expectErrorMatches(throwable -> throwable instanceof RuntimeException && throwable.getMessage().contains("Conversion failed"))
-//                .verify();
-//
-//        verify(authenticSourcesRemoteService, never()).commitCredentialSourceData(any(), eq(token));
-//    }
 //}

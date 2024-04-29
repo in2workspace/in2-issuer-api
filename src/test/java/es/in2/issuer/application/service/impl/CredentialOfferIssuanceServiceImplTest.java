@@ -82,24 +82,26 @@ class CredentialOfferIssuanceServiceImplTest {
         String getPreAuthCodeUri = "https://iam.example.com/PreAuthCodeUri";
         String credentialOfferUri = "dummyCredentialOfferUri";
         CustomCredentialOffer credentialOffer = CustomCredentialOffer.builder().build();
-        when( vcSchemaService.isSupportedVcSchema(credentialType)).thenReturn(Mono.just(true));
+        when(vcSchemaService.isSupportedVcSchema(credentialType)).thenReturn(Mono.just(true));
 
         List<Map.Entry<String, String>> headers = new ArrayList<>();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
 
-
         GenericIamAdapter adapter = mock(GenericIamAdapter.class);
         when(iamAdapterFactory.getAdapter()).thenReturn(adapter);
         when(adapter.getPreAuthCodeUri()).thenReturn(getPreAuthCodeUri);
 
-        String jsonString = "{\"grants\":{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}}";
+        // Ensure the JSON is valid and corresponds to a Grant object
+        String jsonString = "{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}";
         when(httpUtils.prepareHeadersWithAuth(token)).thenReturn(Mono.just(headers));
-        when(httpUtils.getRequest(getPreAuthCodeUri+"?type=VerifiableId&format=jwt_vc_json",headers)).thenReturn(Mono.just(jsonString));
-        JsonNode jsonObject = new ObjectMapper().convertValue(jsonString, JsonNode.class);
-        when(objectMapper.readTree(jsonString)).thenReturn(jsonObject);
+        when(httpUtils.getRequest(getPreAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json", headers)).thenReturn(Mono.just(jsonString));
 
-        when(credentialOfferService.buildCustomCredentialOffer(credentialType, Grant.builder().build())).thenReturn(Mono.just(credentialOffer));
+        // Mock objectMapper to return a non-null Grant
+        Grant mockGrant = Grant.builder().build(); // Assume Grant is a simple class, adjust accordingly
+        when(objectMapper.readValue(jsonString, Grant.class)).thenReturn(mockGrant);
+
+        when(credentialOfferService.buildCustomCredentialOffer(credentialType, mockGrant)).thenReturn(Mono.just(credentialOffer));
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOffer)).thenReturn(Mono.just(nonce));
         when(credentialOfferService.createCredentialOfferUri(nonce)).thenReturn(Mono.just(credentialOfferUri));
 
