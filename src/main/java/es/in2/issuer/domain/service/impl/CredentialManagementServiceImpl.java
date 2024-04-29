@@ -1,7 +1,11 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.entity.Credential;
+import es.in2.issuer.domain.entity.CredentialDeferred;
 import es.in2.issuer.domain.entity.CredentialListItem;
+import es.in2.issuer.domain.entity.CredentialManagement;
+import es.in2.issuer.domain.repository.CredentialDeferredRepository;
+import es.in2.issuer.domain.repository.CredentialManagementRepository;
 import es.in2.issuer.domain.repository.CredentialRepository;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import lombok.RequiredArgsConstructor;
@@ -26,31 +30,65 @@ import static es.in2.issuer.domain.util.Constants.*;
 @RequiredArgsConstructor
 public class CredentialManagementServiceImpl implements CredentialManagementService {
     private final CredentialRepository credentialRepository;
+    private final CredentialManagementRepository credentialManagementRepository;
+    private final CredentialDeferredRepository credentialDeferredRepository;
+//    @Override
+//    public Mono<String> commitCredential(String credential, String userId) {
+//
+//        String transactionId = UUID.randomUUID().toString();
+//        Credential newCredential = new Credential();
+//        newCredential.setUserId(userId);
+//        newCredential.setCredentialData(credential);
+//        newCredential.setStatus(CREDENTIAL_DOWNLOADED);
+//        newCredential.setTransactionId(transactionId);
+//        newCredential.setCreatedAt(new Timestamp(Instant.now().toEpochMilli()));  // Setting current date as creation date
+//        newCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));  // Setting current date as modified date
+//
+//        return credentialRepository.save(newCredential)
+//                .map(savedCredential -> savedCredential.getTransactionId());  // Extracting and returning transactionId
+//    }
     @Override
     public Mono<String> commitCredential(String credential, String userId) {
 
         String transactionId = UUID.randomUUID().toString();
-        Credential newCredential = new Credential();
+        CredentialManagement newCredential = new CredentialManagement();
         newCredential.setUserId(userId);
-        newCredential.setCredentialData(credential);
-        newCredential.setStatus(CREDENTIAL_DOWNLOADED);
-        newCredential.setTransactionId(transactionId);
-        newCredential.setCreatedAt(new Timestamp(Instant.now().toEpochMilli()));  // Setting current date as creation date
+        newCredential.setCredentialDecoded(credential);
+        newCredential.setCredentialStatus(CREDENTIAL_ISSUED);
         newCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));  // Setting current date as modified date
 
-        return credentialRepository.save(newCredential)
-                .map(savedCredential -> savedCredential.getTransactionId());  // Extracting and returning transactionId
+        CredentialDeferred newCredentialDeferred = new CredentialDeferred();
+        newCredentialDeferred.setTransactionId(transactionId);
+
+        return credentialManagementRepository.save(newCredential)
+                .flatMap(savedCredential -> {
+                    newCredentialDeferred.setCredentialId(savedCredential.getId());
+                    return credentialDeferredRepository.save(newCredentialDeferred);
+                })
+                .then(Mono.just(transactionId));
     }
 
+//    @Override
+//    public Mono<Void> updateCredential(String credential, UUID credentialId, String userId) {
+//        return credentialRepository.findByIdAndUserId(credentialId, userId)
+//                .switchIfEmpty(Mono.error(new NoSuchElementException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
+//                .flatMap(existingCredential -> {
+//                    existingCredential.setCredentialData(credential); // Update credential transactionId
+//                    existingCredential.setStatus(CREDENTIAL_SIGNED); // Set status to signed
+//                    existingCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli())); // Update modified time
+//                    return credentialRepository.save(existingCredential); // Save the updated credential
+//                })
+//                .then(); // Return only completion signal
+//    }
     @Override
     public Mono<Void> updateCredential(String credential, UUID credentialId, String userId) {
-        return credentialRepository.findByIdAndUserId(credentialId, userId)
+        return credentialManagementRepository.findByIdAndUserId(credentialId, userId)
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
                 .flatMap(existingCredential -> {
-                    existingCredential.setCredentialData(credential); // Update credential transactionId
-                    existingCredential.setStatus(CREDENTIAL_SIGNED); // Set status to signed
+                    existingCredential.setCredentialEncoded(credential); // Update credential
+                    existingCredential.setCredentialStatus(CREDENTIAL_VALID); // Set status to valid
                     existingCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli())); // Update modified time
-                    return credentialRepository.save(existingCredential); // Save the updated credential
+                    return credentialManagementRepository.save(existingCredential); // Save the updated credential
                 })
                 .then(); // Return only completion signal
     }

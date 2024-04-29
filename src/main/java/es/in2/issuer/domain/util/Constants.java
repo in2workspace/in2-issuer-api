@@ -25,8 +25,8 @@ public class Constants {
     public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
 
     // Credentials stages
-    public static final String CREDENTIAL_DOWNLOADED = "downloaded";
-    public static final String CREDENTIAL_SIGNED = "signed";
+    public static final String CREDENTIAL_ISSUED = "issued";
+    public static final String CREDENTIAL_VALID = "valid";
     public static final String CREDENTIAL_EMITTED = "emitted";
 
 }

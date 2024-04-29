@@ -108,7 +108,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token){
         return credentialManagementService.getCredentialByTransactionId(deferredCredentialRequest.transactionId(), userId)
                 .flatMap(credential -> {
-                    if (CREDENTIAL_SIGNED.equals(credential.getStatus())) {
+                    if (CREDENTIAL_VALID.equals(credential.getStatus())) {
                         // If the credential status is "signed", set status to "emitted", then return the signed credential
                         return credentialManagementService.setToEmitted(deferredCredentialRequest.transactionId(), userId)
                                 .then(Mono.just(VerifiableCredentialResponse.builder()

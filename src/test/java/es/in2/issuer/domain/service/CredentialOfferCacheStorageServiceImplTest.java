@@ -16,7 +16,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-class CredentialOfferCacheStorageServiceServiceImplTest {
+class CredentialOfferCacheStorageServiceImplTest {
 
     @Mock
     private CacheStore<CustomCredentialOffer> cacheStore;
