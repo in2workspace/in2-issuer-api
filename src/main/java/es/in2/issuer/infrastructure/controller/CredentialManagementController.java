@@ -2,8 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
-import es.in2.issuer.domain.entity.Credential;
-import es.in2.issuer.domain.entity.CredentialListItem;
+import es.in2.issuer.domain.model.CredentialItem;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
@@ -64,7 +63,7 @@ public class CredentialManagementController {
             }
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<CredentialListItem> getCredentials(
+    public Flux<CredentialItem> getCredentials(
             ServerWebExchange exchange,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -86,7 +85,7 @@ public class CredentialManagementController {
 
     @GetMapping(value = "/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<Credential> getCredential(@PathVariable UUID credentialId, ServerWebExchange exchange) {
+    public Mono<CredentialItem> getCredential(@PathVariable UUID credentialId, ServerWebExchange exchange) {
         return Mono.defer(() -> {
                     try {
                         SignedJWT token = Utils.getToken(exchange);

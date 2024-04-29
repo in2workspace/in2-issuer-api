@@ -86,7 +86,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
                             return generateUnsignedVerifiableCredential(userId, token, subjectDid, format)
-                                    .flatMap(credential -> credentialManagementService.commitCredential(credential, userId)
+                                    .flatMap(credential -> credentialManagementService.commitCredential(credential, userId, format)
                                         .map(transactionId -> new VerifiableCredentialResponse(credential, transactionId, nonceClaim, 600)));
                         }));
     }
