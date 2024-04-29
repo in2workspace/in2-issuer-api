@@ -176,5 +176,9 @@ public class GlobalExceptionHandler {
         log.error(e.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
-
+    @ExceptionHandler(ParseCredentialJsonException.class)
+    public Mono<ResponseEntity<Void>> handleParseCredentialJsonException(ParseCredentialJsonException e) {
+        log.error(e.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
 }

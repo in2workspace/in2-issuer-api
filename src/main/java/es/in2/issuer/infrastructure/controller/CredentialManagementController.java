@@ -1,5 +1,10 @@
 package es.in2.issuer.infrastructure.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.model.CredentialItem;
@@ -7,6 +12,7 @@ import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
+import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +39,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -43,6 +49,9 @@ public class CredentialManagementController {
 
     private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
     private final CredentialManagementService credentialManagementService;
+    private final VerifiableCredentialService verifiableCredentialService;
+    private final HttpUtils httpUtils;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Operation(
             summary = "Get the credentials committed by the current user",
@@ -95,6 +104,60 @@ public class CredentialManagementController {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("CredentialManagementController - getCredential()"))
+                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+    }
+
+    @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> signVerifiableCredentials(@PathVariable UUID credentialId, @RequestBody String unsignedCredential, ServerWebExchange exchange) {
+        return Mono.defer(() -> {
+                    try {
+                        SignedJWT token = Utils.getToken(exchange);
+                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
+
+                        // Generate deferred VC Payload reactively
+                        return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
+                                .flatMap(vcPayload -> {
+                                    //::::::::::::: mock of the local signature using a remote DSS :::::::::::::
+                                    // Create request object
+                                    SignatureRequest signatureRequest = new SignatureRequest(
+                                            new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                                            vcPayload);
+                                    String signatureRequestJSON = null;
+                                    try {
+                                        signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
+                                    } catch (JsonProcessingException e) {
+                                        throw new RuntimeException(e);
+                                    }
+
+                                    // Prepare headers
+                                    List<Map.Entry<String, String>> headers = new ArrayList<>();
+                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token.getParsedString()));
+                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+
+                                    // Execute request to the remote signature
+                                    return httpUtils.postRequest("http://localhost:8050/api/v1/signature/sign", headers, signatureRequestJSON)
+                                            .flatMap(response -> {
+                                                log.info("Received response: " + response);
+
+                                                // Extract signed credential from response
+                                                JsonNode responseNode = null;
+                                                try {
+                                                    responseNode = objectMapper.readTree(response);
+                                                } catch (JsonProcessingException e) {
+                                                    throw new RuntimeException(e);
+                                                }
+                                                String signedCredential = responseNode.get("data").asText();
+                                    //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
+                                                // Update the credential
+                                                return credentialManagementService.updateCredential(signedCredential, credentialId, userId);
+                                            });
+                                });
+                    } catch (InvalidTokenException | ParseException e) {
+                        return Mono.error(e);
+                    }
+                })
+                .doOnNext(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
                 .onErrorMap(e -> new RuntimeException("Error processing the request", e));
     }
 

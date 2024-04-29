@@ -1,6 +1,10 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.entity.CredentialDeferred;
+import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 import es.in2.issuer.domain.model.CredentialItem;
 import es.in2.issuer.domain.entity.CredentialManagement;
 import es.in2.issuer.domain.repository.CredentialDeferredRepository;
@@ -14,9 +18,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
@@ -28,6 +34,7 @@ import static es.in2.issuer.domain.util.Constants.*;
 public class CredentialManagementServiceImpl implements CredentialManagementService {
     private final CredentialManagementRepository credentialManagementRepository;
     private final CredentialDeferredRepository credentialDeferredRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public Mono<String> commitCredential(String credential, String userId, String format) {
@@ -93,13 +100,16 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     public Flux<CredentialItem> getCredentials(String userId, int page, int size, String sort, Sort.Direction direction) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
         return credentialManagementRepository.findByUserIdOrderByModifiedAtDesc(userId, pageable)
-                .map(credentialManagement -> new CredentialItem(
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No credential found for userId: " + userId + " at page: " + pageable.getPageNumber())))
+                .flatMap(credentialManagement -> parseCredentialJson(credentialManagement.getCredentialDecoded())
+                .map(parsedCredential -> new CredentialItem(
                         credentialManagement.getId(),
-                        credentialManagement.getCredentialDecoded(),
+                        parsedCredential,
                         credentialManagement.getCredentialFormat(),
                         credentialManagement.getCredentialStatus(),
                         credentialManagement.getModifiedAt()
                 ))
+                )
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
     }
 
@@ -107,18 +117,31 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     public Mono<CredentialItem> getCredential(UUID credentialId, String userId) {
         log.info("Entering getCredential method with credentialId: {} and userId: {}", credentialId, userId);
         return credentialManagementRepository.findByIdAndUserId(credentialId, userId)
-                .map(credentialManagement -> new CredentialItem(
-                        credentialManagement.getId(),
-                        credentialManagement.getCredentialDecoded(),
-                        credentialManagement.getCredentialFormat(),
-                        credentialManagement.getCredentialStatus(),
-                        credentialManagement.getModifiedAt()
-                ))
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
+                .flatMap(credentialManagement -> parseCredentialJson(credentialManagement.getCredentialDecoded())
+                        .map(parsedCredential -> new CredentialItem(
+                                credentialManagement.getId(),
+                                parsedCredential,
+                                credentialManagement.getCredentialFormat(),
+                                credentialManagement.getCredentialStatus(),
+                                credentialManagement.getModifiedAt()
+                        ))
+                )
                 .doOnError(error -> log.error("Error in getCredential method: {}", error.getMessage()));
     }
 
     @Override
     public Mono<CredentialDeferred> getDeferredCredentialByTransactionId(String transactionId) {
         return credentialDeferredRepository.findByTransactionId(transactionId);
+    }
+
+    private Mono<Map<String, Object>> parseCredentialJson(String jsonCredential) {
+        return Mono.fromCallable(() -> {
+            try {
+                return objectMapper.readValue(jsonCredential, new TypeReference<Map<String, Object>>() {});
+            } catch (JsonProcessingException e) {
+                throw new ParseCredentialJsonException("JSON parsing error");
+            }
+        }).subscribeOn(Schedulers.boundedElastic());
     }
 }
