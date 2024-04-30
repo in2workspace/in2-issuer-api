@@ -39,7 +39,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CredentialManagementController {
 
-    private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
     private final CredentialManagementService credentialManagementService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final HttpUtils httpUtils;
