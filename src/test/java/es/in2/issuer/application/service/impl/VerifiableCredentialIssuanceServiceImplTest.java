@@ -1,99 +1,107 @@
-//package es.in2.issuer.application.service.impl;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.Mockito.*;
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//import com.nimbusds.jose.Payload;
-//import es.in2.issuer.domain.exception.ExpiredCacheException;
-//import es.in2.issuer.domain.exception.UserDoesNotExistException;
-//import es.in2.issuer.domain.model.*;
-//import es.in2.issuer.domain.service.*;
-//import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
-//import es.in2.issuer.infrastructure.config.AppConfiguration;
-//import es.in2.issuer.infrastructure.repository.CacheStore;
-//import org.junit.jupiter.api.AfterEach;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.Mockito;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.core.io.Resource;
-//import reactor.core.publisher.Mono;
-//import reactor.test.StepVerifier;
-//import org.springframework.test.util.ReflectionTestUtils;
-//
-//import java.io.ByteArrayInputStream;
-//import java.io.IOException;
-//import java.nio.charset.StandardCharsets;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//import static org.junit.jupiter.api.Assertions.*;
-//
-//@ExtendWith(MockitoExtension.class)
-//class VerifiableCredentialIssuanceServiceImplTest {
-//    @Mock
-//    private RemoteSignatureService remoteSignatureService;
-//
-//    @Mock
-//    private AuthenticSourcesRemoteService authenticSourcesRemoteService;
-//
-//    @Mock
-//    private CacheStore<VerifiableCredentialJWT> credentialCacheStore;
-//
-//    @Mock
-//    private CacheStore<String> cacheStore;
-//
-//    @Mock
-//    private AppConfiguration appConfiguration;
-//
-//    @Mock
-//    private VerifiableCredentialService verifiableCredentialService;
-//
-//    @Mock
-//    private ProofValidationService proofValidationService;
-//
-//    @InjectMocks
-//    private VerifiableCredentialIssuanceServiceImpl service;
-//
-//    @BeforeEach
-//    void setup() throws IOException {
-//        Resource mockResource = mock(Resource.class);
-//        String templateContent = "{\n" +
-//                "  \"type\": [\n" +
-//                "    \"VerifiableCredential\",\n" +
-//                "    \"LEARCredential\"\n" +
-//                "  ],\n" +
-//                "  \"@context\": [\n" +
-//                "    \"https://www.w3.org/2018/credentials/v1\",\n" +
-//                "    \"https://issueridp.dev.in2.es/2022/credentials/learcredential/v1\"\n" +
-//                "  ],\n" +
-//                "  \"id\": \"urn:uuid:84f6fe0b-7cc8-460e-bb54-f805f0984202\",\n" +
-//                "  \"issuer\": {\n" +
-//                "    \"id\": \"did:elsi:VATES-Q0801175A\"\n" +
-//                "  },\n" +
-//                "  \"issuanceDate\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"issued\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"validFrom\": \"2024-03-08T18:27:46Z\",\n" +
-//                "  \"expirationDate\": \"2024-04-07T18:27:45Z\",\n" +
-//                "  \"credentialSubject\": {}\n" +
-//                "}";
-//        lenient().when(mockResource.getInputStream()).thenReturn(new ByteArrayInputStream(templateContent.getBytes(StandardCharsets.UTF_8)));
-//
-//        ReflectionTestUtils.setField(service, "learCredentialTemplate", mockResource);
-//
-//        Mockito.lenient().when(verifiableCredentialService.generateVcPayLoad(any(),any(),any(),any(),any()))
-//                .thenReturn(Mono.just("{\"type\": \"type\"}"));
-//
-//        Mockito.lenient().when(proofValidationService.isProofValid(any()))
-//                .thenReturn(Mono.just(true));
-//    }
-//
-//
+package es.in2.issuer.application.service.impl;
+
+import es.in2.issuer.domain.exception.UserDoesNotExistException;
+import es.in2.issuer.domain.model.CredentialRequest;
+import es.in2.issuer.domain.model.Proof;
+import es.in2.issuer.domain.model.VerifiableCredentialResponse;
+import es.in2.issuer.domain.service.*;
+import es.in2.issuer.infrastructure.config.AppConfiguration;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.Resource;
+import org.springframework.test.util.ReflectionTestUtils;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+
+import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class VerifiableCredentialIssuanceServiceImplTest {
+
+    @Mock
+    private RemoteSignatureService remoteSignatureService;
+    @Mock
+    private AuthenticSourcesRemoteService authenticSourcesRemoteService;
+    @Mock
+    private VerifiableCredentialService verifiableCredentialService;
+    @Mock
+    private AppConfiguration appConfiguration;
+    @Mock
+    private ProofValidationService proofValidationService;
+    @Mock
+    private CredentialManagementService credentialManagementService;
+    @InjectMocks
+    private VerifiableCredentialIssuanceServiceImpl service;
+
+    String templateContent = "{\n" +
+            "  \"type\": [\n" +
+            "    \"VerifiableCredential\",\n" +
+            "    \"LEARCredential\"\n" +
+            "  ],\n" +
+            "  \"@context\": [\n" +
+            "    \"https://www.w3.org/2018/credentials/v1\",\n" +
+            "    \"https://issueridp.dev.in2.es/2022/credentials/learcredential/v1\"\n" +
+            "  ],\n" +
+            "  \"id\": \"urn:uuid:84f6fe0b-7cc8-460e-bb54-f805f0984202\",\n" +
+            "  \"issuer\": {\n" +
+            "    \"id\": \"did:elsi:VATES-Q0801175A\"\n" +
+            "  },\n" +
+            "  \"issuanceDate\": \"2024-03-08T18:27:46Z\",\n" +
+            "  \"issued\": \"2024-03-08T18:27:46Z\",\n" +
+            "  \"validFrom\": \"2024-03-08T18:27:46Z\",\n" +
+            "  \"expirationDate\": \"2024-04-07T18:27:45Z\",\n" +
+            "  \"credentialSubject\": {}\n" +
+            "}";
+
+    @BeforeEach
+    void setup() throws IOException {
+        Resource mockResource = mock(Resource.class);
+        lenient().when(mockResource.getInputStream()).thenReturn(new ByteArrayInputStream(templateContent.getBytes(StandardCharsets.UTF_8)));
+
+        ReflectionTestUtils.setField(service, "learCredentialTemplate", mockResource);
+    }
+    @Test
+    void testGenerateVerifiableCredentialResponse() throws UserDoesNotExistException {
+        String did = "did:key:zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC#zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC";
+        String jwtProof = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MjekRuYWVuMjN3TTc2Z3BpU0xIa3U0YkZEYnNzVlM5c3R5OXgzSzd5VnFqYlNkVFBXQyIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTI5MTcwNDAsImlhdCI6MTcxMjA1MzA0MCwibm9uY2UiOiI4OVh4bXdMMlJtR2wyUlp1LU1UU3lRPT0ifQ.DdaaNm4vTn60njLtAQ7Q5oGsQILfA-5h9-sv4MBcVyNBAfSrUUajZqlUukT-5Bx8EqocSvf0RIFRHLcvO9_LMg";
+        String userId = "user123";
+        String token = "dummyToken";
+        String unsignedCredential = "unsignedCredential";
+        String transactionId = "1234";
+        CredentialRequest credentialRequest = CredentialRequest.builder()
+                .proof(
+                        Proof.builder().proofType("jwt").jwt(jwtProof).build())
+                .format(JWT_VC)
+                .build();
+        VerifiableCredentialResponse expectedResponse = VerifiableCredentialResponse.builder()
+                .credential(unsignedCredential)
+                .transactionId(transactionId)
+                .cNonce("89XxmwL2RmGl2RZu-MTSyQ==")
+                .cNonceExpiresIn(600)
+                .build();
+
+        when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
+        when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
+        when(verifiableCredentialService.generateVc(eq(templateContent), eq(did), eq("did:example:issuer"), eq("userData"), any())).thenReturn(Mono.just(unsignedCredential));
+        when(credentialManagementService.commitCredential(unsignedCredential, userId,credentialRequest.format())).thenReturn(Mono.just(transactionId));
+        when(appConfiguration.getIssuerExternalDomain()).thenReturn("did:example:issuer");
+
+        StepVerifier.create(service.generateVerifiableCredentialResponse(userId, credentialRequest, token))
+                .assertNext(response -> assertEquals(expectedResponse, response))
+                .verifyComplete();
+
+    }
 //    @Test
 //    void generateVerifiableCredentialResponse_Success_JWTFormat() throws UserDoesNotExistException {
 //        // Creating the inner map for LEARCredential data
@@ -365,5 +373,5 @@
 //        verify(authenticSourcesRemoteService, times(2)).getUserFromLocalFile();
 //        verify(remoteSignatureService, times(2)).sign(any(SignatureRequest.class), eq(token));
 //    }
-//
-//}
+
+}

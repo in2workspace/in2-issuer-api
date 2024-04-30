@@ -4,7 +4,7 @@
 <span>by </span><a href="https://in2.es">in2.es</a>
 <p><p>
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_wallet-creation-application&metric=alert_status)](https://sonarcloud.io/dashboard?id=in2workspace_wallet-creation-application)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=alert_status)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
 
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=bugs)](https://sonarcloud.io/summary/new_code?in2workspace_credential-issuer)
 [![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)

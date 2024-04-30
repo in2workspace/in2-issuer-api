@@ -26,9 +26,12 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Constants.CWT_VC;
+import static es.in2.issuer.domain.util.Constants.JWT_VC;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +65,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
                         .flatMap(subjectDid -> {
                             String format = credentialRequest.format();
-                            return generateUnsignedVerifiableCredential(subjectDid, format)
+                            return generateUnsignedVerifiableCredential(subjectDid)
                                     .flatMap(credential -> credentialManagementService.commitCredential(credential, userId, format)
                                         .map(transactionId -> new VerifiableCredentialResponse(credential, transactionId, nonceClaim, 600)));
                         }));
@@ -101,7 +104,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     }
 
     @Override
-    public Mono<Void> signCredential(String unsignedCredential, String userId, UUID credentialId, String token){
+    public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token){
             return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
                     .flatMap(vcPayload -> {
                         SignatureRequest signatureRequest = new SignatureRequest(
@@ -116,39 +119,30 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
     }
 
-    private Mono<String> generateUnsignedVerifiableCredential(String subjectDid, String format) {
+    @Override
+    public Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String userId, UUID credentialId, String token) {
         return Mono.defer(() -> {
-            try {
-                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-                // Prepare desired custom data that should replace the default template data
-                log.info("Fetching information from authentic sources ...");
-                //return authenticSourcesRemoteService.getUser(token)
-                return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(userData -> {
-                            // todo get issuer did from dss module
-                            // Get Credential template from local file
-                            String learTemplate;
-                            try {
-                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-
-                            // Create VC according to the format
-                            if(format.equals(JWT_VC)){
-                                return Mono.just(learTemplate)
-                                        .flatMap(template -> verifiableCredentialService.generateVc(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration));
-                            } else {
-                                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
-                            }
-                        });
-            } catch (UserDoesNotExistException e) {
-                log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new RuntimeException(e));
-            }
-        });
+        if(format.equals(JWT_VC)){
+            log.info(unsignedCredential);
+            log.info("Signing credential in JADES remotely ...");
+            SignatureRequest signatureRequest = new SignatureRequest(
+                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                    unsignedCredential
+            );
+            return remoteSignatureService.sign(signatureRequest, token)
+                    .publishOn(Schedulers.boundedElastic())
+                    .map(SignedData::data);
+        } else if (format.equals(CWT_VC)) {
+            log.info(unsignedCredential);
+            return generateCborFromJson(unsignedCredential)
+                    .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
+                    .flatMap(this::compressAndConvertToBase45FromCOSE);
+        } else {
+            return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
+        }});
     }
-    private Mono<String> generateVerifiableCredential(String token, String subjectDid, String format) {
+
+    private Mono<String> generateUnsignedVerifiableCredential(String subjectDid) {
         return Mono.defer(() -> {
             try {
                 Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
@@ -163,32 +157,10 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             try {
                                 learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+                                return Mono.error(new RuntimeException(e));
                             }
 
-                            // Create VC according to the format and sign it
-                            return Mono.just(learTemplate)
-                                    .flatMap(template -> verifiableCredentialService.generateVcPayLoad(template, subjectDid, appConfiguration.getIssuerDid(), userData, expiration))
-                                    .flatMap(vcString -> {
-                                        if(format.equals(JWT_VC)){
-                                            log.info(vcString);
-                                            log.info("Signing credential in JADES remotely ...");
-                                            SignatureRequest signatureRequest = new SignatureRequest(
-                                                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                                    vcString
-                                            );
-                                            return remoteSignatureService.sign(signatureRequest, token)
-                                                    .publishOn(Schedulers.boundedElastic())
-                                                    .map(SignedData::data);
-                                        } else if (format.equals("cwt_vc")) {
-                                            log.info(vcString);
-                                            return generateCborFromJson(vcString)
-                                                    .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                                                    .flatMap(this::compressAndConvertToBase45FromCOSE);
-                                        } else {
-                                            return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
-                                        }
-                                    });
+                            return verifiableCredentialService.generateVc(learTemplate, subjectDid, appConfiguration.getIssuerDid(), userData, expiration);
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());

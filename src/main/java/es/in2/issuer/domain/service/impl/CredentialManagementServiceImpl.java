@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.entity.CredentialDeferred;
+import es.in2.issuer.domain.entity.CredentialManagement;
 import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 import es.in2.issuer.domain.model.CredentialItem;
-import es.in2.issuer.domain.entity.CredentialManagement;
 import es.in2.issuer.domain.repository.CredentialDeferredRepository;
 import es.in2.issuer.domain.repository.CredentialManagementRepository;
 import es.in2.issuer.domain.service.CredentialManagementService;
@@ -26,7 +26,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Constants.CREDENTIAL_ISSUED;
+import static es.in2.issuer.domain.util.Constants.CREDENTIAL_VALID;
 
 @Slf4j
 @Service
@@ -34,7 +35,7 @@ import static es.in2.issuer.domain.util.Constants.*;
 public class CredentialManagementServiceImpl implements CredentialManagementService {
     private final CredentialManagementRepository credentialManagementRepository;
     private final CredentialDeferredRepository credentialDeferredRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<String> commitCredential(String credential, String userId, String format) {
@@ -45,7 +46,7 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
         newCredential.setCredentialDecoded(credential);
         newCredential.setCredentialStatus(CREDENTIAL_ISSUED);
         newCredential.setCredentialFormat(format);
-        newCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));  // Setting current date as modified date
+        newCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));
 
         CredentialDeferred newCredentialDeferred = new CredentialDeferred();
         newCredentialDeferred.setTransactionId(transactionId);
@@ -85,7 +86,7 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                     deferredCredential.setTransactionId(newTransactionId); // Update transactionId
                     return credentialDeferredRepository.save(deferredCredential); // Save the updated credential
                 })
-                .map(updateDeferredCredential -> updateDeferredCredential.getTransactionId()); // Return new transactionId
+                .map(CredentialDeferred::getTransactionId); // Return new transactionId
     }
 
     @Override

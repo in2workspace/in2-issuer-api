@@ -8,8 +8,6 @@ import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,7 +15,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +22,8 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
-import java.util.UUID;
+
+import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
 
 @Slf4j
 @RestController
@@ -67,7 +65,7 @@ public class VerifiableCredentialController {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -83,7 +81,7 @@ public class VerifiableCredentialController {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -99,6 +97,6 @@ public class VerifiableCredentialController {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 }
