@@ -1,20 +1,15 @@
 package es.in2.issuer.application.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.Grant;
-import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
-import es.in2.issuer.infrastructure.repository.CacheStore;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,32 +24,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferIssuanceServiceImplTest {
     @Mock
-    private CacheStore<CustomCredentialOffer> cacheStore;
-    @Mock
-    private AppConfiguration appConfiguration;
-
-    @Mock
     private IamAdapterFactory iamAdapterFactory;
-
-    @Mock
-    private GenericIamAdapter genericIamAdapter;
 
     @Mock
     private HttpUtils httpUtils;
 
     @Mock
     private ObjectMapper objectMapper;
-
-    @Mock
-    private CredentialIssuerMetadataService credentialIssuerMetadataService;
     @Mock
     private CredentialOfferServiceImpl credentialOfferService;
     @Mock
