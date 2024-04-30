@@ -4,8 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
-import es.in2.issuer.domain.model.CredentialItem;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
@@ -33,17 +31,18 @@ import reactor.core.publisher.Mono;
 import java.text.ParseException;
 import java.util.*;
 
+import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/credentials")
 @RequiredArgsConstructor
 public class CredentialManagementController {
 
-    private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
     private final CredentialManagementService credentialManagementService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final HttpUtils httpUtils;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     @Operation(
             summary = "Get the credentials committed by the current user",
@@ -81,7 +80,7 @@ public class CredentialManagementController {
                 })
                 .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
                 .doOnNext(result -> log.info("Accessed getCredentials"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @GetMapping(value = "/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -96,7 +95,7 @@ public class CredentialManagementController {
                         return Mono.error(e);
                     }
                 }).doOnNext(result -> log.info("CredentialManagementController - getCredential()"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -119,7 +118,7 @@ public class CredentialManagementController {
                                     try {
                                         signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
                                     } catch (JsonProcessingException e) {
-                                        throw new RuntimeException(e);
+                                        return Mono.error(new RuntimeException(e));
                                     }
                                     // Prepare headers
                                     List<Map.Entry<String, String>> headers = new ArrayList<>();
@@ -135,10 +134,10 @@ public class CredentialManagementController {
                                                 try {
                                                     responseNode = objectMapper.readTree(response);
                                                 } catch (JsonProcessingException e) {
-                                                    throw new RuntimeException(e);
+                                                    return Mono.error(new RuntimeException(e));
                                                 }
                                                 String signedCredential = responseNode.get("data").asText();
-                                    //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
+                                                //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
                                                 // Update the credential
                                                 return credentialManagementService.updateCredential(signedCredential, credentialId, userId);
                                             });
@@ -147,8 +146,8 @@ public class CredentialManagementController {
                         return Mono.error(e);
                     }
                 })
-                .doOnNext(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
-                .onErrorMap(e -> new RuntimeException("Error processing the request", e));
+                .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
 }

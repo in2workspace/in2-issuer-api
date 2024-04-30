@@ -1,8 +1,10 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +13,8 @@ import reactor.core.publisher.Mono;
 
 import java.time.Instant;
 import java.util.UUID;
+
+import static es.in2.issuer.domain.util.Constants.*;
 
 
 @Service
@@ -21,102 +25,73 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     @Override
     public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
         return Mono.fromCallable(() -> {
-            // Parse vcTemplate to a JsonNode
-            JsonNode vcTemplateNode = objectMapper.readTree(vcTemplate);
-
-            // Generate a unique UUID for jti and vc.id
-            String uuid = "urn:uuid:" + UUID.randomUUID();
-
-            // Calculate timestamps
+            JsonNode vcTemplateNode = parseJson(vcTemplate);
+            String uuid = UUID.randomUUID().toString();
             Instant nowInstant = Instant.now();
-            long nowTimestamp = nowInstant.getEpochSecond();
-            long expTimestamp = expiration.getEpochSecond();
 
-            // Update vcTemplateNode with dynamic values
-            ((ObjectNode) vcTemplateNode).put("id", uuid);
-            ((ObjectNode) vcTemplateNode).put("issuer", issuerDid);
-            // Update issuanceDate, issued, validFrom, expirationDate in vcTemplateNode using ISO 8601 format
-            String nowDateStr = nowInstant.toString();
-            String expirationDateStr = expiration.toString();
-            ((ObjectNode) vcTemplateNode).put("issuanceDate", nowDateStr);
-            ((ObjectNode) vcTemplateNode).put("validFrom", nowDateStr);
-            ((ObjectNode) vcTemplateNode).put("expirationDate", expirationDateStr);
+            updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
 
-            // Convert userData to JsonNode and add the subjectDid
             JsonNode credentialSubjectValue = objectMapper.readTree(userData);
             ((ObjectNode) credentialSubjectValue).put("id", subjectDid);
-            ((ObjectNode) vcTemplateNode).set("credentialSubject", credentialSubjectValue);
+            ((ObjectNode) vcTemplateNode).set(CREDENTIAL_SUBJECT, credentialSubjectValue);
 
-            // Construct final JSON ObjectNode
-            ObjectNode finalObject = objectMapper.createObjectNode();
-            finalObject.put("sub", subjectDid);
-            finalObject.put("nbf", nowTimestamp);
-            finalObject.put("iss", issuerDid);
-            finalObject.put("exp", expTimestamp);
-            finalObject.put("iat", nowTimestamp);
-            finalObject.put("jti", uuid);
-            finalObject.set("vc", vcTemplateNode);
-
-            // Return final object as String
-            return objectMapper.writeValueAsString(finalObject);
+            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
         });
     }
     @Override
     public Mono<String> generateDeferredVcPayLoad(String vcTemplate) {
         return Mono.fromCallable(() -> {
-            // Parse vcTemplate to a JsonNode
-            JsonNode vcTemplateNode = objectMapper.readTree(vcTemplate);
-            String subjectDid = vcTemplateNode.get("credentialSubject").get("id").asText();
-            String issuerDid = vcTemplateNode.get("issuer").asText();
+            JsonNode vcTemplateNode = parseJson(vcTemplate);
+            String subjectDid = vcTemplateNode.get(CREDENTIAL_SUBJECT).get(ID).asText();
+            String issuerDid = vcTemplateNode.get(ISSUER).asText();
+            Instant nowInstant = Instant.parse(vcTemplateNode.get(VALID_FROM).asText());
+            Instant expiration = Instant.parse(vcTemplateNode.get(EXPIRATION_DATE).asText());
 
-            // Calculate timestamps
-            String nowTimestamp = vcTemplateNode.get("validFrom").asText();
-            String expTimestamp = vcTemplateNode.get("expirationDate").asText();
-
-
-            // Construct final JSON ObjectNode
-            ObjectNode finalObject = objectMapper.createObjectNode();
-            finalObject.put("sub", subjectDid);
-            finalObject.put("nbf", nowTimestamp);
-            finalObject.put("iss", issuerDid);
-            finalObject.put("exp", expTimestamp);
-            finalObject.put("iat", nowTimestamp);
-            finalObject.put("jti", subjectDid);
-            finalObject.set("vc", vcTemplateNode);
-
-            // Return final object as String
-            return objectMapper.writeValueAsString(finalObject);
+            updateTemplateNode(vcTemplateNode, subjectDid, issuerDid, nowInstant, expiration);
+            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, subjectDid, nowInstant, expiration));
         });
     }
     @Override
     public Mono<String> generateVc(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
         return Mono.fromCallable(() -> {
-            // Parse vcTemplate to a JsonNode
-            JsonNode vcTemplateNode = objectMapper.readTree(vcTemplate);
-
-            // Generate a unique UUID for jti and vc.id
-            String uuid = "urn:uuid:" + UUID.randomUUID();
-
-            // Calculate timestamps
+            JsonNode vcTemplateNode = parseJson(vcTemplate);
+            String uuid = UUID.randomUUID().toString();
             Instant nowInstant = Instant.now();
 
-            // Update vcTemplateNode with dynamic values
-            ((ObjectNode) vcTemplateNode).put("id", uuid);
-            ((ObjectNode) vcTemplateNode).put("issuer", issuerDid);
-            // Update issuanceDate, issued, validFrom, expirationDate in vcTemplateNode using ISO 8601 format
-            String nowDateStr = nowInstant.toString();
-            String expirationDateStr = expiration.toString();
-            ((ObjectNode) vcTemplateNode).put("issuanceDate", nowDateStr);
-            ((ObjectNode) vcTemplateNode).put("validFrom", nowDateStr);
-            ((ObjectNode) vcTemplateNode).put("expirationDate", expirationDateStr);
+            updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
 
-            // Convert userData to JsonNode and add the subjectDid
             JsonNode credentialSubjectValue = objectMapper.readTree(userData);
-            ((ObjectNode) credentialSubjectValue).put("id", subjectDid);
-            ((ObjectNode) vcTemplateNode).set("credentialSubject", credentialSubjectValue);
+            ((ObjectNode) credentialSubjectValue).put(ID, subjectDid);
+            ((ObjectNode) vcTemplateNode).set(CREDENTIAL_SUBJECT, credentialSubjectValue);
 
-            // Return final object as String
             return objectMapper.writeValueAsString(vcTemplateNode);
         });
+    }
+
+    private void updateTemplateNode(JsonNode vcTemplateNode, String uuid, String issuerDid, Instant nowInstant, Instant expiration) {
+        ((ObjectNode) vcTemplateNode).put(ID, uuid);
+        ((ObjectNode) vcTemplateNode).put(ISSUER, issuerDid);
+        ((ObjectNode) vcTemplateNode).put(ISSUANCE_DATE, nowInstant.toString());
+        ((ObjectNode) vcTemplateNode).put(VALID_FROM, nowInstant.toString());
+        ((ObjectNode) vcTemplateNode).put(EXPIRATION_DATE, expiration.toString());
+    }
+
+    private ObjectNode constructFinalObjectNode(JsonNode vcTemplateNode, String subjectDid, String issuerDid, String uuid, Instant nowInstant, Instant expiration) {
+        ObjectNode finalObject = objectMapper.createObjectNode();
+        finalObject.put("sub", subjectDid);
+        finalObject.put("nbf", nowInstant.getEpochSecond());
+        finalObject.put("iss", issuerDid);
+        finalObject.put("exp", expiration.getEpochSecond());
+        finalObject.put("iat", nowInstant.getEpochSecond());
+        finalObject.put("jti", uuid);
+        finalObject.set("vc", vcTemplateNode);
+        return finalObject;
+    }
+    private JsonNode parseJson(String json) {
+        try {
+            return objectMapper.readTree(json);
+        } catch (JsonProcessingException e) {
+            throw new ParseErrorException(e.getMessage());
+        }
     }
 }
