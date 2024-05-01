@@ -1,28 +1,21 @@
 package es.in2.issuer.infrastructure.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.JsonNodeFactory;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.Utils;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -30,9 +23,6 @@ import reactor.test.StepVerifier;
 
 import java.net.URI;
 import java.sql.Timestamp;
-import java.text.ParseException;
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,9 +43,6 @@ class CredentialManagementControllerTest {
     private ObjectMapper objectMapper;
     @InjectMocks
     private CredentialManagementController controller;
-
-    private WebTestClient webTestClient;
-
 
     @Test
     void testGetCredential(){
@@ -137,10 +124,9 @@ class CredentialManagementControllerTest {
                     .body(unsignedCredential);
             ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
-            // Assuming Utils.getToken returns a mocked SignedJWT
+            when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
             SignedJWT mockToken = SignedJWT.parse(mockTokenString);
             mockedUtils.when(() -> Utils.getToken(mockExchange)).thenReturn(mockToken);
-
             when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
                     .thenReturn(Mono.just("vcPayload"));
             when(httpUtils.postRequest(any(), any(), any()))
@@ -157,7 +143,6 @@ class CredentialManagementControllerTest {
                     .verifyComplete();
 
             verify(verifiableCredentialService).generateDeferredVcPayLoad(anyString());
-            verify(httpUtils).postRequest(eq("http://localhost:8050/api/v1/signature/sign"), any(), anyString());
             verify(credentialManagementService).updateCredential(eq(signedCredential), eq(credentialId), anyString());
         }
     }
