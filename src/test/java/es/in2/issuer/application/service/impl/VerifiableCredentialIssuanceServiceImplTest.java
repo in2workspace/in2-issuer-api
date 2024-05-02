@@ -1,5 +1,6 @@
 package es.in2.issuer.application.service.impl;
 
+
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.CredentialRequest;
 import es.in2.issuer.domain.model.Proof;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.io.Resource;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -20,10 +22,12 @@ import reactor.test.StepVerifier;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,43 +69,47 @@ class VerifiableCredentialIssuanceServiceImplTest {
             "}";
 
     @BeforeEach
-    void setup() throws IOException {
+    public void setUp() throws IOException {
         Resource mockResource = mock(Resource.class);
         lenient().when(mockResource.getInputStream()).thenReturn(new ByteArrayInputStream(templateContent.getBytes(StandardCharsets.UTF_8)));
 
         ReflectionTestUtils.setField(service, "learCredentialTemplate", mockResource);
     }
-//    @Test
-//    void testGenerateVerifiableCredentialResponse() throws UserDoesNotExistException {
-//        String did = "did:key:zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC#zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC";
-//        String jwtProof = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MjekRuYWVuMjN3TTc2Z3BpU0xIa3U0YkZEYnNzVlM5c3R5OXgzSzd5VnFqYlNkVFBXQyIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTI5MTcwNDAsImlhdCI6MTcxMjA1MzA0MCwibm9uY2UiOiI4OVh4bXdMMlJtR2wyUlp1LU1UU3lRPT0ifQ.DdaaNm4vTn60njLtAQ7Q5oGsQILfA-5h9-sv4MBcVyNBAfSrUUajZqlUukT-5Bx8EqocSvf0RIFRHLcvO9_LMg";
-//        String userId = "user123";
-//        String token = "dummyToken";
-//        String unsignedCredential = "unsignedCredential";
-//        String transactionId = "1234";
-//        CredentialRequest credentialRequest = CredentialRequest.builder()
-//                .proof(
-//                        Proof.builder().proofType("jwt").jwt(jwtProof).build())
-//                .format(JWT_VC)
-//                .build();
-//        VerifiableCredentialResponse expectedResponse = VerifiableCredentialResponse.builder()
-//                .credential(unsignedCredential)
-//                .transactionId(transactionId)
-//                .cNonce("89XxmwL2RmGl2RZu-MTSyQ==")
-//                .cNonceExpiresIn(600)
-//                .build();
-//
-//        when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
-//        when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
-//        when(verifiableCredentialService.generateVc(eq(templateContent), eq(did), eq("did:example:issuer"), eq("userData"), any())).thenReturn(Mono.just(unsignedCredential));
-//        when(credentialManagementService.commitCredential(unsignedCredential, userId,credentialRequest.format())).thenReturn(Mono.just(transactionId));
-//        when(appConfiguration.getIssuerExternalDomain()).thenReturn("did:example:issuer");
-//
-//        StepVerifier.create(service.generateVerifiableCredentialResponse(userId, credentialRequest, token))
-//                .assertNext(response -> assertEquals(expectedResponse, response))
-//                .verifyComplete();
-//
-//    }
+
+    @Test
+    void testGenerateVerifiableCredentialResponse() throws UserDoesNotExistException{
+        String did = "did:key:zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC";
+        String jwtProof = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MjekRuYWVuMjN3TTc2Z3BpU0xIa3U0YkZEYnNzVlM5c3R5OXgzSzd5VnFqYlNkVFBXQyIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTI5MTcwNDAsImlhdCI6MTcxMjA1MzA0MCwibm9uY2UiOiI4OVh4bXdMMlJtR2wyUlp1LU1UU3lRPT0ifQ.DdaaNm4vTn60njLtAQ7Q5oGsQILfA-5h9-sv4MBcVyNBAfSrUUajZqlUukT-5Bx8EqocSvf0RIFRHLcvO9_LMg";
+        String userId = "user123";
+        String token = "dummyToken";
+        String unsignedCredential = "unsignedCredential";
+        String transactionId = "1234";
+        CredentialRequest credentialRequest = CredentialRequest.builder()
+                .proof(
+                        Proof.builder().proofType("jwt").jwt(jwtProof).build())
+                .format(JWT_VC)
+                .build();
+        VerifiableCredentialResponse expectedResponse = VerifiableCredentialResponse.builder()
+                .credential(unsignedCredential)
+                .transactionId(transactionId)
+                .cNonce("89XxmwL2RmGl2RZu-MTSyQ==")
+                .cNonceExpiresIn(600)
+                .build();
+
+        when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
+        when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
+        when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
+        when(verifiableCredentialService.generateVc(
+                        eq(templateContent),eq(did),eq("did:example:issuer"),eq("userData"),any(Instant.class))
+                )
+                .thenReturn(Mono.just(unsignedCredential));
+        when(credentialManagementService.commitCredential(unsignedCredential, userId,credentialRequest.format())).thenReturn(Mono.just(transactionId));
+
+        StepVerifier.create(service.generateVerifiableCredentialResponse(userId, credentialRequest, token))
+                .assertNext(response -> assertEquals(expectedResponse, response))
+                .verifyComplete();
+
+    }
 //    @Test
 //    void generateVerifiableCredentialResponse_Success_JWTFormat() throws UserDoesNotExistException {
 //        // Creating the inner map for LEARCredential data
