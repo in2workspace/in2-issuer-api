@@ -25,6 +25,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import static es.in2.issuer.domain.util.Constants.CWT_VC;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -261,6 +262,24 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         StepVerifier.create(service.signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, userId, credentialId, token))
                 .assertNext(signedData -> assertEquals(signedCredential, signedData))
+                .verifyComplete();
+    }
+
+    @Test
+    void signCredentialOnRequestedFormat_CWT_Success() {
+        String unsignedCredential = "{\"data\":\"data\"}";
+        String userId = "user123";
+        UUID credentialId = UUID.randomUUID();
+        String token = "dummyToken";
+        String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
+        String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
+
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
+
+
+        StepVerifier.create(service.signCredentialOnRequestedFormat(unsignedCredential, CWT_VC, userId, credentialId, token))
+                .assertNext(signedData -> assertEquals(signedResult, signedData))
                 .verifyComplete();
     }
 
