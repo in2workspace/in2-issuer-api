@@ -13,7 +13,7 @@ public class FlywayConfig {
     @Bean
     public Flyway flyway() {
         Flyway flyway = Flyway.configure()
-                .dataSource(appConfiguration.getDbUrl(),appConfiguration.getDbUser(),appConfiguration.getDbPassword())
+                .dataSource("jdbc:postgresql://"+appConfiguration.getDbHost()+":"+appConfiguration.getDbPort()+"/"+appConfiguration.getDbName(), appConfiguration.getDbUser(),appConfiguration.getDbPassword())
                 .locations("classpath:db/migration")
                 .load();
         flyway.migrate();

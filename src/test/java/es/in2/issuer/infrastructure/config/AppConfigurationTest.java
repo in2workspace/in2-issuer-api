@@ -78,4 +78,75 @@ class AppConfigurationTest {
         when(genericConfigAdapter.getConfiguration("issuer.did")).thenReturn(expected);
         assertEquals(expected, appConfiguration.getIssuerDid());
     }
+
+    @Test
+    void testGetJwtDecoderPath() {
+        String expected = "jwt-decoder-path";
+        when(appConfigurationProperties.jwtDecoderPath()).thenReturn("jwt.decoder.path");
+        when(genericConfigAdapter.getConfiguration("jwt.decoder.path")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getJwtDecoderPath());
+    }
+
+    @Test
+    void testGetJwtDecoderLocalPath() {
+        String expected = "jwt-decoder-local-path";
+        when(appConfigurationProperties.jwtDecoderLocalPath()).thenReturn("jwt.decoder.local.path");
+        when(genericConfigAdapter.getConfiguration("jwt.decoder.local.path")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getJwtDecoderLocalPath());
+    }
+
+    @Test
+    void testGetPreAuthCodeUriTemplate() {
+        String expected = "pre-auth-code-uri-template";
+        when(appConfigurationProperties.preAuthCodeUriTemplate()).thenReturn("pre.auth.code.uri.template");
+        when(genericConfigAdapter.getConfiguration("pre.auth.code.uri.template")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getPreAuthCodeUriTemplate());
+    }
+
+    @Test
+    void testGetTokenUriTemplate() {
+        String expected = "token-uri-template";
+        when(appConfigurationProperties.tokenUriTemplate()).thenReturn("token.uri.template");
+        when(genericConfigAdapter.getConfiguration("token.uri.template")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getTokenUriTemplate());
+    }
+
+    @Test
+    void testGetDbUser() {
+        String expected = "db-user";
+        when(appConfigurationProperties.dbUser()).thenReturn("db.user");
+        when(genericConfigAdapter.getConfiguration("db.user")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getDbUser());
+    }
+
+    @Test
+    void testGetDbPassword() {
+        String expected = "db-password";
+        when(appConfigurationProperties.dbPassword()).thenReturn("db.password");
+        when(genericConfigAdapter.getConfiguration("db.password")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getDbPassword());
+    }
+    @Test
+    void testGetDbHost() {
+        String expected = "db-host";
+        when(appConfigurationProperties.dbHost()).thenReturn("db.host");
+        when(genericConfigAdapter.getConfiguration("db.host")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getDbHost());
+    }
+
+    @Test
+    void testGetDbPort() {
+        int expected = 1234; // Use int since getDbPort() returns an int
+        when(appConfigurationProperties.dbPort()).thenReturn("db.port");
+        when(genericConfigAdapter.getConfiguration("db.port")).thenReturn(Integer.toString(expected));
+        assertEquals(expected, appConfiguration.getDbPort());
+    }
+
+    @Test
+    void testGetDbName() {
+        String expected = "db-name";
+        when(appConfigurationProperties.dbName()).thenReturn("db.name");
+        when(genericConfigAdapter.getConfiguration("db.name")).thenReturn(expected);
+        assertEquals(expected, appConfiguration.getDbName());
+    }
 }

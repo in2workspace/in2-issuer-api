@@ -29,11 +29,11 @@ public class DatabaseConfig extends AbstractR2dbcConfiguration {
     public ConnectionFactory connectionFactory() {
         return ConnectionFactories.get(ConnectionFactoryOptions.builder()
                 .option(DRIVER, "postgresql")
-                .option(HOST, "localhost")
-                .option(PORT, 5432) // Optional if default
+                .option(HOST, appConfiguration.getDbHost())
+                .option(PORT, appConfiguration.getDbPort())
                 .option(USER, appConfiguration.getDbUser())
                 .option(PASSWORD, appConfiguration.getDbPassword())
-                .option(DATABASE, "issuer")
+                .option(DATABASE, appConfiguration.getDbName())
                 .build());
     }
 }

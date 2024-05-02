@@ -58,13 +58,19 @@ public class AppConfiguration {
     public String getTokenUriTemplate() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.tokenUriTemplate());
     }
-    public String getDbUrl() {
-        return genericConfigAdapter.getConfiguration(appConfigurationProperties.dbUrl());
-    }
     public String getDbUser() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.dbUser());
     }
     public String getDbPassword() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.dbPassword());
+    }
+    public String getDbHost() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.dbHost());
+    }
+    public int getDbPort() {
+        return Integer.parseInt(genericConfigAdapter.getConfiguration(appConfigurationProperties.dbPort()));
+    }
+    public String getDbName() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.dbName());
     }
 }
