@@ -5,6 +5,7 @@ import lombok.Builder;
 
 import java.util.List;
 
+@Builder
 public record BatchCredentialResponse(
         @JsonProperty("credential_responses") List<CredentialResponse> credentialResponses) {
     @Builder
