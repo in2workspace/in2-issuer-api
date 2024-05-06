@@ -20,16 +20,7 @@ class VcSchemaServiceImplTest {
     @InjectMocks
     private VcSchemaServiceImpl issuerVcTemplateService;
     private final List<String> vcTemplateNames = Arrays.asList(
-            "LegalPerson", "Email", "Europass", "KybCredential", "UniversityDegree",
-            "NEOM/StudentCard", "AmletCredential", "EbsiVerifiableAttestationPerson", "DataConsortium",
-            "VerifiableAuthorization", "EbsiAccreditedVerifiableAttestation", "OpenBadgeCredential",
-            "EuropeanBankIdentity", "Iso27001Certificate", "GaiaxCredential", "EbsiVerifiableAttestationLegal",
-            "PermanentResidentCard", "VerifiablePresentation", "VerifiableId", "ProofOfResidence",
-            "DeqarReport", "KybMonoCredential", "VerifiableDiploma", "ServiceOfferingCredential",
-            "EbsiVerifiableAttestationGeneric", "VerifiableVaccinationCertificate", "DataServiceOffering",
-            "DataSelfDescription", "EbsiVerifiableAccreditationToAccredit", "KycCredential", "EbsiEuropass",
-            "EbsiDiplomaVerifiableAccreditation", "VerifiableMandate", "PeerReview", "ParticipantCredential",
-            "VerifiableAttestation", "CustomerCredential", "LEARCredential"
+            "VerifiableCredential"
     );
 
     @Test

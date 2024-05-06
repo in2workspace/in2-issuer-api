@@ -37,8 +37,8 @@ class CredentialIssuerMetadataServiceImplTest {
             StepVerifier.create(service.generateOpenIdCredentialIssuer())
                     .assertNext(metadata -> {
                         assertEquals("https://example.com", metadata.credentialIssuer());
-                        assertEquals("https://example.com/api/vc/credential", metadata.credentialEndpoint());
-                        assertEquals("https://example.com/api/vc/batch_credential", metadata.batchCredentialEndpoint());
+                        assertEquals("https://example.com/api/v1/vc/credential", metadata.credentialEndpoint());
+                        assertEquals("https://example.com/api/v1/vc/batch_credential", metadata.batchCredentialEndpoint());
                         assertNotNull(metadata.credentialConfigurationsSupported());
                     })
                     .verifyComplete();

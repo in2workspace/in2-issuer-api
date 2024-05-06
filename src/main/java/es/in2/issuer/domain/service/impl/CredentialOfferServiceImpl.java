@@ -12,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 
 
@@ -27,7 +28,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
         return Mono.just(CustomCredentialOffer.builder()
                 .credentialIssuer(appConfiguration.getIssuerExternalDomain())
                 .credentials(List.of(
-                        new CustomCredentialOffer.Credential(JWT_VC, List.of(credentialType))
+                        CustomCredentialOffer.Credential.builder().format(JWT_VC).types(List.of(credentialType)).build()
                 ))
                 .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT))
                 .grants(Map.of(GRANT_TYPE, grant))
@@ -37,8 +38,8 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     @Override
     public Mono<String> createCredentialOfferUri(String nonce) {
         return Mono.just(
-                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/api/v1/credential-offer?credential_offer_uri=") +
-                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/api/v1/credential-offer/" + nonce)
+                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + LEAR_CREDENTIAL_URI) +
+                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + CREDENTIAL_OFFER + nonce)
         );
     }
 

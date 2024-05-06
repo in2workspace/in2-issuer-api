@@ -59,7 +59,7 @@ class CredentialOfferServiceImplTest {
         Mono<String> result = credentialOfferService.createCredentialOfferUri(nonce);
 
         StepVerifier.create(result)
-                .expectNext("https://example.com/credential-offer?credential_offer_uri=https://example.com/credential-offer/abc123")
+                .expectNext("https://example.com/api/v1/credential-offer?credential_offer_uri=https://example.com/api/v1/credential-offer/abc123")
                 .verifyComplete();
     }
 

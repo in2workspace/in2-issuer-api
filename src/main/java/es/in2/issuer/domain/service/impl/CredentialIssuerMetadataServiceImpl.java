@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 
 @Service
@@ -43,11 +44,9 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)
-                        // oldfixme: Este path debe capturarse de la configuración
-                        // como es el nombre de los endpoints es estandar no es necesario que sea configurable
-                        .credentialEndpoint(credentialIssuerDomain + "/api/v1/vc/credential")
-                        .batchCredentialEndpoint(credentialIssuerDomain + "/api/v1/vc/batch_credential")
-                        .deferredCredentialEndpoint(credentialIssuerDomain + "/api/v1/vc/deferred_credential")
+                        .credentialEndpoint(credentialIssuerDomain + CREDENTIAL)
+                        .batchCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_BATCH)
+                        .deferredCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_DEFERRED)
                         .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_JWT, learCredentialJwt, LEAR_CREDENTIAL_CWT, learCredentialCwt))
                         .build()
         );

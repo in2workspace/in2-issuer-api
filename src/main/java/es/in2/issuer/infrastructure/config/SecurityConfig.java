@@ -9,9 +9,6 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
@@ -21,6 +18,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
 
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
@@ -31,17 +29,6 @@ public class SecurityConfig {
 
     private final IamAdapterFactory iamAdapterFactory;
 
-//    @Bean
-//    @Profile("!dev")
-//    public ReactiveJwtDecoder jwtDecoder(){
-//        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-//                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
-//                .jwsAlgorithm(SignatureAlgorithm.RS256)
-//                .build();
-//        // fixme: url hardcoded
-//        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer("https://preproduccio-iep.dev.in2.es/cross-keycloak/realms/EAAProvider"));
-//        return jwtDecoder;
-//    }
     @Bean
     @Profile("!dev")
     public ReactiveJwtDecoder jwtDecoder(){
@@ -58,10 +45,10 @@ public class SecurityConfig {
         http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(getSwaggerPaths()).permitAll()
-                        .pathMatchers("/health").permitAll()
-                        .pathMatchers("/api/v1/credential-offer/**").permitAll()
-                        .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
-                        .pathMatchers("/.well-known/openid-configuration").permitAll()
+                        .pathMatchers(PUBLIC_HEALTH).permitAll()
+                        .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
+                        .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
+                        .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
@@ -73,14 +60,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        // fixme: urls hardcoded
         corsConfig.setAllowedOrigins(Arrays.asList(
-                "https://epu-dev-app-01.azurewebsites.net",
-                "https://issueridp.dev.in2.es",
-                "https://app-wallet-wda-spa-iep-dev.azurewebsites.net",
-                "http://localhost:4200",
-                "http://localhost:4201",
-                "http://localhost:4202"));
+                LOCAL_ISSUER_UI));
         corsConfig.setMaxAge(8000L);
         corsConfig.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
@@ -99,13 +80,12 @@ public class SecurityConfig {
     }
 
     private String[] getSwaggerPaths() {
-        // fixme: urls hardcoded
         return new String[]{
-                "/swagger-ui/**",
-                "/swagger-resources/**",
-                "/api-docs/**",
-                "/spring-ui/**",
-                "/webjars/swagger-ui/**"
+                SWAGGER_UI,
+                SWAGGER_RESOURCES,
+                SWAGGER_API_DOCS,
+                SWAGGER_SPRING_UI,
+                SWAGGER_WEBJARS
         };
     }
 

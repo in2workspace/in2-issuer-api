@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.JWSObject;
+import es.in2.issuer.domain.exception.ProofValidationException;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,9 @@ import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_TYP;
 @Service
 @RequiredArgsConstructor
 public class ProofValidationServiceImpl implements ProofValidationService {
+
     private final CacheStore<String> cacheStore;
+
     @Override
     public Mono<Boolean> isProofValid(String jwtProof) {
         return Mono.just(jwtProof)
@@ -54,9 +57,9 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                         jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
                 )
                 .doOnSuccess(result -> log.debug("Final validation result: {}", result))
-                .onErrorResume(e -> {
+                .onErrorMap(e -> {
                     log.error("Error during JWT validation", e);
-                    return Mono.just(false);
+                    return new ProofValidationException("Error during JWT validation");
                 });
     }
 
@@ -89,7 +92,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
     private Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject) {
         String kid = jwsObject.getHeader().getKeyID();
         String encodedPublicKey = kid.substring(kid.indexOf("#") + 1);
-        return decodeDidKey(encodedPublicKey)
+        return decodePublicKeyIntoBytes(encodedPublicKey)
                 .flatMap(publicKeyBytes -> validateJwtSignature(jwsObject.getParsedString(), publicKeyBytes));
     }
 
@@ -127,13 +130,13 @@ public class ProofValidationServiceImpl implements ProofValidationService {
         });
     }
 
-    private Mono<byte[]> decodeDidKey(String didKey) {
+    private Mono<byte[]> decodePublicKeyIntoBytes(String publicKey) {
         return Mono.fromCallable(() -> {
             // Remove the prefix "z" to get the multibase encoded string
-            if (!didKey.startsWith("z")) {
-                throw new IllegalArgumentException("Invalid DID format.");
+            if (!publicKey.startsWith("z")) {
+                throw new IllegalArgumentException("Invalid Public Key.");
             }
-            String multibaseEncoded = didKey.substring(1);
+            String multibaseEncoded = publicKey.substring(1);
 
             // Multibase decode (Base58) the encoded part to get the bytes
             byte[] decodedBytes = Base58.base58Decode(multibaseEncoded);

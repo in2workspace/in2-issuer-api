@@ -8,6 +8,7 @@ import es.in2.issuer.domain.entity.CredentialManagement;
 import es.in2.issuer.domain.repository.CredentialDeferredRepository;
 import es.in2.issuer.domain.repository.CredentialManagementRepository;
 import es.in2.issuer.domain.service.impl.CredentialManagementServiceImpl;
+import es.in2.issuer.domain.util.CredentialStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,7 +24,6 @@ import java.sql.Timestamp;
 import java.util.Map;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.CREDENTIAL_ISSUED;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -138,7 +138,7 @@ class CredentialManagementServiceImplTest {
         cm.setId(credentialId);
         cm.setUserId(userId);
         cm.setCredentialDecoded(jsonCredential);
-        cm.setCredentialStatus(CREDENTIAL_ISSUED);
+        cm.setCredentialStatus(CredentialStatus.ISSUED.getStatus());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
@@ -166,7 +166,7 @@ class CredentialManagementServiceImplTest {
         cm.setId(credentialId);
         cm.setUserId(userId);
         cm.setCredentialDecoded(jsonCredential);
-        cm.setCredentialStatus(CREDENTIAL_ISSUED);
+        cm.setCredentialStatus(CredentialStatus.ISSUED.getStatus());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 

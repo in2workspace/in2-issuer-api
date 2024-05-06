@@ -23,16 +23,11 @@ public class Constants {
 
     public static final String SUPPORTED_PROOF_ALG = "ES256";
     public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
-
-    // Credentials stages
-    public static final String CREDENTIAL_ISSUED = "issued";
     public static final String REQUEST_ERROR_MESSAGE = "Error processing the request";
     public static final String ISSUER = "issuer";
     public static final String VALID_FROM = "validFrom";
     public static final String ISSUANCE_DATE = "issuanceDate";
     public static final String EXPIRATION_DATE = "expirationDate";
     public static final String ID = "id";
-    public static final String CREDENTIAL_VALID = "valid";
-    public static final String CREDENTIAL_EMITTED = "emitted";
 
 }
