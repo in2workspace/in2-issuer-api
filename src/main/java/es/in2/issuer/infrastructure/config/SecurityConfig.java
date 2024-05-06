@@ -59,7 +59,7 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(getSwaggerPaths()).permitAll()
                         .pathMatchers("/health").permitAll()
-                        .pathMatchers("/credential-offer/**").permitAll()
+                        .pathMatchers("/api/v1/credential-offer/**").permitAll()
                         .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
                         .pathMatchers("/.well-known/openid-configuration").permitAll()
                         .anyExchange().authenticated()

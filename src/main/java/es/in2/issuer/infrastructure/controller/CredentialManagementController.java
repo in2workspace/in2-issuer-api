@@ -35,7 +35,7 @@ import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/credentials")
+@RequestMapping("/api/v1/credentials")
 @RequiredArgsConstructor
 public class CredentialManagementController {
 

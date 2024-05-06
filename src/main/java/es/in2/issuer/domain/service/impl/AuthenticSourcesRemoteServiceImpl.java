@@ -3,6 +3,7 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.AuthenticSourcesUserParsingException;
+import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.CommitCredential;
 import es.in2.issuer.domain.model.SubjectDataResponse;
 import es.in2.issuer.domain.service.AuthenticSourcesRemoteService;
@@ -64,7 +65,7 @@ public class AuthenticSourcesRemoteServiceImpl implements AuthenticSourcesRemote
 
                 )
                 .doOnSuccess(result -> log.info("Successfully parsed user data from local file."))
-                .onErrorMap(Exception.class, e -> new RuntimeException("Failed to parse user data from local file.", e));
+                .onErrorMap(Exception.class, e -> new ParseErrorException("Failed to parse user data from local file."));
     }
 
     @Override

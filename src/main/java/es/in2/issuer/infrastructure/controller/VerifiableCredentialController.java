@@ -27,7 +27,7 @@ import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/vc")
+@RequestMapping("/api/v1/vc")
 @RequiredArgsConstructor
 public class VerifiableCredentialController {
 

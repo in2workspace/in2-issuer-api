@@ -20,9 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/.well-known/openid-configuration")
 @RequiredArgsConstructor
 public class AuthorizationServerMetadataController {
-
-    private final CredentialIssuerMetadataService credentialIssuerMetadataService;
-
+    // this controller is for mocking purposes until the implementation of a proxy for the authorization server custom endpoint
     @Operation(
             summary = "Retrieve OpenID Connect Credential Issuer Metadata",
             description = "Provides access to OpenID Connect (OIDC) Credential Issuer Metadata, which includes essential information about the OIDC credential issuer. The metadata offers details such as the issuer's URL, supported authentication methods, and other relevant information. Clients can use this metadata to configure their OIDC integration with the credential issuer. The response is in JSON format",

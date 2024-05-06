@@ -37,8 +37,8 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     @Override
     public Mono<String> createCredentialOfferUri(String nonce) {
         return Mono.just(
-                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/credential-offer?credential_offer_uri=") +
-                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/credential-offer/" + nonce)
+                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/api/v1/credential-offer?credential_offer_uri=") +
+                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + "/api/v1/credential-offer/" + nonce)
         );
     }
 

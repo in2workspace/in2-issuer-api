@@ -106,7 +106,7 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping(value = "/credential-offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/api/v1/credential-offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id) {
         log.info("Retrieving Credential Offer...");

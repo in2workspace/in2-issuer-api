@@ -45,10 +45,9 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                         .credentialIssuer(credentialIssuerDomain)
                         // oldfixme: Este path debe capturarse de la configuración
                         // como es el nombre de los endpoints es estandar no es necesario que sea configurable
-                        .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
-                        .batchCredentialEndpoint(credentialIssuerDomain + "/api/vc/batch_credential")
-                        .deferredCredentialEndpoint(credentialIssuerDomain + "/api/vc/deferred_credential")
-                        //.credentialToken(iamAdapterFactory.getAdapter().getTokenUri()) // Remove for DOME profile
+                        .credentialEndpoint(credentialIssuerDomain + "/api/v1/vc/credential")
+                        .batchCredentialEndpoint(credentialIssuerDomain + "/api/v1/vc/batch_credential")
+                        .deferredCredentialEndpoint(credentialIssuerDomain + "/api/v1/vc/deferred_credential")
                         .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_JWT, learCredentialJwt, LEAR_CREDENTIAL_CWT, learCredentialCwt))
                         .build()
         );
