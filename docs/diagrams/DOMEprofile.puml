@@ -1,0 +1,35 @@
+@startuml
+
+autonumber
+
+boundary "Issuer FrontEnd" as issuerSpa
+boundary "Credential Issuer" as issuerVci
+boundary "Wallet" as wallet
+
+    issuerSpa -> issuerVci: Create Credential Offer \n(Mock User and Credential Data)
+    issuerVci -> issuerVci: Generate and Save Credential Offer
+    issuerVci -> issuerSpa: Credential Offer URI
+group 2.ISSUED
+    wallet <-> issuerSpa: Scan QR Credential Offer
+    wallet -> wallet: Execute Credential Offer
+    wallet -> issuerVci: Get Credential
+    issuerVci -> issuerVci: Generate Credential and transaction_id \nSave in DB
+    issuerVci -> wallet: Return Unsigned Credential, transaction_id
+
+group SIGNATURE NOT READY
+    wallet -> issuerVci: Get Deferred Credential \ntransaction_id
+    issuerVci -> issuerVci: Generate new transaction_id \nUpdate transaction_id in DB
+    issuerVci -> wallet: Return New transaction_id
+
+end
+
+end
+group 3.VALID
+    issuerSpa -> issuerVci: Sign Credential \n->Mock local signature
+    issuerVci -> issuerVci: Update Credential in DB
+
+    wallet -> issuerVci: Get Deferred Credential \ntransaction_id
+    issuerVci -> issuerVci: Delete transaction_id
+    issuerVci -> wallet: Return Signed Credential
+end
+@enduml

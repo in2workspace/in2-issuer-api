@@ -31,18 +31,22 @@ public class SecurityConfig {
 
     private final IamAdapterFactory iamAdapterFactory;
 
+//    @Bean
+//    @Profile("!dev")
+//    public ReactiveJwtDecoder jwtDecoder(){
+//        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
+//                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
+//                .jwsAlgorithm(SignatureAlgorithm.RS256)
+//                .build();
+//        // fixme: url hardcoded
+//        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer("https://preproduccio-iep.dev.in2.es/cross-keycloak/realms/EAAProvider"));
+//        return jwtDecoder;
+//    }
     @Bean
     @Profile("!dev")
     public ReactiveJwtDecoder jwtDecoder(){
-        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
-                .jwsAlgorithm(SignatureAlgorithm.RS256)
-                .build();
-        // fixme: url hardcoded
-        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer("https://preproduccio-iep.dev.in2.es/cross-keycloak/realms/EAAProvider"));
-        return jwtDecoder;
+        return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoder());
     }
-
     @Bean
     @Profile("dev")
     public ReactiveJwtDecoder jwtDecoderLocal(){

@@ -1,3 +1,13 @@
+spring:
+  r2dbc:
+    url: "r2dbc:postgresql://localhost:5432/issuer"
+    username: "in2admin"
+    password: "in2pass"
+    generate-unique-name: true
+  flyway:
+    url: "jdbc:postgresql://localhost:5432/issuer"
+    locations: classpath:db/migration
+
 app:
   configs:
     iam-external-domain: http://localhost:8088
@@ -11,11 +21,6 @@ app:
     jwt-decoder-local-path: "/realms/EAAProvider"
     pre-auth-code-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/credential-offer"
     token-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/token"
-    db-user: "in2admin"
-    db-password: "in2pass"
-    db-host: "localhost"
-    db-port: 5432
-    db-name: "issuer"
 
 management:
   endpoints:

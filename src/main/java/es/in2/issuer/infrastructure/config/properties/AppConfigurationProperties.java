@@ -17,11 +17,6 @@ public record AppConfigurationProperties(
         @NotNull String jwtDecoderPath,
         @NotNull String jwtDecoderLocalPath,
         @NotNull String preAuthCodeUriTemplate,
-        @NotNull String tokenUriTemplate,
-        @NotNull String dbUser,
-        @NotNull String dbPassword,
-        @NotNull String dbHost,
-        @NotNull String dbPort,
-        @NotNull String dbName
+        @NotNull String tokenUriTemplate
 ) {}
 
