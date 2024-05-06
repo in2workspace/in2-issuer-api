@@ -8,6 +8,7 @@ import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
+import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,11 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.AbstractMap;
@@ -25,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -32,10 +38,6 @@ import static org.mockito.Mockito.when;
 class CredentialOfferIssuanceServiceImplTest {
     @Mock
     private IamAdapterFactory iamAdapterFactory;
-
-    @Mock
-    private HttpUtils httpUtils;
-
     @Mock
     private ObjectMapper objectMapper;
     @Mock
@@ -44,6 +46,8 @@ class CredentialOfferIssuanceServiceImplTest {
     private CredentialOfferCacheStorageService credentialOfferCacheStorageService;
     @Mock
     private VcSchemaService vcSchemaService;
+    @Mock
+    private WebClientConfig webClientConfig;
     @InjectMocks
     private CredentialOfferIssuanceServiceImpl credentialOfferIssuanceService;
 
@@ -77,8 +81,19 @@ class CredentialOfferIssuanceServiceImplTest {
 
         // Ensure the JSON is valid and corresponds to a Grant object
         String jsonString = "{\"pre-authorized_code\":\"your_pre_authorized_code_here\"}";
-        when(httpUtils.prepareHeadersWithAuth(token)).thenReturn(Mono.just(headers));
-        when(httpUtils.getRequest(getPreAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json", headers)).thenReturn(Mono.just(jsonString));
+        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
+
+        // Create a mock ClientResponse for a successful response
+        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
+                .header("Content-Type", "application/json")
+                .body(jsonString)
+                .build();
+
+        // Stub the exchange function to return the mock ClientResponse
+        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
+
+        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
+        when(webClientConfig.centralizedWebClient()).thenReturn(webClient);
 
         // Mock objectMapper to return a non-null Grant
         Grant mockGrant = Grant.builder().build(); // Assume Grant is a simple class, adjust accordingly

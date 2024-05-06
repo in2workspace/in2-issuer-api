@@ -9,11 +9,15 @@ import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.util.HttpUtils;
+import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.util.Objects;
 
 
 @Slf4j
@@ -27,6 +31,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     private final IamAdapterFactory iamAdapterFactory;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
+    private final WebClientConfig webClient;
 
     @Override
     public Mono<String> buildCredentialOfferUri(String accessToken, String credentialType) {
@@ -53,9 +58,22 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
         String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
-        // Adjusting the call to use the reactive prepareHeadersWithAuth
-        return httpUtils.prepareHeadersWithAuth(accessToken)
-                .flatMap(headers -> httpUtils.getRequest(url, headers))
+        // Get request
+        return webClient.centralizedWebClient()
+                .get()
+                .uri(url)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                        return Mono.error(new RuntimeException("There was an error during the attestation exchange, error" + response));
+                    } else if (response.statusCode().is3xxRedirection()) {
+                        return Mono.just(Objects.requireNonNull(response.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION)));
+                    } else {
+                        log.info("Authorization Response: {}", response);
+                        return response.bodyToMono(String.class);
+                    }
+                })
+                // Parsing response
                 .flatMap(response -> {
                     try {
                         return Mono.just(objectMapper.readValue(response, Grant.class));
@@ -63,5 +81,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                         return Mono.error(new RuntimeException("Error parsing JSON response", e));
                     }
                 });
+
+
     }
 }
