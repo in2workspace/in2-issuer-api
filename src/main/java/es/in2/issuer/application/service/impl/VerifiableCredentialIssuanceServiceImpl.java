@@ -5,6 +5,7 @@ import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
+import es.in2.issuer.domain.exception.TemplateReadException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.*;
@@ -107,10 +108,10 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token){
             return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
                     .flatMap(vcPayload -> {
-                        SignatureRequest signatureRequest = new SignatureRequest(
-                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                vcPayload
-                        );
+                        SignatureRequest signatureRequest = SignatureRequest.builder()
+                                .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
+                                .data(vcPayload)
+                                .build();
                         return remoteSignatureService.sign(signatureRequest, token)
                                 .publishOn(Schedulers.boundedElastic())
                                 .map(SignedData::data);
@@ -157,14 +158,14 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                             try {
                                 learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
                             } catch (IOException e) {
-                                return Mono.error(new RuntimeException(e));
+                                return Mono.error(new TemplateReadException("Error when reading template"));
                             }
 
                             return verifiableCredentialService.generateVc(learTemplate, subjectDid, appConfiguration.getIssuerDid(), userData, expiration);
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new RuntimeException(e));
+                return Mono.error(new UserDoesNotExistException("User Does Not Exist"));
             }
         });
     }
@@ -176,10 +177,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
      * @return Mono emitting CBOR bytes
      */
     private Mono<byte[]> generateCborFromJson(String edgcJson) {
-        return Mono.fromCallable(() -> {
-            CBORObject cborObject = CBORObject.FromJSONString(edgcJson);
-            return cborObject.EncodeToBytes();
-        });
+        return Mono.fromCallable(() -> CBORObject.FromJSONString(edgcJson).EncodeToBytes());
     }
 
     /**
