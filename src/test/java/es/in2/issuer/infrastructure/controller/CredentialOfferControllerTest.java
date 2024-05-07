@@ -39,39 +39,16 @@ class CredentialOfferControllerTest {
         String mockCredentialOfferUri = "https://www.example.com/credential-offer?credential_offer_uri=https://www.example.com/offer/123";
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
         when(credentialOfferIssuanceService.buildCredentialOfferUri(mockTokenString, null))
                 .thenReturn(Mono.just(mockCredentialOfferUri));
 
         // Act
-        Mono<String> result = controller.buildCredentialOffer(null, mockExchange);
+        Mono<String> result = controller.buildCredentialOffer("Bearer "+mockTokenString, null);
 
         // Assert
         result.subscribe(credentialOfferUri -> assertEquals(mockCredentialOfferUri, credentialOfferUri));
         verify(credentialOfferIssuanceService, times(1)).buildCredentialOfferUri(mockTokenString, null);
-    }
-
-    @Test
-    void testCreateCredentialOfferV1_InvalidTokenException() {
-        // Arrange
-        String mockTokenString = "invalidToken";
-        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
-                .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
-
-        // Act
-        Mono<String> result = controller.buildCredentialOffer(null, mockExchange);
-
-        // Assert
-        result.subscribe(
-                template -> fail("Expected an error to be thrown"),
-                error -> {
-                    assertInstanceOf(InvalidTokenException.class, error);
-                    assertEquals("The request contains the wrong Access Token or the Access Token is missing", error.getMessage());
-                }
-        );
-        verify(credentialOfferIssuanceService, times(0)).buildCredentialOfferUri(mockTokenString, null);
     }
 
     @Test

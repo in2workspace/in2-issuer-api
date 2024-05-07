@@ -15,15 +15,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuples;
 
 import java.text.ParseException;
 
 import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
+import static es.in2.issuer.domain.util.Utils.*;
 
 @Slf4j
 @RestController
@@ -54,49 +57,31 @@ public class VerifiableCredentialController {
     )
     @PostMapping(value = "/credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestBody CredentialRequest credentialRequest, ServerWebExchange exchange) {
-        // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
-        return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token.getParsedString());
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(e);
-                    }
-                }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+    public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> getUserIdFromToken(token)
+                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
+                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
                 .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<VerifiableCredentialResponse> getCredential(@RequestBody DeferredCredentialRequest deferredCredentialRequest, ServerWebExchange exchange) {
-        // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
-        return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token.getParsedString());
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(e);
-                    }
-                }).doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"))
+    public Mono<VerifiableCredentialResponse> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody DeferredCredentialRequest deferredCredentialRequest) {
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> getUserIdFromToken(token)
+                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token)))
+                .doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"))
                 .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestBody BatchCredentialRequest batchCredentialRequest, ServerWebExchange exchange) {
-        // fixme: no necesitamos un try catch, devolvemos el happy path, si devolvemos objetos distintos podemos devolver Object
-        return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String username = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(username, batchCredentialRequest, token.getParsedString());
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(e);
-                    }
-                }).doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
+    public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BatchCredentialRequest batchCredentialRequest) {
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> getUserIdFromToken(token)
+                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
+                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
                 .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 }

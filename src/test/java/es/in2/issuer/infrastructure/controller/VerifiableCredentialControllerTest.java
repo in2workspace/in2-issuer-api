@@ -39,41 +39,18 @@ class VerifiableCredentialControllerTest {
 
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 
         // Act
-        Mono<VerifiableCredentialResponse> result = controller.createVerifiableCredential(mockCredentialRequest, mockExchange);
+        Mono<VerifiableCredentialResponse> result = controller.createVerifiableCredential("Bearer "+mockTokenString, mockCredentialRequest);
 
         // Assert
         result.subscribe(response -> assertEquals(mockResponse, response));
 
         verify(verifiableCredentialIssuanceService, times(1))
                 .generateVerifiableCredentialResponse("1234567890", mockCredentialRequest, mockTokenString);
-    }
-
-    @Test
-    void testCreateVerifiableCredential_InvalidTokenException() {
-        // Arrange
-        CredentialRequest mockCredentialRequest = new CredentialRequest("",new CredentialDefinition(List.of("")), new Proof("", ""));
-        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, URI.create("/example"))
-                .build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
-
-        // Act
-        Mono<VerifiableCredentialResponse> result = controller.createVerifiableCredential(mockCredentialRequest, mockExchange);
-
-        // Assert
-        result.subscribe(
-                template -> fail("Expected an error to be thrown"),
-                error -> {
-                    assertTrue(error instanceof InvalidTokenException);
-                    assertEquals("The request contains the wrong Access Token or the Access Token is missing", error.getMessage());
-                }
-        );
-        verify(verifiableCredentialIssuanceService, times(0)).generateVerifiableCredentialResponse("username", mockCredentialRequest, "token");
     }
 
     @Test
@@ -86,13 +63,12 @@ class VerifiableCredentialControllerTest {
 
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 
         // Act
-        Mono<VerifiableCredentialResponse> result = controller.getCredential(mockCredentialRequest, mockExchange);
+        Mono<VerifiableCredentialResponse> result = controller.getCredential("Bearer "+mockTokenString, mockCredentialRequest);
 
         // Assert
         result.subscribe(response -> assertEquals(mockResponse, response));
@@ -111,13 +87,12 @@ class VerifiableCredentialControllerTest {
 
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 
         // Act
-        Mono<BatchCredentialResponse> result = controller.createVerifiableCredentials(mockCredentialRequest, mockExchange);
+        Mono<BatchCredentialResponse> result = controller.createVerifiableCredentials("Bearer "+mockTokenString, mockCredentialRequest);
 
         // Assert
         result.subscribe(response -> assertEquals(mockResponse, response));

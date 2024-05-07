@@ -29,5 +29,6 @@ public class Constants {
     public static final String ISSUANCE_DATE = "issuanceDate";
     public static final String EXPIRATION_DATE = "expirationDate";
     public static final String ID = "id";
+    public static final String BEARER = "Bearer ";
 
 }

@@ -65,7 +65,7 @@ class CredentialManagementControllerTest {
                 .thenReturn(Mono.just(mockResponse));
 
         // Act
-        Mono<CredentialItem> result = controller.getCredential(credentialId, mockExchange);
+        Mono<CredentialItem> result = controller.getCredential("Bearer "+mockTokenString, credentialId);
 
         // Assert
         result.subscribe(response -> assertEquals(mockResponse, response));
@@ -89,13 +89,12 @@ class CredentialManagementControllerTest {
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, URI.create("/api/credentials"))
                 .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
         when(credentialManagementService.getCredentials("1234567890", 0, 10, "modifiedAt", Sort.Direction.DESC))
                 .thenReturn(Flux.just(credentialItem1, credentialItem2));
 
         // Act
-        Flux<CredentialItem> result = controller.getCredentials(mockExchange, 0, 10, "modifiedAt", Sort.Direction.DESC);
+        Flux<CredentialItem> result = controller.getCredentials("Bearer "+mockTokenString, 0, 10, "modifiedAt", Sort.Direction.DESC);
 
         // Assert
         StepVerifier.create(result)
@@ -135,7 +134,7 @@ class CredentialManagementControllerTest {
                     .thenReturn(Mono.empty());
 
             // Act
-            Mono<Void> result = controller.signVerifiableCredentials(credentialId, unsignedCredential, mockExchange);
+            Mono<Void> result = controller.signVerifiableCredentials("Bearer " + mockTokenString, credentialId, unsignedCredential);
 
             // Assert
             StepVerifier.create(result)

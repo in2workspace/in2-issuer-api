@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
@@ -16,6 +17,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
+
+import static es.in2.issuer.domain.util.Constants.BEARER;
 
 public class Utils {
 
@@ -73,8 +76,29 @@ public class Utils {
         return getToken(authorizationHeader);
     }
 
+    public static Mono<String> getCleanBearerToken(String authorizationHeader) {
+        return Mono.just(authorizationHeader)
+                .filter(header -> header.startsWith(BEARER))
+                .map(header -> header.replace(BEARER, "").trim())
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Invalid")));
+    }
+
+    public static Mono<String> getUserIdFromToken(String cleanToken) {
+        return Mono.just(cleanToken)
+                .flatMap(token -> {
+                    try {
+                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
+                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
+                        return Mono.just(jsonObject.get("sub").asText());
+                    } catch (ParseException | JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+                })
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Invalid")));
+    }
+
     private static SignedJWT getToken(String authorizationHeader) throws InvalidTokenException {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith(BEARER)) {
             throw new InvalidTokenException();
         }
         try {

@@ -1,11 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
-import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
-import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,11 +15,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import static es.in2.issuer.domain.util.Utils.getCleanBearerToken;
 
 @Slf4j
 @RestController
@@ -59,24 +59,15 @@ public class CredentialOfferController {
     )
     @GetMapping("/api/v1/credential-offer")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@RequestParam("credential-type") String credentialType, ServerWebExchange request) {
+    public Mono<String> buildCredentialOffer(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestParam("credential-type") String credentialType) {
         log.info("Building Credential Offer...");
-        String accessToken;
-        // fixme: no necesitamos un try catch, devolvemos el happy path y la exceptions es manejada por el GlobalAdvice
-        try {
-            accessToken = Utils.getToken(request).getParsedString();
-        } catch (InvalidTokenException e) {
-            log.error("InvalidTokenException --> {}", e.getMessage());
-            return Mono.error(new InvalidTokenException());
-        }
-
-
-        return credentialOfferIssuanceService.buildCredentialOfferUri(accessToken, credentialType)
-                .doOnSuccess(credentialOfferUri -> {
-                            log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
-                            log.info("Credential Offer created successfully.");
-                        }
-                );
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> credentialOfferIssuanceService.buildCredentialOfferUri(token, credentialType)
+                        .doOnSuccess(credentialOfferUri -> {
+                                    log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
+                                    log.info("Credential Offer created successfully.");
+                                }
+                        ));
     }
 
     @Operation(

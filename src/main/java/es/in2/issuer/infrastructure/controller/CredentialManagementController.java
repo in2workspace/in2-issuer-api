@@ -3,8 +3,6 @@ package es.in2.issuer.infrastructure.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
@@ -24,14 +22,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.text.ParseException;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
+import static es.in2.issuer.domain.util.Utils.*;
 
 @Slf4j
 @RestController
@@ -64,47 +61,40 @@ public class CredentialManagementController {
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CredentialItem> getCredentials(
-            ServerWebExchange exchange,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "modifiedAt") String sort,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
-        return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return Mono.just(userId);
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(new RuntimeException("Invalid or missing token", e));
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(Utils::getUserIdFromToken)
+                .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
+                .doOnEach(signal -> {  // Enhanced logging for each signal including onComplete, onError
+                    if (signal.isOnNext()) {
+                        log.info("CredentialManagementController - getCredential(): {}", signal.get());
+                    } else if (signal.isOnError()) {
+                        log.error("Error fetching credentials", signal.getThrowable());
                     }
                 })
-                .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
-                .doOnNext(result -> log.info("Accessed getCredentials"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e)); // Handle all errors from the stream
     }
 
     @GetMapping(value = "/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CredentialItem> getCredential(@PathVariable UUID credentialId, ServerWebExchange exchange) {
-        return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
-                        return credentialManagementService.getCredential(credentialId, userId);
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(e);
-                    }
-                }).doOnNext(result -> log.info("CredentialManagementController - getCredential()"))
+    public Mono<CredentialItem> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId) {
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> getUserIdFromToken(token)
+                        .flatMap(userId -> credentialManagementService.getCredential(credentialId, userId)))
+                .doOnNext(result -> log.info("CredentialManagementController - getCredential()"))
                 .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
     }
 
     @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public Mono<Void> signVerifiableCredentials(@PathVariable UUID credentialId, @RequestBody String unsignedCredential, ServerWebExchange exchange) {
+    public Mono<Void> signVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId, @RequestBody String unsignedCredential) {
         return Mono.defer(() -> {
-                    try {
-                        SignedJWT token = Utils.getToken(exchange);
-                        String userId = token.getJWTClaimsSet().getClaim("sub").toString();
+                        String token = String.valueOf(getCleanBearerToken(authorizationHeader));
+                        String userId = String.valueOf(getUserIdFromToken(token));
 
                         // Generate deferred VC Payload reactively
                         return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
@@ -122,7 +112,7 @@ public class CredentialManagementController {
                                     }
                                     // Prepare headers
                                     List<Map.Entry<String, String>> headers = new ArrayList<>();
-                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token.getParsedString()));
+                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
                                     headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
                                     // Execute request to the remote signature
                                     return httpUtils.postRequest("http://localhost:8050/api/v1/signature/sign", headers, signatureRequestJSON)
@@ -137,14 +127,11 @@ public class CredentialManagementController {
                                                     return Mono.error(new RuntimeException(e));
                                                 }
                                                 String signedCredential = responseNode.get("data").asText();
-                                                //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
+                                   //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
                                                 // Update the credential
                                                 return credentialManagementService.updateCredential(signedCredential, credentialId, userId);
                                             });
                                 });
-                    } catch (InvalidTokenException | ParseException e) {
-                        return Mono.error(e);
-                    }
                 })
                 .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
                 .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
