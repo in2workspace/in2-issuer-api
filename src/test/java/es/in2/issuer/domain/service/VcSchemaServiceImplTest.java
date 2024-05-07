@@ -20,7 +20,7 @@ class VcSchemaServiceImplTest {
     @InjectMocks
     private VcSchemaServiceImpl issuerVcTemplateService;
     private final List<String> vcTemplateNames = Arrays.asList(
-            "VerifiableCredential"
+            "LEARCredentialEmployee"
     );
 
     @Test

@@ -18,7 +18,7 @@ import java.util.List;
 public class VcSchemaServiceImpl implements VcSchemaService {
 
     private final List<String> vcTemplateNames = Arrays.asList(
-            "LEARCredentialEmployee", "LEARCredential"
+            "LEARCredentialEmployee"
     );
 
     @Override

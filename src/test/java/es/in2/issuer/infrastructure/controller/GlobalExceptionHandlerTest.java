@@ -239,4 +239,56 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void handleParseCredentialJsonException() {
+        ParseCredentialJsonException exception = new ParseCredentialJsonException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleParseCredentialJsonException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleTemplateReadException() {
+        TemplateReadException exception = new TemplateReadException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleTemplateReadException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleProofValidationException() {
+        ProofValidationException exception = new ProofValidationException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleProofValidationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleNoCredentialFoundException() {
+        NoCredentialFoundException exception = new NoCredentialFoundException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNoCredentialFoundException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
 }
