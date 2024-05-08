@@ -1,7 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.domain.model.AuthorizationServerMetadata;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
-import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

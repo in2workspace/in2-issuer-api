@@ -93,48 +93,48 @@ public class CredentialManagementController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> signVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId, @RequestBody String unsignedCredential) {
         return Mono.defer(() -> {
-                        String token = String.valueOf(getCleanBearerToken(authorizationHeader));
-                        String userId = String.valueOf(getUserIdFromToken(token));
+            Mono<String> tokenMono = Mono.just(authorizationHeader)
+                    .flatMap(Utils::getCleanBearerToken);
 
-                        // Generate deferred VC Payload reactively
-                        return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
-                                .flatMap(vcPayload -> {
-                                    //::::::::::::: mock of the local signature using a remote DSS :::::::::::::
-                                    // Create request object
-                                    SignatureRequest signatureRequest = new SignatureRequest(
-                                            new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                                            vcPayload);
-                                    String signatureRequestJSON = null;
-                                    try {
-                                        signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
-                                    } catch (JsonProcessingException e) {
-                                        return Mono.error(new RuntimeException(e));
-                                    }
-                                    // Prepare headers
-                                    List<Map.Entry<String, String>> headers = new ArrayList<>();
-                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
-                                    headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-                                    // Execute request to the remote signature
-                                    return httpUtils.postRequest("http://localhost:8050/api/v1/signature/sign", headers, signatureRequestJSON)
-                                            .flatMap(response -> {
-                                                log.info("Received response: " + response);
+            Mono<String> userIdMono = tokenMono.flatMap(Utils::getUserIdFromToken);
 
-                                                // Extract signed credential from response
-                                                JsonNode responseNode = null;
-                                                try {
-                                                    responseNode = objectMapper.readTree(response);
-                                                } catch (JsonProcessingException e) {
-                                                    return Mono.error(new RuntimeException(e));
-                                                }
-                                                String signedCredential = responseNode.get("data").asText();
-                                   //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
-                                                // Update the credential
-                                                return credentialManagementService.updateCredential(signedCredential, credentialId, userId);
-                                            });
-                                });
-                })
-                .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials()"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+            return userIdMono.flatMap(userId ->
+                            //::::::::::::: mock of the local signature using a remote DSS :::::::::::::
+                            verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
+                                    .flatMap(vcPayload -> {
+                                        SignatureRequest signatureRequest = new SignatureRequest(
+                                                new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()), vcPayload);
+                                        try {
+                                            String signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
+                                            return Mono.just(signatureRequestJSON);
+                                        } catch (JsonProcessingException e) {
+                                            return Mono.error(new RuntimeException(e));
+                                        }
+                                    })
+                                    .flatMap(signatureRequestJSON -> tokenMono.flatMap(token -> {
+                                        List<Map.Entry<String, String>> headers = new ArrayList<>();
+                                        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
+                                        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+                                        return httpUtils.postRequest("http://localhost:8050/api/v1/signature/sign", headers, signatureRequestJSON)
+                                                .map(response -> {
+                                                    log.info("Received response: " + response);
+                                                    return response;
+                                                });
+                                    }))
+                            //::::::::::::: end mock of the local signature using a remote DSS :::::::::::::
+                                    .flatMap(response -> {
+                                        try {
+                                            JsonNode responseNode = objectMapper.readTree(response);
+                                            String signedCredential = responseNode.get("data").asText();
+                                            return credentialManagementService.updateCredential(signedCredential, credentialId, userId);
+                                        } catch (JsonProcessingException e) {
+                                            return Mono.error(new RuntimeException(e));
+                                        }
+                                    })
+                    )
+                    .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials() completed"))
+                    .onErrorMap(e -> new RuntimeException("Request processing error", e));
+        });
     }
 
 }

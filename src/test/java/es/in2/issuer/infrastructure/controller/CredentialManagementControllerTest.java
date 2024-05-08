@@ -1,7 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
@@ -24,7 +23,6 @@ import reactor.test.StepVerifier;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -52,7 +50,6 @@ class CredentialManagementControllerTest {
         Map<String, Object> credential = new HashMap<>();
         credential.put("key1", "value1");
 
-        CredentialRequest mockCredentialRequest = new CredentialRequest("format",new CredentialDefinition(List.of("")), new Proof("proofType", "jwt"));
         //Example Token with claim "sub" : "1234567890"
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
         CredentialItem mockResponse = new CredentialItem(UUID.fromString("b3787fd6-42a3-47ad-a2f7-26efdc742505"), credential, "jwt_vc_json", "VALID", credentialModifiedAt);
@@ -108,7 +105,6 @@ class CredentialManagementControllerTest {
 
     @Test
     void testSignVerifiableCredentialsSuccess() throws Exception {
-        // Setup for static mocking (Mockito 3.4+ required)
         try (MockedStatic<Utils> mockedUtils = Mockito.mockStatic(Utils.class)) {
             // Arrange
             String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
@@ -123,9 +119,10 @@ class CredentialManagementControllerTest {
                     .body(unsignedCredential);
             ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
+            when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
             when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
-            SignedJWT mockToken = SignedJWT.parse(mockTokenString);
-            mockedUtils.when(() -> Utils.getToken(mockExchange)).thenReturn(mockToken);
+            when(Utils.getCleanBearerToken("Bearer " + mockTokenString)).thenReturn(Mono.just(mockTokenString));
+            when(Utils.getUserIdFromToken(mockTokenString)).thenReturn(Mono.just("1234567890"));
             when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
                     .thenReturn(Mono.just("vcPayload"));
             when(httpUtils.postRequest(any(), any(), any()))
