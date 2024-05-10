@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
+import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -18,7 +19,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.util.Utils.getCleanBearerToken;
@@ -99,8 +102,10 @@ public class CredentialOfferController {
     )
     @GetMapping(value = "/api/v1/credential-offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id) {
+    public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
         log.info("Retrieving Credential Offer...");
+        ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().add("Content-Language", "en");
         return credentialOfferIssuanceService.getCustomCredentialOffer(id);
     }
 

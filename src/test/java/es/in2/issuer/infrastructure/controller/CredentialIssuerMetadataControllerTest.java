@@ -9,6 +9,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -29,8 +32,15 @@ class CredentialIssuerMetadataControllerTest {
         CredentialIssuerMetadata mockedMetadata = new CredentialIssuerMetadata("","","","",null);
         when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.just(mockedMetadata));
 
+        // Mock
+        ServerWebExchange mockExchange = mock(ServerWebExchange.class);
+        ServerHttpResponse mockResponse = mock(ServerHttpResponse.class);
+        when(mockExchange.getResponse()).thenReturn(mockResponse);
+        HttpHeaders mockHeaders = new HttpHeaders();
+        when(mockResponse.getHeaders()).thenReturn(mockHeaders);
+
         // Act
-        Mono<CredentialIssuerMetadata> result = controller.getOpenIdCredentialIssuer();
+        Mono<CredentialIssuerMetadata> result = controller.getOpenIdCredentialIssuer(mockExchange);
 
         // Assert
         result.subscribe(issuerData -> {
@@ -47,8 +57,15 @@ class CredentialIssuerMetadataControllerTest {
         // Arrange
         when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.error(new RuntimeException("Mocked Exception")));
 
+        // Mock
+        ServerWebExchange mockExchange = mock(ServerWebExchange.class);
+        ServerHttpResponse mockResponse = mock(ServerHttpResponse.class);
+        when(mockExchange.getResponse()).thenReturn(mockResponse);
+        HttpHeaders mockHeaders = new HttpHeaders();
+        when(mockResponse.getHeaders()).thenReturn(mockHeaders);
+
         // Act & Assert
-        StepVerifier.create(controller.getOpenIdCredentialIssuer())
+        StepVerifier.create(controller.getOpenIdCredentialIssuer(mockExchange))
                 .expectErrorMatches(throwable ->
                         throwable instanceof RuntimeException &&
                                 throwable.getCause() instanceof RuntimeException &&

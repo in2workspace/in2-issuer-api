@@ -14,8 +14,7 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
-import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_JWT;
+import static es.in2.issuer.domain.util.Constants.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +43,7 @@ class CredentialOfferServiceImplTest {
                 .expectNextMatches(offer ->
                         offer.credentialIssuer().equals("https://example.com") &&
                                 offer.credentials().size() == 1 &&
-                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_JWT)) &&
+                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_EMPLOYEE)) &&
                                 offer.grants().containsKey(GRANT_TYPE) &&
                                 offer.grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&
                                 offer.grants().get(GRANT_TYPE).txCode().length() == 4

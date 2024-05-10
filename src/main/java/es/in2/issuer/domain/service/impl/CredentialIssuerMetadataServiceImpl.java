@@ -28,14 +28,8 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String credentialIssuerDomain = ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain());
 
-        CredentialConfiguration learCredentialJwt = CredentialConfiguration.builder()
+        CredentialConfiguration learCredentialEmployee = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)
-                .cryptographicBindingMethodsSupported(List.of())
-                .credentialSigningAlgValuesSupported(List.of())
-                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
-                .build();
-        CredentialConfiguration learCredentialCwt = CredentialConfiguration.builder()
-                .format(CWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
                 .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL,VERIFIABLE_CREDENTIAL)).build())
@@ -47,7 +41,7 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                         .credentialEndpoint(credentialIssuerDomain + CREDENTIAL)
                         .batchCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_BATCH)
                         .deferredCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_DEFERRED)
-                        .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_JWT, learCredentialJwt, LEAR_CREDENTIAL_CWT, learCredentialCwt))
+                        .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_EMPLOYEE, learCredentialEmployee))
                         .build()
         );
     }

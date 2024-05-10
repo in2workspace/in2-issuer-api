@@ -9,7 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
@@ -59,8 +61,15 @@ class CredentialOfferControllerTest {
 
         when(credentialOfferIssuanceService.getCustomCredentialOffer(mockCredentialOfferId)).thenReturn(Mono.just(mockCredentialOffer));
 
+        // Mock
+        ServerWebExchange mockExchange = mock(ServerWebExchange.class);
+        ServerHttpResponse mockResponse = mock(ServerHttpResponse.class);
+        when(mockExchange.getResponse()).thenReturn(mockResponse);
+        HttpHeaders mockHeaders = new HttpHeaders();
+        when(mockResponse.getHeaders()).thenReturn(mockHeaders);
+
         // Act
-        Mono<CustomCredentialOffer> result = controller.getCredentialOffer(mockCredentialOfferId);
+        Mono<CustomCredentialOffer> result = controller.getCredentialOffer(mockCredentialOfferId, mockExchange);
 
         // Assert
         result.subscribe(credentialOffer -> assertEquals(mockCredentialOffer, credentialOffer));

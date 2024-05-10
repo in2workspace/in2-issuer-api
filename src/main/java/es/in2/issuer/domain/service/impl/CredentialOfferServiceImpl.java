@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -31,9 +30,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
         return Mono.just(CustomCredentialOffer.builder()
                 .credentialIssuer(appConfiguration.getIssuerExternalDomain())
                 .credentials(List.of(
-                        CustomCredentialOffer.Credential.builder().format(JWT_VC).types(List.of(credentialType)).build()
+                        CustomCredentialOffer.Credential.builder().format(JWT_VC_JSON).types(List.of(credentialType)).build()
                 ))
-                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_JWT))
+                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
                 .grants(Map.of(GRANT_TYPE, grant))
                 .build());
     }
