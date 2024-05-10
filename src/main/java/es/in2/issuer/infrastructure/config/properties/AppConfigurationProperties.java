@@ -15,6 +15,7 @@ public record AppConfigurationProperties(
         @NotNull String remoteSignatureDomain,
         @NotNull String issuerDid,
         @NotNull String jwtDecoderPath,
+        @NotNull String jwtValidator,
         @NotNull String jwtDecoderLocalPath,
         @NotNull String preAuthCodeUriTemplate,
         @NotNull String tokenUriTemplate

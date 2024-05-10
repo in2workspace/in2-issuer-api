@@ -48,6 +48,10 @@ public class AppConfiguration {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.jwtDecoderPath());
     }
 
+    public String getJwtValidator() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.jwtValidator());
+    }
+
     public String getJwtDecoderLocalPath() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.jwtDecoderLocalPath());
     }

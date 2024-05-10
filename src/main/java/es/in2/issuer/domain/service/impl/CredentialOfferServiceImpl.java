@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
@@ -37,10 +40,9 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     @Override
     public Mono<String> createCredentialOfferUri(String nonce) {
-        return Mono.just(
-                ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + LEAR_CREDENTIAL_URI) +
-                        ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + CREDENTIAL_OFFER + nonce)
-        );
+        String url = ensureUrlHasProtocol(appConfiguration.getIssuerExternalDomain() + CREDENTIAL_OFFER + nonce);
+        String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
+        return Mono.just(OPENID_CREDENTIAL_OFFER + encodedUrl);
     }
 
 }

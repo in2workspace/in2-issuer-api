@@ -6,6 +6,7 @@ import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.Utils;
+import es.in2.issuer.infrastructure.config.AppConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -39,6 +40,8 @@ class CredentialManagementControllerTest {
     private HttpUtils httpUtils;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private AppConfiguration appConfiguration;
     @InjectMocks
     private CredentialManagementController controller;
 
@@ -119,6 +122,7 @@ class CredentialManagementControllerTest {
                     .body(unsignedCredential);
             ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
+            when(appConfiguration.getRemoteSignatureDomain()).thenReturn("http://example.com");
             when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
             when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
             when(Utils.getCleanBearerToken("Bearer " + mockTokenString)).thenReturn(Mono.just(mockTokenString));

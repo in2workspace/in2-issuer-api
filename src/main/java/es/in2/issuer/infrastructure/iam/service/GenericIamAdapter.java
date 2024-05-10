@@ -5,4 +5,5 @@ public interface GenericIamAdapter {
     String getJwtDecoderLocal();
     String getPreAuthCodeUri();
     String getTokenUri();
+    String getJwtValidator();
 }

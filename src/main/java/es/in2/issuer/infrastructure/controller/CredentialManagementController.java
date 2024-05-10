@@ -8,6 +8,7 @@ import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.Utils;
+import es.in2.issuer.infrastructure.config.AppConfiguration;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,6 +41,7 @@ public class CredentialManagementController {
     private final VerifiableCredentialService verifiableCredentialService;
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
+    private final AppConfiguration appConfiguration;
 
     @Operation(
             summary = "Get the credentials committed by the current user",
@@ -115,7 +117,7 @@ public class CredentialManagementController {
                                         List<Map.Entry<String, String>> headers = new ArrayList<>();
                                         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
                                         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-                                        return httpUtils.postRequest("http://localhost:8050/api/v1/signature/sign", headers, signatureRequestJSON)
+                                        return httpUtils.postRequest(appConfiguration.getRemoteSignatureDomain() + "/api/v1/signature/sign", headers, signatureRequestJSON)
                                                 .map(response -> {
                                                     log.info("Received response: " + response);
                                                     return response;

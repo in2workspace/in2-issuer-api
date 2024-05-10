@@ -32,7 +32,7 @@ class KeycloakIamAdapterTest {
 
     @Test
     void testGetJwtDecoder() {
-        String expectedUrl = "https://external.example.com/path";
+        String expectedUrl = "external.example.com/path";
         String actualUrl = keycloakIamAdapter.getJwtDecoder();
         assertEquals(expectedUrl, actualUrl, "The getJwtDecoder URL should match the expected value");
     }

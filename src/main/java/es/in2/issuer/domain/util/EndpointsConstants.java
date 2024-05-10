@@ -6,6 +6,7 @@ public class EndpointsConstants {
     }
     public static final String CREDENTIAL_OFFER = "/api/v1/credential-offer/";
     public static final String LEAR_CREDENTIAL_URI = "/api/v1/credential-offer?credential_offer_uri=";
+    public static final String OPENID_CREDENTIAL_OFFER = "openid-credential-offer://?credential_offer_uri=";
     public static final String CREDENTIAL = "/api/v1/vc/credential";
     public static final String CREDENTIAL_BATCH = "/api/v1/vc/batch_credential";
     public static final String CREDENTIAL_DEFERRED = "/api/v1/vc/deferred_credential";

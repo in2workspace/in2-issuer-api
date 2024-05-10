@@ -14,6 +14,7 @@ import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -63,6 +64,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                 .get()
                 .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .accept(MediaType.APPLICATION_JSON)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
                         return Mono.error(new RuntimeException("There was an error during the attestation exchange, error" + response));

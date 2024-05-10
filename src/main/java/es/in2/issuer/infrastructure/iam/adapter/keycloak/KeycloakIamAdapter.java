@@ -16,6 +16,7 @@ public class KeycloakIamAdapter implements GenericIamAdapter {
     private final String keycloakExternalDomain;
     private final String jwtDecoderPath;
     private final String jwtDecoderLocalPath;
+    private final String jwtValidator;
     private final String preAuthCodeUriTemplate;
     private final String tokenUriTemplate;
     private final String did;
@@ -25,13 +26,14 @@ public class KeycloakIamAdapter implements GenericIamAdapter {
         this.keycloakExternalDomain = appConfiguration.getIamExternalDomain();
         this.jwtDecoderPath = appConfiguration.getJwtDecoderPath();
         this.jwtDecoderLocalPath = appConfiguration.getJwtDecoderLocalPath();
+        this.jwtValidator = appConfiguration.getJwtValidator();
         this.preAuthCodeUriTemplate = appConfiguration.getPreAuthCodeUriTemplate();
         this.tokenUriTemplate = appConfiguration.getTokenUriTemplate();
         this.did = appConfiguration.getIssuerDid();
     }
     @Override
     public String getJwtDecoder() {
-        return "https://" + keycloakExternalDomain + jwtDecoderPath;
+        return keycloakExternalDomain + jwtDecoderPath;
     }
 
     @Override
@@ -47,6 +49,11 @@ public class KeycloakIamAdapter implements GenericIamAdapter {
     @Override
     public String getTokenUri() {
         return keycloakInternalDomain + resolveTemplate(tokenUriTemplate, Map.of("did", did));
+    }
+
+    @Override
+    public String getJwtValidator() {
+        return jwtValidator;
     }
 
     private String resolveTemplate(String template, Map<String, String> placeholders) {

@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.domain.model.AuthorizationServerMetadata;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
+import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthorizationServerMetadataController {
     // this controller is for mocking purposes until the implementation of a proxy for the authorization server custom endpoint
+    private final IamAdapterFactory iamAdapterFactory;
     @Operation(
             summary = "Retrieve OpenID Connect Credential Issuer Metadata",
             description = "Provides access to OpenID Connect (OIDC) Credential Issuer Metadata, which includes essential information about the OIDC credential issuer. The metadata offers details such as the issuer's URL, supported authentication methods, and other relevant information. Clients can use this metadata to configure their OIDC integration with the credential issuer. The response is in JSON format",
@@ -40,7 +42,7 @@ public class AuthorizationServerMetadataController {
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public AuthorizationServerMetadata getAuthorizationServerMetadata() {
-        return AuthorizationServerMetadata.builder().tokenEndpoint("http://localhost:8088/realms/EAAProvider/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token").build();
+        return AuthorizationServerMetadata.builder().tokenEndpoint(iamAdapterFactory.getAdapter().getTokenUri()).build();
 
     }
 
