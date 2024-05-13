@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
@@ -24,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import static es.in2.issuer.domain.util.Constants.ENGLISH;
 import static es.in2.issuer.domain.util.Utils.getCleanBearerToken;
 
 @Slf4j
@@ -105,7 +105,7 @@ public class CredentialOfferController {
     public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
         log.info("Retrieving Credential Offer...");
         ServerHttpResponse response = exchange.getResponse();
-        response.getHeaders().add("Content-Language", "en");
+        response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
         return credentialOfferIssuanceService.getCustomCredentialOffer(id);
     }
 

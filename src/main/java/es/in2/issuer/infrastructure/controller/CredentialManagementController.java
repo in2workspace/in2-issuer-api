@@ -28,7 +28,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.*;
 
-import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
 import static es.in2.issuer.domain.util.Utils.*;
 
 @Slf4j
@@ -71,14 +70,7 @@ public class CredentialManagementController {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(Utils::getUserIdFromToken)
                 .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
-                .doOnEach(signal -> {  // Enhanced logging for each signal including onComplete, onError
-                    if (signal.isOnNext()) {
-                        log.info("CredentialManagementController - getCredential(): {}", signal.get());
-                    } else if (signal.isOnError()) {
-                        log.error("Error fetching credentials", signal.getThrowable());
-                    }
-                })
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e)); // Handle all errors from the stream
+                .doOnEach(credential -> log.info("CredentialManagementController - getCredentials(): {}", credential.get())); // Handle all errors from the stream
     }
 
     @GetMapping(value = "/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -87,8 +79,7 @@ public class CredentialManagementController {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> getUserIdFromToken(token)
                         .flatMap(userId -> credentialManagementService.getCredential(credentialId, userId)))
-                .doOnNext(result -> log.info("CredentialManagementController - getCredential()"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+                .doOnNext(result -> log.info("CredentialManagementController - getCredential()"));
     }
 
     @PostMapping(value = "/sign/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -134,8 +125,7 @@ public class CredentialManagementController {
                                         }
                                     })
                     )
-                    .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials() completed"))
-                    .onErrorMap(e -> new RuntimeException("Request processing error", e));
+                    .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials() completed"));
         });
     }
 

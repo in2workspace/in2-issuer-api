@@ -57,10 +57,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                         jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
                 )
                 .doOnSuccess(result -> log.debug("Final validation result: {}", result))
-                .onErrorMap(e -> {
-                    log.error("Error during JWT validation", e);
-                    return new ProofValidationException("Error during JWT validation");
-                });
+                .onErrorMap(e -> new ProofValidationException("Error during JWT validation"));
     }
 
     private Mono<JWSObject> parseAndValidateJwt(String jwtProof) {

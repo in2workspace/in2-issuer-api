@@ -51,28 +51,4 @@ class CredentialIssuerMetadataControllerTest {
         // Verify service method was called
         verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
     }
-
-    @Test
-    void testGetOpenIdCredentialIssuer_Exception() {
-        // Arrange
-        when(credentialIssuerMetadataService.generateOpenIdCredentialIssuer()).thenReturn(Mono.error(new RuntimeException("Mocked Exception")));
-
-        // Mock
-        ServerWebExchange mockExchange = mock(ServerWebExchange.class);
-        ServerHttpResponse mockResponse = mock(ServerHttpResponse.class);
-        when(mockExchange.getResponse()).thenReturn(mockResponse);
-        HttpHeaders mockHeaders = new HttpHeaders();
-        when(mockResponse.getHeaders()).thenReturn(mockHeaders);
-
-        // Act & Assert
-        StepVerifier.create(controller.getOpenIdCredentialIssuer(mockExchange))
-                .expectErrorMatches(throwable ->
-                        throwable instanceof RuntimeException &&
-                                throwable.getCause() instanceof RuntimeException &&
-                                "Mocked Exception".equals(throwable.getCause().getMessage()))
-                .verify();
-
-        // Verify service method was called
-        verify(credentialIssuerMetadataService, times(1)).generateOpenIdCredentialIssuer();
-    }
 }

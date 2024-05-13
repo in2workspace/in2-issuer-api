@@ -287,6 +287,19 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handlePreAuthorizationCodeGetException() {
+        PreAuthorizationCodeGetException exception = new PreAuthorizationCodeGetException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handlePreAuthorizationCodeGetException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
                 })
                 .verifyComplete();

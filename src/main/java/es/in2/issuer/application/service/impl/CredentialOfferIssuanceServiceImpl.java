@@ -3,12 +3,13 @@ package es.in2.issuer.application.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
+import es.in2.issuer.domain.exception.ParseErrorException;
+import es.in2.issuer.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.domain.service.VcSchemaService;
-import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
+import static es.in2.issuer.domain.util.Constants.BEARER;
+
 
 @Slf4j
 @Service
@@ -30,7 +33,6 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     private final CredentialOfferService credentialOfferService;
     private final CredentialOfferCacheStorageService credentialOfferCacheStorageService;
     private final IamAdapterFactory iamAdapterFactory;
-    private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
     private final WebClientConfig webClient;
 
@@ -63,11 +65,11 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
         return webClient.centralizedWebClient()
                 .get()
                 .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .header(HttpHeaders.AUTHORIZATION, BEARER + accessToken)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
-                        return Mono.error(new RuntimeException("There was an error during the attestation exchange, error" + response));
+                        return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
                     } else if (response.statusCode().is3xxRedirection()) {
                         return Mono.just(Objects.requireNonNull(response.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION)));
                     } else {
@@ -80,10 +82,8 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                     try {
                         return Mono.just(objectMapper.readValue(response, Grant.class));
                     } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                        return Mono.error(new RuntimeException("Error parsing JSON response", e));
+                        return Mono.error(new ParseErrorException("Error parsing JSON response"));
                     }
                 });
-
-
     }
 }

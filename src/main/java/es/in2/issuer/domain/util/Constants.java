@@ -31,5 +31,6 @@ public class Constants {
     public static final String EXPIRATION_DATE = "expirationDate";
     public static final String ID = "id";
     public static final String BEARER = "Bearer ";
+    public static final String ENGLISH = "en";
 
 }

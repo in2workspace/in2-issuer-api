@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpResponse;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import static es.in2.issuer.domain.util.Constants.ENGLISH;
 
 @RestController
 @RequestMapping("/.well-known/openid-credential-issuer")
@@ -48,9 +51,8 @@ public class CredentialIssuerMetadataController {
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialIssuerMetadata> getOpenIdCredentialIssuer(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
-        response.getHeaders().add("Content-Language", "en");
-        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer()
-                .onErrorResume(e -> Mono.error(new RuntimeException(e)));
+        response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
+        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer();
     }
 
 }

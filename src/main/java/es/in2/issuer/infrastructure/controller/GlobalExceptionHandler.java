@@ -194,6 +194,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoCredentialFoundException.class)
     public Mono<ResponseEntity<Void>> handleNoCredentialFoundException(NoCredentialFoundException ex) {
         log.error(ex.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+    @ExceptionHandler(PreAuthorizationCodeGetException.class)
+    public Mono<ResponseEntity<Void>> handlePreAuthorizationCodeGetException(PreAuthorizationCodeGetException ex) {
+        log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 }

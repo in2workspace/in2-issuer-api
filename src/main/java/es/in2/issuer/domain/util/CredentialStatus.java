@@ -5,12 +5,14 @@ import lombok.Getter;
 @Getter
 public enum CredentialStatus {
     ISSUED("issued"),
-    VALID("valid");
+    VALID("valid"),
+    REVOKED("revoked"),
+    EXPIRED("expired");
 
-    private final String status;
+    private final String name;
 
-    CredentialStatus(String status) {
-        this.status = status;
+    CredentialStatus(String name) {
+        this.name = name;
     }
 
 }

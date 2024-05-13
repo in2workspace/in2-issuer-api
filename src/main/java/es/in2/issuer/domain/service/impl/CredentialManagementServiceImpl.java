@@ -43,7 +43,7 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
         CredentialManagement newCredential = CredentialManagement.builder()
                 .userId(userId)
                 .credentialDecoded(credential)
-                .credentialStatus(CredentialStatus.ISSUED.getStatus())
+                .credentialStatus(CredentialStatus.ISSUED.getName())
                 .credentialFormat(format)
                 .modifiedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
@@ -62,7 +62,7 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
                 .flatMap(existingCredential -> {
                     existingCredential.setCredentialEncoded(credential); // Update credential
-                    existingCredential.setCredentialStatus(CredentialStatus.VALID.getStatus()); // Set status to valid
+                    existingCredential.setCredentialStatus(CredentialStatus.VALID.getName()); // Set status to valid
                     existingCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli())); // Update modified time
                     return credentialManagementRepository.save(existingCredential); // Save the updated credential
                 })

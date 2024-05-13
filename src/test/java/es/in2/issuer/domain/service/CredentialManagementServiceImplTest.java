@@ -138,7 +138,7 @@ class CredentialManagementServiceImplTest {
         cm.setId(credentialId);
         cm.setUserId(userId);
         cm.setCredentialDecoded(jsonCredential);
-        cm.setCredentialStatus(CredentialStatus.ISSUED.getStatus());
+        cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
@@ -166,7 +166,7 @@ class CredentialManagementServiceImplTest {
         cm.setId(credentialId);
         cm.setUserId(userId);
         cm.setCredentialDecoded(jsonCredential);
-        cm.setCredentialStatus(CredentialStatus.ISSUED.getStatus());
+        cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 

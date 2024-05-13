@@ -1,11 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
-import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
-import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.domain.util.Utils;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,13 +16,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuples;
 
-import java.text.ParseException;
-
-import static es.in2.issuer.domain.util.Constants.REQUEST_ERROR_MESSAGE;
 import static es.in2.issuer.domain.util.Utils.*;
 
 @Slf4j
@@ -61,8 +53,7 @@ public class VerifiableCredentialController {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> getUserIdFromToken(token)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
-                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }
 
     @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -71,8 +62,7 @@ public class VerifiableCredentialController {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> getUserIdFromToken(token)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token)))
-                .doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+                .doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"));
     }
 
     @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
@@ -81,7 +71,6 @@ public class VerifiableCredentialController {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> getUserIdFromToken(token)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
-                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"))
-                .onErrorMap(e -> new RuntimeException(REQUEST_ERROR_MESSAGE, e));
+                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }
 }
