@@ -4,6 +4,7 @@ import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.model.CredentialErrorResponse;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -24,7 +25,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.util.Constants.ENGLISH;
-import static es.in2.issuer.domain.util.Utils.getCleanBearerToken;
 
 @Slf4j
 @RestController
@@ -33,6 +33,7 @@ import static es.in2.issuer.domain.util.Utils.getCleanBearerToken;
 public class CredentialOfferController {
 
     private final CredentialOfferIssuanceService credentialOfferIssuanceService;
+    private final AccessTokenService accessTokenService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -64,7 +65,7 @@ public class CredentialOfferController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<String> buildCredentialOffer(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestParam("credential-type") String credentialType) {
         log.info("Building Credential Offer...");
-        return getCleanBearerToken(authorizationHeader)
+        return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> credentialOfferIssuanceService.buildCredentialOfferUri(token, credentialType)
                         .doOnSuccess(credentialOfferUri -> {
                                     log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);

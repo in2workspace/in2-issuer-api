@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.model.*;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +29,7 @@ public class VerifiableCredentialController {
 
     private final VerifiableCredentialService verifiableCredentialService;
     private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
+    private final AccessTokenService accessTokenService;
 
     @Operation(
             summary = "Generate a new Verifiable Credential",
@@ -50,8 +52,8 @@ public class VerifiableCredentialController {
     @PostMapping(value = "/credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> getUserIdFromToken(token)
+        return accessTokenService.getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }
@@ -59,8 +61,8 @@ public class VerifiableCredentialController {
     @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody DeferredCredentialRequest deferredCredentialRequest) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> getUserIdFromToken(token)
+        return accessTokenService.getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"));
     }
@@ -68,8 +70,8 @@ public class VerifiableCredentialController {
     @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BatchCredentialRequest batchCredentialRequest) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> getUserIdFromToken(token)
+        return accessTokenService.getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
                         .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }

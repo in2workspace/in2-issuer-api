@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.*;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.HttpUtils;
@@ -41,6 +42,7 @@ public class CredentialManagementController {
     private final HttpUtils httpUtils;
     private final ObjectMapper objectMapper;
     private final AppConfiguration appConfiguration;
+    private final AccessTokenService accessTokenService;
 
     @Operation(
             summary = "Get the credentials committed by the current user",
@@ -67,8 +69,7 @@ public class CredentialManagementController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "modifiedAt") String sort,
             @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(Utils::getUserIdFromToken)
+        return accessTokenService.getUserIdFromHeader(authorizationHeader)
                 .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
                 .doOnEach(credential -> log.info("CredentialManagementController - getCredentials(): {}", credential.get())); // Handle all errors from the stream
     }
@@ -76,8 +77,8 @@ public class CredentialManagementController {
     @GetMapping(value = "/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialItem> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> getUserIdFromToken(token)
+        return accessTokenService.getCleanBearerToken(authorizationHeader)
+                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
                         .flatMap(userId -> credentialManagementService.getCredential(credentialId, userId)))
                 .doOnNext(result -> log.info("CredentialManagementController - getCredential()"));
     }
@@ -87,9 +88,10 @@ public class CredentialManagementController {
     public Mono<Void> signVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId, @RequestBody String unsignedCredential) {
         return Mono.defer(() -> {
             Mono<String> tokenMono = Mono.just(authorizationHeader)
-                    .flatMap(Utils::getCleanBearerToken);
+                    .flatMap(accessTokenService::getCleanBearerToken);
 
-            Mono<String> userIdMono = tokenMono.flatMap(Utils::getUserIdFromToken);
+            Mono<String> userIdMono = Mono.just(authorizationHeader)
+                    .flatMap(accessTokenService::getUserIdFromHeader);
 
             return userIdMono.flatMap(userId ->
                             //::::::::::::: mock of the local signature using a remote DSS :::::::::::::

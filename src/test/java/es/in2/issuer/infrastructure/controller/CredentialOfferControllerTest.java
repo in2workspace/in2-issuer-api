@@ -3,6 +3,7 @@ package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class CredentialOfferControllerTest {
     @Mock
     private CredentialOfferIssuanceService credentialOfferIssuanceService;
 
+    @Mock
+    private AccessTokenService accessTokenService;
+
     @InjectMocks
     private CredentialOfferController controller;
 
@@ -42,6 +46,7 @@ class CredentialOfferControllerTest {
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
 
+        when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
         when(credentialOfferIssuanceService.buildCredentialOfferUri(mockTokenString, null))
                 .thenReturn(Mono.just(mockCredentialOfferUri));
 

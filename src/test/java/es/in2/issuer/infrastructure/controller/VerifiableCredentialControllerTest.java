@@ -3,6 +3,7 @@ package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.application.service.impl.VerifiableCredentialIssuanceServiceImpl;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.*;
+import es.in2.issuer.domain.service.AccessTokenService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +27,9 @@ class VerifiableCredentialControllerTest {
     @Mock
     private VerifiableCredentialIssuanceServiceImpl verifiableCredentialIssuanceService;
 
+    @Mock
+    private AccessTokenService accessTokenService;
+
     @InjectMocks
     private VerifiableCredentialController controller;
 
@@ -40,6 +44,8 @@ class VerifiableCredentialControllerTest {
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
 
+        when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+        when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 
@@ -64,6 +70,8 @@ class VerifiableCredentialControllerTest {
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
 
+        when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+        when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 
@@ -88,6 +96,8 @@ class VerifiableCredentialControllerTest {
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
                 .header("Authorization","Bearer "+mockTokenString).build();
 
+        when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+        when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse("1234567890", mockCredentialRequest, mockTokenString))
                 .thenReturn(Mono.just(mockResponse));
 

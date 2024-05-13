@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.*;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.HttpUtils;
@@ -42,6 +43,8 @@ class CredentialManagementControllerTest {
     private ObjectMapper objectMapper;
     @Mock
     private AppConfiguration appConfiguration;
+    @Mock
+    private AccessTokenService accessTokenService;
     @InjectMocks
     private CredentialManagementController controller;
 
@@ -61,6 +64,8 @@ class CredentialManagementControllerTest {
                 .header("Authorization","Bearer "+mockTokenString).build();
         ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
+        when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+        when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(credentialManagementService.getCredential(credentialId, "1234567890"))
                 .thenReturn(Mono.just(mockResponse));
 
@@ -90,6 +95,7 @@ class CredentialManagementControllerTest {
         MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, URI.create("/api/credentials"))
                 .header("Authorization","Bearer "+mockTokenString).build();
 
+        when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(credentialManagementService.getCredentials("1234567890", 0, 10, "modifiedAt", Sort.Direction.DESC))
                 .thenReturn(Flux.just(credentialItem1, credentialItem2));
 
@@ -122,11 +128,11 @@ class CredentialManagementControllerTest {
                     .body(unsignedCredential);
             ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
+            when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+            when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
             when(appConfiguration.getRemoteSignatureDomain()).thenReturn("http://example.com");
             when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
             when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
-            when(Utils.getCleanBearerToken("Bearer " + mockTokenString)).thenReturn(Mono.just(mockTokenString));
-            when(Utils.getUserIdFromToken(mockTokenString)).thenReturn(Mono.just("1234567890"));
             when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
                     .thenReturn(Mono.just("vcPayload"));
             when(httpUtils.postRequest(any(), any(), any()))
