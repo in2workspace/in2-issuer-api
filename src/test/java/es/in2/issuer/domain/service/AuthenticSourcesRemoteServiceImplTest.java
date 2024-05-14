@@ -14,10 +14,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,14 +25,9 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.zip.ZipFile;
 
 import org.springframework.core.io.Resource;
 
@@ -138,32 +131,6 @@ class AuthenticSourcesRemoteServiceImplTest {
             throw Exceptions.unwrap(e);
         }
     }
-
-//    @Test
-//    void getUser_JsonProcessingException() throws JsonProcessingException {
-//        ReflectionTestUtils.setField(authenticSourcesRemoteService,"authenticSourcesBaseUrl","http://baseurl");
-//        ReflectionTestUtils.setField(authenticSourcesRemoteService,"apiUsers","/api/users");
-//
-//        String url = "http://baseurl" + "/api/users";
-//        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
-//        List<Map.Entry<String, String>> headers = new ArrayList<>();
-//        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
-//
-//        when(httpUtils.getRequest(url, headers))
-//                .thenReturn(Mono.just("{\"userId\":\"123\",\"username\":\"testUser\"}"));
-//        when(objectMapper.readValue(anyString(), eq(SubjectDataResponse.class)))
-//                .thenThrow(new JsonProcessingException("Json processing error") {});
-//
-//        assertThrows(RuntimeException.class, () -> handleJsonProcessingException(token));
-//    }
-
-//    private void handleJsonProcessingException(String token) throws Throwable {
-//        try {
-//            authenticSourcesRemoteService.getUser(token).block();
-//        } catch (Exception e) {
-//            throw Exceptions.unwrap(e);
-//        }
-//    }
 
     @Test
     void commitCredentialSourceData_Success() throws JsonProcessingException {

@@ -1,7 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
-import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialOfferService;
@@ -11,14 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-
-import java.net.URI;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -43,8 +37,6 @@ class CredentialOfferControllerTest {
         // Arrange
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String mockCredentialOfferUri = "https://www.example.com/credential-offer?credential_offer_uri=https://www.example.com/offer/123";
-        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
-                .header("Authorization","Bearer "+mockTokenString).build();
 
         when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
         when(credentialOfferIssuanceService.buildCredentialOfferUri(mockTokenString, null))

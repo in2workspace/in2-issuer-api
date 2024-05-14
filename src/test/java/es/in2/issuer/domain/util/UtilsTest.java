@@ -6,7 +6,6 @@ import com.google.common.net.HttpHeaders;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.model.AppNonceValidationResponse;
-import es.in2.issuer.domain.util.Utils;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
 import org.springframework.mock.web.server.MockServerWebExchange;
@@ -21,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class UtilsTest {
 
     @Test
-    void testConstructor() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException, InstantiationException {
+    void testConstructor() throws NoSuchMethodException {
         Constructor<Utils> constructor = Utils.class.getDeclaredConstructor();
         constructor.setAccessible(true);
         assertThrows(InvocationTargetException.class, constructor::newInstance);

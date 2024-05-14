@@ -7,7 +7,6 @@ import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;

@@ -1,6 +1,5 @@
 package es.in2.issuer.domain.util;
 
-import es.in2.issuer.domain.util.HttpUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

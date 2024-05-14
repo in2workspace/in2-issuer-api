@@ -61,9 +61,4 @@ class CredentialOfferServiceImplTest {
                 .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fabc123")
                 .verifyComplete();
     }
-
-    // Additional helper method used in the service
-    private String ensureUrlHasProtocol(String url) {
-        return url.startsWith("http://") || url.startsWith("https://") ? url : "https://" + url;
-    }
 }

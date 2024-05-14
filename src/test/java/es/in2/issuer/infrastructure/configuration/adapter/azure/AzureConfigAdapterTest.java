@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.configuration.adapter.azure;
 
 import com.azure.data.appconfiguration.ConfigurationClient;
 import com.azure.data.appconfiguration.models.ConfigurationSetting;
-import es.in2.issuer.infrastructure.configuration.adapter.azure.AzureConfigAdapter;
 import es.in2.issuer.infrastructure.configuration.adapter.azure.config.properties.AzureProperties;
 import es.in2.issuer.infrastructure.configuration.adapter.azure.config.properties.AzurePropertiesLabel;
 import es.in2.issuer.infrastructure.configuration.service.GenericConfigAdapter;

@@ -1,8 +1,6 @@
 package es.in2.issuer.infrastructure.configuration.util;
 
 import es.in2.issuer.infrastructure.configuration.model.ConfigProviderName;
-import es.in2.issuer.infrastructure.configuration.util.ConfigSourceName;
-import es.in2.issuer.infrastructure.configuration.util.ConfigSourceNameCondition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.annotation.ConditionContext;

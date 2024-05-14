@@ -13,16 +13,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.mock.http.server.reactive.MockServerHttpRequest;
-import org.springframework.mock.web.server.MockServerWebExchange;
-import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.net.URI;
 import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.Map;
@@ -60,10 +54,6 @@ class CredentialManagementControllerTest {
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
         CredentialItem mockResponse = new CredentialItem(UUID.fromString("b3787fd6-42a3-47ad-a2f7-26efdc742505"), credential, "jwt_vc_json", "VALID", credentialModifiedAt);
 
-        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.POST, URI.create("/example"))
-                .header("Authorization","Bearer "+mockTokenString).build();
-        ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
-
         when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
         when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(credentialManagementService.getCredential(credentialId, "1234567890"))
@@ -92,8 +82,6 @@ class CredentialManagementControllerTest {
         CredentialItem credentialItem2 = new CredentialItem(credentialId2, credentialDetails, "jwt_vc_json", "VALID", timestamp);
 
         String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
-        MockServerHttpRequest request = MockServerHttpRequest.method(HttpMethod.GET, URI.create("/api/credentials"))
-                .header("Authorization","Bearer "+mockTokenString).build();
 
         when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
         when(credentialManagementService.getCredentials("1234567890", 0, 10, "modifiedAt", Sort.Direction.DESC))
@@ -121,12 +109,6 @@ class CredentialManagementControllerTest {
             UUID credentialId = UUID.randomUUID();
             String signedCredential = "signedCredentialExample";
             String jsonResponse = "{\"data\":\"" + signedCredential + "\"}";
-
-            MockServerHttpRequest request = MockServerHttpRequest.post("/api/credentials/sign/" + credentialId)
-                    .header("Authorization", "Bearer " + mockTokenString)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(unsignedCredential);
-            ServerWebExchange mockExchange = MockServerWebExchange.builder(request).build();
 
             when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
             when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));

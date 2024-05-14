@@ -83,7 +83,7 @@ class CredentialManagementServiceImplTest {
     @Test
     void testUpdateCredential() {
         UUID credentialId = credentialManagement.getId();
-        String credential = "some_encoded_credential_data";
+        String testCredential = "some_encoded_credential_data";
 
         when(credentialManagementRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Mono.just(credentialManagement));
 
@@ -93,7 +93,7 @@ class CredentialManagementServiceImplTest {
 
         when(credentialDeferredRepository.save(any(CredentialDeferred.class))).thenReturn(Mono.just(new CredentialDeferred()));
 
-        StepVerifier.create(credentialManagementService.updateCredential(credential, credentialId, userId))
+        StepVerifier.create(credentialManagementService.updateCredential(testCredential, credentialId, userId))
                 .verifyComplete();
 
         verify(credentialManagementRepository).findByIdAndUserId(credentialId, userId);
@@ -130,57 +130,57 @@ class CredentialManagementServiceImplTest {
     @Test
     void getCredentialsTest() throws JsonProcessingException {
         UUID credentialId = UUID.randomUUID();
-        String userId = "user123";
+        String testUserId = "user123";
         String jsonCredential = "{\"name\": \"John Doe\"}";
         Map<String, Object> parsedCredential = Map.of("name", "John Doe");
 
         CredentialManagement cm = new CredentialManagement();
         cm.setId(credentialId);
-        cm.setUserId(userId);
+        cm.setUserId(testUserId);
         cm.setCredentialDecoded(jsonCredential);
         cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
 
-        when(credentialManagementRepository.findByUserIdOrderByModifiedAtDesc(eq(userId), any()))
+        when(credentialManagementRepository.findByUserIdOrderByModifiedAtDesc(eq(testUserId), any()))
                 .thenReturn(Flux.just(cm));
         when(objectMapper.readValue(eq(cm.getCredentialDecoded()), any(TypeReference.class)))
                 .thenReturn(parsedCredential);
 
-        StepVerifier.create(credentialManagementService.getCredentials(userId, 0, 10, "modifiedAt", Sort.Direction.DESC))
+        StepVerifier.create(credentialManagementService.getCredentials(testUserId, 0, 10, "modifiedAt", Sort.Direction.DESC))
                 .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
                 .verifyComplete();
 
-        verify(credentialManagementRepository).findByUserIdOrderByModifiedAtDesc(eq(userId), any());
+        verify(credentialManagementRepository).findByUserIdOrderByModifiedAtDesc(eq(testUserId), any());
     }
 
     @Test
     void getCredentialTest() throws JsonProcessingException {
         UUID credentialId = UUID.randomUUID();
-        String userId = "user123";
+        String credentialTestUserId = "user123";
         String jsonCredential = "{\"name\": \"John Doe\"}";
         Map<String, Object> parsedCredential = Map.of("name", "John Doe");
 
         CredentialManagement cm = new CredentialManagement();
         cm.setId(credentialId);
-        cm.setUserId(userId);
+        cm.setUserId(credentialTestUserId);
         cm.setCredentialDecoded(jsonCredential);
         cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
         cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
 
-        when(credentialManagementRepository.findByIdAndUserId(credentialId, userId))
+        when(credentialManagementRepository.findByIdAndUserId(credentialId, credentialTestUserId))
                 .thenReturn(Mono.just(cm));
         when(objectMapper.readValue(eq(cm.getCredentialDecoded()), any(TypeReference.class)))
                 .thenReturn(parsedCredential);
 
 
-        StepVerifier.create(credentialManagementService.getCredential(credentialId, userId))
+        StepVerifier.create(credentialManagementService.getCredential(credentialId, credentialTestUserId))
                 .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
                 .verifyComplete();
 
-        verify(credentialManagementRepository).findByIdAndUserId(credentialId, userId);
+        verify(credentialManagementRepository).findByIdAndUserId(credentialId, credentialTestUserId);
     }
 }
 

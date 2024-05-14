@@ -1,6 +1,5 @@
 package es.in2.issuer.domain.model;
 
-import es.in2.issuer.domain.model.AppNonceValidationResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,7 +20,6 @@ class AppNonceValidationResponseTest {
     void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedAccessToken = "eyJhbGciOiJSUzI1Ni...yE1XAP-LrbAtaX-wln0wQgdXfu4dephCsMA";
-        String toStringDto = "AppNonceValidationResponseDTO(accessToken=eyJhbGciOiJSUzI1Ni...yE1XAP-LrbAtaX-wln0wQgdXfu4dephCsMA)";
         // Act
         AppNonceValidationResponse dto1 = new AppNonceValidationResponse(expectedAccessToken);
         AppNonceValidationResponse dto2 = new AppNonceValidationResponse(expectedAccessToken);

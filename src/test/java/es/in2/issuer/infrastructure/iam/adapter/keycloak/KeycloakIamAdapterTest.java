@@ -1,11 +1,8 @@
 package es.in2.issuer.infrastructure.iam.adapter.keycloak;
 
 import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.iam.adapter.keycloak.KeycloakIamAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -16,7 +13,7 @@ class KeycloakIamAdapterTest {
     private KeycloakIamAdapter keycloakIamAdapter;
 
     @BeforeEach
-    public void setUp() throws Exception {
+    public void setUp() {
         // Assume AppConfiguration is properly instantiated or mocked
         AppConfiguration appConfiguration = mock(AppConfiguration.class);
         when(appConfiguration.getIamInternalDomain()).thenReturn("internal.example.com");
