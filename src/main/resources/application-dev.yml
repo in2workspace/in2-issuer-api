@@ -1,12 +1,21 @@
 spring:
   r2dbc:
-    url: "r2dbc:postgresql://localhost:5432/issuer"
+    url: "r2dbc:postgresql://localhost:5434/issuer"
     username: "in2admin"
     password: "in2pass"
     generate-unique-name: true
   flyway:
-    url: "jdbc:postgresql://localhost:5432/issuer"
+    url: "jdbc:postgresql://localhost:5434/issuer"
     locations: classpath:db/migration
+  mail:
+    host: localhost          # The SMTP server host
+    port: 1025               # The SMTP server port used by MailHog
+    username:                # MailHog does not require username
+    password:                # MailHog does not require password
+    properties.mail.smtp:
+      auth: false            # No authentication needed for MailHog
+      starttls.enable: false
+
 
 app:
   configs:

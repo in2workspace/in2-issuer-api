@@ -34,5 +34,6 @@ public class Constants {
     public static final String ID = "id";
     public static final String BEARER = "Bearer ";
     public static final String ENGLISH = "en";
+    public static final String NO_REPLAY_EMAIL = "noreply@example.com";
 
 }

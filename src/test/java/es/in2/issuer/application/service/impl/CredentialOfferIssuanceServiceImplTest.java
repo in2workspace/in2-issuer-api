@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.Grant;
+import es.in2.issuer.domain.model.PreAuthCodeResponse;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
+import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
@@ -47,6 +49,8 @@ class CredentialOfferIssuanceServiceImplTest {
     private VcSchemaService vcSchemaService;
     @Mock
     private WebClientConfig webClientConfig;
+    @Mock
+    private EmailService emailService;
     @InjectMocks
     private CredentialOfferIssuanceServiceImpl credentialOfferIssuanceService;
 
@@ -96,7 +100,10 @@ class CredentialOfferIssuanceServiceImplTest {
 
         // Mock objectMapper to return a non-null Grant
         Grant mockGrant = Grant.builder().build(); // Assume Grant is a simple class, adjust accordingly
-        when(objectMapper.readValue(jsonString, Grant.class)).thenReturn(mockGrant);
+        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder().grant(mockGrant).pin("1234").build();
+        when(objectMapper.readValue(jsonString, PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
+
+        when(emailService.sendPin(any(), any(), any())).thenReturn(Mono.empty());
 
         when(credentialOfferService.buildCustomCredentialOffer(credentialType, mockGrant)).thenReturn(Mono.just(credentialOffer));
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOffer)).thenReturn(Mono.just(nonce));
