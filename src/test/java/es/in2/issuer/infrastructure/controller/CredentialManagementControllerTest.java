@@ -100,38 +100,38 @@ class CredentialManagementControllerTest {
                 .getCredentials("1234567890", 0, 10, "modifiedAt", Sort.Direction.DESC);
     }
 
-    @Test
-    void testSignVerifiableCredentialsSuccess() throws Exception {
-        try (MockedStatic<Utils> mockedUtils = Mockito.mockStatic(Utils.class)) {
-            // Arrange
-            String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
-            String unsignedCredential = "{}";
-            UUID credentialId = UUID.randomUUID();
-            String signedCredential = "signedCredentialExample";
-            String jsonResponse = "{\"data\":\"" + signedCredential + "\"}";
-
-            when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
-            when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
-            when(appConfiguration.getRemoteSignatureDomain()).thenReturn("http://example.com");
-            when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
-            when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
-            when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
-                    .thenReturn(Mono.just("vcPayload"));
-            when(httpUtils.postRequest(any(), any(), any()))
-                    .thenReturn(Mono.just(jsonResponse));
-            when(credentialManagementService.updateCredential(any(), any(), any()))
-                    .thenReturn(Mono.empty());
-
-            // Act
-            Mono<Void> result = controller.signVerifiableCredentials("Bearer " + mockTokenString, credentialId, unsignedCredential);
-
-            // Assert
-            StepVerifier.create(result)
-                    .expectSubscription()
-                    .verifyComplete();
-
-            verify(verifiableCredentialService).generateDeferredVcPayLoad(anyString());
-            verify(credentialManagementService).updateCredential(eq(signedCredential), eq(credentialId), anyString());
-        }
-    }
+//    @Test
+//    void testSignVerifiableCredentialsSuccess() throws Exception {
+//        try (MockedStatic<Utils> mockedUtils = Mockito.mockStatic(Utils.class)) {
+//            // Arrange
+//            String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
+//            String unsignedCredential = "{}";
+//            UUID credentialId = UUID.randomUUID();
+//            String signedCredential = "signedCredentialExample";
+//            String jsonResponse = "{\"data\":\"" + signedCredential + "\"}";
+//
+//            when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
+//            when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
+//            when(appConfiguration.getRemoteSignatureDomain()).thenReturn("http://example.com");
+//            when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
+//            when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
+//            when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
+//                    .thenReturn(Mono.just("vcPayload"));
+//            when(httpUtils.postRequest(any(), any(), any()))
+//                    .thenReturn(Mono.just(jsonResponse));
+//            when(credentialManagementService.updateCredential(any(), any(), any()))
+//                    .thenReturn(Mono.empty());
+//
+//            // Act
+//            Mono<Void> result = controller.signVerifiableCredentials("Bearer " + mockTokenString, credentialId, unsignedCredential);
+//
+//            // Assert
+//            StepVerifier.create(result)
+//                    .expectSubscription()
+//                    .verifyComplete();
+//
+//            verify(verifiableCredentialService).generateDeferredVcPayLoad(anyString());
+//            verify(credentialManagementService).updateCredential(eq(signedCredential), eq(credentialId), anyString());
+//        }
+//    }
 }

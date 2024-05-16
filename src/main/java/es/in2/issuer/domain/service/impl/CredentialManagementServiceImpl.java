@@ -2,15 +2,19 @@ package es.in2.issuer.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.entity.CredentialDeferred;
 import es.in2.issuer.domain.entity.CredentialManagement;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 import es.in2.issuer.domain.model.CredentialItem;
+import es.in2.issuer.domain.model.PendingCredentials;
+import es.in2.issuer.domain.model.SignedCredentials;
 import es.in2.issuer.domain.repository.CredentialDeferredRepository;
 import es.in2.issuer.domain.repository.CredentialManagementRepository;
 import es.in2.issuer.domain.service.CredentialManagementService;
+import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.CredentialStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,8 @@ import reactor.core.scheduler.Schedulers;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -34,6 +40,7 @@ import java.util.UUID;
 public class CredentialManagementServiceImpl implements CredentialManagementService {
     private final CredentialManagementRepository credentialManagementRepository;
     private final CredentialDeferredRepository credentialDeferredRepository;
+    private final VerifiableCredentialService verifiableCredentialService;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -75,6 +82,27 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     }
 
     @Override
+    public Mono<Void> updateCredentials(SignedCredentials signedCredentials, String userId) {
+        List<SignedCredentials.SignedCredential> credentials = signedCredentials.credentials();
+
+        return Flux.fromIterable(credentials)
+                .flatMap(signedCredential -> {
+                    String jwtToken = signedCredential.credential();
+                    return extractJtiFromToken(jwtToken)
+                            .flatMap(jti -> credentialManagementRepository
+                                    .findByUserIdAndCredentialDecodedContains(userId, jti)
+                                    .flatMap(credentialManagement -> {
+                                        credentialManagement.setCredentialEncoded(jwtToken);
+                                        credentialManagement.setCredentialStatus(CredentialStatus.VALID.getName());
+                                        credentialManagement.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));
+                                        return credentialManagementRepository.save(credentialManagement);
+                                    })
+                            );
+                })
+                .then();
+    }
+
+    @Override
     public Mono<String> updateTransactionId(String transactionId) {
         String newTransactionId = UUID.randomUUID().toString(); // Generate a new transactionId
 
@@ -112,6 +140,22 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     }
 
     @Override
+    public Mono<PendingCredentials> getPendingCredentials(String userId, int page, int size, String sort, Sort.Direction direction) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
+        return credentialManagementRepository.findByUserIdAndCredentialStatusOrderByModifiedAtDesc(userId, CredentialStatus.ISSUED.getName(), pageable)
+                .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found for userId: " + userId + " at page: " + pageable.getPageNumber())))
+                .map(CredentialManagement::getCredentialDecoded)
+                .flatMap(credentialString -> verifiableCredentialService.generateDeferredVcPayLoad(credentialString)
+                        .flatMap(this::parseCredentialJson))
+                .collectList()  // Collect the Map<String, Object> results into a list
+                .map(credentials -> new PendingCredentials(
+                        credentials.stream()
+                                .map(PendingCredentials.CredentialPayload::new)
+                                .toList()
+                ))
+                .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
+    }
+    @Override
     public Mono<CredentialItem> getCredential(UUID credentialId, String userId) {
         log.info("Entering getCredential method with credentialId: {} and userId: {}", credentialId, userId);
         return credentialManagementRepository.findByIdAndUserId(credentialId, userId)
@@ -143,5 +187,20 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                 })
                 .subscribeOn(Schedulers.boundedElastic())  // This ensures that the blocking operation doesn't block the main thread
                 .onErrorMap(e -> new ParseCredentialJsonException("Error parsing JSON: " + e.getMessage()));
+    }
+
+    private Mono<String> extractJtiFromToken(String jwtToken) {
+        try {
+            String[] parts = jwtToken.split("\\.");
+            if (parts.length != 3) {
+                return Mono.error(new IllegalArgumentException("Invalid JWT token"));
+            }
+            String payload = new String(Base64.getDecoder().decode(parts[1]));
+            JsonNode jsonNode = objectMapper.readTree(payload);
+            String jti = jsonNode.get("jti").asText();
+            return Mono.just(jti);
+        } catch (Exception e) {
+            return Mono.error(e);
+        }
     }
 }

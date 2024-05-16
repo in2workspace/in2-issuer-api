@@ -48,7 +48,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             Instant nowInstant = Instant.parse(vcTemplateNode.get(VALID_FROM).asText());
             Instant expiration = Instant.parse(vcTemplateNode.get(EXPIRATION_DATE).asText());
 
-            updateTemplateNode(vcTemplateNode, subjectDid, issuerDid, nowInstant, expiration);
+            updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
             return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
         });
     }
