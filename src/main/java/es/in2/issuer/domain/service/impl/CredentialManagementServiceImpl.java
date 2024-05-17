@@ -97,6 +97,11 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
                                         credentialManagement.setModifiedAt(new Timestamp(Instant.now().toEpochMilli()));
                                         return credentialManagementRepository.save(credentialManagement);
                                     })
+                                    .flatMap(savedCredential -> credentialDeferredRepository.findByCredentialId(savedCredential.getId())
+                                            .flatMap(credentialDeferred -> {
+                                                credentialDeferred.setCredentialSigned(jwtToken);
+                                                return credentialDeferredRepository.save(credentialDeferred);
+                                            }))
                             );
                 })
                 .then();

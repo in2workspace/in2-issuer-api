@@ -15,6 +15,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -41,6 +42,9 @@ class CredentialManagementServiceImplTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private VerifiableCredentialService verifiableCredentialService;
 
     @InjectMocks
     private CredentialManagementServiceImpl credentialManagementService;
@@ -182,5 +186,35 @@ class CredentialManagementServiceImplTest {
 
         verify(credentialManagementRepository).findByIdAndUserId(credentialId, credentialTestUserId);
     }
+
+//    @Test
+//    void getPendingCredentialsTest() throws JsonProcessingException {
+//        UUID credentialId = UUID.randomUUID();
+//        String testUserId = "user123";
+//        String jsonCredential = "{\"name\": \"John Doe\"}";
+//        String jsonPayload = "{\"vc\": {\"name\": \"John Doe\"}}";
+//        Map<String, Object> parsedCredential = Map.of("name", "John Doe");
+//
+//        CredentialManagement cm = new CredentialManagement();
+//        cm.setId(credentialId);
+//        cm.setUserId(testUserId);
+//        cm.setCredentialDecoded(jsonCredential);
+//        cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
+//        cm.setCredentialFormat(JWT_VC);
+//        cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
+//
+//
+//        when(credentialManagementRepository.findByUserIdAndCredentialStatusOrderByModifiedAtDesc(testUserId, CredentialStatus.ISSUED.getName(), any(Pageable.class)))
+//                .thenReturn(Flux.just(cm));
+//        when(verifiableCredentialService.generateDeferredVcPayLoad(jsonCredential)).thenReturn(Mono.just(jsonPayload));
+//        when(objectMapper.readValue(eq(jsonPayload), any(TypeReference.class)))
+//                .thenReturn(parsedCredential);
+//
+//        StepVerifier.create(credentialManagementService.getCredentials(testUserId, 0, 10, "modifiedAt", Sort.Direction.DESC))
+//                .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
+//                .verifyComplete();
+//
+//        verify(credentialManagementRepository).findByUserIdAndCredentialStatusOrderByModifiedAtDesc(eq(testUserId), CredentialStatus.ISSUED.getName(), any());
+//    }
 }
 
