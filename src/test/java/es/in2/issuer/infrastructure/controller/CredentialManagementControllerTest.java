@@ -1,23 +1,22 @@
 package es.in2.issuer.infrastructure.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialManagementService;
-import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.domain.util.HttpUtils;
-import es.in2.issuer.domain.util.Utils;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.sql.Timestamp;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -29,16 +28,10 @@ import static org.mockito.Mockito.*;
 class CredentialManagementControllerTest {
     @Mock
     private CredentialManagementService credentialManagementService;
-    @Mock
-    private VerifiableCredentialService verifiableCredentialService;
-    @Mock
-    private HttpUtils httpUtils;
-    @Mock
-    private ObjectMapper objectMapper;
-    @Mock
-    private AppConfiguration appConfiguration;
+
     @Mock
     private AccessTokenService accessTokenService;
+
     @InjectMocks
     private CredentialManagementController controller;
 
@@ -100,38 +93,22 @@ class CredentialManagementControllerTest {
                 .getCredentials("1234567890", 0, 10, "modifiedAt", Sort.Direction.DESC);
     }
 
-//    @Test
-//    void testSignVerifiableCredentialsSuccess() throws Exception {
-//        try (MockedStatic<Utils> mockedUtils = Mockito.mockStatic(Utils.class)) {
-//            // Arrange
-//            String mockTokenString = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwicHJlZmVycmVkX3VzZXJuYW1lIjoidXNlcm5hbWUiLCJpYXQiOjE1MTYyMzkwMjJ9.3Ye-IUQRtSkYGVVZSjGqlVtnQNCsAwz_qPgkmgxkleg";
-//            String unsignedCredential = "{}";
-//            UUID credentialId = UUID.randomUUID();
-//            String signedCredential = "signedCredentialExample";
-//            String jsonResponse = "{\"data\":\"" + signedCredential + "\"}";
-//
-//            when(accessTokenService.getCleanBearerToken(any())).thenReturn(Mono.just(mockTokenString));
-//            when(accessTokenService.getUserIdFromHeader(any())).thenReturn(Mono.just("1234567890"));
-//            when(appConfiguration.getRemoteSignatureDomain()).thenReturn("http://example.com");
-//            when(objectMapper.writeValueAsString(any())).thenReturn("SignatureRequest");
-//            when(objectMapper.readTree("{\"data\":\"signedCredentialExample\"}")).thenReturn(new ObjectMapper().readTree("{\"data\":\"signedCredentialExample\"}"));
-//            when(verifiableCredentialService.generateDeferredVcPayLoad(any()))
-//                    .thenReturn(Mono.just("vcPayload"));
-//            when(httpUtils.postRequest(any(), any(), any()))
-//                    .thenReturn(Mono.just(jsonResponse));
-//            when(credentialManagementService.updateCredential(any(), any(), any()))
-//                    .thenReturn(Mono.empty());
-//
-//            // Act
-//            Mono<Void> result = controller.signVerifiableCredentials("Bearer " + mockTokenString, credentialId, unsignedCredential);
-//
-//            // Assert
-//            StepVerifier.create(result)
-//                    .expectSubscription()
-//                    .verifyComplete();
-//
-//            verify(verifiableCredentialService).generateDeferredVcPayLoad(anyString());
-//            verify(credentialManagementService).updateCredential(eq(signedCredential), eq(credentialId), anyString());
-//        }
-//    }
+    @Test
+    void testUpdateCredentials() {
+        WebTestClient webTestClient = WebTestClient.bindToController(controller).build();
+        String authorizationHeader = "Bearer test-token";
+        SignedCredentials signedCredentials = SignedCredentials.builder().credentials(Collections.singletonList(SignedCredentials.SignedCredential.builder().credential("test").build())).build(); // Assume this class exists
+        String userId = "user-id";
+
+        when(accessTokenService.getUserIdFromHeader(authorizationHeader)).thenReturn(Mono.just(userId));
+        when(credentialManagementService.updateCredentials(signedCredentials, userId)).thenReturn(Mono.empty());
+
+        webTestClient.post()
+                .uri("/api/v1/credentials")
+                .header(HttpHeaders.AUTHORIZATION, authorizationHeader)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(signedCredentials)
+                .exchange()
+                .expectStatus().isNoContent();
+    }
 }
