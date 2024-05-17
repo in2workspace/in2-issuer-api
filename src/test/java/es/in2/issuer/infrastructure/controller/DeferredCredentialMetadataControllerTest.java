@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class CredentialManagementControllerTest {
+class DeferredCredentialMetadataControllerTest {
     @Mock
     private CredentialManagementService credentialManagementService;
     @Mock

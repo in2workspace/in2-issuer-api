@@ -14,14 +14,14 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table("credentials.credential_management")
-public class CredentialManagement {
+@Table("credentials.credential_procedure")
+public class CredentialProcedure {
     @Id
-    @Column("id")
-    private UUID id;
+    @Column("procedure_id")
+    private UUID procedureId;
 
-    @Column("user_id")
-    private String userId;
+    @Column("credential_id")
+    private String credentialId;
 
     @Column("credential_format")
     private String credentialFormat;
@@ -35,6 +35,9 @@ public class CredentialManagement {
     @Column("credential_status")
     private String credentialStatus;
 
-    @Column("modified_at")
-    private Timestamp modifiedAt;
+    @Column("organization_identifier")
+    private String organizationIdentifier;
+
+    @Column("updated_at")
+    private Timestamp updatedAt;
 }

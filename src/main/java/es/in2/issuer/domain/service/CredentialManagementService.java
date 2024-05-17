@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.entity.CredentialDeferred;
+import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.model.CredentialItem;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
@@ -15,5 +15,5 @@ public interface CredentialManagementService {
     Mono<Void> deleteCredentialDeferred(String transactionId);
     Flux<CredentialItem> getCredentials (String userId, int page, int size, String sort, Sort.Direction direction);
     Mono<CredentialItem> getCredential (UUID credentialId, String userId);
-    Mono<CredentialDeferred> getDeferredCredentialByTransactionId (String transactionId);
+    Mono<CredentialProcedure> getDeferredCredentialByTransactionId (String transactionId);
 }

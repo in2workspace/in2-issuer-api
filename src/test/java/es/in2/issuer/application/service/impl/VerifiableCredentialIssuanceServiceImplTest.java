@@ -1,7 +1,7 @@
 package es.in2.issuer.application.service.impl;
 
 
-import es.in2.issuer.domain.entity.CredentialDeferred;
+import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
@@ -191,7 +191,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String userId = "user123";
         String token = "dummyToken";
         String transactionId = "1234";
-        CredentialDeferred deferredCredential = CredentialDeferred.builder().credentialSigned(null).transactionId(transactionId).build();
+        CredentialProcedure deferredCredential = CredentialProcedure.builder().credentialSigned(null).transactionId(transactionId).build();
 
         when(credentialManagementService.getDeferredCredentialByTransactionId(transactionId))
                 .thenReturn(Mono.just(deferredCredential));
@@ -213,7 +213,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String token = "dummyToken";
         String transactionId = "1234";
         String credential = "signed credential";
-        CredentialDeferred deferredCredential = CredentialDeferred.builder().credentialSigned(credential).transactionId(transactionId).build();
+        CredentialProcedure deferredCredential = CredentialProcedure.builder().credentialSigned(credential).transactionId(transactionId).build();
 
 
         when(credentialManagementService.getDeferredCredentialByTransactionId(transactionId))

@@ -3,13 +3,13 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.entity.CredentialDeferred;
-import es.in2.issuer.domain.entity.CredentialManagement;
+import es.in2.issuer.domain.entity.CredentialProcedure;
+import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 import es.in2.issuer.domain.model.CredentialItem;
-import es.in2.issuer.domain.repository.CredentialDeferredRepository;
-import es.in2.issuer.domain.repository.CredentialManagementRepository;
+import es.in2.issuer.domain.repository.CredentialDeferredMetadataRepository;
+import es.in2.issuer.domain.repository.CredentialProcedureRepository;
 import es.in2.issuer.domain.service.CredentialManagementService;
 import es.in2.issuer.domain.util.CredentialStatus;
 import lombok.RequiredArgsConstructor;
@@ -32,24 +32,23 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class CredentialManagementServiceImpl implements CredentialManagementService {
-    private final CredentialManagementRepository credentialManagementRepository;
-    private final CredentialDeferredRepository credentialDeferredRepository;
+    private final CredentialProcedureRepository credentialProcedureRepository;
+    private final CredentialDeferredMetadataRepository credentialDeferredMetadataRepository;
     private final ObjectMapper objectMapper;
 
     @Override
     public Mono<String> commitCredential(String credential, String userId, String format) {
 
         String transactionId = UUID.randomUUID().toString();
-        CredentialManagement newCredential = CredentialManagement.builder()
-                .userId(userId)
+        DeferredCredentialMetadata newCredential = DeferredCredentialMetadata.builder()
                 .credentialDecoded(credential)
                 .credentialStatus(CredentialStatus.ISSUED.getName())
                 .credentialFormat(format)
                 .modifiedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
 
-        return credentialManagementRepository.save(newCredential)
-                .flatMap(savedCredential -> credentialDeferredRepository.save(CredentialDeferred.builder()
+        return credentialProcedureRepository.save(newCredential)
+                .flatMap(savedCredential -> credentialDeferredMetadataRepository.save(CredentialProcedure.builder()
                         .transactionId(transactionId)
                         .credentialId(savedCredential.getId())
                         .build()))
@@ -58,18 +57,18 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
 
     @Override
     public Mono<Void> updateCredential(String credential, UUID credentialId, String userId) {
-        return credentialManagementRepository.findByIdAndUserId(credentialId, userId)
+        return credentialProcedureRepository.findByIdAndUserId(credentialId, userId)
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
                 .flatMap(existingCredential -> {
                     existingCredential.setCredentialEncoded(credential); // Update credential
                     existingCredential.setCredentialStatus(CredentialStatus.VALID.getName()); // Set status to valid
                     existingCredential.setModifiedAt(new Timestamp(Instant.now().toEpochMilli())); // Update modified time
-                    return credentialManagementRepository.save(existingCredential); // Save the updated credential
+                    return credentialProcedureRepository.save(existingCredential); // Save the updated credential
                 })
-                .flatMap(savedCredential -> credentialDeferredRepository.findByCredentialId(savedCredential.getId())
+                .flatMap(savedCredential -> credentialDeferredMetadataRepository.findByCredentialId(savedCredential.getId())
                         .flatMap(credentialDeferred -> {
                             credentialDeferred.setCredentialSigned(credential);
-                            return credentialDeferredRepository.save(credentialDeferred);
+                            return credentialDeferredMetadataRepository.save(credentialDeferred);
                         }))
                 .then(); // Return only completion signal
     }
@@ -78,34 +77,34 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     public Mono<String> updateTransactionId(String transactionId) {
         String newTransactionId = UUID.randomUUID().toString(); // Generate a new transactionId
 
-        return credentialDeferredRepository.findByTransactionId(transactionId)
+        return credentialDeferredMetadataRepository.findByTransactionId(transactionId)
                 .flatMap(deferredCredential -> {
                     deferredCredential.setTransactionId(newTransactionId); // Update transactionId
-                    return credentialDeferredRepository.save(deferredCredential); // Save the updated credential
+                    return credentialDeferredMetadataRepository.save(deferredCredential); // Save the updated credential
                 })
-                .map(CredentialDeferred::getTransactionId); // Return new transactionId
+                .map(CredentialProcedure::getTransactionId); // Return new transactionId
     }
 
     @Override
     public Mono<Void> deleteCredentialDeferred(String transactionId){
-        return credentialDeferredRepository.findByTransactionId(transactionId)
+        return credentialDeferredMetadataRepository.findByTransactionId(transactionId)
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found with transactionId: " + transactionId)))
-                .flatMap(credentialDeferredRepository::delete)
+                .flatMap(credentialDeferredMetadataRepository::delete)
                 .then();
     }
 
     @Override
     public Flux<CredentialItem> getCredentials(String userId, int page, int size, String sort, Sort.Direction direction) {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sort));
-        return credentialManagementRepository.findByUserIdOrderByModifiedAtDesc(userId, pageable)
+        return credentialProcedureRepository.findByUserIdOrderByModifiedAtDesc(userId, pageable)
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found for userId: " + userId + " at page: " + pageable.getPageNumber())))
-                .flatMap(credentialManagement -> parseCredentialJson(credentialManagement.getCredentialDecoded())
+                .flatMap(deferredCredentialMetadata -> parseCredentialJson(deferredCredentialMetadata.getCredentialDecoded())
                 .map(parsedCredential -> CredentialItem.builder()
-                        .credentialId(credentialManagement.getId())
+                        .credentialId(deferredCredentialMetadata.getId())
                         .credential(parsedCredential)
-                        .format(credentialManagement.getCredentialFormat())
-                        .status(credentialManagement.getCredentialStatus())
-                        .modifiedAt(credentialManagement.getModifiedAt())
+                        .format(deferredCredentialMetadata.getCredentialFormat())
+                        .status(deferredCredentialMetadata.getCredentialStatus())
+                        .modifiedAt(deferredCredentialMetadata.getModifiedAt())
                         .build())
                 )
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
@@ -114,23 +113,23 @@ public class CredentialManagementServiceImpl implements CredentialManagementServ
     @Override
     public Mono<CredentialItem> getCredential(UUID credentialId, String userId) {
         log.info("Entering getCredential method with credentialId: {} and userId: {}", credentialId, userId);
-        return credentialManagementRepository.findByIdAndUserId(credentialId, userId)
+        return credentialProcedureRepository.findByIdAndUserId(credentialId, userId)
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found with credentialId: " + credentialId + " and userId: " + userId)))
-                .flatMap(credentialManagement -> parseCredentialJson(credentialManagement.getCredentialDecoded())
+                .flatMap(deferredCredentialMetadata -> parseCredentialJson(deferredCredentialMetadata.getCredentialDecoded())
                         .map(parsedCredential -> CredentialItem.builder()
-                                .credentialId(credentialManagement.getId())
+                                .credentialId(deferredCredentialMetadata.getId())
                                 .credential(parsedCredential)
-                                .format(credentialManagement.getCredentialFormat())
-                                .status(credentialManagement.getCredentialStatus())
-                                .modifiedAt(credentialManagement.getModifiedAt())
+                                .format(deferredCredentialMetadata.getCredentialFormat())
+                                .status(deferredCredentialMetadata.getCredentialStatus())
+                                .modifiedAt(deferredCredentialMetadata.getModifiedAt())
                                 .build())
                 )
                 .doOnError(error -> log.error("Error in getCredential method: {}", error.getMessage()));
     }
 
     @Override
-    public Mono<CredentialDeferred> getDeferredCredentialByTransactionId(String transactionId) {
-        return credentialDeferredRepository.findByTransactionId(transactionId);
+    public Mono<CredentialProcedure> getDeferredCredentialByTransactionId(String transactionId) {
+        return credentialDeferredMetadataRepository.findByTransactionId(transactionId);
     }
 
     private Mono<Map<String, Object>> parseCredentialJson(String jsonCredential) {

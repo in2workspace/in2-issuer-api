@@ -13,18 +13,27 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table("credentials.credential_deferred")
-public class CredentialDeferred {
+@Table("credentials.deferred_credential_metadata")
+public class DeferredCredentialMetadata {
     @Id
     @Column("id")
     private UUID id;
 
+    @Column("transaction_code")
+    private String transactionCode;
+
+    @Column("auth_server_nonce")
+    private String authServerNonce;
+
     @Column("transaction_id")
     private String transactionId;
 
-    @Column("credential_id")
-    private UUID credentialId;
+    @Column("procedure_id")
+    private UUID procedureId;
 
-    @Column("credential_signed")
-    private String credentialSigned;
+    @Column("vc")
+    private String vc;
+
+    @Column("vc_format")
+    private String vcFormat;
 }
