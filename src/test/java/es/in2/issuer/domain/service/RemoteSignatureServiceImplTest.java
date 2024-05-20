@@ -6,7 +6,6 @@ import es.in2.issuer.domain.model.SignatureConfiguration;
 import es.in2.issuer.domain.model.SignatureRequest;
 import es.in2.issuer.domain.model.SignatureType;
 import es.in2.issuer.domain.model.SignedData;
-import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
@@ -48,7 +47,6 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testInitializeRemoteSignatureBaseUrl() throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        //lenient().when(appConfigService.getConfiguration(any())).thenReturn(Mono.just("dummyValue"));
         lenient().when(appConfiguration.getRemoteSignatureDomain()).thenReturn(String.valueOf(Mono.just("dummyValue")));
 
         Method privateMethod = RemoteSignatureServiceImpl.class.getDeclaredMethod("initializeRemoteSignatureBaseUrl");
@@ -56,7 +54,6 @@ class RemoteSignatureServiceImplTest {
 
         privateMethod.invoke(remoteSignatureService);
 
-        //verify(appConfigService, times(1)).getConfiguration(AppConfigurationKeys.ISSUER_AUTHENTIC_SOURCES_BASE_URL_KEY);
         verify(appConfiguration, times(1)).getRemoteSignatureDomain();
     }
 

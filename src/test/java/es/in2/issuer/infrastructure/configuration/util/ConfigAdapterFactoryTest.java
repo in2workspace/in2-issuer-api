@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.configuration.util;
 
 import es.in2.issuer.infrastructure.configuration.exception.ConfigAdapterFactoryException;
 import es.in2.issuer.infrastructure.configuration.service.GenericConfigAdapter;
-import es.in2.issuer.infrastructure.configuration.util.ConfigAdapterFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

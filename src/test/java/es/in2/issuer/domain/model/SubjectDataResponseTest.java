@@ -24,8 +24,6 @@ class SubjectDataResponseTest {
     void lombokGeneratedMethodsTest() {
         // Arrange
         Map<String, Map<String, String>> expectedCredentialSubjectData = new HashMap<>();
-        // Add sample data to expectedCredentialSubjectData if needed
-        String toStringDto = "AuthenticSourcesGetUserResponseDTO(credentialSubjectData=" + expectedCredentialSubjectData + ")";
         // Act
         SubjectDataResponse dto1 = new SubjectDataResponse(expectedCredentialSubjectData);
         SubjectDataResponse dto2 = new SubjectDataResponse(expectedCredentialSubjectData);

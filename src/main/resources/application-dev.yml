@@ -7,6 +7,15 @@ spring:
   flyway:
     url: "jdbc:postgresql://localhost:5432/issuer"
     locations: classpath:db/migration
+  mail:
+    host: localhost          # The SMTP server host
+    port: 1025               # The SMTP server port used by MailHog
+    username:                # MailHog does not require username
+    password:                # MailHog does not require password
+    properties.mail.smtp:
+      auth: false            # No authentication needed for MailHog
+      starttls.enable: false
+
 
 app:
   configs:
@@ -17,11 +26,11 @@ app:
     key-vault-domain: http://localhost:8081
     remote-signature-domain: http://localhost:8050
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
-    jwt-decoder-path: "/realms/EAAProvider/protocol/openid-connect/certs"
-    jwt-decoder-local-path: "/realms/EAAProvider"
+    jwt-decoder-path: "/realms/CredentialIssuer/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/CredentialIssuer"
     jwt-validator: "http://localhost:8088/realms/EAAProvider"
-    pre-auth-code-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/credential-offer"
-    token-uri-template: "/realms/EAAProvider/verifiable-credential/{{did}}/token"
+    pre-auth-code-uri-template: "/realms/CredentialIssuer/verifiable-credential/{{did}}/credential-offer"
+    token-uri-template: "/realms/CredentialIssuer/verifiable-credential/{{did}}/token"
 
 management:
   endpoints:

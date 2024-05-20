@@ -304,4 +304,17 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void handleCustomCredentialOfferNotFoundException() {
+        CustomCredentialOfferNotFoundException exception = new CustomCredentialOfferNotFoundException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCustomCredentialOfferNotFoundException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
 }

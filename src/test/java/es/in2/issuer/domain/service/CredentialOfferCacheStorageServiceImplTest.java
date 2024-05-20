@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service;
 
 
+import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
 import es.in2.issuer.infrastructure.repository.CacheStore;
@@ -12,6 +13,7 @@ import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -64,8 +66,14 @@ class CredentialOfferCacheStorageServiceImplTest {
         when(cacheStore.get(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
-                .verifyComplete();
+                .expectErrorSatisfies(throwable -> {
+                    assertThat(throwable)
+                            .isInstanceOf(CustomCredentialOfferNotFoundException.class)
+                            .hasMessageContaining("CustomCredentialOffer not found for nonce: " + nonce);
+                })
+                .verify();
 
         verify(cacheStore, never()).delete(anyString());
     }
+
 }

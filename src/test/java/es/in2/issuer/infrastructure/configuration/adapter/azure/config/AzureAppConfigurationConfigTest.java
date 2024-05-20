@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.configuration.adapter.azure.config;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.data.appconfiguration.ConfigurationClient;
-import es.in2.issuer.infrastructure.configuration.adapter.azure.config.AzureAppConfigurationConfig;
 import es.in2.issuer.infrastructure.configuration.adapter.azure.config.properties.AzureProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

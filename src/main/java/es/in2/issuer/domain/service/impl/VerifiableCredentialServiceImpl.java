@@ -32,7 +32,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
 
             JsonNode credentialSubjectValue = objectMapper.readTree(userData);
-            ((ObjectNode) credentialSubjectValue).put("id", subjectDid);
+            ((ObjectNode) credentialSubjectValue).put(ID, subjectDid);
             ((ObjectNode) vcTemplateNode).set(CREDENTIAL_SUBJECT, credentialSubjectValue);
 
             return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
@@ -42,13 +42,14 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     public Mono<String> generateDeferredVcPayLoad(String vcTemplate) {
         return Mono.fromCallable(() -> {
             JsonNode vcTemplateNode = parseJson(vcTemplate);
-            String subjectDid = vcTemplateNode.get(CREDENTIAL_SUBJECT).get(ID).asText();
+            String subjectDid = vcTemplateNode.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(ID).asText();
             String issuerDid = vcTemplateNode.get(ISSUER).asText();
+            String uuid = vcTemplateNode.get(ID).asText();
             Instant nowInstant = Instant.parse(vcTemplateNode.get(VALID_FROM).asText());
             Instant expiration = Instant.parse(vcTemplateNode.get(EXPIRATION_DATE).asText());
 
-            updateTemplateNode(vcTemplateNode, subjectDid, issuerDid, nowInstant, expiration);
-            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, subjectDid, nowInstant, expiration));
+            updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
+            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
         });
     }
     @Override
@@ -61,7 +62,11 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
 
             JsonNode credentialSubjectValue = objectMapper.readTree(userData);
-            ((ObjectNode) credentialSubjectValue).put(ID, subjectDid);
+            JsonNode mandate = credentialSubjectValue.get(MANDATE);
+            JsonNode mandatee = mandate.get(MANDATEE);
+            ((ObjectNode) mandatee).put(ID, subjectDid);
+            ((ObjectNode) mandate).set(MANDATEE, mandatee);
+            ((ObjectNode) credentialSubjectValue).set(MANDATE, mandate);
             ((ObjectNode) vcTemplateNode).set(CREDENTIAL_SUBJECT, credentialSubjectValue);
 
             return objectMapper.writeValueAsString(vcTemplateNode);

@@ -15,12 +15,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -41,6 +43,9 @@ class DeferredCredentialMetadataServiceImplTest {
 
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private VerifiableCredentialService verifiableCredentialService;
 
     @InjectMocks
     private CredentialManagementServiceImpl credentialManagementService;
@@ -93,7 +98,7 @@ class DeferredCredentialMetadataServiceImplTest {
 
         when(credentialDeferredMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(new CredentialProcedure()));
 
-        StepVerifier.create(credentialManagementService.updateCredential(credential, credentialId, userId))
+        StepVerifier.create(credentialManagementService.updateCredential(testCredential, credentialId, userId))
                 .verifyComplete();
 
         verify(credentialProcedureRepository).findByIdAndUserId(credentialId, userId);
@@ -130,13 +135,13 @@ class DeferredCredentialMetadataServiceImplTest {
     @Test
     void getCredentialsTest() throws JsonProcessingException {
         UUID credentialId = UUID.randomUUID();
-        String userId = "user123";
+        String testUserId = "user123";
         String jsonCredential = "{\"name\": \"John Doe\"}";
         Map<String, Object> parsedCredential = Map.of("name", "John Doe");
 
         DeferredCredentialMetadata cm = new DeferredCredentialMetadata();
         cm.setId(credentialId);
-        cm.setUserId(userId);
+        cm.setUserId(testUserId);
         cm.setCredentialDecoded(jsonCredential);
         cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
@@ -148,7 +153,7 @@ class DeferredCredentialMetadataServiceImplTest {
         when(objectMapper.readValue(eq(cm.getCredentialDecoded()), any(TypeReference.class)))
                 .thenReturn(parsedCredential);
 
-        StepVerifier.create(credentialManagementService.getCredentials(userId, 0, 10, "modifiedAt", Sort.Direction.DESC))
+        StepVerifier.create(credentialManagementService.getCredentials(testUserId, 0, 10, "modifiedAt", Sort.Direction.DESC))
                 .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
                 .verifyComplete();
 
@@ -158,13 +163,13 @@ class DeferredCredentialMetadataServiceImplTest {
     @Test
     void getCredentialTest() throws JsonProcessingException {
         UUID credentialId = UUID.randomUUID();
-        String userId = "user123";
+        String credentialTestUserId = "user123";
         String jsonCredential = "{\"name\": \"John Doe\"}";
         Map<String, Object> parsedCredential = Map.of("name", "John Doe");
 
         DeferredCredentialMetadata cm = new DeferredCredentialMetadata();
         cm.setId(credentialId);
-        cm.setUserId(userId);
+        cm.setUserId(credentialTestUserId);
         cm.setCredentialDecoded(jsonCredential);
         cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
         cm.setCredentialFormat(JWT_VC);
@@ -176,7 +181,7 @@ class DeferredCredentialMetadataServiceImplTest {
                 .thenReturn(parsedCredential);
 
 
-        StepVerifier.create(credentialManagementService.getCredential(credentialId, userId))
+        StepVerifier.create(credentialManagementService.getCredential(credentialId, credentialTestUserId))
                 .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
                 .verifyComplete();
 

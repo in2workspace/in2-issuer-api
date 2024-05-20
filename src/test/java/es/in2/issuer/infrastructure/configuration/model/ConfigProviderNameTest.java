@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.configuration.model;
 
-import es.in2.issuer.infrastructure.configuration.model.ConfigProviderName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

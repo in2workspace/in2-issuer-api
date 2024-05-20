@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.iam.util;
 
 import es.in2.issuer.infrastructure.iam.exception.IamAdapterFactoryException;
 import es.in2.issuer.infrastructure.iam.service.GenericIamAdapter;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;

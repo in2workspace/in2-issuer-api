@@ -19,6 +19,8 @@ public class Constants {
 
     public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
+    public static final String MANDATE = "mandate";
+    public static final String MANDATEE = "mandatee";
 
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
@@ -34,5 +36,6 @@ public class Constants {
     public static final String ID = "id";
     public static final String BEARER = "Bearer ";
     public static final String ENGLISH = "en";
+    public static final String NO_REPLAY_EMAIL = "noreply@example.com";
 
 }

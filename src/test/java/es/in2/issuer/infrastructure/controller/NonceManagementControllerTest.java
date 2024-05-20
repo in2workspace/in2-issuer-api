@@ -3,7 +3,6 @@ package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.domain.model.AppNonceValidationResponse;
 import es.in2.issuer.domain.model.NonceResponse;
 import es.in2.issuer.domain.service.NonceManagementService;
-import es.in2.issuer.infrastructure.controller.NonceManagementController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

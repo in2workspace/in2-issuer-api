@@ -2,18 +2,15 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.infrastructure.controller.CredentialIssuerMetadataController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import static org.mockito.Mockito.*;
 
