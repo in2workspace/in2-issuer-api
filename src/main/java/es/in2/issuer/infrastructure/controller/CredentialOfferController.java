@@ -24,16 +24,17 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 import static es.in2.issuer.domain.util.Constants.ENGLISH;
 
 @Slf4j
 @RestController
-@RequestMapping
+@RequestMapping("/api/v1/credential-offer")
 @RequiredArgsConstructor
 public class CredentialOfferController {
 
     private final CredentialOfferIssuanceService credentialOfferIssuanceService;
-    private final AccessTokenService accessTokenService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -61,17 +62,17 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping("/api/v1/credential-offer")
+    @GetMapping("/{transaction_id}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestParam("credential-type") String credentialType) {
+    public Mono<String> buildCredentialOffer(@PathVariable("transaction_id") String transactionId) {
         log.info("Building Credential Offer...");
-        return accessTokenService.getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> credentialOfferIssuanceService.buildCredentialOfferUri(token, credentialType)
+        String processId = UUID.randomUUID().toString();
+        return credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionId)
                         .doOnSuccess(credentialOfferUri -> {
                                     log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
                                     log.info("Credential Offer created successfully.");
                                 }
-                        ));
+                        );
     }
 
     @Operation(
@@ -101,7 +102,7 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping(value = "/api/v1/credential-offer/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
         log.info("Retrieving Credential Offer...");

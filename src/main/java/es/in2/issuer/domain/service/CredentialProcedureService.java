@@ -1,0 +1,9 @@
+package es.in2.issuer.domain.service;
+
+import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
+import reactor.core.publisher.Mono;
+
+public interface CredentialProcedureService {
+    Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest);
+    Mono<String> getCredentialTypeByProcedureId(String procedureId);
+}

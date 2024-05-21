@@ -101,7 +101,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
-        when(verifiableCredentialService.generateVc(
+        when(verifiableCredentialService.bindTheUserDidToHisCredential(
                         eq(templateContent),eq(did),eq("did:example:issuer"),eq("userData"),any(Instant.class))
                 )
                 .thenReturn(Mono.just(unsignedCredential));
@@ -170,7 +170,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
-        when(verifiableCredentialService.generateVc(
+        when(verifiableCredentialService.bindTheUserDidToHisCredential(
                 eq(templateContent),eq(did),eq("did:example:issuer"),eq("userData"),any(Instant.class))
         )
                 .thenReturn(Mono.just(unsignedCredential));

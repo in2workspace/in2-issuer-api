@@ -2,16 +2,11 @@ package es.in2.issuer.application.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.service.CredentialOfferIssuanceService;
-import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
-import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.model.PreAuthCodeResponse;
-import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
-import es.in2.issuer.domain.service.CredentialOfferService;
-import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.domain.service.VcSchemaService;
+import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
@@ -23,41 +18,40 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
-import static es.in2.issuer.domain.util.Constants.BEARER;
-
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuanceService {
 
-    private final VcSchemaService vcSchemaService;
     private final CredentialOfferService credentialOfferService;
     private final CredentialOfferCacheStorageService credentialOfferCacheStorageService;
     private final IamAdapterFactory iamAdapterFactory;
     private final ObjectMapper objectMapper;
     private final WebClientConfig webClient;
     private final EmailService emailService;
+    private final CredentialProcedureService credentialProcedureService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
+    private final
 
     @Override
-    public Mono<String> buildCredentialOfferUri(String accessToken, String credentialType) {
-        return vcSchemaService.isSupportedVcSchema(credentialType)
-                .flatMap(isSupported -> {
-                    if (Boolean.FALSE.equals(isSupported)) {
-                        return Mono.error(new CredentialTypeUnsupportedException(credentialType));
-                    }
-                    return getPreAuthorizationCodeFromIam(accessToken)
-                            .flatMap(preAuthCodeResponse ->
-                                    credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
-                                            .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                            .flatMap(credentialOfferService::createCredentialOfferUri)
-                                            .flatMap(credentialOfferUri ->
+    public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
+        return  deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
+                .flatMap(credentialProcedureService::getCredentialTypeByProcedureId)
+                .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
+                        .flatMap(preAuthCodeResponse ->
+                                deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode())
+                                        .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
+                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
+                                                .flatMap(credentialOfferService::createCredentialOfferUri)
+                                                .flatMap(credentialOfferUri ->
                                                 // After creating the credential offer URI, send the PIN email
-                                                emailService.sendPin("example@in2.es", "pin code", preAuthCodeResponse.pin())
-                                                        .thenReturn(credentialOfferUri)
-                                            )
-                            );
-                });
+                                                        emailService.sendPin("example@in2.es", "pin code", preAuthCodeResponse.pin())
+                                                                .thenReturn(credentialOfferUri)
+                                                )
+                                )
+                        )
+                );
     }
 
     @Override
@@ -65,7 +59,7 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
         return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce);
     }
 
-    private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam(String accessToken) {
+    private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
         String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
@@ -73,7 +67,6 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
         return webClient.centralizedWebClient()
                 .get()
                 .uri(url)
-                .header(HttpHeaders.AUTHORIZATION, BEARER + accessToken)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {

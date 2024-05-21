@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
+import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.model.LEARCredentialRequest;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,11 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/credentials")
 @RequiredArgsConstructor
 public class CredentialCreationController {
+    private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
 
     @Operation(
             summary = "Creates a withdraw credential",
@@ -41,6 +45,7 @@ public class CredentialCreationController {
     @GetMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> createWithdrawLEARCredential(@RequestBody LEARCredentialRequest learCredentialRequest) {
-        return Mono.empty();
+        String processId = UUID.randomUUID().toString();
+        return verifiableCredentialIssuanceService.completeWithdrawLearCredentialProcess(processId,learCredentialRequest);
     }
 }

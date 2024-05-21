@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
-import es.in2.issuer.domain.repository.CredentialDeferredMetadataRepository;
+import es.in2.issuer.domain.repository.DeferredCredentialMetadataRepository;
 import es.in2.issuer.domain.repository.CredentialProcedureRepository;
 import es.in2.issuer.domain.service.impl.CredentialManagementServiceImpl;
 import es.in2.issuer.domain.util.CredentialStatus;
@@ -15,14 +15,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,7 +37,7 @@ class DeferredCredentialMetadataServiceImplTest {
     private CredentialProcedureRepository credentialProcedureRepository;
 
     @Mock
-    private CredentialDeferredMetadataRepository credentialDeferredMetadataRepository;
+    private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
     @Mock
     private ObjectMapper objectMapper;
@@ -75,14 +73,14 @@ class DeferredCredentialMetadataServiceImplTest {
     @Test
     void testCommitCredential() {
         when(credentialProcedureRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
-        when(credentialDeferredMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
+        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
 
         StepVerifier.create(credentialManagementService.commitCredential(credential, userId, format))
                 .expectNextMatches(transactionId -> !transactionId.isEmpty())
                 .verifyComplete();
 
         verify(credentialProcedureRepository).save(any(DeferredCredentialMetadata.class));
-        verify(credentialDeferredMetadataRepository).save(any(CredentialProcedure.class));
+        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
     }
 
     @Test
@@ -94,42 +92,42 @@ class DeferredCredentialMetadataServiceImplTest {
 
         when(credentialProcedureRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
 
-        when(credentialDeferredMetadataRepository.findByCredentialId(credentialId)).thenReturn(Mono.just(new CredentialProcedure()));
+        when(deferredCredentialMetadataRepository.findByCredentialId(credentialId)).thenReturn(Mono.just(new CredentialProcedure()));
 
-        when(credentialDeferredMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(new CredentialProcedure()));
+        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(new CredentialProcedure()));
 
         StepVerifier.create(credentialManagementService.updateCredential(testCredential, credentialId, userId))
                 .verifyComplete();
 
         verify(credentialProcedureRepository).findByIdAndUserId(credentialId, userId);
         verify(credentialProcedureRepository).save(any(DeferredCredentialMetadata.class));
-        verify(credentialDeferredMetadataRepository).findByCredentialId(credentialId);
-        verify(credentialDeferredMetadataRepository).save(any(CredentialProcedure.class));
+        verify(deferredCredentialMetadataRepository).findByCredentialId(credentialId);
+        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
     }
 
     @Test
     void testUpdateTransactionId() {
-        when(credentialDeferredMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
-        when(credentialDeferredMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
+        when(deferredCredentialMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
+        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
 
         StepVerifier.create(credentialManagementService.updateTransactionId("transaction-id"))
                 .expectNextMatches(newTransactionId -> !newTransactionId.isEmpty())
                 .verifyComplete();
 
-        verify(credentialDeferredMetadataRepository).findByTransactionId("transaction-id");
-        verify(credentialDeferredMetadataRepository).save(any(CredentialProcedure.class));
+        verify(deferredCredentialMetadataRepository).findByTransactionId("transaction-id");
+        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
     }
 
     @Test
     void testDeleteCredentialDeferred() {
-        when(credentialDeferredMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
-        when(credentialDeferredMetadataRepository.delete(credentialProcedure)).thenReturn(Mono.empty());
+        when(deferredCredentialMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
+        when(deferredCredentialMetadataRepository.delete(credentialProcedure)).thenReturn(Mono.empty());
 
         StepVerifier.create(credentialManagementService.deleteCredentialDeferred("transaction-id"))
                 .verifyComplete();
 
-        verify(credentialDeferredMetadataRepository).findByTransactionId("transaction-id");
-        verify(credentialDeferredMetadataRepository).delete(credentialProcedure);
+        verify(deferredCredentialMetadataRepository).findByTransactionId("transaction-id");
+        verify(deferredCredentialMetadataRepository).delete(credentialProcedure);
     }
 
     @Test

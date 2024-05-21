@@ -3,6 +3,7 @@ package es.in2.issuer.application.service.impl;
 import com.nimbusds.jose.JWSObject;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
+import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.exception.TemplateReadException;
@@ -29,10 +30,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Date;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
-import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 
 @Service
 @RequiredArgsConstructor
@@ -49,7 +51,14 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
     private final CredentialManagementService credentialManagementService;
+    private final EmailService emailService;
 
+    @Override
+    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, LEARCredentialRequest learCredentialRequest) {
+        return verifiableCredentialService.generateVc(processId,LEAR_CREDENTIAL_EMPLOYEE,learCredentialRequest)
+                .flatMap(transactionCode -> emailService());
+
+    }
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String userId,
@@ -161,7 +170,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                                 return Mono.error(new TemplateReadException("Error when reading template"));
                             }
 
-                            return verifiableCredentialService.generateVc(learTemplate, subjectDid, appConfiguration.getIssuerDid(), userData, expiration);
+                            return verifiableCredentialService.bindTheUserDidToHisCredential(learTemplate, subjectDid, appConfiguration.getIssuerDid(), userData, expiration);
                         });
             } catch (UserDoesNotExistException e) {
                 log.error("UserDoesNotExistException {}", e.getMessage());

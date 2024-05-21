@@ -1,11 +1,12 @@
 package es.in2.issuer.domain.entity;
 
+import es.in2.issuer.domain.model.CredentialStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
-import java.sql.Timestamp;
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -33,11 +34,11 @@ public class CredentialProcedure {
     private String credentialEncoded;
 
     @Column("credential_status")
-    private String credentialStatus;
+    private CredentialStatus credentialStatus;
 
     @Column("organization_identifier")
     private String organizationIdentifier;
 
     @Column("updated_at")
-    private Timestamp updatedAt;
+    private String updatedAt;
 }

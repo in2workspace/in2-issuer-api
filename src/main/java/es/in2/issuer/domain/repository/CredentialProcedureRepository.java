@@ -12,6 +12,5 @@ import java.util.UUID;
 
 @Repository
 public interface CredentialProcedureRepository extends ReactiveCrudRepository<CredentialProcedure, UUID> {
-    Flux<DeferredCredentialMetadata> findByUserIdOrderByModifiedAtDesc(String userId, Pageable pageable);
-    Mono<DeferredCredentialMetadata> findByIdAndUserId(UUID id, String userId);
+    Flux<CredentialProcedure> findByUserIdOrderByModifiedAtDesc(String userId, Pageable pageable);
 }

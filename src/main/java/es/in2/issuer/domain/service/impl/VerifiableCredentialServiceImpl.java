@@ -4,8 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
 import es.in2.issuer.domain.exception.ParseErrorException;
+import es.in2.issuer.domain.model.LEARCredentialRequest;
+import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
+import es.in2.issuer.domain.util.factory.CredentialFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +27,18 @@ import static es.in2.issuer.domain.util.Constants.*;
 @Slf4j
 public class VerifiableCredentialServiceImpl implements VerifiableCredentialService {
     private final ObjectMapper objectMapper;
+    private final CredentialFactory credentialFactory;
+    private final CredentialProcedureService credentialProcedureService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
+
+    @Override
+    public Mono<String> generateVc(String processId, String vcType, LEARCredentialRequest learCredentialRequest) {
+        return credentialFactory.getInitialCredential(processId,vcType,learCredentialRequest.credential())
+                .flatMap(credentialProcedureService::createCredentialProcedure)
+                .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
+
+    }
+
     @Override
     public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
         return Mono.fromCallable(() -> {
@@ -53,7 +70,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         });
     }
     @Override
-    public Mono<String> generateVc(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
+    public Mono<String> bindTheUserDidToHisCredential(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
         return Mono.fromCallable(() -> {
             JsonNode vcTemplateNode = parseJson(vcTemplate);
             String uuid = UUID.randomUUID().toString();
