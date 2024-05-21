@@ -1,15 +1,23 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
+import es.in2.issuer.domain.exception.NonceValidationException;
+import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.ProofValidationException;
+import es.in2.issuer.domain.model.NonceValidationResponse;
 import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.infrastructure.repository.CacheStore;
+import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.WebClientConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.util.Arrays;
@@ -21,6 +29,9 @@ import java.security.PublicKey;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.math.BigInteger;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.custom.sec.SecP256R1Curve;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -28,18 +39,19 @@ import com.nimbusds.jwt.SignedJWT;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.jce.ECNamedCurveTable;
 
-import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_ALG;
-import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_TYP;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProofValidationServiceImpl implements ProofValidationService {
 
-    private final CacheStore<String> cacheStore;
+    private final WebClientConfig webClient;
+    private final AppConfiguration appConfiguration;
+    private final ObjectMapper objectMapper;
 
     @Override
-    public Mono<Boolean> isProofValid(String jwtProof) {
+    public Mono<Boolean> isProofValid(String jwtProof, String token) {
         return Mono.just(jwtProof)
                 .doOnNext(jwt -> log.debug("Starting validation for JWT: {}", jwt))
                 .flatMap(this::parseAndValidateJwt)
@@ -54,8 +66,10 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                     else log.debug("JWT signature validated, checking nonce...");
                 })
                 .flatMap(jwsObject ->
-                        jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
+//                        jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
+                        isNonceValid(jwsObject, token)
                 )
+                .map(NonceValidationResponse::isNonceValid)
                 .doOnSuccess(result -> log.debug("Final validation result: {}", result))
                 .onErrorMap(e -> new ProofValidationException("Error during JWT validation"));
     }
@@ -149,12 +163,40 @@ public class ProofValidationServiceImpl implements ProofValidationService {
         });
     }
 
-    private Mono<Boolean> isNoncePresentInCache(JWSObject jwsObject) {
-        // Extract nonce and check in cache
+    private Mono<NonceValidationResponse> isNonceValid(JWSObject jwsObject, String token){
         var payload = jwsObject.getPayload().toJSONObject();
         String nonce = payload.get("nonce").toString();
-        return Mono.fromCallable(() -> cacheStore.get(nonce) != null)
-                .onErrorReturn(false);
+        Map<String, String> formDataMap = Map.of("nonce", nonce);
+
+        // Build the request body
+        String xWwwFormUrlencodedBody = formDataMap.entrySet().stream()
+                .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
+                .collect(Collectors.joining("&"));
+
+        return webClient.centralizedWebClient()
+                .post()
+                .uri(appConfiguration.getNonceValidationEndpoint())
+                .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
+                .header(HttpHeaders.AUTHORIZATION, BEARER + token)
+                .bodyValue(xWwwFormUrlencodedBody)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                        return Mono.error(new NonceValidationException("There was an error during the validation of nonce, error" + response));
+                    } else if (response.statusCode().is3xxRedirection()) {
+                        return Mono.just(Objects.requireNonNull(response.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION)));
+                    } else {
+                        return response.bodyToMono(String.class);
+                    }
+                })
+                // Parsing response
+                .flatMap(response -> {
+                    try {
+                        return Mono.just(objectMapper.readValue(response, NonceValidationResponse.class));
+                    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                        return Mono.error(new ParseErrorException("Error parsing JSON response"));
+                    }
+                });
     }
+
 
 }

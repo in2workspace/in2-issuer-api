@@ -18,6 +18,7 @@ public record AppConfigurationProperties(
         @NotNull String jwtValidator,
         @NotNull String jwtDecoderLocalPath,
         @NotNull String preAuthCodeUriTemplate,
-        @NotNull String tokenUriTemplate
+        @NotNull String tokenUriTemplate,
+        @NotNull String nonceValidationEndpoint
 ) {}
 

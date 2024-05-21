@@ -56,7 +56,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
             CredentialRequest credentialRequest,
             String token
     ) {
-        return proofValidationService.isProofValid(credentialRequest.proof().jwt())
+        return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
                 .flatMap(isValid -> {
                     if (Boolean.FALSE.equals(isValid)) {
                         return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
