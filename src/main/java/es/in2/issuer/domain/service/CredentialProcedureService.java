@@ -6,4 +6,6 @@ import reactor.core.publisher.Mono;
 public interface CredentialProcedureService {
     Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest);
     Mono<String> getCredentialTypeByProcedureId(String procedureId);
+    Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential);
+    Mono<String> getDecodedCredentialByProcedureId(String procedureId);
 }

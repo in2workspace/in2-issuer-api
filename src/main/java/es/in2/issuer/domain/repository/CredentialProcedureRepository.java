@@ -2,6 +2,7 @@ package es.in2.issuer.domain.repository;
 
 import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
+import org.checkerframework.checker.units.qual.C;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;

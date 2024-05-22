@@ -32,11 +32,11 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     private final EmailService emailService;
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
-    private final
 
     @Override
     public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
-        return  deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
+        return  deferredCredentialMetadataService.validateTransactionCode(transactionCode)
+                .then(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .flatMap(credentialProcedureService::getCredentialTypeByProcedureId)
                 .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
                         .flatMap(preAuthCodeResponse ->

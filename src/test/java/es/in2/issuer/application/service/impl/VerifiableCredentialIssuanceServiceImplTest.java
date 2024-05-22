@@ -101,7 +101,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
-        when(verifiableCredentialService.bindTheUserDidToHisCredential(
+        when(verifiableCredentialService.retrieveVcAndBindMandateeId(
                         eq(templateContent),eq(did),eq("did:example:issuer"),eq("userData"),any(Instant.class))
                 )
                 .thenReturn(Mono.just(unsignedCredential));
@@ -170,7 +170,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
-        when(verifiableCredentialService.bindTheUserDidToHisCredential(
+        when(verifiableCredentialService.retrieveVcAndBindMandateeId(
                 eq(templateContent),eq(did),eq("did:example:issuer"),eq("userData"),any(Instant.class))
         )
                 .thenReturn(Mono.just(unsignedCredential));
@@ -238,7 +238,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String token = "dummyToken";
         String signedCredential = "signedCredentialData";
 
-        when(verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential))
+        when(verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential))
                 .thenReturn(Mono.just("vcPayload"));
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));

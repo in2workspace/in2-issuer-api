@@ -3,11 +3,8 @@ package es.in2.issuer.application.service.impl;
 import com.nimbusds.jose.JWSObject;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
-import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
-import es.in2.issuer.domain.exception.TemplateReadException;
-import es.in2.issuer.domain.exception.UserDoesNotExistException;
 import es.in2.issuer.domain.model.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
@@ -16,34 +13,23 @@ import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
 import org.apache.commons.compress.compressors.CompressorOutputStream;
 import org.apache.commons.compress.compressors.CompressorStreamFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.Date;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.*;
-import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCredentialIssuanceService {
 
-    // fixme: this is a temporary solution to load credential templates from resources
-    @Value("classpath:credentials/templates/LEARCredentialEmployee.json")
-    private Resource learCredentialTemplate;
 
     private final RemoteSignatureService remoteSignatureService;
     private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
@@ -61,7 +47,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     }
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-            String userId,
+            String processId,
             CredentialRequest credentialRequest,
             String token
     ) {
@@ -70,15 +56,13 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     if (Boolean.FALSE.equals(isValid)) {
                         return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
                     }
-                    return getNonceClaim(credentialRequest.proof().jwt());
+                    return getNonceClaim(credentialRequest.proof().jwt())
+                            .flatMap(proofValidationService::deleteNonceAndGenerateAFreshOne);
                 })
-                .flatMap(nonceClaim -> extractDidFromJwtProof(credentialRequest.proof().jwt())
-                        .flatMap(subjectDid -> {
-                            String format = credentialRequest.format();
-                            return generateUnsignedVerifiableCredential(subjectDid)
-                                    .flatMap(credential -> credentialManagementService.commitCredential(credential, userId, format)
-                                        .flatMap(transactionId -> Mono.just(new VerifiableCredentialResponse(credential, transactionId, nonceClaim, 600))));
-                        }));
+                .flatMap(freshNonce -> extractDidFromJwtProof(credentialRequest.proof().jwt())
+                        .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, freshNonce,subjectDid,token, credentialRequest.format())))
+                .flatMap(credentialResponse -> emailService.sendPin()
+                        .then(Mono.just(credentialResponse)));
     }
 
     @Override
@@ -95,27 +79,14 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token){
-        return credentialManagementService.getDeferredCredentialByTransactionId(deferredCredentialRequest.transactionId())
-                .flatMap(deferredCredential -> {
-                    if (deferredCredential.getCredentialSigned() == null || deferredCredential.getCredentialSigned().isBlank()) {
-                        return credentialManagementService.updateTransactionId(deferredCredentialRequest.transactionId())
-                                .map(newTransactionId -> VerifiableCredentialResponse.builder()
-                                        .transactionId(newTransactionId)
-                                        .build());
-                    } else {
-                        return credentialManagementService.deleteCredentialDeferred(deferredCredentialRequest.transactionId())
-                                .then(Mono.just(VerifiableCredentialResponse.builder()
-                                        .credential(deferredCredential.getCredentialSigned())
-                                        .build()));
-                    }
-                })
-                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential.", e)));
+    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest){
+        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
     @Override
     public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token){
-            return verifiableCredentialService.generateDeferredVcPayLoad(unsignedCredential)
+            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
                     .flatMap(vcPayload -> {
                         SignatureRequest signatureRequest = SignatureRequest.builder()
                                 .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
@@ -152,32 +123,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         }});
     }
 
-    private Mono<String> generateUnsignedVerifiableCredential(String subjectDid) {
-        return Mono.defer(() -> {
-            try {
-                Instant expiration = Instant.now().plus(30, ChronoUnit.DAYS);
-                // Prepare desired custom data that should replace the default template data
-                log.info("Fetching information from authentic sources ...");
-                //return authenticSourcesRemoteService.getUser(token)
-                return authenticSourcesRemoteService.getUserFromLocalFile()
-                        .flatMap(userData -> {
-                            // todo get issuer did from dss module
-                            // Get Credential template from local file
-                            String learTemplate;
-                            try {
-                                learTemplate = new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-                            } catch (IOException e) {
-                                return Mono.error(new TemplateReadException("Error when reading template"));
-                            }
-
-                            return verifiableCredentialService.bindTheUserDidToHisCredential(learTemplate, subjectDid, appConfiguration.getIssuerDid(), userData, expiration);
-                        });
-            } catch (UserDoesNotExistException e) {
-                log.error("UserDoesNotExistException {}", e.getMessage());
-                return Mono.error(new UserDoesNotExistException("User Does Not Exist"));
-            }
-        });
-    }
 
     /**
      * Generate CBOR payload for COSE.

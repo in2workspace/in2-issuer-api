@@ -10,7 +10,7 @@ public interface VerifiableCredentialIssuanceService {
 
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String username, CredentialRequest credentialRequest, String token);
     Mono<BatchCredentialResponse> generateVerifiableCredentialBatchResponse(String username, BatchCredentialRequest batchCredentialRequest, String token);
-    Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String userId, DeferredCredentialRequest deferredCredentialRequest, String token);
+    Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest);
     // Method for signing deferred credential using remote DSS, currently not in use in DOME profile
     Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token);
     // Method for generating and signing credential using remote DSS, currently not in use in DOME profile

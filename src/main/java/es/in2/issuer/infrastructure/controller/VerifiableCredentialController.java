@@ -19,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 import static es.in2.issuer.domain.util.Utils.*;
 
 @Slf4j
@@ -27,7 +29,6 @@ import static es.in2.issuer.domain.util.Utils.*;
 @RequiredArgsConstructor
 public class VerifiableCredentialController {
 
-    private final VerifiableCredentialService verifiableCredentialService;
     private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
     private final AccessTokenService accessTokenService;
 
@@ -61,10 +62,9 @@ public class VerifiableCredentialController {
     @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody DeferredCredentialRequest deferredCredentialRequest) {
-        return accessTokenService.getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
-                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(userId, deferredCredentialRequest, token)))
-                .doOnNext(result -> log.info("VerifiableCredentialController - getCredential()"));
+        String processId = UUID.randomUUID().toString();
+        return verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(processId, deferredCredentialRequest)
+                .doOnNext(result -> log.info("VerifiableCredentialController - getDeferredCredential()"));
     }
 
     @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)

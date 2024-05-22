@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.JWSObject;
+import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.domain.exception.ProofValidationException;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
@@ -30,6 +31,7 @@ import org.bouncycastle.jce.ECNamedCurveTable;
 
 import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_ALG;
 import static es.in2.issuer.domain.util.Constants.SUPPORTED_PROOF_TYP;
+import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 
 @Slf4j
 @Service
@@ -157,4 +159,18 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 .onErrorReturn(false);
     }
 
+    @Override
+    public Mono<String> deleteNonceAndGenerateAFreshOne(String oldNonce){
+        return cacheStore.get(oldNonce)
+                .flatMap(value -> {
+                    if (oldNonce != null){
+                        cacheStore.delete(oldNonce);
+                        return generateCustomNonce()
+                                .flatMap(freshNonce -> cacheStore.add(freshNonce,freshNonce));
+                    }
+                    else {
+                        return Mono.error(new RuntimeException("The nonce is not present"));
+                    }
+                });
+    }
 }

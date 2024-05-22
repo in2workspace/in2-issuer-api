@@ -24,15 +24,27 @@ public class LEARCredentialEmployeeFactory {
     private final ObjectMapper objectMapper;
     private final AppConfiguration appConfiguration;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential){
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId){
         LEARCredentialEmployee baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
+        return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
+                .flatMap(this::convertLEARCredentialEmployeeInToString);
+    }
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential){
+        LEARCredentialEmployee baseLearCredentialEmployee = mapJsonNodeToLEARCredentialEmployee(learCredential);
 
         return buildFinalLearCredentialEmployee(baseLearCredentialEmployee)
                 .flatMap(learCredentialEmployee -> convertLEARCredentialEmployeeInToString(learCredentialEmployee)
                     .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential,learCredentialEmployee))
                 );
     }
-    private LEARCredentialEmployee mapStringToLEARCredentialEmployee(JsonNode learCredential){
+    private LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential){
+        try {
+            return objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    private LEARCredentialEmployee mapJsonNodeToLEARCredentialEmployee(JsonNode learCredential){
         return objectMapper.convertValue(learCredential, LEARCredentialEmployee.class);
     }
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee){
@@ -58,6 +70,34 @@ public class LEARCredentialEmployeeFactory {
                         .build())
                 .build());
     }
+
+    private Mono<LEARCredentialEmployee> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee, String mandateeId){
+
+        return Mono.just(LEARCredentialEmployee.builder()
+                .expirationDate(baseLearCredentialEmployee.expirationDate())
+                .issuanceDate(baseLearCredentialEmployee.issuanceDate())
+                .validFrom(baseLearCredentialEmployee.validFrom())
+                .id(baseLearCredentialEmployee.id())
+                .type(baseLearCredentialEmployee.type())
+                .issuer(baseLearCredentialEmployee.issuer())
+                .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
+                        .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+                                .mandator(baseLearCredentialEmployee.credentialSubject().mandate().mandator())
+                                .mandatee(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                                        .id(mandateeId)
+                                        .email(baseLearCredentialEmployee.credentialSubject().mandate().mandatee().email())
+                                        .gender(baseLearCredentialEmployee.credentialSubject().mandate().mandatee().gender())
+                                        .firstName(baseLearCredentialEmployee.credentialSubject().mandate().mandatee().firstName())
+                                        .lastName(baseLearCredentialEmployee.credentialSubject().mandate().mandatee().lastName())
+                                        .mobilePhone(baseLearCredentialEmployee.credentialSubject().mandate().mandatee().mobilePhone())
+                                        .build())
+                                .power(baseLearCredentialEmployee.credentialSubject().mandate().power())
+                                .lifeSpan(baseLearCredentialEmployee.credentialSubject().mandate().lifeSpan())
+                                .build())
+                        .build())
+                .build());
+    }
+
     private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployee learCredentialEmployee){
         try {
             return Mono.just(objectMapper.writeValueAsString(learCredentialEmployee));

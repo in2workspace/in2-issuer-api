@@ -87,7 +87,7 @@ class VerifiableCredentialServiceImplTest {
         when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson);
         when(objectMapper.createObjectNode()).thenAnswer(invocation -> realMapper.createObjectNode());
 
-        StepVerifier.create(verifiableCredentialService.generateDeferredVcPayLoad(vcTemplate))
+        StepVerifier.create(verifiableCredentialService.generateDeferredCredentialResponse(vcTemplate))
                 .expectNext(expectedJson)
                 .verifyComplete();
     }
@@ -123,7 +123,7 @@ class VerifiableCredentialServiceImplTest {
         String expectedJson = "{\"id\":\"urn:uuid:<UUID>\",\"issuer\":\"did:example:123\",\"issuanceDate\":\"<DATE>\",\"validFrom\":\"<DATE>\",\"expirationDate\":\"<DATE>\",\"credentialSubject\":{\"mandate\":\"did:example:456\",\"name\":\"John Doe\"}}";
         when(objectMapper.writeValueAsString(any())).thenReturn(expectedJson.replace("<UUID>", UUID.randomUUID().toString()).replace("<DATE>", Instant.now().toString()));
 
-        StepVerifier.create(verifiableCredentialService.bindTheUserDidToHisCredential(vcTemplate, subjectDid, issuerDid, userData, expiration))
+        StepVerifier.create(verifiableCredentialService.retrieveVcAndBindMandateeId(vcTemplate, subjectDid, issuerDid, userData, expiration))
                 .expectNextMatches(json -> json.contains("John Doe") && json.contains(subjectDid))
                 .verifyComplete();
     }

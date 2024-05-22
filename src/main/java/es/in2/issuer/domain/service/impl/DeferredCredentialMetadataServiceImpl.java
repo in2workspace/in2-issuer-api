@@ -58,12 +58,30 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
+    public Mono<String> getProcedureIdByAuthServerNonce(String authServerNonce) {
+        return deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)
+                .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getProcedureId().toString()));
+    }
+
+    @Override
     public Mono<Void> updateAuthServerNonceByTransactionCode(String transactionCode, String authServerNonce) {
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
                 .flatMap(deferredCredentialMetadata -> {
                     deferredCredentialMetadata.setAuthServerNonce(authServerNonce);
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then();
+                });
+    }
+
+    @Override
+    public Mono<String> updateDeferredCredentialMetadataByAuthServerNonce(String authServerNonce, String format) {
+        String transactionId = UUID.randomUUID().toString();
+        return deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)
+                .flatMap(deferredCredentialMetadata -> {
+                    deferredCredentialMetadata.setTransactionId(transactionId);
+                    deferredCredentialMetadata.setVcFormat(format);
+                    return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
+                            .then(Mono.just(transactionId));
                 });
     }
 
