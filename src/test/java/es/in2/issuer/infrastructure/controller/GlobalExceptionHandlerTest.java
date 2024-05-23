@@ -317,4 +317,17 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void handleNonceValidationException() {
+        NonceValidationException exception = new NonceValidationException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNonceValidationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
 }

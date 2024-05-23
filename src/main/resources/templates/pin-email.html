@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Your PIN code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .pin-container {
+            background-color: #dae4ed;
+            padding: 20px;
+            border: 1px solid #ddd;
+            text-align: center;
+            margin: 20px auto;
+            width: 80%;
+        }
+        .pin {
+            font-size: 29px;
+            color: #224178;
+        }
+    </style>
+</head>
+<body>
+<div class="pin-container">
+    <p>Hello,</p>
+    <p>Your PIN code is: </p>
+    <p><strong class="pin" th:text="${pin}"></strong></p>
+</div>
+    <p>Please enter this PIN code in your Wallet App.</p>
+</body>
+</html>

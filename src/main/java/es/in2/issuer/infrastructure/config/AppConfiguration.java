@@ -62,4 +62,7 @@ public class AppConfiguration {
     public String getTokenUriTemplate() {
         return genericConfigAdapter.getConfiguration(appConfigurationProperties.tokenUriTemplate());
     }
+    public String getNonceValidationEndpoint() {
+        return genericConfigAdapter.getConfiguration(appConfigurationProperties.nonceValidationEndpoint());
+    }
 }

@@ -31,6 +31,7 @@ app:
     jwt-validator: "http://localhost:8088/realms/EAAProvider"
     pre-auth-code-uri-template: "/realms/CredentialIssuer/verifiable-credential/{{did}}/credential-offer"
     token-uri-template: "/realms/CredentialIssuer/verifiable-credential/{{did}}/token"
+    nonce-validation-endpoint: "http://localhost:8088/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/nonce-valid"
 
 management:
   endpoints:

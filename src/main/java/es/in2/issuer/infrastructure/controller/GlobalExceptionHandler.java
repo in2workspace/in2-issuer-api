@@ -206,4 +206,9 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
+    @ExceptionHandler(NonceValidationException.class)
+    public Mono<ResponseEntity<Void>> handleNonceValidationException(NonceValidationException ex) {
+        log.error(ex.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
 }

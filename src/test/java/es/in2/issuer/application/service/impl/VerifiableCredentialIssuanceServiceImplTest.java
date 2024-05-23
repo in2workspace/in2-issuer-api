@@ -98,7 +98,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .cNonceExpiresIn(600)
                 .build();
 
-        when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
+        when(proofValidationService.isProofValid(jwtProof, token)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
         when(verifiableCredentialService.retrieveVcAndBindMandateeId(
@@ -124,7 +124,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .build();
 
         // Mock the proof validation to return false indicating the proof is invalid
-        when(proofValidationService.isProofValid(credentialRequest.proof().jwt())).thenReturn(Mono.just(false));
+        when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(false));
 
         // Execute the method under test
         Mono<VerifiableCredentialResponse> response = service.generateVerifiableCredentialResponse(userId, credentialRequest, token);
@@ -135,7 +135,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .verify();
 
         // Verify interactions
-        verify(proofValidationService).isProofValid(credentialRequest.proof().jwt());
+        verify(proofValidationService).isProofValid(credentialRequest.proof().jwt(), token);
         // Ensure no other processes are initiated due to invalid proof
         verifyNoMoreInteractions(authenticSourcesRemoteService, verifiableCredentialService, credentialManagementService);
     }
@@ -167,7 +167,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                                         .build()))
                 .build();
 
-        when(proofValidationService.isProofValid(jwtProof)).thenReturn(Mono.just(true));
+        when(proofValidationService.isProofValid(jwtProof, token)).thenReturn(Mono.just(true));
         when(authenticSourcesRemoteService.getUserFromLocalFile()).thenReturn(Mono.just("userData"));
         when(appConfiguration.getIssuerDid()).thenReturn("did:example:issuer");
         when(verifiableCredentialService.retrieveVcAndBindMandateeId(
