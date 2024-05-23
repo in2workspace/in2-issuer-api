@@ -1,4 +1,4 @@
-package es.in2.issuer.domain.entity;
+package es.in2.issuer.domain.model.entities;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;

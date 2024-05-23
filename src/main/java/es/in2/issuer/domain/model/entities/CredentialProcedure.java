@@ -1,6 +1,6 @@
-package es.in2.issuer.domain.entity;
+package es.in2.issuer.domain.model.entities;
 
-import es.in2.issuer.domain.model.CredentialStatus;
+import es.in2.issuer.domain.model.enums.CredentialStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;

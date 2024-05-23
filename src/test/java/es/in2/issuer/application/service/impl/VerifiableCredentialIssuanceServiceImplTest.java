@@ -1,7 +1,7 @@
 //package es.in2.issuer.application.service.impl;
 //
 //
-//import es.in2.issuer.domain.entity.CredentialProcedure;
+//import es.in2.issuer.domain.model.entities.CredentialProcedure;
 //import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 //import es.in2.issuer.domain.exception.UserDoesNotExistException;
 //import es.in2.issuer.domain.model.*;

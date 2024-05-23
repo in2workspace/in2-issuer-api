@@ -4,8 +4,8 @@
 //import com.fasterxml.jackson.core.type.TypeReference;
 //import com.fasterxml.jackson.databind.JsonNode;
 //import com.fasterxml.jackson.databind.ObjectMapper;
-//import es.in2.issuer.domain.entity.CredentialProcedure;
-//import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
+//import es.in2.issuer.domain.model.entities.CredentialProcedure;
+//import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 //import es.in2.issuer.domain.exception.NoCredentialFoundException;
 //import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 //import es.in2.issuer.domain.model.CredentialItem;

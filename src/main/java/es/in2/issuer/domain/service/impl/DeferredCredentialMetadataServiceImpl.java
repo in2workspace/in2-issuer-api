@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
+import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.exception.TransactionCodeNotFoundException;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;

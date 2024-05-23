@@ -6,6 +6,7 @@ import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.*;
+import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.domain.service.RemoteSignatureService;

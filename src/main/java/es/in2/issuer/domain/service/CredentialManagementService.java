@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.entity.CredentialProcedure;
+import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.CredentialItem;
 import es.in2.issuer.domain.model.PendingCredentials;
 import es.in2.issuer.domain.model.SignedCredentials;

@@ -4,7 +4,7 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import es.in2.issuer.domain.model.SignatureConfiguration;
 //import es.in2.issuer.domain.model.SignatureRequest;
-//import es.in2.issuer.domain.model.SignatureType;
+//import es.in2.issuer.domain.model.enums.SignatureType;
 //import es.in2.issuer.domain.model.SignedData;
 //import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 //import es.in2.issuer.domain.util.HttpUtils;

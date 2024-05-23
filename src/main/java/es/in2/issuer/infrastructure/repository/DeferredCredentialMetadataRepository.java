@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.repository;
 
-import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
+import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;

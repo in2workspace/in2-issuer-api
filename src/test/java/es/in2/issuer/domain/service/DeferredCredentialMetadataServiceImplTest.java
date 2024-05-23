@@ -3,8 +3,8 @@
 //import com.fasterxml.jackson.core.JsonProcessingException;
 //import com.fasterxml.jackson.core.type.TypeReference;
 //import com.fasterxml.jackson.databind.ObjectMapper;
-//import es.in2.issuer.domain.entity.CredentialProcedure;
-//import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
+//import es.in2.issuer.domain.model.entities.CredentialProcedure;
+//import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 //import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 //import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 //import es.in2.issuer.domain.service.impl.CredentialManagementServiceImpl;
