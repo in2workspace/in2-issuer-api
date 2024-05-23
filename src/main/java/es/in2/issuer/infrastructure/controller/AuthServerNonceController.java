@@ -19,7 +19,7 @@ public class AuthServerNonceController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> createWithdrawLEARCredential(@RequestBody AuthServerNonceRequest authServerNonceRequest) {
+    public Mono<Void> bindAccessTokenByPreAuthorizedCode (@RequestBody AuthServerNonceRequest authServerNonceRequest) {
         String processId = UUID.randomUUID().toString();
         return verifiableCredentialIssuanceService.bindAccessTokenByPreAuthorizedCode(processId,authServerNonceRequest);
     }

@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.sql.Timestamp;
 import java.util.Date;
 import java.util.UUID;
 
@@ -22,7 +23,7 @@ public class CredentialProcedure {
     private UUID procedureId;
 
     @Column("credential_id")
-    private String credentialId;
+    private UUID credentialId;
 
     @Column("credential_format")
     private String credentialFormat;
@@ -40,5 +41,5 @@ public class CredentialProcedure {
     private String organizationIdentifier;
 
     @Column("updated_at")
-    private String updatedAt;
+    private Timestamp updatedAt;
 }

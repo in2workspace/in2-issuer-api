@@ -30,7 +30,7 @@ public class LEARCredentialEmployeeFactory {
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
     public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential){
-        LEARCredentialEmployee baseLearCredentialEmployee = mapJsonNodeToLEARCredentialEmployee(learCredential);
+        LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee = mapJsonNodeToCredentialSubject(learCredential);
 
         return buildFinalLearCredentialEmployee(baseLearCredentialEmployee)
                 .flatMap(learCredentialEmployee -> convertLEARCredentialEmployeeInToString(learCredentialEmployee)
@@ -44,10 +44,15 @@ public class LEARCredentialEmployeeFactory {
             throw new RuntimeException(e);
         }
     }
-    private LEARCredentialEmployee mapJsonNodeToLEARCredentialEmployee(JsonNode learCredential){
-        return objectMapper.convertValue(learCredential, LEARCredentialEmployee.class);
+    private LEARCredentialEmployee.CredentialSubject mapJsonNodeToCredentialSubject(JsonNode jsonNode) {
+
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class);
+        return LEARCredentialEmployee.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
     }
-    private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee){
+
+    private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee){
         Instant currentTime = Instant.now();
 
         return Mono.just(LEARCredentialEmployee.builder()
@@ -59,9 +64,10 @@ public class LEARCredentialEmployeeFactory {
                 .issuer(appConfiguration.getIssuerDid())
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                                .mandator(baseLearCredentialEmployee.credentialSubject().mandate().mandator())
-                                .mandatee(baseLearCredentialEmployee.credentialSubject().mandate().mandatee())
-                                .power(baseLearCredentialEmployee.credentialSubject().mandate().power())
+                                .id(UUID.randomUUID().toString())
+                                .mandator(baseLearCredentialEmployee.mandate().mandator())
+                                .mandatee(baseLearCredentialEmployee.mandate().mandatee())
+                                .power(baseLearCredentialEmployee.mandate().power())
                                 .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
                                         .startDateTime(currentTime.toString())
                                         .endDateTime(currentTime.plus(30, ChronoUnit.DAYS).toString())

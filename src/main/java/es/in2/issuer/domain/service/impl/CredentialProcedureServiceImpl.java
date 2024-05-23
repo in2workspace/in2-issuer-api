@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -24,17 +25,17 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     private final ObjectMapper objectMapper;
     @Override
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
-        Instant instant = Instant.now();
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
-                .procedureId(UUID.randomUUID())
-                .credentialId(credentialProcedureCreationRequest.credentialId())
-                .credentialStatus(CredentialStatus.WITHDRAW)
+                .credentialId(UUID.fromString(credentialProcedureCreationRequest.credentialId()))
+                .credentialStatus(CredentialStatus.WITHDRAWN)
                 .credentialDecoded(credentialProcedureCreationRequest.credentialDecoded())
                 .organizationIdentifier(credentialProcedureCreationRequest.organizationIdentifier())
-                .updatedAt(instant.toString())
+                .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
+
         return credentialProcedureRepository.save(credentialProcedure)
-                .then(Mono.just(credentialProcedure.getProcedureId().toString()));
+                .map(savedCredentialProcedure -> savedCredentialProcedure.getProcedureId().toString())
+                .doOnError(e -> log.error("Error saving credential procedure", e));
     }
 
     @Override
@@ -70,6 +71,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setCredentialDecoded(credential);
                     credentialProcedure.setCredentialStatus(CredentialStatus.ISSUED);
+                    credentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
                     return credentialProcedureRepository.save(credentialProcedure)
                             .then();
                 });
@@ -77,6 +79,21 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<String> getDecodedCredentialByProcedureId(String procedureId) {
-        return null;
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure ->Mono.just(credentialProcedure.getCredentialDecoded()));
+    }
+
+    @Override
+    public Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get("mandatee").get("email").toString());
+                    } catch (JsonProcessingException e){
+                        return Mono.error(new RuntimeException());
+                    }
+
+                });
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your PIN Code</title>
+    <title>Credential Offer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -40,16 +40,18 @@
         .content p {
             margin: 0 0 10px;
         }
-        .pin {
+        .btn {
             display: inline-block;
             padding: 10px 20px;
-            font-size: 32px;
-            color: #224178;
-            background-color: #dae4ed;
+            font-size: 16px;
+            color: #fff;
+            background-color: #224178;
             border-radius: 5px;
+            text-decoration: none;
             margin: 20px 0;
-            font-weight: bold;
-            letter-spacing: 2px;
+        }
+        .btn:hover {
+            background-color: #1a3160;
         }
         .footer {
             text-align: center;
@@ -62,16 +64,15 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Your PIN Code</h1>
+        <h1>Credential Offer</h1>
     </div>
     <div class="content">
         <p>Hello,</p>
-        <p>Your PIN code is:</p>
-        <p><strong class="pin" th:text="${pin}">1234</strong></p>
-        <p>Please enter this PIN code in your Wallet App.</p>
+        <p>You have a new credential offer. Please click the button below to start the process.</p>
+        <p><a th:href="@{${link}}" class="btn">Start Credential Offer</a></p>
     </div>
     <div class="footer">
-        <p>If you did not request this PIN, please ignore this email.</p>
+        <p>If you did not request this, please ignore this email or contact support.</p>
     </div>
 </div>
 </body>

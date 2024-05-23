@@ -40,4 +40,23 @@ public class EmailServiceImpl implements EmailService {
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
+
+    @Override
+    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link) {
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setTo(to);
+            helper.setSubject(subject);
+
+            Context context = new Context();
+            context.setVariable("link", link);
+            String htmlContent = templateEngine.process("transaction-code-email", context);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
 }

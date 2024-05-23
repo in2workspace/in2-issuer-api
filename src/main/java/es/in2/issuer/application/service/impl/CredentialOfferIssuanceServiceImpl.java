@@ -37,20 +37,23 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
         return  deferredCredentialMetadataService.validateTransactionCode(transactionCode)
                 .then(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
-                .flatMap(credentialProcedureService::getCredentialTypeByProcedureId)
+                .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                 .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
                         .flatMap(preAuthCodeResponse ->
                                 deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode())
                                         .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
                                                 .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                 .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                .flatMap(credentialOfferUri ->
+                                                .flatMap(credentialOfferUri ->{
                                                 // After creating the credential offer URI, send the PIN email
-                                                        emailService.sendPin("example@in2.es", "pin code", preAuthCodeResponse.pin())
-                                                                .thenReturn(credentialOfferUri)
+                                                    return credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                            .flatMap(email -> emailService.sendPin(email, "pin code", preAuthCodeResponse.pin()))
+                                                                .thenReturn(credentialOfferUri);
+                                                }
                                                 )
                                 )
                         )
+                )
                 );
     }
 

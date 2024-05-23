@@ -30,7 +30,7 @@ public class CredentialCreationController {
             value = {
                     @ApiResponse(
                             responseCode = "201",
-                            description = "Returns Created whe the creation was successfully"
+                            description = "Returns Created when the creation was successfully"
                     ),
                     @ApiResponse(
                             responseCode = "400",
@@ -42,10 +42,10 @@ public class CredentialCreationController {
                     )
             }
     )
-    @GetMapping
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> createWithdrawLEARCredential(@RequestBody LEARCredentialRequest learCredentialRequest) {
+    public Mono<Void> createWithdrawLEARCredential(@RequestParam String type, @RequestBody LEARCredentialRequest learCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceService.completeWithdrawLearCredentialProcess(processId,learCredentialRequest);
+        return verifiableCredentialIssuanceService.completeWithdrawLearCredentialProcess(processId, type, learCredentialRequest);
     }
 }

@@ -6,7 +6,10 @@ import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.*;
-import es.in2.issuer.domain.service.*;
+import es.in2.issuer.domain.service.EmailService;
+import es.in2.issuer.domain.service.ProofValidationService;
+import es.in2.issuer.domain.service.RemoteSignatureService;
+import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.infrastructure.config.AppConfiguration;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,17 +35,21 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 
 
     private final RemoteSignatureService remoteSignatureService;
-    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
+//    private final ObjectMapper objectMapper;
+//    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final AppConfiguration appConfiguration;
     private final ProofValidationService proofValidationService;
-    private final CredentialManagementService credentialManagementService;
+//    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
 
     @Override
-    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, LEARCredentialRequest learCredentialRequest) {
-        return verifiableCredentialService.generateVc(processId,LEAR_CREDENTIAL_EMPLOYEE,learCredentialRequest)
-                .flatMap(transactionCode -> emailService());
+    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
+        return verifiableCredentialService.generateVc(processId,type,learCredentialRequest)
+                .flatMap(transactionCode -> {
+                    String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
+                  return emailService.sendTransactionCodeForCredentialOffer(email,"CredentailOffer",appConfiguration.getIssuerExternalDomain() + "?transaction_code="+ transactionCode);
+                });
 
     }
     @Override
@@ -56,13 +63,14 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                     if (Boolean.FALSE.equals(isValid)) {
                         return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
                     }
-                    return getNonceClaim(credentialRequest.proof().jwt())
-                            .flatMap(proofValidationService::deleteNonceAndGenerateAFreshOne);
+                    else {
+                        return extractDidFromJwtProof(credentialRequest.proof().jwt());
+                    }
                 })
-                .flatMap(freshNonce -> extractDidFromJwtProof(credentialRequest.proof().jwt())
-                        .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, freshNonce,subjectDid,token, credentialRequest.format())))
-                .flatMap(credentialResponse -> emailService.sendPin()
-                        .then(Mono.just(credentialResponse)));
+                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid,token, credentialRequest.format()));
+        // add the email to legal representative
+//                .flatMap(credentialResponse -> emailService.()
+//                        .then(Mono.just(credentialResponse)));
     }
 
     @Override

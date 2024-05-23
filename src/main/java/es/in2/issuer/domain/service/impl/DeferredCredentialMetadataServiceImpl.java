@@ -53,7 +53,6 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                 .flatMap(transactionCode -> {
                     DeferredCredentialMetadata deferredCredentialMetadata = DeferredCredentialMetadata
                             .builder()
-                            .id(UUID.randomUUID())
                             .procedureId(UUID.fromString(procedureId))
                             .transactionCode(transactionCode)
                             .build();

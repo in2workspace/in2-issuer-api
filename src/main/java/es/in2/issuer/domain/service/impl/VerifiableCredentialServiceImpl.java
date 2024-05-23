@@ -56,14 +56,20 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(accessToken,preAuthCode);
     }
     @Override
-    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String freshNonce, String subjectDid, String accessToken, String format) {
+    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String accessToken, String format) {
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(accessToken)
                 .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                 .flatMap(credentialType -> credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                         .flatMap(credential -> credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid))
                         .flatMap(bindCredential -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId,bindCredential)
                         .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(accessToken,format)
-                                .flatMap(transactionId -> Mono.just(new VerifiableCredentialResponse(bindCredential, transactionId, freshNonce, 600))))
+                                .flatMap(transactionId -> Mono.just(VerifiableCredentialResponse.builder()
+                                                .credential(bindCredential)
+                                                .transactionId(transactionId)
+                                        .build()
+                                )
+                                )
+                        )
                 )));
     }
 
