@@ -26,7 +26,8 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Constants.CWT_VC;
+import static es.in2.issuer.domain.util.Constants.JWT_VC;
 
 @Service
 @RequiredArgsConstructor
@@ -185,13 +186,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         }).onErrorResume(e -> {
             log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
             return Mono.error(new Base45Exception("Error compressing and converting to Base45"));
-        });
-    }
-
-    private Mono<String> getNonceClaim(String jwtProof) {
-        return Mono.fromCallable(() -> {
-            JWSObject jwsObject = JWSObject.parse(jwtProof);
-            return jwsObject.getPayload().toJSONObject().get("nonce").toString();
         });
     }
 

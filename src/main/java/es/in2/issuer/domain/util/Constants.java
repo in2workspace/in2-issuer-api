@@ -1,7 +1,5 @@
 package es.in2.issuer.domain.util;
 
-import java.util.List;
-
 public class Constants {
 
     private Constants() {

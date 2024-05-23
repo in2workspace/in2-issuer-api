@@ -44,16 +44,12 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                                         .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
                                                 .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                 .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                .flatMap(credentialOfferUri ->{
-                                                // After creating the credential offer URI, send the PIN email
-                                                    return credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                .flatMap(credentialOfferUri ->credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
                                                             .flatMap(email -> emailService.sendPin(email, "pin code", preAuthCodeResponse.pin()))
-                                                                .thenReturn(credentialOfferUri);
-                                                }
-                                                )
+                                                                .thenReturn(credentialOfferUri))
+                                        )
                                 )
                         )
-                )
                 );
     }
 
