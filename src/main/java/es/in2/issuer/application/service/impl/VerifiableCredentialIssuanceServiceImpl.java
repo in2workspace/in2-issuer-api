@@ -49,7 +49,7 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         return verifiableCredentialService.generateVc(processId,type,learCredentialRequest)
                 .flatMap(transactionCode -> {
                     String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
-                  return emailService.sendTransactionCodeForCredentialOffer(email,"CredentailOffer",appConfiguration.getIssuerExternalDomain() + "?transaction_code="+ transactionCode);
+                  return emailService.sendTransactionCodeForCredentialOffer(email,"Credential Offer",appConfiguration.getIssuerExternalDomain() + "?transaction_code="+ transactionCode);
                 });
 
     }
