@@ -20,7 +20,7 @@ public class WebClientConfig {
             .build();
 
     @Bean
-    public WebClient centralizedWebClient() {
+    public WebClient commonWebClient() {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(
                         HttpClient.create(connectionProvider).followRedirect(false))

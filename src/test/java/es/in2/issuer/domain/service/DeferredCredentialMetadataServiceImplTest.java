@@ -5,8 +5,8 @@
 //import com.fasterxml.jackson.databind.ObjectMapper;
 //import es.in2.issuer.domain.entity.CredentialProcedure;
 //import es.in2.issuer.domain.entity.DeferredCredentialMetadata;
-//import es.in2.issuer.domain.repository.DeferredCredentialMetadataRepository;
-//import es.in2.issuer.domain.repository.CredentialProcedureRepository;
+//import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
+//import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 //import es.in2.issuer.domain.service.impl.CredentialManagementServiceImpl;
 //import es.in2.issuer.domain.util.CredentialStatus;
 //import org.junit.jupiter.api.BeforeEach;

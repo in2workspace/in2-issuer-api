@@ -7,8 +7,8 @@ import es.in2.issuer.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.model.PreAuthCodeResponse;
 import es.in2.issuer.domain.service.*;
+import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -18,7 +18,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,28 +25,28 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
 
     private final CredentialOfferService credentialOfferService;
     private final CredentialOfferCacheStorageService credentialOfferCacheStorageService;
-    private final IamAdapterFactory iamAdapterFactory;
     private final ObjectMapper objectMapper;
     private final WebClientConfig webClient;
     private final EmailService emailService;
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
+    private final AuthServerConfig authServerConfig;
 
     @Override
     public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
-        return  deferredCredentialMetadataService.validateTransactionCode(transactionCode)
+        return deferredCredentialMetadataService.validateTransactionCode(transactionCode)
                 .then(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
-                        .flatMap(preAuthCodeResponse ->
-                                deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode())
-                                        .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
-                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                                .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                .flatMap(credentialOfferUri ->credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                                                            .flatMap(email -> emailService.sendPin(email, "pin code", preAuthCodeResponse.pin()))
+                        .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
+                                .flatMap(preAuthCodeResponse ->
+                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode, preAuthCodeResponse.grant().preAuthorizedCode())
+                                                .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
+                                                        .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
+                                                        .flatMap(credentialOfferService::createCredentialOfferUri)
+                                                        .flatMap(credentialOfferUri -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                                .flatMap(email -> emailService.sendPin(email, "pin code", preAuthCodeResponse.pin()))
                                                                 .thenReturn(credentialOfferUri))
-                                        )
+                                                )
                                 )
                         )
                 );
@@ -59,11 +58,12 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
     }
 
     private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
-        String preAuthCodeUri = iamAdapterFactory.getAdapter().getPreAuthCodeUri();
-        String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
+        String authServerDomain = authServerConfig.getAuthServerExternalDomain();
+        String preAuthCodeUri = authServerConfig.getPreAuthCodeUri();
+        String url = authServerDomain + preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
         // Get request
-        return webClient.centralizedWebClient()
+        return webClient.commonWebClient()
                 .get()
                 .uri(url)
                 .accept(MediaType.APPLICATION_JSON)
@@ -86,4 +86,5 @@ public class CredentialOfferIssuanceServiceImpl implements CredentialOfferIssuan
                     }
                 });
     }
+
 }

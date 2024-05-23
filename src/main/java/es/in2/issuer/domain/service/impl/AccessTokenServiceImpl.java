@@ -11,15 +11,15 @@ import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 
-import static es.in2.issuer.domain.util.Constants.BEARER;
+import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 @Service
 @Slf4j
 public class AccessTokenServiceImpl implements AccessTokenService {
     @Override
     public Mono<String> getCleanBearerToken(String authorizationHeader) {
         return Mono.just(authorizationHeader)
-                .filter(header -> header.startsWith(BEARER))
-                .map(header -> header.replace(BEARER, "").trim())
+                .filter(header -> header.startsWith(BEARER_PREFIX))
+                .map(header -> header.replace(BEARER_PREFIX, "").trim())
                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Invalid")));
     }
     @Override

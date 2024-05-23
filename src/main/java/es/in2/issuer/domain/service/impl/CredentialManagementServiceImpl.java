@@ -9,8 +9,8 @@
 //import es.in2.issuer.domain.exception.NoCredentialFoundException;
 //import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 //import es.in2.issuer.domain.model.CredentialItem;
-//import es.in2.issuer.domain.repository.DeferredCredentialMetadataRepository;
-//import es.in2.issuer.domain.repository.CredentialProcedureRepository;
+//import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
+//import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 //import es.in2.issuer.domain.service.CredentialManagementService;
 //import es.in2.issuer.domain.util.CredentialStatus;
 //import lombok.RequiredArgsConstructor;

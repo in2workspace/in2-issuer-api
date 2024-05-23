@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -10,13 +9,16 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.*;
+import org.springframework.security.oauth2.jwt.JwtValidators;
+import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
 import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -27,23 +29,24 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final IamAdapterFactory iamAdapterFactory;
+    private final AuthServerConfig authServerConfig;
 
+    // fixme: why we need to use different jwtDecoder for sbx and dev-prod?
     @Bean
-    @Profile("!dev")
-    public ReactiveJwtDecoder jwtDecoder(){
+    @Profile("!sbx")
+    public ReactiveJwtDecoder jwtDecoder() {
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
+                .withJwkSetUri(authServerConfig.getJwtDecoder())
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
-        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(iamAdapterFactory.getAdapter().getJwtValidator()));
+        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(authServerConfig.getJwtValidator()));
         return jwtDecoder;
     }
 
     @Bean
-    @Profile("dev")
-    public ReactiveJwtDecoder jwtDecoderLocal(){
-        return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());
+    @Profile("sbx")
+    public ReactiveJwtDecoder jwtDecoderLocal() {
+        return ReactiveJwtDecoders.fromIssuerLocation(authServerConfig.getJwtDecoderLocal());
     }
 
     @Bean
@@ -66,10 +69,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(Arrays.asList(
-                LOCAL_ISSUER_UI));
+        corsConfig.setAllowedOrigins(List.of(LOCAL_ISSUER_UI));
         corsConfig.setMaxAge(8000L);
-        corsConfig.setAllowedMethods(Arrays.asList(
+        corsConfig.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
                 HttpMethod.HEAD.name(),
                 HttpMethod.POST.name(),

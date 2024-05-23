@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.service.impl.CredentialIssuerMetadataServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.ApiConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,11 +18,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 @ExtendWith(MockitoExtension.class)
 class CredentialIssuerMetadataServiceImplTest {
+
     @Mock
-    private AppConfiguration appConfiguration;
+    private ApiConfig apiConfig;
+
     @InjectMocks
     private CredentialIssuerMetadataServiceImpl service;
 
@@ -31,7 +32,7 @@ class CredentialIssuerMetadataServiceImplTest {
         try (MockedStatic<HttpUtils> ignored = Mockito.mockStatic(HttpUtils.class)) {
             String issuerUrl = "https://example.com";
 
-            when(appConfiguration.getIssuerExternalDomain()).thenReturn(issuerUrl);
+            when(apiConfig.getIssuerApiExternalDomain()).thenReturn(issuerUrl);
             when(ensureUrlHasProtocol(issuerUrl)).thenReturn(issuerUrl);
             // Verify results
             StepVerifier.create(service.generateOpenIdCredentialIssuer())
@@ -44,7 +45,8 @@ class CredentialIssuerMetadataServiceImplTest {
                     .verifyComplete();
 
             // Verify interactions
-            verify(appConfiguration).getIssuerExternalDomain();
+            verify(apiConfig).getIssuerApiExternalDomain();
         }
     }
+
 }

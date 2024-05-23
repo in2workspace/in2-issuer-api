@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.model.Grant;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.ApiConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,21 +14,22 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Constants.GRANT_TYPE;
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferServiceImplTest {
 
     @Mock
-    private AppConfiguration appConfiguration;
+    private ApiConfig apiConfig;
 
     @InjectMocks
     private CredentialOfferServiceImpl credentialOfferService;
 
     @BeforeEach
     void setUp() {
-        when(appConfiguration.getIssuerExternalDomain()).thenReturn("https://example.com");
+        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
     }
 
     @Test
@@ -37,7 +38,7 @@ class CredentialOfferServiceImplTest {
         String preAuthCode = "code123";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
 
-        when(appConfiguration.getIssuerExternalDomain()).thenReturn("https://example.com");
+        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
 
         StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
                 .expectNextMatches(offer ->
@@ -61,4 +62,5 @@ class CredentialOfferServiceImplTest {
                 .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fabc123")
                 .verifyComplete();
     }
+
 }

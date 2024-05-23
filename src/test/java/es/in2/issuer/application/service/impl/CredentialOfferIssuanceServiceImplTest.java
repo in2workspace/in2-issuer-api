@@ -6,8 +6,8 @@ import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
+import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,20 +20,28 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferIssuanceServiceImplTest {
+
     @Mock
-    private IamAdapterFactory iamAdapterFactory;
+    private AuthServerConfig authServerConfig;
+
     @Mock
     private ObjectMapper objectMapper;
+
     @Mock
     private CredentialOfferServiceImpl credentialOfferService;
+
     @Mock
     private CredentialOfferCacheStorageService credentialOfferCacheStorageService;
+
     @Mock
     private VcSchemaService vcSchemaService;
+
     @Mock
     private WebClientConfig webClientConfig;
+
     @Mock
     private EmailService emailService;
+
     @InjectMocks
     private CredentialOfferIssuanceServiceImpl credentialOfferIssuanceService;
 

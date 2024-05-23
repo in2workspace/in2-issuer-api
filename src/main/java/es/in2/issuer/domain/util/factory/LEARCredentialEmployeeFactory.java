@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.LEARCredentialEmployee;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.ApiConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -21,29 +21,33 @@ import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CREDENTIAL;
 @Component
 @RequiredArgsConstructor
 public class LEARCredentialEmployeeFactory {
-    private final ObjectMapper objectMapper;
-    private final AppConfiguration appConfiguration;
 
-    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId){
+    private final ObjectMapper objectMapper;
+
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) {
         LEARCredentialEmployee baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
         return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential){
+
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential) {
         LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee = mapJsonNodeToCredentialSubject(learCredential);
 
         return buildFinalLearCredentialEmployee(baseLearCredentialEmployee)
                 .flatMap(learCredentialEmployee -> convertLEARCredentialEmployeeInToString(learCredentialEmployee)
-                    .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential,learCredentialEmployee))
+                        .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential, learCredentialEmployee))
                 );
     }
-    private LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential){
+
+    private LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential) {
         try {
             return objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
         } catch (JsonProcessingException e) {
+            // fixme: handle exception and return a custom exception
             throw new RuntimeException(e);
         }
     }
+
     private LEARCredentialEmployee.CredentialSubject mapJsonNodeToCredentialSubject(JsonNode jsonNode) {
 
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class);
@@ -52,7 +56,7 @@ public class LEARCredentialEmployeeFactory {
                 .build();
     }
 
-    private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee){
+    private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
 
         return Mono.just(LEARCredentialEmployee.builder()
@@ -60,8 +64,9 @@ public class LEARCredentialEmployeeFactory {
                 .issuanceDate(currentTime.toString())
                 .validFrom(currentTime.toString())
                 .id(UUID.randomUUID().toString())
-                .type(List.of(LEAR_CREDENTIAL_EMPLOYEE,VERIFIABLE_CREDENTIAL))
-                .issuer(appConfiguration.getIssuerDid())
+                .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
+                //fixme: the issuer should be the organization identifier
+                .issuer(null)
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
@@ -77,7 +82,7 @@ public class LEARCredentialEmployeeFactory {
                 .build());
     }
 
-    private Mono<LEARCredentialEmployee> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee, String mandateeId){
+    private Mono<LEARCredentialEmployee> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee, String mandateeId) {
 
         return Mono.just(LEARCredentialEmployee.builder()
                 .expirationDate(baseLearCredentialEmployee.expirationDate())
@@ -104,15 +109,13 @@ public class LEARCredentialEmployeeFactory {
                 .build());
     }
 
-    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployee learCredentialEmployee){
+    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployee learCredentialEmployee) {
         try {
             return Mono.just(objectMapper.writeValueAsString(learCredentialEmployee));
-        }
-        catch (JsonProcessingException e){
+        } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException());
         }
     }
-
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployee learCredentialEmployee) {
         return Mono.just(
@@ -123,4 +126,5 @@ public class LEARCredentialEmployeeFactory {
                         .build()
         );
     }
+
 }

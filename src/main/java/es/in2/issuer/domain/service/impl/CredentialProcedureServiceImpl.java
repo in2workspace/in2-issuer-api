@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.entity.CredentialProcedure;
 import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.CredentialStatus;
-import es.in2.issuer.domain.repository.CredentialProcedureRepository;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

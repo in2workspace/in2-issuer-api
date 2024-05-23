@@ -2,42 +2,41 @@ package es.in2.issuer.domain.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.NonceValidationException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.ProofValidationException;
 import es.in2.issuer.domain.model.NonceValidationResponse;
 import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
+import io.github.novacrypto.base58.Base58;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.bouncycastle.math.ec.ECCurve;
+import org.bouncycastle.math.ec.custom.sec.SecP256R1Curve;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Map;
-import io.github.novacrypto.base58.Base58;
-
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPublicKeySpec;
-import java.math.BigInteger;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import org.bouncycastle.math.ec.ECCurve;
-import org.bouncycastle.math.ec.custom.sec.SecP256R1Curve;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jwt.SignedJWT;
-import org.bouncycastle.jce.spec.ECNamedCurveSpec;
-import org.bouncycastle.jce.ECNamedCurveTable;
 
 import static es.in2.issuer.domain.util.Constants.*;
 
@@ -47,8 +46,9 @@ import static es.in2.issuer.domain.util.Constants.*;
 public class ProofValidationServiceImpl implements ProofValidationService {
 
     private final WebClientConfig webClient;
-    private final AppConfiguration appConfiguration;
+    private final ApiConfig apiConfig;
     private final ObjectMapper objectMapper;
+    private final AuthServerConfig authServerConfig;
 
     @Override
     public Mono<Boolean> isProofValid(String jwtProof, String token) {
@@ -67,7 +67,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 })
                 .flatMap(jwsObject ->
 //                        jwsObject != null ? isNoncePresentInCache(jwsObject) : Mono.just(false)
-                        isNonceValid(jwsObject, token)
+                                isNonceValid(jwsObject, token)
                 )
                 .map(NonceValidationResponse::isNonceValid)
                 .doOnSuccess(result -> log.debug("Final validation result: {}", result))
@@ -163,7 +163,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
         });
     }
 
-    private Mono<NonceValidationResponse> isNonceValid(JWSObject jwsObject, String token){
+    private Mono<NonceValidationResponse> isNonceValid(JWSObject jwsObject, String token) {
         var payload = jwsObject.getPayload().toJSONObject();
         String nonce = payload.get("nonce").toString();
         Map<String, String> formDataMap = Map.of("nonce", nonce);
@@ -173,11 +173,11 @@ public class ProofValidationServiceImpl implements ProofValidationService {
                 .map(entry -> URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
                 .collect(Collectors.joining("&"));
 
-        return webClient.centralizedWebClient()
+        return webClient.commonWebClient()
                 .post()
-                .uri(appConfiguration.getNonceValidationEndpoint())
+                .uri(authServerConfig.getAuthServerExternalDomain() + authServerConfig.getAuthServerNonceValidationPath())
                 .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
-                .header(HttpHeaders.AUTHORIZATION, BEARER + token)
+                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
                 .bodyValue(xWwwFormUrlencodedBody)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {

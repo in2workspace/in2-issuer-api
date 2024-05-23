@@ -10,7 +10,7 @@ import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
+import es.in2.issuer.infrastructure.config.ApiConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -29,30 +29,31 @@ import java.util.UUID;
 import static es.in2.issuer.domain.util.Constants.CWT_VC;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCredentialIssuanceService {
 
 
     private final RemoteSignatureService remoteSignatureService;
-//    private final ObjectMapper objectMapper;
+    //    private final ObjectMapper objectMapper;
 //    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
-    private final AppConfiguration appConfiguration;
+    private final ApiConfig apiConfig;
     private final ProofValidationService proofValidationService;
-//    private final CredentialManagementService credentialManagementService;
+    //    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
 
     @Override
     public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
-        return verifiableCredentialService.generateVc(processId,type,learCredentialRequest)
+        return verifiableCredentialService.generateVc(processId, type, learCredentialRequest)
                 .flatMap(transactionCode -> {
                     String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
-                  return emailService.sendTransactionCodeForCredentialOffer(email,"Credential Offer",appConfiguration.getIssuerExternalDomain() + "?transaction_code="+ transactionCode);
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", apiConfig.getIssuerApiExternalDomain() + "?transaction_code=" + transactionCode);
                 });
 
     }
+
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
             String processId,
@@ -63,19 +64,18 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
                 .flatMap(isValid -> {
                     if (Boolean.FALSE.equals(isValid)) {
                         return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
-                    }
-                    else {
+                    } else {
                         return extractDidFromJwtProof(credentialRequest.proof().jwt());
                     }
                 })
-                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid,token, credentialRequest.format()));
+                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, token, credentialRequest.format()));
         // add the email to legal representative
 //                .flatMap(credentialResponse -> emailService.()
 //                        .then(Mono.just(credentialResponse)));
     }
 
     @Override
-    public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest){
+    public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest) {
         return verifiableCredentialService.bindAccessTokenByPreAuthorizedCode
                 (processId, authServerNonceRequest.accessToken(), authServerNonceRequest.preAuthorizedCode());
     }
@@ -88,20 +88,20 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     ) {
         return Flux.fromIterable(batchCredentialRequest.credentialRequests())
                 .flatMap(credentialRequest -> generateVerifiableCredentialResponse(username, credentialRequest, token)
-                .map(verifiableCredentialResponse -> new BatchCredentialResponse.CredentialResponse(verifiableCredentialResponse.credential())))
+                        .map(verifiableCredentialResponse -> new BatchCredentialResponse.CredentialResponse(verifiableCredentialResponse.credential())))
                 .collectList()
                 .map(BatchCredentialResponse::new);
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest){
+    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
         return null;
         //        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
 //                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
     @Override
-    public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token){
+    public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token) {
         return null;
 //            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
 //                    .flatMap(vcPayload -> {
@@ -120,24 +120,25 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     @Override
     public Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String userId, UUID credentialId, String token) {
         return Mono.defer(() -> {
-        if(format.equals(JWT_VC)){
-            log.info(unsignedCredential);
-            log.info("Signing credential in JADES remotely ...");
-            SignatureRequest signatureRequest = new SignatureRequest(
-                    new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                    unsignedCredential
-            );
-            return remoteSignatureService.sign(signatureRequest, token)
-                    .publishOn(Schedulers.boundedElastic())
-                    .map(SignedData::data);
-        } else if (format.equals(CWT_VC)) {
-            log.info(unsignedCredential);
-            return generateCborFromJson(unsignedCredential)
-                    .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                    .flatMap(this::compressAndConvertToBase45FromCOSE);
-        } else {
-            return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
-        }});
+            if (format.equals(JWT_VC)) {
+                log.info(unsignedCredential);
+                log.info("Signing credential in JADES remotely ...");
+                SignatureRequest signatureRequest = new SignatureRequest(
+                        new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
+                        unsignedCredential
+                );
+                return remoteSignatureService.sign(signatureRequest, token)
+                        .publishOn(Schedulers.boundedElastic())
+                        .map(SignedData::data);
+            } else if (format.equals(CWT_VC)) {
+                log.info(unsignedCredential);
+                return generateCborFromJson(unsignedCredential)
+                        .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
+                        .flatMap(this::compressAndConvertToBase45FromCOSE);
+            } else {
+                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
+            }
+        });
     }
 
 
