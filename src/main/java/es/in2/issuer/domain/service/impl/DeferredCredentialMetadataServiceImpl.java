@@ -35,6 +35,17 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
         }
         );
     }
+
+    @Override
+    public Mono<Void> updateAuthServerNonceByAuthServerNonce(String accessToken, String preAuthCode) {
+        return deferredCredentialMetadataRepository.findByAuthServerNonce(preAuthCode)
+                .flatMap(deferredCredentialMetadata -> {
+                    deferredCredentialMetadata.setAuthServerNonce(accessToken);
+                    return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
+                            .then();
+                });
+    }
+
     @Override
     public Mono<String> createDeferredCredentialMetadata(String procedureId) {
         return generateCustomNonce()

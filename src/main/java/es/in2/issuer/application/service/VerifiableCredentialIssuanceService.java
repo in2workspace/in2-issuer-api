@@ -16,4 +16,5 @@ public interface VerifiableCredentialIssuanceService {
     // Method for generating and signing credential using remote DSS, currently not in use in DOME profile
     Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String userId, UUID credentialId, String token);
 
+    Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest);
 }

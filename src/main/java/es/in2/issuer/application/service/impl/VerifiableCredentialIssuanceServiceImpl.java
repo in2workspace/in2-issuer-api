@@ -66,6 +66,12 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
     }
 
     @Override
+    public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest){
+        return verifiableCredentialService.bindAccessTokenByPreAuthorizedCode
+                (processId, authServerNonceRequest.accessToken(), authServerNonceRequest.preAuthorizedCode());
+    }
+
+    @Override
     public Mono<BatchCredentialResponse> generateVerifiableCredentialBatchResponse(
             String username,
             BatchCredentialRequest batchCredentialRequest,
@@ -80,24 +86,26 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest){
-        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
-                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
+        return null;
+        //        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+//                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
     @Override
     public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token){
-            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
-                    .flatMap(vcPayload -> {
-                        SignatureRequest signatureRequest = SignatureRequest.builder()
-                                .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
-                                .data(vcPayload)
-                                .build();
-                        return remoteSignatureService.sign(signatureRequest, token)
-                                .publishOn(Schedulers.boundedElastic())
-                                .map(SignedData::data);
-                    })
-                    .flatMap(signedCredential -> credentialManagementService.updateCredential(signedCredential, credentialId, userId))
-                    .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
+        return null;
+//            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
+//                    .flatMap(vcPayload -> {
+//                        SignatureRequest signatureRequest = SignatureRequest.builder()
+//                                .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
+//                                .data(vcPayload)
+//                                .build();
+//                        return remoteSignatureService.sign(signatureRequest, token)
+//                                .publishOn(Schedulers.boundedElastic())
+//                                .map(SignedData::data);
+//                    })
+//                    .flatMap(signedCredential -> credentialManagementService.updateCredential(signedCredential, credentialId, userId))
+//                    .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
     }
 
     @Override
