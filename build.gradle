@@ -52,8 +52,6 @@ configurations {
 
 repositories {
 	mavenCentral()
-//	maven { setUrl('https://jitpack.io') }
-//	maven { setUrl('https://repo.danubetech.com/repository/maven-public/') }
 }
 
 ext {
@@ -204,6 +202,7 @@ def isNonStable = { String version ->
 	def regex = /^[0-9,.v-]+(-r)?$/
 	return !stableKeyword && !(version ==~ regex)
 }
+
 tasks.named("dependencyUpdates").configure {
 	rejectVersionIf {
 		isNonStable(it.candidate.version)

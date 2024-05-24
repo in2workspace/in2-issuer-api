@@ -12,17 +12,18 @@ import org.springframework.context.annotation.Bean;
 @ConfigurationPropertiesScan
 public class IssuerApiApplication {
 
-	private static final ObjectMapper OBJECT_MAPPER =
-			JsonMapper.builder()
-					.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-					.build();
+    private static final ObjectMapper OBJECT_MAPPER =
+            JsonMapper.builder()
+                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .build();
 
-	public static void main(String[] args) {
-		SpringApplication.run(IssuerApiApplication.class, args);
-	}
-	@Bean
-	public ObjectMapper objectMapper() {
-		return OBJECT_MAPPER;
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(IssuerApiApplication.class, args);
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return OBJECT_MAPPER;
+    }
 
 }
