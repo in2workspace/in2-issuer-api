@@ -142,7 +142,6 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
         });
     }
 
-
     /**
      * Generate CBOR payload for COSE.
      *
@@ -200,4 +199,5 @@ public class VerifiableCredentialIssuanceServiceImpl implements VerifiableCreden
             return kid.split("#")[0];
         });
     }
+
 }
