@@ -13,14 +13,16 @@ public record AuthServerProperties(
         @NotNull String provider,
         @NotNull String externalDomain,
         @NotNull String internalDomain,
+        @NotNull String realm,
         @NotNull Paths paths
 ) {
 
     @ConstructorBinding
-    public AuthServerProperties(String provider, String externalDomain, String internalDomain, Paths paths) {
+    public AuthServerProperties(String provider, String externalDomain, String internalDomain, String realm, Paths paths) {
         this.provider = provider;
         this.externalDomain = externalDomain;
         this.internalDomain = internalDomain;
+        this.realm = realm;
         this.paths = Optional.ofNullable(paths).orElse(
                 new Paths("", "", "", "", "", "", ""));
     }
