@@ -99,9 +99,10 @@ azure:
     global:
 
 auth-server:
-  provider: "keycloak"
+  provider: keycloak
   external-domain: "http://localhost:8088"
   internal-domain: "http://issuer-keycloak:8080"
+  realm: CredentialIssuer
   paths:
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
     jwt-decoder-path: "/realms/EAAProvider/protocol/openid-connect/certs"
