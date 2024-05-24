@@ -1,25 +1,27 @@
 package es.in2.issuer.infrastructure.config.adapter.factory;
 
-import es.in2.issuer.infrastructure.config.adapter.exception.ConfigAdapterFactoryException;
+import es.in2.issuer.infrastructure.config.ApiConfig;
 import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.infrastructure.config.adapter.impl.AzureConfigAdapter;
+import es.in2.issuer.infrastructure.config.adapter.impl.YamlConfigAdapter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 @Component
+@RequiredArgsConstructor
 public class ConfigAdapterFactory {
-    List<ConfigAdapter> configAdapters;
 
-    public ConfigAdapterFactory(List<ConfigAdapter> configServices) {
-        this.configAdapters = configServices;
-    }
+    private final ApiConfig apiConfig;
+    private final AzureConfigAdapter azureConfigAdapter;
+    private final YamlConfigAdapter yamlConfigAdapter;
 
     public ConfigAdapter getAdapter() {
-        //check if a list is empty or the size is greater than 1
-        if (configAdapters.size() != 1) {
-            throw new ConfigAdapterFactoryException(configAdapters.size());
-        }
-        return configAdapters.get(0);
+        return switch (apiConfig.getApiConfigSource()) {
+            case "azure" -> azureConfigAdapter;
+            case "yaml" -> yamlConfigAdapter;
+            default ->
+                    throw new IllegalArgumentException("Invalid Config Adapter Provider: " + apiConfig.getApiConfigSource());
+        };
     }
 
 }
