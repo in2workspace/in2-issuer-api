@@ -29,12 +29,11 @@ public class OpenApiConfig {
     public static final String BEARER_AUTHENTICATION = "bearer_authentication";
 
     private final OpenApiProperties openApiProperties;
-
     private final String openApiServerUrl;
 
-    public OpenApiConfig(OpenApiProperties openApiProperties, AppConfiguration appConfiguration) {
+    public OpenApiConfig(OpenApiProperties openApiProperties, ApiConfig apiConfig) {
         this.openApiProperties = openApiProperties;
-        this.openApiServerUrl = appConfiguration.getIssuerDomain();
+        this.openApiServerUrl = apiConfig.getIssuerApiExternalDomain();
     }
 
     @Bean

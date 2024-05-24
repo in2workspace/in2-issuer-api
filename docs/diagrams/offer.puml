@@ -1,0 +1,14 @@
+@startuml
+start
+:Get Credential Offer\ncredential-type: String;
+if (Type is supported?) then (yes)
+  :Get pre-authorization code from IAM;
+  :Build Credential Offer;
+  :Save Credential Offer in Cache\nReturn nonce: String;
+  :Create Credential Offer Uri from nonce;
+  :Return Credential Offer Uri;
+else (no)
+  :Return Error CredentialTypeUnsuported;
+endif
+stop
+@enduml

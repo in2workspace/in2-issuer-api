@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.model;
 
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
+import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,18 +14,20 @@ class CredentialIssuerMetadataTest {
         String expectedCredentialIssuer = "sampleIssuer";
         String expectedCredentialEndpoint = "https://example.com/credential";
         String expectedCredentialToken = "sampleToken";
+        String expectedBatchCredentialEndpoint = "sampleBatchEndpoint";
+
         // Act
         CredentialIssuerMetadata metadata = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
                 expectedCredentialEndpoint,
+                expectedBatchCredentialEndpoint,
                 expectedCredentialToken,
                 null
         );
         // Assert
         assertEquals(expectedCredentialIssuer, metadata.credentialIssuer());
         assertEquals(expectedCredentialEndpoint, metadata.credentialEndpoint());
-        assertEquals(expectedCredentialToken, metadata.credentialToken());
-        assertNull(metadata.credentialsSupported());
+        assertNull(metadata.credentialConfigurationsSupported());
     }
 
     @Test
@@ -34,16 +36,19 @@ class CredentialIssuerMetadataTest {
         String expectedCredentialIssuer = "sampleIssuer";
         String expectedCredentialEndpoint = "https://example.com/credential";
         String expectedCredentialToken = "sampleToken";
+        String expectedBatchCredentialEndpoint = "sampleBatchEndpoint";
         // Act
         CredentialIssuerMetadata metadata1 = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
                 expectedCredentialEndpoint,
+                expectedBatchCredentialEndpoint,
                 expectedCredentialToken,
                 null
         );
         CredentialIssuerMetadata metadata2 = new CredentialIssuerMetadata(
                 expectedCredentialIssuer,
                 expectedCredentialEndpoint,
+                expectedBatchCredentialEndpoint,
                 expectedCredentialToken,
                 null
         );

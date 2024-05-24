@@ -1,36 +1,48 @@
+# Spring Configuration
 spring:
   application:
-    name: credential-issuer
+    name: issuer-api
+  main:
+    web-application-type: reactive
+  r2dbc:
+    url: "r2dbc:postgresql://issuer-postgres:5432/dbtest"
+    username: "postgres"
+    password: "postgres"
+    generate-unique-name: true
+  flyway:
+    url: "jdbc:postgresql://issuer-postgres:5432/dbtest"
+    locations: classpath:db/migration
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties.mail.smtp:
+      auth: false
+      starttls.enable: false
 
-app:
-  config-source:
-    name: yaml
-  iam-source:
-    name: keycloak
-
+# Spring Logging Configuration
 logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
     org.springframework.security: INFO
-    es.in2: DEBUG
+    es.in2.issuer: INFO
 
-server:
-  #port: 8080
-  # Local port
-  port: 8071
-
-# Actuator Configuration
+# Spring Management Configuration - Actuator
 management:
   endpoints:
     enabled-by-default: false
     web:
       exposure:
-        include: health, info, loggers, metrics
+        include: health, info, loggers, metrics, prometheus
       base-path: /
       path-mapping:
         health: health
         info: info
         loggers: loggers
         metrics: metrics
+        prometheus: prometheus
   endpoint:
     health:
       enabled: true
@@ -39,37 +51,69 @@ management:
       enabled: true
     metrics:
       enabled: true
+    prometheus:
+      enabled: true
 
-# Documentation Configuration
+# SpringDoc Configuration - OpenAPI 3.0 Documentation & Swagger UI
 springdoc:
   api-docs:
     path: /api-docs
   swagger-ui:
-    path: /swagger-ui
+    path: /swagger-ui.html
     tags-sorter: alpha
     operations-sorter: method
 
+# Server Configuration
+server:
+  port: 8080
+
+# Application Configuration
 openapi:
   server:
-    description: SSI VCI Issuer MS API
+    url: "https://localhost:8081"
+    description: "Server Description"
   info:
-    title: IN2 SSI VCI Issuer MS project
-    version: 1.0.0
-    termsOfService: https://example.com/terms-of-service
+    title: "Issuer API"
+    version: "0.0.1-SNAPSHOT"
+    description: "Issuer API Web Server"
+    termsOfService: "https://example.com/terms-of-service"
     license:
-      name: Apache 2.0
-      url: https://www.apache.org/licenses/LICENSE-2.0.html
+      name: "Apache 2.0"
+      url: "https://www.apache.org/licenses/LICENSE-2.0.html"
     contact:
-      email: contacto@in2.es
-      name: IN2
-      url: https://in2.es
-    description: IN2 SSI VCI Issuer MS project
+      email: "test@example.com"
+      name: "Test Name"
+      url: "https://example.com"
 
+api:
+  external-domain: "http://localhost:8081"
+  internal-domain: "http://issuer-api:8080"
+  config-source:  yaml
+  cache_lifetime:
+    credential_offer: 10
+    verifiable_credential: 10
 
-authentic-sources:
-  routes:
-    get-user: /api/credential-source-data
+azure:
+  endpoint: "https://myappconfig.azconfig.io"
+  label:
+    global: "issuer-api"
+
+auth-server:
+  provider: keycloak
+  external-domain: "http://localhost:8088"
+  internal-domain: "http://issuer-keycloak:8080"
+  realm: CredentialIssuer
+  paths:
+    issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    jwt-decoder-path: "/realms/${realm}/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/${realm}"
+    jwt-validator: "http://localhost:8088/realms/${realm}"
+    pre-authorized-code-path: "/realms/${realm}/verifiable-credential/${issuer-did}/credential-offer"
+    token-path: "/realms/${realm}/verifiable-credential/${issuer-did}/token"
+    nonce-validation-path: "/realms/${realm}/verifiable-credential/${issuer-did}/nonce-valid"
+
 remote-signature:
-  routes:
-    sign: /signature/sign
-
+  external-domain: "http://localhost:8082"
+  internal-domain: "http://remote-signature:8080"
+  paths:
+    sign-path: "/signature/sign"

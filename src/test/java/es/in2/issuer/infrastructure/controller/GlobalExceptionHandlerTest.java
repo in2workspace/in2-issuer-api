@@ -4,8 +4,8 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import es.in2.issuer.domain.exception.*;
-import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +32,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleCredentialTypeUnsupported() {
-        CredentialTypeUnsuportedException exception = new CredentialTypeUnsuportedException("The given credential type is not supported");
+        CredentialTypeUnsupportedException exception = new CredentialTypeUnsupportedException("The given credential type is not supported");
 
         Mono<ResponseEntity<CredentialErrorResponse>> result = globalExceptionHandler.handleCredentialTypeUnsupported(exception);
 
@@ -172,9 +172,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleException_ReturnsInternalServerError() {
         Exception exception = new Exception("General error occurred");
-
         Mono<ResponseEntity<GlobalErrorMessage>> result = globalExceptionHandler.handleException(exception, mockWebRequest);
-
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -231,7 +229,7 @@ class GlobalExceptionHandlerTest {
     void handleAuthenticSourcesUserParsing() {
         AuthenticSourcesUserParsingException exception = new AuthenticSourcesUserParsingException(null);
 
-        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleAuthenticSourcesUserParsingException(exception);
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleSignedDataParsingException(exception);
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
@@ -239,4 +237,96 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void handleParseCredentialJsonException() {
+        ParseCredentialJsonException exception = new ParseCredentialJsonException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleParseCredentialJsonException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleTemplateReadException() {
+        TemplateReadException exception = new TemplateReadException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleTemplateReadException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleProofValidationException() {
+        ProofValidationException exception = new ProofValidationException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleProofValidationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleNoCredentialFoundException() {
+        NoCredentialFoundException exception = new NoCredentialFoundException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNoCredentialFoundException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handlePreAuthorizationCodeGetException() {
+        PreAuthorizationCodeGetException exception = new PreAuthorizationCodeGetException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handlePreAuthorizationCodeGetException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleCustomCredentialOfferNotFoundException() {
+        CustomCredentialOfferNotFoundException exception = new CustomCredentialOfferNotFoundException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCustomCredentialOfferNotFoundException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleNonceValidationException() {
+        NonceValidationException exception = new NonceValidationException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNonceValidationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
 }

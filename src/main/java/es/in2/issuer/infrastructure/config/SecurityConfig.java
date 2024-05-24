@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -19,8 +18,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
+import java.util.List;
 
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
@@ -29,24 +29,24 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final IamAdapterFactory iamAdapterFactory;
+    private final AuthServerConfig authServerConfig;
 
+    // fixme: why we need to use different jwtDecoder for sbx and dev-prod?
     @Bean
-    @Profile("!dev")
-    public ReactiveJwtDecoder jwtDecoder(){
+    @Profile("!sbx")
+    public ReactiveJwtDecoder jwtDecoder() {
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-                .withJwkSetUri(iamAdapterFactory.getAdapter().getJwtDecoder())
+                .withJwkSetUri(authServerConfig.getJwtDecoder())
                 .jwsAlgorithm(SignatureAlgorithm.RS256)
                 .build();
-        // fixme: url hardcoded
-        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer("https://preproduccio-iep.dev.in2.es/cross-keycloak/realms/EAAProvider"));
+        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(authServerConfig.getJwtValidator()));
         return jwtDecoder;
     }
 
     @Bean
-    @Profile("dev")
-    public ReactiveJwtDecoder jwtDecoderLocal(){
-        return ReactiveJwtDecoders.fromIssuerLocation(iamAdapterFactory.getAdapter().getJwtDecoderLocal());
+    @Profile("sbx")
+    public ReactiveJwtDecoder jwtDecoderLocal() {
+        return ReactiveJwtDecoders.fromIssuerLocation(authServerConfig.getJwtDecoderLocal());
     }
 
     @Bean
@@ -54,9 +54,13 @@ public class SecurityConfig {
         http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(getSwaggerPaths()).permitAll()
-                        .pathMatchers("/health").permitAll()
-                        .pathMatchers("/credential-offer/**").permitAll()
-                        .pathMatchers("/.well-known/openid-credential-issuer").permitAll()
+                        .pathMatchers(PUBLIC_HEALTH).permitAll()
+                        .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
+                        .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
+                        .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
+                        //TODO: securizar este endpoint
+                        .pathMatchers(HttpMethod.POST, "/api/v1/credentials/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/credentials").permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
@@ -68,16 +72,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        // fixme: urls hardcoded
-        corsConfig.setAllowedOrigins(Arrays.asList(
-                "https://epu-dev-app-01.azurewebsites.net",
-                "https://issueridp.dev.in2.es",
-                "https://app-wallet-wda-spa-iep-dev.azurewebsites.net",
-                "http://localhost:4200",
-                "http://localhost:4201",
-                "http://localhost:4202"));
+        corsConfig.setAllowedOrigins(List.of(LOCAL_ISSUER_UI));
         corsConfig.setMaxAge(8000L);
-        corsConfig.setAllowedMethods(Arrays.asList(
+        corsConfig.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
                 HttpMethod.HEAD.name(),
                 HttpMethod.POST.name(),
@@ -94,13 +91,12 @@ public class SecurityConfig {
     }
 
     private String[] getSwaggerPaths() {
-        // fixme: urls hardcoded
         return new String[]{
-                "/swagger-ui/**",
-                "/swagger-resources/**",
-                "/api-docs/**",
-                "/spring-ui/**",
-                "/webjars/swagger-ui/**"
+                SWAGGER_UI,
+                SWAGGER_RESOURCES,
+                SWAGGER_API_DOCS,
+                SWAGGER_SPRING_UI,
+                SWAGGER_WEBJARS
         };
     }
 

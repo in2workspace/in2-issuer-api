@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.model;
 
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;

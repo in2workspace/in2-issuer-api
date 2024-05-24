@@ -3,15 +3,13 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.SignedDataParsingException;
-import es.in2.issuer.domain.model.SignatureRequest;
-import es.in2.issuer.domain.model.SignedData;
+import es.in2.issuer.domain.model.dto.SignatureRequest;
+import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.util.HttpUtils;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
-import jakarta.annotation.PostConstruct;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -23,25 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
-    // fixme: debe ir en un archivo Properties
-    @Value("${remote-signature.routes.sign}")
-    private String sign;
-
-    private final AppConfiguration appConfiguration;
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
-
-    // todo: delete remoteSignatureBaseUrl
-    private String remoteSignatureBaseUrl;
-    @PostConstruct
-    private void initializeRemoteSignatureBaseUrl() {
-        remoteSignatureBaseUrl = appConfiguration.getRemoteSignatureDomain();
-    }
+    private final RemoteSignatureConfig remoteSignatureConfig;
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
@@ -64,7 +53,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
-        String signatureRemoteServerEndpoint = remoteSignatureBaseUrl + "/api/v1" + sign;
+        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureExternalDomain() + "/api/v1"
+                + remoteSignatureConfig.getRemoteSignatureSignPath();
         String signatureRequestJSON;
         try {
             signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
@@ -72,7 +62,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             return Mono.error(e);
         }
         List<Map.Entry<String, String>> headers = new ArrayList<>();
-        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
         // todo: refactorizar: debe implementarse la llamada aquí y no en el Utils
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON);

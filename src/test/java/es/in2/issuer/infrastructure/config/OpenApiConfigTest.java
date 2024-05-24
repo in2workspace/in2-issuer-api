@@ -1,7 +1,5 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.config.OpenApiConfig;
 import es.in2.issuer.infrastructure.config.properties.*;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
@@ -23,28 +21,28 @@ class OpenApiConfigTest {
     private OpenApiProperties openApiProperties;
 
     @Mock
-    private AppConfiguration appConfiguration;
+    private ApiConfig apiConfig;
 
     private OpenApiConfig openApiConfig;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        openApiConfig = new OpenApiConfig(openApiProperties, appConfiguration);
+        openApiConfig = new OpenApiConfig(openApiProperties, apiConfig);
     }
 
     @Test
     void testOpenApiConfiguration() {
         // Mock properties
-        OpenApiInfoContactProperties contactProperties = new OpenApiInfoContactProperties("test@example.com","John Doe", "http://example.com");
-        OpenApiInfoLicenseProperties licenseProperties = new OpenApiInfoLicenseProperties("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0");
-        OpenApiInfoProperties infoProperties = new OpenApiInfoProperties("Test API", "1.0", "Test Description", "http://example.com/tos", contactProperties, licenseProperties);
+        OpenApiProperties.OpenApiInfoProperties.OpenApiInfoContactProperties contactProperties = new OpenApiProperties.OpenApiInfoProperties.OpenApiInfoContactProperties("test@example.com","John Doe", "http://example.com");
+        OpenApiProperties.OpenApiInfoProperties.OpenApiInfoLicenseProperties licenseProperties = new OpenApiProperties.OpenApiInfoProperties.OpenApiInfoLicenseProperties("Apache 2.0", "https://www.apache.org/licenses/LICENSE-2.0");
+        OpenApiProperties.OpenApiInfoProperties infoProperties = new OpenApiProperties.OpenApiInfoProperties("Test API", "1.0", "Test Description", "http://example.com/tos", contactProperties, licenseProperties);
         when(openApiProperties.info()).thenReturn(infoProperties);
-        OpenApiServerProperties serverProperties = new OpenApiServerProperties("Test Server","Test Description");
+        OpenApiProperties.OpenApiServerProperties serverProperties = new OpenApiProperties.OpenApiServerProperties("Test Server","Test Description");
         when(openApiProperties.server()).thenReturn(serverProperties);
 
         // Mock app configuration
-        when(appConfiguration.getIssuerDomain()).thenReturn("example.com");
+        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("example.com");
 
         // Invoke method to test
         OpenAPI openAPI = openApiConfig.openApi();

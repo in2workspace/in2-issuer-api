@@ -1,5 +1,7 @@
 package es.in2.issuer.domain.model;
 
+import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.enums.SignatureType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
