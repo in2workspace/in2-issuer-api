@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config.properties;
 
-import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;
@@ -11,7 +10,7 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "azure")
 @Validated
 public record AzureProperties(
-        @NotNull(message = "Endpoint is mandatory") String endpoint,
+        String endpoint, //@NotNull(message = "Endpoint is mandatory")
         @NestedConfigurationProperty AzurePropertiesLabel label
 ) {
 
