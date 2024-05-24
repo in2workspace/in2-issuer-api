@@ -93,11 +93,6 @@ api:
     credential_offer: 10
     verifiable_credential: 10
 
-azure:
-  endpoint:
-  label:
-    global:
-
 auth-server:
   provider: keycloak
   external-domain: "http://localhost:8088"
