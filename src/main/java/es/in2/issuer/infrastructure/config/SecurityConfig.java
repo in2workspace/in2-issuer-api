@@ -58,6 +58,9 @@ public class SecurityConfig {
                         .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
+                        //TODO: securizar este endpoint
+                        .pathMatchers(HttpMethod.POST, "/api/v1/credentials/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/credentials").permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
