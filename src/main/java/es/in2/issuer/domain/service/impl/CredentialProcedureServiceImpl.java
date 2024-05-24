@@ -3,8 +3,8 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
-import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -21,8 +21,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class CredentialProcedureServiceImpl implements CredentialProcedureService {
+
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final ObjectMapper objectMapper;
+
     @Override
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
@@ -32,7 +34,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .organizationIdentifier(credentialProcedureCreationRequest.organizationIdentifier())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
-
         return credentialProcedureRepository.save(credentialProcedure)
                 .map(savedCredentialProcedure -> savedCredentialProcedure.getProcedureId().toString())
                 .doOnError(e -> log.error("Error saving credential procedure", e));
@@ -45,7 +46,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         JsonNode typeNode = credential.get("type");
-
                         if (typeNode != null && typeNode.isArray()) {
                             String credentialType = null;
                             for (JsonNode type : typeNode) {
@@ -65,6 +65,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
                 });
     }
+
     @Override
     public Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
@@ -96,4 +97,5 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
                 });
     }
+
 }

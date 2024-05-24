@@ -1,8 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
-import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -1,5 +1,8 @@
 package es.in2.issuer.domain.model;
 
+import es.in2.issuer.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.domain.model.dto.CredentialRequest;
+import es.in2.issuer.domain.model.dto.Proof;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

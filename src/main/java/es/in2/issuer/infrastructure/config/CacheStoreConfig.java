@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.domain.model.CustomCredentialOffer;
-import es.in2.issuer.domain.model.VerifiableCredentialJWT;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;

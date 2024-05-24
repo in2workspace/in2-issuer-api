@@ -1,10 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.application.service.CredentialOfferIssuanceService;
-import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.CustomCredentialOffer;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
-import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
+import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,7 +33,7 @@ import static es.in2.issuer.domain.util.Constants.ENGLISH;
 @RequiredArgsConstructor
 public class CredentialOfferController {
 
-    private final CredentialOfferIssuanceService credentialOfferIssuanceService;
+    private final CredentialOfferIssuanceWorkflow credentialOfferIssuanceWorkflow;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -55,24 +54,24 @@ public class CredentialOfferController {
                     ),
                     @ApiResponse(
                             responseCode = "404", description = "The LEAR CREDENTIAL type is not supported", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class),
-                                    examples = @ExampleObject(name = "unsupportedCredentialType", value = "{\"error\": \"unsupported_credential_type\", \"description\": \"Credential Type '3213' not in credentials supported\"}"))
+                            examples = @ExampleObject(name = "unsupportedCredentialType", value = "{\"error\": \"unsupported_credential_type\", \"description\": \"Credential Type '3213' not in credentials supported\"}"))
                     ),
                     @ApiResponse(
                             responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available. Ensure the 'Authorization' header is set with a valid Bearer Token.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class))
                     )
             }
     )
-    @GetMapping("/{transaction_id}")
+    @GetMapping("/{transaction_code}")
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@PathVariable("transaction_id") String transactionId) {
+    public Mono<String> buildCredentialOffer(@PathVariable("transaction_code") String transactionCode) {
         log.info("Building Credential Offer...");
         String processId = UUID.randomUUID().toString();
-        return credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionId)
-                        .doOnSuccess(credentialOfferUri -> {
-                                    log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
-                                    log.info("Credential Offer created successfully.");
-                                }
-                        );
+        return credentialOfferIssuanceWorkflow.buildCredentialOfferUri(processId, transactionCode)
+                .doOnSuccess(credentialOfferUri -> {
+                            log.debug("Credential Offer URI created successfully: {}", credentialOfferUri);
+                            log.info("Credential Offer created successfully.");
+                        }
+                );
     }
 
     @Operation(
@@ -108,7 +107,7 @@ public class CredentialOfferController {
         log.info("Retrieving Credential Offer...");
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
-        return credentialOfferIssuanceService.getCustomCredentialOffer(id);
+        return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id);
     }
 
 }

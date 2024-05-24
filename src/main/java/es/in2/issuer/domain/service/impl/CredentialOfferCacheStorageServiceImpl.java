@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
-import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCa
     public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
         return cacheStore.get(nonce)
                 .doOnSuccess(customCredentialOffer -> {
-                    if(customCredentialOffer != null){
+                    if (customCredentialOffer != null) {
                         log.debug("CustomCredentialOffer found for nonce: {}", nonce);
                         cacheStore.delete(nonce);
                     }

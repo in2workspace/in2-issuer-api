@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
+import es.in2.issuer.domain.model.dto.VcTemplate;
 import es.in2.issuer.domain.service.CredentialSchemaService;
-import es.in2.issuer.domain.model.VcTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,20 +29,20 @@ public class CredentialSchemaServiceImpl implements CredentialSchemaService {
     @Override
     public Mono<List<VcTemplate>> getAllVcTemplates() {
         return Flux.fromIterable(vcTemplateNames)
-                .concatMap(vc -> Mono.fromCallable(() -> new VcTemplate(false, vc,null)))
+                .concatMap(vc -> Mono.fromCallable(() -> new VcTemplate(false, vc, null)))
                 .collectList();
     }
 
     @Override
     public Mono<List<VcTemplate>> getAllDetailedVcTemplates() {
         return Flux.fromIterable(vcTemplateNames)
-                .concatMap(name -> Mono.fromCallable(() -> new VcTemplate(false, name,null)))
+                .concatMap(name -> Mono.fromCallable(() -> new VcTemplate(false, name, null)))
                 .collectList();
     }
 
     @Override
     public Mono<VcTemplate> getTemplate(String templateName) {
-        return Mono.fromCallable(() -> new VcTemplate(false, templateName,null))
+        return Mono.fromCallable(() -> new VcTemplate(false, templateName, null))
                 .onErrorMap(IllegalArgumentException.class, e -> new IllegalArgumentException("Error getting template: " + e.getMessage(), e));
     }
 

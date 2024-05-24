@@ -3,9 +3,8 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.LEARCredentialEmployee;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
@@ -58,7 +57,6 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
-
         return Mono.just(LEARCredentialEmployee.builder()
                 .expirationDate(currentTime.plus(30, ChronoUnit.DAYS).toString())
                 .issuanceDate(currentTime.toString())
@@ -83,7 +81,6 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployee> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployee baseLearCredentialEmployee, String mandateeId) {
-
         return Mono.just(LEARCredentialEmployee.builder()
                 .expirationDate(baseLearCredentialEmployee.expirationDate())
                 .issuanceDate(baseLearCredentialEmployee.issuanceDate())

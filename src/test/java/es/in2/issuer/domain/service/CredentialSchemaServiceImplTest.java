@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.model.dto.VcTemplate;
 import es.in2.issuer.domain.service.impl.CredentialSchemaServiceImpl;
-import es.in2.issuer.domain.model.VcTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

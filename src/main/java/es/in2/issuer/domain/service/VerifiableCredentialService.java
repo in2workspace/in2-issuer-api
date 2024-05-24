@@ -1,8 +1,8 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.DeferredCredentialRequest;
-import es.in2.issuer.domain.model.LEARCredentialRequest;
-import es.in2.issuer.domain.model.VerifiableCredentialResponse;
+import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialRequest;
+import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import reactor.core.publisher.Mono;
 
 public interface VerifiableCredentialService {

@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -49,7 +49,7 @@ public class CredentialIssuerMetadataController {
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CredentialIssuerMetadata> getOpenIdCredentialIssuer(ServerWebExchange exchange) {
+    public Mono<CredentialIssuerMetadata> getCredentialIssuerMetadata(ServerWebExchange exchange) {
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
         return credentialIssuerMetadataService.generateOpenIdCredentialIssuer();

@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model;
 
+import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import org.junit.jupiter.api.Test;
 
 
@@ -14,10 +15,8 @@ class VerifiableCredentialResponseTest {
         String expectedCredential = "LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L";
         String expectedCNonce = "fGFF7UkhLA";
         int expectedCNonceExpiresIn = 35;
-
         // Act
         VerifiableCredentialResponse responseDTO = new VerifiableCredentialResponse(expectedCredential,transactionId ,expectedCNonce, expectedCNonceExpiresIn);
-
         // Assert
         assertEquals(expectedCredential, responseDTO.credential());
     }
@@ -29,7 +28,6 @@ class VerifiableCredentialResponseTest {
         String expectedCredential = "LUpixVCWJk0eOt4CXQe1NXK....WZwmhmn9OQp6YxX0a2L";
         String expectedCNonce = "fGFF7UkhLA";
         int expectedCNonceExpiresIn = 35;
-
         // Act
         VerifiableCredentialResponse dto1 = new VerifiableCredentialResponse(expectedCredential, transactionId,expectedCNonce, expectedCNonceExpiresIn);
         VerifiableCredentialResponse dto2 = new VerifiableCredentialResponse(expectedCredential, transactionId,expectedCNonce, expectedCNonceExpiresIn);

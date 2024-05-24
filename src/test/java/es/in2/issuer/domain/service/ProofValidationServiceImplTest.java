@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.NonceValidationResponse;
+import es.in2.issuer.domain.model.dto.NonceValidationResponse;
 import es.in2.issuer.domain.service.impl.ProofValidationServiceImpl;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;

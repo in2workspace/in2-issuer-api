@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.Grant;
+import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.ApiConfig;
 import org.junit.jupiter.api.BeforeEach;

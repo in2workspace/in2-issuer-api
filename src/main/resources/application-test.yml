@@ -93,6 +93,11 @@ api:
     credential_offer: 10
     verifiable_credential: 10
 
+azure:
+  endpoint: "https://myappconfig.azconfig.io"
+  label:
+    global: "issuer-api"
+
 auth-server:
   provider: "keycloak"
   external-domain: "http://localhost:8088"

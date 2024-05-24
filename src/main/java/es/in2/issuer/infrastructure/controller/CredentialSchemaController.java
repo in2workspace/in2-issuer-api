@@ -1,9 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.model.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.VcTemplate;
 import es.in2.issuer.domain.service.CredentialSchemaService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
-import es.in2.issuer.domain.model.VcTemplate;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -82,14 +82,14 @@ public class CredentialSchemaController {
                     ),
                     @ApiResponse(
                             responseCode = "404", description = "The VC Template does not exist", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class),
-                                    examples = @ExampleObject(name = "unsupportedVCTemplate", value = "{\"error\": \"VC Template does not exist\", \"description\": \"Template: 'WrongTemplateName' is not supported\"}"))
+                            examples = @ExampleObject(name = "unsupportedVCTemplate", value = "{\"error\": \"VC Template does not exist\", \"description\": \"Template: 'WrongTemplateName' is not supported\"}"))
                     )
             }
     )
     @GetMapping("/{schemaName}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<VcTemplate> getCredentialSchemaByName(@PathVariable("schemaName") String templateName) {
-            return credentialSchemaService.getTemplate(templateName);
+        return credentialSchemaService.getTemplate(templateName);
     }
 
 }

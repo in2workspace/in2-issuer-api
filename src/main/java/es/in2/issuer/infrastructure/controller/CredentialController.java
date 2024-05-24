@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.application.service.VerifiableCredentialIssuanceService;
-import es.in2.issuer.domain.model.*;
+import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,12 +26,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CredentialController {
 
-    private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
+    private final VerifiableCredentialIssuanceWorkflow verifiableCredentialIssuanceWorkflow;
     private final AccessTokenService accessTokenService;
 
     @Operation(
-            summary = "Creates a withdraw credential",
-            description = "Generates a a withdraw credential and sends a notification to the appointed employee",
+            summary = "Creates a withdrawn credential",
+            description = "Generates a a withdrawn credential and sends a notification to the appointed employee",
             tags = {SwaggerConfig.TAG_PUBLIC}
     )
     @ApiResponses(
@@ -45,7 +45,7 @@ public class CredentialController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> createWithdrawnLEARCredential(@RequestParam String type, @RequestBody LEARCredentialRequest learCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceService.completeWithdrawLearCredentialProcess(processId, type, learCredentialRequest);
+        return verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId, type, learCredentialRequest);
     }
 
     @Operation(
@@ -67,7 +67,7 @@ public class CredentialController {
     public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
-                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
+                        .flatMap(userId -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }
 
@@ -76,7 +76,7 @@ public class CredentialController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody DeferredCredentialRequest deferredCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceService.generateVerifiableCredentialDeferredResponse(processId, deferredCredentialRequest)
+        return verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialDeferredResponse(processId, deferredCredentialRequest)
                 .doOnNext(result -> log.info("VerifiableCredentialController - getDeferredCredential()"));
     }
 
@@ -85,7 +85,7 @@ public class CredentialController {
     public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BatchCredentialRequest batchCredentialRequest) {
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
-                        .flatMap(userId -> verifiableCredentialIssuanceService.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
+                        .flatMap(userId -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }
 

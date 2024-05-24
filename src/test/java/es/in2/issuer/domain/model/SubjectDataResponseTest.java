@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model;
 
+import es.in2.issuer.domain.model.dto.SubjectDataResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

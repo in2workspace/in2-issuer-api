@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.CustomCredentialOffer;
-import es.in2.issuer.domain.model.Grant;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.Grant;
 import reactor.core.publisher.Mono;
 
 public interface CredentialOfferService {

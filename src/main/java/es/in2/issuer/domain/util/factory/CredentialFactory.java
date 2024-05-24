@@ -2,7 +2,7 @@ package es.in2.issuer.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
-import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

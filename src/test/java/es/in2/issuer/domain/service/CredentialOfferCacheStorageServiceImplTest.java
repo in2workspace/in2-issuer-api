@@ -1,8 +1,7 @@
 package es.in2.issuer.domain.service;
 
-
 import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
-import es.in2.issuer.domain.model.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;

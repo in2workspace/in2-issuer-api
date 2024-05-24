@@ -1,8 +1,8 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.model.CredentialConfiguration;
-import es.in2.issuer.domain.model.CredentialDefinition;
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
+import es.in2.issuer.domain.model.dto.CredentialConfiguration;
+import es.in2.issuer.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.ApiConfig;
 import lombok.RequiredArgsConstructor;
@@ -27,14 +27,12 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
         String credentialIssuerDomain = ensureUrlHasProtocol(apiConfig.getIssuerApiExternalDomain());
-
         CredentialConfiguration learCredentialEmployee = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
                 .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL, VERIFIABLE_CREDENTIAL)).build())
                 .build();
-
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)

@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.VcTemplateDoesNotExistException;
-import es.in2.issuer.domain.model.VcTemplate;
+import es.in2.issuer.domain.model.dto.VcTemplate;
 import es.in2.issuer.domain.service.CredentialSchemaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

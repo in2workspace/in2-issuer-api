@@ -4,8 +4,8 @@ import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import es.in2.issuer.domain.exception.*;
-import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -172,9 +172,7 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleException_ReturnsInternalServerError() {
         Exception exception = new Exception("General error occurred");
-
         Mono<ResponseEntity<GlobalErrorMessage>> result = globalExceptionHandler.handleException(exception, mockWebRequest);
-
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
@@ -330,4 +328,5 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
 }

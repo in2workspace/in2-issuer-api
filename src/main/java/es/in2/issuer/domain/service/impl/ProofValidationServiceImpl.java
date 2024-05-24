@@ -7,7 +7,7 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.NonceValidationException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.ProofValidationException;
-import es.in2.issuer.domain.model.NonceValidationResponse;
+import es.in2.issuer.domain.model.dto.NonceValidationResponse;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.infrastructure.config.ApiConfig;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;

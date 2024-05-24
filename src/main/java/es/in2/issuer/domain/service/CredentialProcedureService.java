@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import reactor.core.publisher.Mono;
 
 public interface CredentialProcedureService {

@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.model.CustomCredentialOffer;
-import es.in2.issuer.domain.model.Grant;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.CredentialOfferService;
 import es.in2.issuer.infrastructure.config.ApiConfig;
 import lombok.RequiredArgsConstructor;

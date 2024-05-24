@@ -1,9 +1,9 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.DeferredCredentialRequest;
-import es.in2.issuer.domain.model.LEARCredentialRequest;
-import es.in2.issuer.domain.model.VerifiableCredentialResponse;
+import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialRequest;
+import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
@@ -25,13 +25,13 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     @Override
     public Mono<String> generateVc(String processId, String vcType, LEARCredentialRequest learCredentialRequest) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId,vcType,learCredentialRequest.credential())
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, learCredentialRequest.credential())
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
 
     }
 
-//    @Override
+    //    @Override
 //    public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
 //        return Mono.fromCallable(() -> {
 //            JsonNode vcTemplateNode = parseJson(vcTemplate);
@@ -51,26 +51,28 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     public Mono<String> generateDeferredCredentialResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
         return null;
     }
+
     @Override
-    public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, String accessToken, String preAuthCode){
-        return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(accessToken,preAuthCode);
+    public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, String accessToken, String preAuthCode) {
+        return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(accessToken, preAuthCode);
     }
+
     @Override
     public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String accessToken, String format) {
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(accessToken)
                 .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                .flatMap(credentialType -> credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
-                        .flatMap(credential -> credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid))
-                        .flatMap(bindCredential -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId,bindCredential)
-                        .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(accessToken,format)
-                                .flatMap(transactionId -> Mono.just(VerifiableCredentialResponse.builder()
-                                                .credential(bindCredential)
-                                                .transactionId(transactionId)
-                                        .build()
-                                )
-                                )
-                        )
-                )));
+                        .flatMap(credentialType -> credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
+                                .flatMap(credential -> credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid))
+                                .flatMap(bindCredential -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential)
+                                        .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(accessToken, format)
+                                                .flatMap(transactionId -> Mono.just(VerifiableCredentialResponse.builder()
+                                                                .credential(bindCredential)
+                                                                .transactionId(transactionId)
+                                                                .build()
+                                                        )
+                                                )
+                                        )
+                                )));
     }
 
 //    private void updateTemplateNode(JsonNode vcTemplateNode, String uuid, String issuerDid, Instant nowInstant, Instant expiration) {
