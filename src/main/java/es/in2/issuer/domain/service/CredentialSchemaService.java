@@ -5,7 +5,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 
-public interface VcSchemaService {
+public interface CredentialSchemaService {
     Mono<Boolean> isSupportedVcSchema(String credentialType);
     Mono<List<VcTemplate>> getAllVcTemplates();
     Mono<List<VcTemplate>> getAllDetailedVcTemplates();

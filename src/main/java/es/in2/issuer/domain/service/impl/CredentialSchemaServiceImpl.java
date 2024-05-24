@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.service.VcSchemaService;
+import es.in2.issuer.domain.service.CredentialSchemaService;
 import es.in2.issuer.domain.model.VcTemplate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class VcSchemaServiceImpl implements VcSchemaService {
+public class CredentialSchemaServiceImpl implements CredentialSchemaService {
 
     private final List<String> vcTemplateNames = Arrays.asList(
             "LEARCredentialEmployee"

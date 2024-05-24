@@ -14,7 +14,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/auth-server-nonce")
 @RequiredArgsConstructor
-public class AuthServerNonceController {
+public class DeferredCredentialController {
+
     private final VerifiableCredentialIssuanceService verifiableCredentialIssuanceService;
 
     @GetMapping
@@ -23,4 +24,8 @@ public class AuthServerNonceController {
         String processId = UUID.randomUUID().toString();
         return verifiableCredentialIssuanceService.bindAccessTokenByPreAuthorizedCode(processId,authServerNonceRequest);
     }
+
+
+
+
 }

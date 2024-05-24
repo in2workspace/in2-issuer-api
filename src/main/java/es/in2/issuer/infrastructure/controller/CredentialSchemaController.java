@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.CredentialErrorResponse;
-import es.in2.issuer.domain.service.VcSchemaService;
+import es.in2.issuer.domain.service.CredentialSchemaService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import es.in2.issuer.domain.model.VcTemplate;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,12 +22,13 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/vc-templates")
+@RequestMapping("/api/credentials/schemas")
 @RequiredArgsConstructor
-public class VcTemplateController {
-// todo: este controller debe devolver los templates soportados por el Credential Issuer, por ahora esta devolviendo data dummy
+// todo: este controller debe devolver los templates soportados por el Credential Issuer,
+//  por ahora esta devolviendo data dummy
+public class CredentialSchemaController {
 
-    private final VcSchemaService vcSchemaService;
+    private final CredentialSchemaService credentialSchemaService;
 
     @Operation(
             summary = "Retrieve All Verifiable Credential Templates",
@@ -36,17 +37,13 @@ public class VcTemplateController {
     )
     @ApiResponses(
             value = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successful response with a list of VC templates",
-                            content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VcTemplate.class)), examples = @ExampleObject(name = "VC templates list", value = "[{\"name\":\"LegalPerson\",\"template\":null,\"mutable\":false},{\"name\":\"Email\",\"template\":null,\"mutable\":false}]"))
-                    )
+                    @ApiResponse(responseCode = "200", description = "Successful response with a list of VC templates", content = @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = VcTemplate.class)), examples = @ExampleObject(name = "VC templates list", value = "[{\"name\":\"LegalPerson\",\"template\":null,\"mutable\":false},{\"name\":\"Email\",\"template\":null,\"mutable\":false}]")))
             }
     )
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Mono<List<VcTemplate>> getAllVcTemplatesByName() {
-        return vcSchemaService.getAllVcTemplates();
+    public Mono<List<VcTemplate>> getAllCredentialSchemasByName() {
+        return credentialSchemaService.getAllVcTemplates();
     }
 
     @Operation(
@@ -56,16 +53,13 @@ public class VcTemplateController {
     )
     @ApiResponses(
             value = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Successful response with a detailed list of VC templates"
-                    )
+                    @ApiResponse(responseCode = "200", description = "Successful response with a detailed list of VC templates")
             }
     )
     @GetMapping("/detail")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<List<VcTemplate>> getAllVcTemplatesDetail() {
-        return vcSchemaService.getAllDetailedVcTemplates();
+    public Mono<List<VcTemplate>> getAllCredentialSchemaDetails() {
+        return credentialSchemaService.getAllDetailedVcTemplates();
     }
 
     @Operation(
@@ -92,10 +86,10 @@ public class VcTemplateController {
                     )
             }
     )
-    @GetMapping("/{templateName}")
+    @GetMapping("/{schemaName}")
     @ResponseStatus(HttpStatus.OK)
-    public Mono<VcTemplate> getTemplateByName(@PathVariable("templateName") String templateName) {
-            return vcSchemaService.getTemplate(templateName);
+    public Mono<VcTemplate> getCredentialSchemaByName(@PathVariable("schemaName") String templateName) {
+            return credentialSchemaService.getTemplate(templateName);
     }
 
 }

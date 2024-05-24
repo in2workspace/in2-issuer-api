@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.domain.service.VcSchemaService;
+import es.in2.issuer.domain.service.CredentialSchemaService;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
@@ -34,7 +34,7 @@ class CredentialOfferIssuanceServiceImplTest {
     private CredentialOfferCacheStorageService credentialOfferCacheStorageService;
 
     @Mock
-    private VcSchemaService vcSchemaService;
+    private CredentialSchemaService credentialSchemaService;
 
     @Mock
     private WebClientConfig webClientConfig;

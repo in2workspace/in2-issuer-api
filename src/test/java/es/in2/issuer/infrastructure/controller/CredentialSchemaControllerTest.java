@@ -1,8 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.VcTemplateDoesNotExistException;
-import es.in2.issuer.domain.service.VcSchemaService;
 import es.in2.issuer.domain.model.VcTemplate;
+import es.in2.issuer.domain.service.CredentialSchemaService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,13 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class VcTemplateControllerTest {
+class CredentialSchemaControllerTest {
 
     @Mock
-    private VcSchemaService vcSchemaService;
+    private CredentialSchemaService credentialSchemaService;
 
     @InjectMocks
-    private VcTemplateController controller;
+    private CredentialSchemaController controller;
 
     @Test
     void testGetAllVcTemplatesByName_Success() {
@@ -31,14 +31,12 @@ class VcTemplateControllerTest {
                 new VcTemplate(false, "LegalPerson", null),
                 new VcTemplate(false, "Email", null)
         );
-        when(vcSchemaService.getAllVcTemplates()).thenReturn(Mono.just(mockTemplateList));
-
+        when(credentialSchemaService.getAllVcTemplates()).thenReturn(Mono.just(mockTemplateList));
         // Act
-        Mono<List<VcTemplate>> result = controller.getAllVcTemplatesByName();
-
+        Mono<List<VcTemplate>> result = controller.getAllCredentialSchemasByName();
         // Assert
         result.subscribe(templates -> assertEquals(mockTemplateList, templates));
-        verify(vcSchemaService, times(1)).getAllVcTemplates();
+        verify(credentialSchemaService, times(1)).getAllVcTemplates();
     }
 
     @Test
@@ -48,14 +46,12 @@ class VcTemplateControllerTest {
                 new VcTemplate(false, "LegalPerson", null),
                 new VcTemplate(false, "Email", null)
         );
-        when(vcSchemaService.getAllDetailedVcTemplates()).thenReturn(Mono.just(mockDetailedTemplateList));
-
+        when(credentialSchemaService.getAllDetailedVcTemplates()).thenReturn(Mono.just(mockDetailedTemplateList));
         // Act
-        Mono<List<VcTemplate>> result = controller.getAllVcTemplatesDetail();
-
+        Mono<List<VcTemplate>> result = controller.getAllCredentialSchemaDetails();
         // Assert
         result.subscribe(detailedTemplates -> assertEquals(mockDetailedTemplateList, detailedTemplates));
-        verify(vcSchemaService, times(1)).getAllDetailedVcTemplates();
+        verify(credentialSchemaService, times(1)).getAllDetailedVcTemplates();
     }
 
     @Test
@@ -63,31 +59,28 @@ class VcTemplateControllerTest {
         // Arrange
         String templateName = "LegalPerson";
         VcTemplate mockTemplate = new VcTemplate(false, templateName, null);
-        when(vcSchemaService.getTemplate(templateName)).thenReturn(Mono.just(mockTemplate));
-
+        when(credentialSchemaService.getTemplate(templateName)).thenReturn(Mono.just(mockTemplate));
         // Act
-        Mono<VcTemplate> result = controller.getTemplateByName(templateName);
-
+        Mono<VcTemplate> result = controller.getCredentialSchemaByName(templateName);
         // Assert
         result.subscribe(template -> assertEquals(mockTemplate, template));
-        verify(vcSchemaService, times(1)).getTemplate(templateName);
+        verify(credentialSchemaService, times(1)).getTemplate(templateName);
     }
 
     @Test
     void testGetTemplateByName_NotFound() {
         // Arrange
         String nonExistentTemplateName = "NonExistentTemplate";
-        when(vcSchemaService.getTemplate(nonExistentTemplateName)).thenReturn(Mono.error(new VcTemplateDoesNotExistException("Template: '" + nonExistentTemplateName + "' is not supported")));
-
+        when(credentialSchemaService.getTemplate(nonExistentTemplateName))
+                .thenReturn(Mono.error(new VcTemplateDoesNotExistException("Template: '" + nonExistentTemplateName + "' is not supported")));
         // Act
-        Mono<VcTemplate> result = controller.getTemplateByName(nonExistentTemplateName);
-
+        Mono<VcTemplate> result = controller.getCredentialSchemaByName(nonExistentTemplateName);
         // Assert
         result.subscribe(
                 template -> fail("Expected an error to be thrown"),
                 error -> assertTrue(error instanceof VcTemplateDoesNotExistException)
         );
-        verify(vcSchemaService, times(1)).getTemplate(nonExistentTemplateName);
+        verify(credentialSchemaService, times(1)).getTemplate(nonExistentTemplateName);
     }
 
 }

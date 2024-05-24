@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.service.impl.VcSchemaServiceImpl;
+import es.in2.issuer.domain.service.impl.CredentialSchemaServiceImpl;
 import es.in2.issuer.domain.model.VcTemplate;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,10 +15,10 @@ import java.util.Objects;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
-class VcSchemaServiceImplTest {
+class CredentialSchemaServiceImplTest {
 
     @InjectMocks
-    private VcSchemaServiceImpl issuerVcTemplateService;
+    private CredentialSchemaServiceImpl issuerVcTemplateService;
     private final List<String> vcTemplateNames = Arrays.asList(
             "LEARCredentialEmployee"
     );
