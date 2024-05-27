@@ -63,13 +63,13 @@ public class LEARCredentialEmployeeFactory {
                 .validFrom(currentTime.toString())
                 .id(UUID.randomUUID().toString())
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                //fixme: the issuer should be the organization identifier
-                .issuer(null)
+                .issuer(baseLearCredentialEmployee.mandate().mandator().organizationIdentifier())
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
                                 .mandator(baseLearCredentialEmployee.mandate().mandator())
                                 .mandatee(baseLearCredentialEmployee.mandate().mandatee())
+                                // fixme: we need to populate the power ids looping in each power
                                 .power(baseLearCredentialEmployee.mandate().power())
                                 .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
                                         .startDateTime(currentTime.toString())

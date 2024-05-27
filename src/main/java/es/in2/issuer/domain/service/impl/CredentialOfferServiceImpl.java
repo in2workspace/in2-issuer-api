@@ -3,7 +3,7 @@ package es.in2.issuer.domain.service.impl;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.CredentialOfferService;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,12 +24,12 @@ import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 @RequiredArgsConstructor
 public class CredentialOfferServiceImpl implements CredentialOfferService {
 
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
 
     @Override
     public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, Grant grant) {
         return Mono.just(CustomCredentialOffer.builder()
-                .credentialIssuer(apiConfig.getIssuerApiExternalDomain())
+                .credentialIssuer(appConfig.getIssuerApiExternalDomain())
                 .credentials(List.of(CustomCredentialOffer.Credential.builder()
                         .format(JWT_VC_JSON)
                         .types(List.of(credentialType))
@@ -42,7 +42,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     @Override
     public Mono<String> createCredentialOfferUri(String nonce) {
-        String url = ensureUrlHasProtocol(apiConfig.getIssuerApiExternalDomain() + CREDENTIAL_OFFER + nonce);
+        String url = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain() + CREDENTIAL_OFFER + nonce);
         String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
         return Mono.just(OPENID_CREDENTIAL_OFFER + encodedUrl);
     }

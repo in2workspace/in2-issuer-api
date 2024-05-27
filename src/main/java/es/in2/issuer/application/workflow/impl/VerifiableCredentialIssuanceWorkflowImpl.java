@@ -11,7 +11,7 @@ import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.ProofValidationService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -40,7 +40,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     //    private final ObjectMapper objectMapper;
 //    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
     private final ProofValidationService proofValidationService;
     //    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
@@ -50,7 +50,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         return verifiableCredentialService.generateVc(processId, type, learCredentialRequest)
                 .flatMap(transactionCode -> {
                     String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", apiConfig.getIssuerApiExternalDomain() + "?transaction_code=" + transactionCode);
+                    String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").toString();
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "credential-offer?transaction_code=" + transactionCode, firstName);
                 });
 
     }

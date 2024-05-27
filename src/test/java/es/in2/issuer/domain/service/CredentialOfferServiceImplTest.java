@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,14 +22,14 @@ import static org.mockito.Mockito.when;
 class CredentialOfferServiceImplTest {
 
     @Mock
-    private ApiConfig apiConfig;
+    private AppConfig appConfig;
 
     @InjectMocks
     private CredentialOfferServiceImpl credentialOfferService;
 
     @BeforeEach
     void setUp() {
-        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
+        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
     }
 
     @Test
@@ -38,7 +38,7 @@ class CredentialOfferServiceImplTest {
         String preAuthCode = "code123";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
 
-        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
+        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
 
         StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
                 .expectNextMatches(offer ->

@@ -41,7 +41,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link) {
+    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName) {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
@@ -51,6 +51,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("link", link);
+            context.setVariable("name", firstName);
             String htmlContent = templateEngine.process("transaction-code-email", context);
             helper.setText(htmlContent, true);
 
