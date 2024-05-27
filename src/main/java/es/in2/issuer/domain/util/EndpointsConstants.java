@@ -4,7 +4,7 @@ public class EndpointsConstants {
     private EndpointsConstants() {
         throw new IllegalStateException("Utility class");
     }
-    public static final String CREDENTIAL_OFFER = "/api/v1/credential-offer/";
+    public static final String CREDENTIAL_OFFER = "/api/v1/credential-offer/retrieval/";
     public static final String LEAR_CREDENTIAL_URI = "/api/v1/credential-offer?credential_offer_uri=";
     public static final String OPENID_CREDENTIAL_OFFER = "openid-credential-offer://?credential_offer_uri=";
     public static final String CREDENTIAL = "/api/v1/credentials/request-credential";

@@ -7,10 +7,7 @@ import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.enums.SignatureType;
-import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.service.VerifiableCredentialService;
+import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +41,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final ProofValidationService proofValidationService;
     //    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
+    private final CredentialProcedureService credentialProcedureService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
     public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
@@ -70,10 +69,11 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         return extractDidFromJwtProof(credentialRequest.proof().jwt());
                     }
                 })
-                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, token, credentialRequest.format()));
-        // add the email to legal representative
-//                .flatMap(credentialResponse -> emailService.()
-//                        .then(Mono.just(credentialResponse)));
+                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, token, credentialRequest.format())
+                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(token)
+                                .flatMap(credentialProcedureService::getMandatorEmailFromDecodedCredentialByProcedureId)
+                                .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
+                                        .then(Mono.just(credentialResponse)))));
     }
 
     @Override

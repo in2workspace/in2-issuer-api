@@ -47,7 +47,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                         .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                         .flatMap(credentialOfferService::createCredentialOfferUri)
                                                         .flatMap(credentialOfferUri -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                                                                .flatMap(email -> emailService.sendPin(email, "pin code", preAuthCodeResponse.pin()))
+                                                                .flatMap(email -> emailService.sendPin(email, "Pin Code", preAuthCodeResponse.pin()))
                                                                 .thenReturn(credentialOfferUri))
                                                 )
                                 )

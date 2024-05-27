@@ -59,4 +59,23 @@ public class EmailServiceImpl implements EmailService {
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
+
+    @Override
+    public Mono<Void> sendPendingCredentialNotification(String to, String subject) {
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setTo(to);
+            helper.setSubject(subject);
+
+            // Crear el contexto sin variables adicionales
+            Context context = new Context();
+            String htmlContent = templateEngine.process("credential-pending-notification", context);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
 }

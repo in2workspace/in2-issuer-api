@@ -9,4 +9,5 @@ public interface CredentialProcedureService {
     Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential);
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
     Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId (String procedureId);
+    Mono<String> getMandatorEmailFromDecodedCredentialByProcedureId(String procedureId);
 }

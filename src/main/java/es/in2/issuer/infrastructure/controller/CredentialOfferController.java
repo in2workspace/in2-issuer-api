@@ -2,9 +2,12 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,12 +15,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
+
+import static es.in2.issuer.domain.util.Constants.ENGLISH;
 
 @Slf4j
 @RestController
@@ -66,4 +74,39 @@ public class CredentialOfferController {
                 );
     }
 
+    @Operation(
+            summary = "Returns a credential offer by ID",
+            description = "This operation is used to retrieve a specific credential offer. Users should provide the ID of the desired credential offer in the URL path. The response will contain detailed information about the credential offer.",
+            tags = {SwaggerConfig.TAG_PUBLIC}
+    )
+    @Parameter(
+            name = "id",
+            description = "The ID of the credential offer to retrieve",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "string")
+    )
+    @ApiResponses(
+            value = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Returns the credential offer which matches the given ID in JSON format",
+                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CustomCredentialOffer.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "404", description = "The pre-authorized code is either expired, has already been used, or does not exist.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = CredentialErrorResponse.class))
+                    ),
+                    @ApiResponse(
+                            responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class))
+                    )
+            }
+    )
+    @GetMapping(value = "/retrieval/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
+        log.info("Retrieving Credential Offer...");
+        ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
+        return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id);
+    }
 }
