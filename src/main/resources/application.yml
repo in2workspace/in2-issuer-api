@@ -116,7 +116,7 @@ auth-server:
     token-path: "/realms/${auth-server.realm}/protocol/openid-connect/token"
     nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
   client:
-    client-id: "issuer-api-client"
+    client-id: "oidc4vci-wallet-client"
     client-secret: "qVB2taQhqWmVndVIG5QR1INH8rfsbTrS"
     username: "user"
     password: "user"

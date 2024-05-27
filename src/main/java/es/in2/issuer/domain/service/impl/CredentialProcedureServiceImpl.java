@@ -90,7 +90,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("mandatee").get("email").toString());
+                        return Mono.just(credential.get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
                     } catch (JsonProcessingException e){
                         return Mono.error(new RuntimeException());
                     }
