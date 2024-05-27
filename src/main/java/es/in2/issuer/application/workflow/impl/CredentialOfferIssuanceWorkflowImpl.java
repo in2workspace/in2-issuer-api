@@ -61,9 +61,8 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     }
 
     private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
-        String authServerDomain = authServerConfig.getAuthServerExternalDomain();
         String preAuthCodeUri = authServerConfig.getPreAuthCodeUri();
-        String url = authServerDomain + preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
+        String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
         // Get request
         return issuerApiClientTokenService.getClientToken()

@@ -22,12 +22,12 @@ class AppConfigTest {
 
     private AppConfig appConfig;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties);
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        MockitoAnnotations.openMocks(this);
+//        when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
+//        appConfig = new AppConfig(configAdapterFactory, apiProperties);
+//    }
 
 //    @Test
 //    void testGetKeycloakDomain() {
