@@ -15,20 +15,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
-class OpenApiConfigTest {
+class OpenAppConfigTest {
 
     @Mock
     private OpenApiProperties openApiProperties;
 
     @Mock
-    private ApiConfig apiConfig;
+    private AppConfig appConfig;
 
     private OpenApiConfig openApiConfig;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        openApiConfig = new OpenApiConfig(openApiProperties, apiConfig);
+        openApiConfig = new OpenApiConfig(openApiProperties, appConfig);
     }
 
     @Test
@@ -42,7 +42,7 @@ class OpenApiConfigTest {
         when(openApiProperties.server()).thenReturn(serverProperties);
 
         // Mock app configuration
-        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("example.com");
+        when(appConfig.getIssuerApiExternalDomain()).thenReturn("example.com");
 
         // Invoke method to test
         OpenAPI openAPI = openApiConfig.openApi();

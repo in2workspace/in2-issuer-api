@@ -26,6 +26,12 @@ public class AuthServerConfig {
         return configAdapter.getConfiguration(authServerProperties.internalDomain());
     }
 
+    public String getAuthServerClientId(){
+        return configAdapter.getConfiguration(authServerProperties.client().clientId());
+    }
+    public String getAuthServerClientSecret(){
+        return configAdapter.getConfiguration(authServerProperties.client().clientSecret());
+    }
     public String getAuthServerRealm() {
         return configAdapter.getConfiguration(authServerProperties.realm());
     }

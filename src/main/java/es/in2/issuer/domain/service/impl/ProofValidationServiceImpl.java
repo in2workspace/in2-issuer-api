@@ -9,7 +9,7 @@ import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.ProofValidationException;
 import es.in2.issuer.domain.model.dto.NonceValidationResponse;
 import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import io.github.novacrypto.base58.Base58;
@@ -46,7 +46,7 @@ import static es.in2.issuer.domain.util.Constants.*;
 public class ProofValidationServiceImpl implements ProofValidationService {
 
     private final WebClientConfig webClient;
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
     private final ObjectMapper objectMapper;
     private final AuthServerConfig authServerConfig;
 

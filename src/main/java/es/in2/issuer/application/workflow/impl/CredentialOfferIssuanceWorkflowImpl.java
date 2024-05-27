@@ -18,6 +18,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Objects;
 
+import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -31,6 +33,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final AuthServerConfig authServerConfig;
+    private final IssuerApiClientTokenService issuerApiClientTokenService;
 
     @Override
     public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
@@ -63,28 +66,31 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
         String url = authServerDomain + preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
         // Get request
-        return webClient.commonWebClient()
-                .get()
-                .uri(url)
-                .accept(MediaType.APPLICATION_JSON)
-                .exchangeToMono(response -> {
-                    if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
-                        return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
-                    } else if (response.statusCode().is3xxRedirection()) {
-                        return Mono.just(Objects.requireNonNull(response.headers().asHttpHeaders().getFirst(HttpHeaders.LOCATION)));
-                    } else {
-                        log.info("Authorization Response: {}", response);
-                        return response.bodyToMono(String.class);
-                    }
-                })
-                // Parsing response
-                .flatMap(response -> {
-                    try {
-                        return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
-                    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                        return Mono.error(new ParseErrorException("Error parsing JSON response"));
-                    }
-                });
+        return issuerApiClientTokenService.getClientToken()
+                .flatMap(
+                        token ->
+                            webClient.commonWebClient()
+                            .get()
+                            .uri(url)
+                            .accept(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+                            .exchangeToMono(response -> {
+                                if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                                    return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
+                                } else {
+                                    log.info("Pre Authorization code response: {}", response);
+                                    return response.bodyToMono(String.class);
+                                }
+                            })
+                            // Parsing response
+                            .flatMap(response -> {
+                                try {
+                                    return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
+                                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                    return Mono.error(new ParseErrorException("Error parsing JSON response"));
+                                }
+                            })
+                );
     }
 
 }
