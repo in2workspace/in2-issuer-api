@@ -13,6 +13,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import static es.in2.issuer.domain.util.Constants.NO_REPLAY_EMAIL;
+import static es.in2.issuer.domain.util.Constants.UTF_8;
 
 @Slf4j
 @Service
@@ -25,7 +26,7 @@ public class EmailServiceImpl implements EmailService {
     public Mono<Void> sendPin(String to, String subject, String pin) {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
             helper.setFrom(NO_REPLAY_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
@@ -44,7 +45,7 @@ public class EmailServiceImpl implements EmailService {
     public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName) {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
             helper.setFrom(NO_REPLAY_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
@@ -64,7 +65,7 @@ public class EmailServiceImpl implements EmailService {
     public Mono<Void> sendPendingCredentialNotification(String to, String subject) {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
             helper.setFrom(NO_REPLAY_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
