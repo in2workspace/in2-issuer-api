@@ -30,6 +30,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     private final AuthServerConfig authServerConfig;
+    private final AppConfig appConfig;
 
     // fixme: why we need to use different jwtDecoder for sbx and dev-prod?
     @Bean
@@ -73,7 +74,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of(LOCAL_ISSUER_UI));
+        corsConfig.setAllowedOrigins(List.of(appConfig.getIssuerUiExternalDomain()));
         corsConfig.setMaxAge(8000L);
         corsConfig.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
