@@ -28,7 +28,7 @@ public record AuthServerProperties(
         this.paths = Optional.ofNullable(paths).orElse(
                 new Paths("", "", "", "", "", "", ""));
         this.client = Optional.ofNullable(client).orElse(
-                new Client("","","","")
+                new Client("","","")
         );
     }
 
@@ -46,7 +46,6 @@ public record AuthServerProperties(
     @Validated
     public record Client(
             @NotNull String clientId,
-            @NotNull String clientSecret,
             @NotNull String username,
             @NotNull String password
     ){

@@ -29,9 +29,6 @@ public class AuthServerConfig {
     public String getAuthServerClientId(){
         return configAdapter.getConfiguration(authServerProperties.client().clientId());
     }
-    public String getAuthServerClientSecret(){
-        return configAdapter.getConfiguration(authServerProperties.client().clientSecret());
-    }
 
     public String getAuthServerUsername(){
         return configAdapter.getConfiguration(authServerProperties.client().username());

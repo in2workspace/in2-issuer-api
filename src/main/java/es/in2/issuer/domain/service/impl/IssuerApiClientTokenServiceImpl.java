@@ -30,23 +30,8 @@ public class IssuerApiClientTokenServiceImpl implements IssuerApiClientTokenServ
     @Override
     public Mono<String> getClientToken() {
 
-//        String clientSecret = authServerConfig.getAuthServerClientSecret().trim();
-//        String decodedSecret;
-
-//        try {
-//            byte[] decodedBytes = Base64.getDecoder().decode(clientSecret);
-//            decodedSecret = new String(decodedBytes, StandardCharsets.UTF_8);
-//
-//            String reEncodedSecret = Base64.getEncoder().encodeToString(decodedSecret.getBytes(StandardCharsets.UTF_8)).trim();
-//            if (!clientSecret.equals(reEncodedSecret)) {
-//                decodedSecret = clientSecret;
-//            }
-//        } catch (IllegalArgumentException ex) {
-//            decodedSecret = clientSecret;
-//        }
         String body = "grant_type=" + URLEncoder.encode("password", StandardCharsets.UTF_8) +
                 "&client_id=" + URLEncoder.encode(authServerConfig.getAuthServerClientId(), StandardCharsets.UTF_8) +
-                //"&client_secret=" + URLEncoder.encode(decodedSecret, StandardCharsets.UTF_8) +
                 "&username=" + URLEncoder.encode(authServerConfig.getAuthServerUsername(), StandardCharsets.UTF_8) +
                 "&password=" + URLEncoder.encode(authServerConfig.getAuthServerUserPassword(), StandardCharsets.UTF_8);
 

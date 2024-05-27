@@ -117,7 +117,6 @@ auth-server:
     nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
   client:
     client-id: "oidc4vci-wallet-client"
-    client-secret: "qVB2taQhqWmVndVIG5QR1INH8rfsbTrS"
     username: "user"
     password: "user"
 
