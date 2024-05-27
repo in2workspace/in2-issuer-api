@@ -118,6 +118,8 @@ auth-server:
   client:
     client-id: "issuer-api-client"
     client-secret: "qVB2taQhqWmVndVIG5QR1INH8rfsbTrS"
+    username: "user"
+    password: "user"
 
 
 remote-signature:

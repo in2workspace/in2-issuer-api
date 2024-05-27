@@ -32,6 +32,13 @@ public class AuthServerConfig {
     public String getAuthServerClientSecret(){
         return configAdapter.getConfiguration(authServerProperties.client().clientSecret());
     }
+
+    public String getAuthServerUsername(){
+        return configAdapter.getConfiguration(authServerProperties.client().username());
+    }
+    public String getAuthServerUserPassword(){
+        return configAdapter.getConfiguration(authServerProperties.client().password());
+    }
     public String getAuthServerRealm() {
         return configAdapter.getConfiguration(authServerProperties.realm());
     }

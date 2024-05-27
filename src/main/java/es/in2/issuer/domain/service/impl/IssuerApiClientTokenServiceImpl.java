@@ -44,9 +44,11 @@ public class IssuerApiClientTokenServiceImpl implements IssuerApiClientTokenServ
         } catch (IllegalArgumentException ex) {
             decodedSecret = clientSecret;
         }
-        String body = "grant_type=" + URLEncoder.encode("client_credentials", StandardCharsets.UTF_8) +
+        String body = "grant_type=" + URLEncoder.encode("password", StandardCharsets.UTF_8) +
                 "&client_id=" + URLEncoder.encode(authServerConfig.getAuthServerClientId(), StandardCharsets.UTF_8) +
-                "&client_secret=" + URLEncoder.encode(decodedSecret, StandardCharsets.UTF_8);
+                "&client_secret=" + URLEncoder.encode(decodedSecret, StandardCharsets.UTF_8) +
+                "&username=" + URLEncoder.encode(authServerConfig.getAuthServerUsername(), StandardCharsets.UTF_8) +
+                "&password=" + URLEncoder.encode(authServerConfig.getAuthServerUserPassword(), StandardCharsets.UTF_8);
 
         return webClient.commonWebClient()
                 .post()
