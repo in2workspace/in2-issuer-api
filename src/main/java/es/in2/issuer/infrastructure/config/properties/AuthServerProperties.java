@@ -32,7 +32,7 @@ public record AuthServerProperties(
             @NotNull String issuerDid,
             @NotNull String jwtDecoderPath,
             @NotNull String jwtDecoderLocalPath,
-            @NotNull String jwtValidator,
+            @NotNull String jwtValidatorPath,
             @NotNull String preAuthorizedCodePath,
             @NotNull String tokenPath,
             @NotNull String nonceValidationPath

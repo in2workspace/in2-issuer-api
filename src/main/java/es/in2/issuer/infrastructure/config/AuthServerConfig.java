@@ -42,8 +42,8 @@ public class AuthServerConfig {
         return configAdapter.getConfiguration(authServerProperties.paths().jwtDecoderLocalPath());
     }
 
-    public String getAuthServerJwtValidator() {
-        return configAdapter.getConfiguration(authServerProperties.paths().jwtValidator());
+    public String getAuthServerJwtValidatorPath() {
+        return configAdapter.getConfiguration(authServerProperties.paths().jwtValidatorPath());
     }
 
     public String getAuthServerPreAuthorizedCodePath() {
@@ -59,7 +59,7 @@ public class AuthServerConfig {
     }
 
     public String getJwtDecoder() {
-        return getAuthServerExternalDomain() + getAuthServerJwtDecoderPath();
+        return getAuthServerInternalDomain() + getAuthServerJwtDecoderPath();
     }
 
     public String getJwtDecoderLocal() {
@@ -75,7 +75,7 @@ public class AuthServerConfig {
     }
 
     public String getJwtValidator() {
-        return getAuthServerJwtValidator();
+        return getAuthServerExternalDomain() + getAuthServerJwtValidatorPath();
     }
 
     private String resolveTemplate(String template, Map<String, String> placeholders) {

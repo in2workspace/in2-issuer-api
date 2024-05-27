@@ -61,10 +61,11 @@ public class CredentialController {
                     @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class)))
             }
     )
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/request-credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     // fixme: repensar esta API
     public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
+        String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
                         .flatMap(userId -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(userId, credentialRequest, token)))
@@ -72,7 +73,7 @@ public class CredentialController {
     }
 
 
-    @PostMapping(value = "/deferred_credential", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/request-deferred-credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<VerifiableCredentialResponse> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody DeferredCredentialRequest deferredCredentialRequest) {
         String processId = UUID.randomUUID().toString();
@@ -80,7 +81,7 @@ public class CredentialController {
                 .doOnNext(result -> log.info("VerifiableCredentialController - getDeferredCredential()"));
     }
 
-    @PostMapping(value = "/batch_credential", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/request-batch-credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BatchCredentialRequest batchCredentialRequest) {
         return accessTokenService.getCleanBearerToken(authorizationHeader)
