@@ -79,13 +79,6 @@ public class CredentialOfferController {
             description = "This operation is used to retrieve a specific credential offer. Users should provide the ID of the desired credential offer in the URL path. The response will contain detailed information about the credential offer.",
             tags = {SwaggerConfig.TAG_PUBLIC}
     )
-    @Parameter(
-            name = "id",
-            description = "The ID of the credential offer to retrieve",
-            required = true,
-            in = ParameterIn.PATH,
-            schema = @Schema(type = "string")
-    )
     @ApiResponses(
             value = {
                     @ApiResponse(
