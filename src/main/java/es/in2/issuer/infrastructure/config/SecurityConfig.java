@@ -56,13 +56,12 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(getSwaggerPaths()).permitAll()
                         .pathMatchers(PUBLIC_HEALTH).permitAll()
-                        .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
+                        //.pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
                         //TODO: securizar este endpoint
-                        .pathMatchers(HttpMethod.POST, "/api/v1/credentials/**").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/credentials").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/v1/credential-offer/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/credential-offer/*").permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
@@ -74,7 +73,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of(appConfig.getIssuerUiExternalDomain()));
+        corsConfig.setAllowedOrigins(List.of(appConfig.getIssuerUiExternalDomain(), "http://localhost:4200", "http://localhost:8080"));
         corsConfig.setMaxAge(8000L);
         corsConfig.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
