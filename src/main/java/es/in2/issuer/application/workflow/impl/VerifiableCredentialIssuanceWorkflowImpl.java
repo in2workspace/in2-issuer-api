@@ -34,12 +34,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
 
     private final RemoteSignatureService remoteSignatureService;
-    //    private final ObjectMapper objectMapper;
-//    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final AppConfig appConfig;
     private final ProofValidationService proofValidationService;
-    //    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
@@ -97,9 +94,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
-        return null;
-        //        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
-//                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
+                return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
     @Override

@@ -48,8 +48,22 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 //        });
 //    }
     @Override
-    public Mono<String> generateDeferredCredentialResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
-        return null;
+    public Mono<VerifiableCredentialResponse> generateDeferredCredentialResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
+        return deferredCredentialMetadataService.getVcByTransactionId(deferredCredentialRequest.transactionId())
+                .flatMap(deferredCredentialMetadataDeferredResponse -> {
+                    if (deferredCredentialMetadataDeferredResponse.vc() != null){
+                        return deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(deferredCredentialMetadataDeferredResponse.id())
+                                .then(Mono.just(VerifiableCredentialResponse.builder()
+                                        .credential(deferredCredentialMetadataDeferredResponse.vc())
+                                        .build()));
+                    }
+                    else {
+                        return Mono.just(VerifiableCredentialResponse.builder()
+                                        .transactionId(deferredCredentialMetadataDeferredResponse.transactionId())
+                                .build());
+                    }
+
+                });
     }
 
     @Override

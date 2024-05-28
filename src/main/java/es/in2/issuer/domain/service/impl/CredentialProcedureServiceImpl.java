@@ -6,11 +6,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
-import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
@@ -90,7 +91,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
                     } catch (JsonProcessingException e){
                         return Mono.error(new RuntimeException());
                     }
@@ -104,11 +105,28 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("credentialSubject").get("mandate").get("mandator").get("emailAddress").toString());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandator").get("emailAddress").toString());
                     } catch (JsonProcessingException e){
                         return Mono.error(new RuntimeException());
                     }
 
+                });
+    }
+
+    @Override
+    public Flux<String> getAllIssuedCredentialByOrganizationIdentifier(String organizationIdentifier) {
+        return credentialProcedureRepository.findByCredentialStatusAndOrganizationIdentifier(CredentialStatus.ISSUED, organizationIdentifier)
+                .map(CredentialProcedure::getCredentialDecoded);
+    }
+
+    @Override
+    public Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId) {
+        return credentialProcedureRepository.findByCredentialId(UUID.fromString(credentialId))
+                .flatMap(credentialProcedure -> {
+                        credentialProcedure.setCredentialEncoded(encodedCredential);
+                        credentialProcedure.setCredentialStatus(CredentialStatus.VALID);
+                        return credentialProcedureRepository.save(credentialProcedure)
+                                .then(Mono.just(credentialProcedure.getProcedureId().toString()));
                 });
     }
 

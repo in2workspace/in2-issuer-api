@@ -43,6 +43,9 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName) {
+        firstName = firstName.replace("\"", "");
+        final String finalName = firstName;
+
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
@@ -52,7 +55,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("link", link);
-            context.setVariable("name", firstName);
+            context.setVariable("name", finalName);
             String htmlContent = templateEngine.process("transaction-code-email", context);
             helper.setText(htmlContent, true);
 
@@ -73,6 +76,28 @@ public class EmailServiceImpl implements EmailService {
             // Crear el contexto sin variables adicionales
             Context context = new Context();
             String htmlContent = templateEngine.process("credential-pending-notification", context);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    @Override
+    public Mono<Void> sendCredentialSignedNotification(String to, String subject, String firstName) {
+        firstName = firstName.replace("\"", "");
+        final String finalName = firstName;
+
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
+            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setTo(to);
+            helper.setSubject(subject);
+
+            Context context = new Context();
+            context.setVariable("name", finalName);
+            String htmlContent = templateEngine.process("credential-signed-notification", context);
             helper.setText(htmlContent, true);
 
             javaMailSender.send(mimeMessage);

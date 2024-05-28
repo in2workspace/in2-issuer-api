@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 public interface CredentialProcedureService {
@@ -10,4 +11,6 @@ public interface CredentialProcedureService {
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
     Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId (String procedureId);
     Mono<String> getMandatorEmailFromDecodedCredentialByProcedureId(String procedureId);
+    Flux<String> getAllIssuedCredentialByOrganizationIdentifier(String organizationIdentifier);
+    Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId);
 }

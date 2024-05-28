@@ -1,36 +1,23 @@
-//package es.in2.issuer.infrastructure.controller;
-//
-//import es.in2.issuer.domain.model.*;
-//import es.in2.issuer.domain.service.AccessTokenService;
-//import es.in2.issuer.domain.service.CredentialManagementService;
-//import es.in2.issuer.infrastructure.config.SwaggerConfig;
-//import io.swagger.v3.oas.annotations.Operation;
-//import io.swagger.v3.oas.annotations.media.Content;
-//import io.swagger.v3.oas.annotations.media.ExampleObject;
-//import io.swagger.v3.oas.annotations.media.Schema;
-//import io.swagger.v3.oas.annotations.responses.ApiResponse;
-//import io.swagger.v3.oas.annotations.responses.ApiResponses;
-//import lombok.RequiredArgsConstructor;
-//import lombok.extern.slf4j.Slf4j;
-//import org.springframework.data.domain.Sort;
-//import org.springframework.http.HttpHeaders;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.MediaType;
-//import org.springframework.web.bind.annotation.*;
-//import reactor.core.publisher.Flux;
-//import reactor.core.publisher.Mono;
-//
-//import java.util.*;
-//
-//@Slf4j
-//@RestController
-//@RequestMapping
-//@RequiredArgsConstructor
-//public class CredentialManagementController {
-//
-//    private final CredentialManagementService credentialManagementService;
-//    private final AccessTokenService accessTokenService;
-//
+package es.in2.issuer.infrastructure.controller;
+
+import es.in2.issuer.application.workflow.CredentialManagementWorkflow;
+import es.in2.issuer.domain.model.dto.PendingCredentials;
+import es.in2.issuer.domain.model.dto.SignedCredentials;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+@Slf4j
+@RestController
+@RequestMapping("/api/v1")
+@RequiredArgsConstructor
+public class CredentialManagementController {
+
+    private final CredentialManagementWorkflow credentialManagementWorkflow;
+
 //    @Operation(
 //            summary = "Get the credentials committed by the current user",
 //            description = "Get the credentials committed by the current user",
@@ -60,19 +47,16 @@
 //                .flatMapMany(userId -> credentialManagementService.getCredentials(userId, page, size, sort, direction))
 //                .doOnEach(credential -> log.info("CredentialManagementController - getCredentials(): {}", credential.get())); // Handle all errors from the stream
 //    }
-//
-//    @GetMapping(value = "/api/v1/pending_credentials", produces = MediaType.APPLICATION_JSON_VALUE)
-//    public Mono<PendingCredentials> getUnsignedCredentials(
-//            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "10") int size,
-//            @RequestParam(defaultValue = "modifiedAt") String sort,
-//            @RequestParam(defaultValue = "DESC") Sort.Direction direction) {
-//        return accessTokenService.getUserIdFromHeader(authorizationHeader)
-//                .flatMap(userId -> credentialManagementService.getPendingCredentials(userId, page, size, sort, direction))
-//                .doOnEach(credential -> log.info("CredentialManagementController - getUnsignedCredentials(): {}", credential.get()));
-//    }
-//
+
+    @GetMapping(value = "/pending_credentials", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<PendingCredentials> getUnsignedCredentials(
+            @RequestHeader(value = "X-SSL-Client-Cert") String clientCert)
+    {
+        log.debug(clientCert);
+        return credentialManagementWorkflow.getPendingCredentialsByOrganizationId(clientCert);
+    }
+
 //    @GetMapping(value = "/api/v1/credentials/{credentialId}", produces = MediaType.APPLICATION_JSON_VALUE)
 //    @ResponseStatus(HttpStatus.OK)
 //    public Mono<CredentialItem> getCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @PathVariable UUID credentialId) {
@@ -82,17 +66,10 @@
 //                .doOnNext(result -> log.info("CredentialManagementController - getCredential()"));
 //    }
 //
-//    @PostMapping(value = "/api/v1/credentials", produces = MediaType.APPLICATION_JSON_VALUE)
-//    @ResponseStatus(HttpStatus.NO_CONTENT)
-//    public Mono<Void> updateCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody SignedCredentials signedCredentials) {
-//        return Mono.defer(() -> {
-//
-//            Mono<String> userIdMono = Mono.just(authorizationHeader)
-//                    .flatMap(accessTokenService::getUserIdFromHeader);
-//
-//            return userIdMono.flatMap(userId -> credentialManagementService.updateCredentials(signedCredentials, userId))
-//                    .doOnSuccess(result -> log.info("VerifiableCredentialController - signVerifiableCredentials() completed"));
-//        });
-//    }
-//
-//}
+    @PostMapping(value = "/update-pending-credentials", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public Mono<Void> updateCredentials(@RequestBody SignedCredentials signedCredentials) {
+        return credentialManagementWorkflow.updateSignedCredentials(signedCredentials);
+    }
+
+}

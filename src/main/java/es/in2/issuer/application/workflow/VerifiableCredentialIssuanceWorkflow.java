@@ -8,7 +8,7 @@ import java.util.UUID;
 public interface VerifiableCredentialIssuanceWorkflow {
     Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest);
 
-    Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String username, CredentialRequest credentialRequest, String token);
+    Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId, CredentialRequest credentialRequest, String token);
 
     Mono<BatchCredentialResponse> generateVerifiableCredentialBatchResponse(String username, BatchCredentialRequest batchCredentialRequest, String token);
 

@@ -1,10 +1,11 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.exception.TransactionCodeNotFoundException;
-import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
+import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
+import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
+import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -95,5 +96,41 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                 });
     }
 
+    @Override
+    public Mono<Void> updateVcByProcedureId(String vc, String procedureId) {
+        return deferredCredentialMetadataRepository.findByProcedureId(procedureId)
+                .flatMap(deferredCredentialMetadata -> {
+                    deferredCredentialMetadata.setVc(vc);
+                    return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
+                            .then();
+                });
+    }
+
+    @Override
+    public Mono<DeferredCredentialMetadataDeferredResponse> getVcByTransactionId(String transactionId) {
+        return deferredCredentialMetadataRepository.findByTransactionId(transactionId)
+                .flatMap(deferredCredentialMetadata -> {
+                    if (deferredCredentialMetadata.getVc() != null){
+                        return Mono.just(DeferredCredentialMetadataDeferredResponse.builder()
+                                .vc(deferredCredentialMetadata.getVc())
+                                .id(deferredCredentialMetadata.getId().toString())
+                                .build());
+                    }
+                    else {
+                        String freshTransactionId = UUID.randomUUID().toString();
+                        deferredCredentialMetadata.setTransactionId(freshTransactionId);
+                        return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
+                                .flatMap(deferredCredentialMetadata1 -> Mono.just(DeferredCredentialMetadataDeferredResponse.builder().transactionId(
+                                        deferredCredentialMetadata1.getTransactionId())
+                                        .id(deferredCredentialMetadata.getId().toString())
+                                        .build()));
+                    }
+                });
+    }
+
+    @Override
+    public Mono<Void> deleteDeferredCredentialMetadataById(String id) {
+        return deferredCredentialMetadataRepository.deleteById(UUID.fromString(id));
+    }
 
 }
