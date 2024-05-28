@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "ui")
+@ConfigurationProperties(prefix = "issuer-ui")
 @Validated
-public record UiProperties(
+public record IssuerUiProperties(
         @NotNull String externalDomain,
         @NotNull String internalDomain
 ) {

@@ -93,7 +93,7 @@ api:
     credential_offer: 10
     verifiable_credential: 10
 
-ui:
+issuer-ui:
   external-domain: "http://localhost:4201"
   internal-domain: "http://localhost:4201"
 
