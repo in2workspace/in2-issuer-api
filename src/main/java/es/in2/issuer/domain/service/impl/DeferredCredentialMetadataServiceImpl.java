@@ -41,10 +41,12 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     public Mono<Void> updateAuthServerNonceByAuthServerNonce(String accessToken, String preAuthCode) {
         return deferredCredentialMetadataRepository.findByAuthServerNonce(preAuthCode)
                 .flatMap(deferredCredentialMetadata -> {
+                    log.debug("Entity with: " + preAuthCode + "found");
                     deferredCredentialMetadata.setAuthServerNonce(accessToken);
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then();
-                });
+                })
+                .doOnError(error -> log.debug("Entity with: " + preAuthCode + " not found"));
     }
 
     @Override
@@ -98,7 +100,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
 
     @Override
     public Mono<Void> updateVcByProcedureId(String vc, String procedureId) {
-        return deferredCredentialMetadataRepository.findByProcedureId(procedureId)
+        return deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .flatMap(deferredCredentialMetadata -> {
                     deferredCredentialMetadata.setVc(vc);
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
