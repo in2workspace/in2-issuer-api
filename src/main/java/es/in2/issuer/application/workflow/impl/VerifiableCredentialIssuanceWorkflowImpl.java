@@ -20,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.ByteArrayOutputStream;
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
@@ -58,6 +59,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             CredentialRequest credentialRequest,
             String token
     ) {
+        try {
+        JWSObject jwsObject = JWSObject.parse(token);
+        String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
         return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
                 .flatMap(isValid -> {
                     if (Boolean.FALSE.equals(isValid)) {
@@ -66,11 +70,16 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         return extractDidFromJwtProof(credentialRequest.proof().jwt());
                     }
                 })
-                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, token, credentialRequest.format())
-                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(token)
+                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
+                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                                 .flatMap(credentialProcedureService::getMandatorEmailFromDecodedCredentialByProcedureId)
                                 .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
                                         .then(Mono.just(credentialResponse)))));
+        }
+        catch (ParseException e){
+            log.error("Error parsing the accessToken", e);
+            throw new RuntimeException("Error parsing accessToken", e);
+        }
     }
 
     @Override

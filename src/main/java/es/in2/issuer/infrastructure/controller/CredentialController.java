@@ -68,7 +68,7 @@ public class CredentialController {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
-                .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
+                .doOnSuccess(result -> log.info("VerifiableCredentialController - createVerifiableCredential(): " + result.toString()));
     }
 
 

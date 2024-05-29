@@ -1,7 +1,11 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialRequest;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -12,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+
+import java.text.ParseException;
 
 
 @Service
@@ -68,26 +74,59 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     @Override
     public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, String accessToken, String preAuthCode) {
-        return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(accessToken, preAuthCode);
+        try {
+            JWSObject jwsObject = JWSObject.parse(accessToken);
+            String newAuthServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
+            return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(newAuthServerNonce, preAuthCode);
+        } catch (ParseException e){
+            throw new RuntimeException();
+        }
+
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String accessToken, String format) {
-        return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(accessToken)
-                .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                        .flatMap(credentialType -> credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
-                                .flatMap(credential -> credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid))
-                                .flatMap(bindCredential -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential)
-                                        .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(accessToken, format)
-                                                .flatMap(transactionId -> Mono.just(VerifiableCredentialResponse.builder()
-                                                                .credential(bindCredential)
-                                                                .transactionId(transactionId)
-                                                                .build()
-                                                        )
-                                                )
-                                        )
-                                )));
+    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format) {
+            return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                    .flatMap(procedureId -> {
+                        log.info("Procedure ID obtained: " + procedureId);
+                        return credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
+                                .flatMap(credentialType -> {
+                                    log.info("Credential Type obtained: " + credentialType);
+                                    return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
+                                            .flatMap(credential -> {
+                                                log.info("Decoded Credential obtained: " + credential);
+                                                return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid)
+                                                        .flatMap(bindCredential -> {
+                                                            log.info("Bind Credential obtained: " + bindCredential);
+                                                            return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential)
+                                                                    .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format)
+                                                                            .flatMap(transactionId -> {
+                                                                                log.info("Transaction ID obtained: " + transactionId);
+
+                                                                                try {
+                                                                                    // Extract the "vc" object
+                                                                                    JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
+                                                                                    // Convert the "vc" object to LEARCredentialEmployee
+                                                                                    LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
+                                                                                    // Convert LEARCredentialEmployee back to string
+                                                                                    String bindLearCredentialJson = objectMapper.writeValueAsString(learCredential);
+
+                                                                                    log.info("LEAR Credential JSON: " + bindLearCredentialJson);
+                                                                                    return Mono.just(VerifiableCredentialResponse.builder()
+                                                                                            .credential(bindLearCredentialJson)
+                                                                                            .transactionId(transactionId)
+                                                                                            .build());
+                                                                                } catch (JsonProcessingException e) {
+                                                                                    log.error("Error processing JSON", e);
+                                                                                    return Mono.error(e);
+                                                                                }
+                                                                            }));
+                                                        });
+                                            });
+                                });
+                    });
     }
+
 
 //    private void updateTemplateNode(JsonNode vcTemplateNode, String uuid, String issuerDid, Instant nowInstant, Instant expiration) {
 //        ((ObjectNode) vcTemplateNode).put(ID, uuid);

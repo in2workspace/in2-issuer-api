@@ -175,7 +175,7 @@ public class ProofValidationServiceImpl implements ProofValidationService {
 
         return webClient.commonWebClient()
                 .post()
-                .uri(authServerConfig.getAuthServerExternalDomain() + authServerConfig.getAuthServerNonceValidationPath())
+                .uri(authServerConfig.getAuthServerInternalDomain() + authServerConfig.getAuthServerNonceValidationPath())
                 .contentType(org.springframework.http.MediaType.APPLICATION_FORM_URLENCODED)
                 .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
                 .bodyValue(xWwwFormUrlencodedBody)
