@@ -7,6 +7,7 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
@@ -20,6 +21,7 @@ import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CREDENTIAL;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LEARCredentialEmployeeFactory {
 
     private final ObjectMapper objectMapper;
@@ -42,6 +44,7 @@ public class LEARCredentialEmployeeFactory {
 
     private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) {
         try {
+            log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
         } catch (JsonProcessingException e) {
             // fixme: handle exception and return a custom exception
@@ -59,6 +62,18 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
+
+        // Creando una lista nueva de powers con nuevos IDs
+        List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = baseLearCredentialEmployee.mandate().power().stream()
+                .map(power -> LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+                        .id(UUID.randomUUID().toString())
+                        .tmfType(power.tmfType())
+                        .tmfAction(power.tmfAction())
+                        .tmfFunction(power.tmfFunction())
+                        .build())
+                .toList();
+
+
         return Mono.just(LEARCredentialEmployee.builder()
                 .expirationDate(currentTime.plus(30, ChronoUnit.DAYS).toString())
                 .issuanceDate(currentTime.toString())
@@ -71,8 +86,7 @@ public class LEARCredentialEmployeeFactory {
                                 .id(UUID.randomUUID().toString())
                                 .mandator(baseLearCredentialEmployee.mandate().mandator())
                                 .mandatee(baseLearCredentialEmployee.mandate().mandatee())
-                                // fixme: we need to populate the power ids looping in each power
-                                .power(baseLearCredentialEmployee.mandate().power())
+                                .power(populatedPowers)
                                 .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
                                         .startDateTime(currentTime.toString())
                                         .endDateTime(currentTime.plus(30, ChronoUnit.DAYS).toString())
@@ -81,6 +95,7 @@ public class LEARCredentialEmployeeFactory {
                         .build())
                 .build());
     }
+
 
     private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee){
         return Mono.just(
@@ -108,11 +123,11 @@ public class LEARCredentialEmployeeFactory {
                                 .issuer(baseLearCredentialEmployee.issuer())
                                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+                                                .id(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().id())
                                                 .mandator(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandator())
                                                 .mandatee(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
                                                         .id(mandateeId)
                                                         .email(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().email())
-                                                        .gender(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().gender())
                                                         .firstName(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().firstName())
                                                         .lastName(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
                                                         .mobilePhone(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().mobilePhone())
@@ -132,6 +147,7 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
         try {
+
             return Mono.just(objectMapper.writeValueAsString(learCredentialEmployeeJwtPayload));
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException());

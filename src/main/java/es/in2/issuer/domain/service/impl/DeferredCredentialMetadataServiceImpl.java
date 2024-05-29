@@ -95,7 +95,8 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                     deferredCredentialMetadata.setVcFormat(format);
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then(Mono.just(transactionId));
-                });
+                })
+                .doOnSuccess(result -> log.info("Updated deferred"));
     }
 
     @Override

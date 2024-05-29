@@ -84,6 +84,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     credentialProcedure.setCredentialStatus(CredentialStatus.ISSUED);
                     credentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
                     return credentialProcedureRepository.save(credentialProcedure)
+                            .doOnSuccess(result -> log.info("Updated credential"))
                             .then();
                 });
     }
