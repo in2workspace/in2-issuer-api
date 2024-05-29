@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.exception.ParseCredentialJsonException;
+import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialItem;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
@@ -13,7 +15,9 @@ import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -124,7 +128,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .map(CredentialProcedure::getCredentialDecoded);
     }
 
-
     @Override
     public Flux<CredentialItem> getAllCredentialByOrganizationIdentifier(String organizationIdentifier) {
         return credentialProcedureRepository.findByOrganizationIdentifier(organizationIdentifier)
@@ -145,6 +148,30 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                             .fullName(parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText() + " " + parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText())
                             .status(String.valueOf(credentialProcedure.getCredentialStatus()))
                             .updated(credentialProcedure.getUpdatedAt())
+                            .build();
+                })
+                .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
+    }
+
+    @Override
+    public Mono<CredentialDetails> getCredentialByProcedureIdAndOrganizationId(String procedureId, String organizationIdentifier) {
+        return credentialProcedureRepository.findByProcedureIdAndOrganizationIdentifier(UUID.fromString(procedureId), organizationIdentifier)
+                .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found for procedureId: " + procedureId)))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential).zipWith(Mono.just(credentialProcedure));
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
+                })
+                .map(tuple -> {
+                    JsonNode parsedCredential = tuple.getT1();
+                    CredentialProcedure credentialProcedure = tuple.getT2();
+                    return CredentialDetails.builder()
+                            .procedureId(credentialProcedure.getProcedureId())
+                            .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
+                            .credential(parsedCredential.get("vc"))
                             .build();
                 })
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));

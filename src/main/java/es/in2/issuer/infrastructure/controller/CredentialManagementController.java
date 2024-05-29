@@ -1,9 +1,11 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialManagementWorkflow;
+import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedures;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
+import es.in2.issuer.domain.service.CredentialProcedureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class CredentialManagementController {
 
     private final CredentialManagementWorkflow credentialManagementWorkflow;
+    private final CredentialProcedureService credentialProcedureService;
 
 //    @Operation(
 //            summary = "Get the credentials committed by the current user",
@@ -56,6 +59,15 @@ public class CredentialManagementController {
     {
         log.debug(clientCert);
         return credentialManagementWorkflow.getCredentialsByOrganizationId(clientCert);
+    }
+
+    @GetMapping(value = "/procedure/{procedure_id}/credentials", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<CredentialDetails> getCredentials(@PathVariable("procedure_id") String procedureId,
+                                                  @RequestHeader(value = "X-SSL-Client-Cert") String clientCert)
+    {
+        log.debug(clientCert);
+        return credentialProcedureService.getCredentialByProcedureIdAndOrganizationId(procedureId, clientCert);
     }
 
     @GetMapping(value = "/pending-credentials", produces = MediaType.APPLICATION_JSON_VALUE)
