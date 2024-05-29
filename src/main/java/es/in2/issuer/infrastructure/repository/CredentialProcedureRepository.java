@@ -13,5 +13,6 @@ import java.util.UUID;
 @Repository
 public interface CredentialProcedureRepository extends ReactiveCrudRepository<CredentialProcedure, UUID> {
     Flux<CredentialProcedure> findByCredentialStatusAndOrganizationIdentifier(CredentialStatus credentialStatus, String organizationIdentifier);
+    Flux<CredentialProcedure> findByOrganizationIdentifier(String organizationIdentifier);
     Mono<CredentialProcedure> findByCredentialId(UUID credentialId);
 }

@@ -9,10 +9,9 @@ import java.util.UUID;
 
 @Builder
 public record CredentialItem(
-        @JsonProperty("credential_id") UUID credentialId,
-        @JsonProperty("credential") Map<String, Object> credential,
-        @JsonProperty("format") String format,
+        @JsonProperty("procedure_id") UUID procedureId,
+        @JsonProperty("full_name") String fullName,
         @JsonProperty("status") String status,
-        @JsonProperty("modified_at") Timestamp modifiedAt
+        @JsonProperty("updated") Timestamp updated
 ) {
 }

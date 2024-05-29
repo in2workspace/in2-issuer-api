@@ -1,9 +1,15 @@
 package es.in2.issuer.application.workflow.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.workflow.CredentialManagementWorkflow;
+import es.in2.issuer.domain.exception.NoCredentialFoundException;
+import es.in2.issuer.domain.exception.ParseCredentialJsonException;
+import es.in2.issuer.domain.model.dto.CredentialItem;
+import es.in2.issuer.domain.model.dto.CredentialProcedures;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -14,6 +20,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +42,18 @@ public class CredentialManagementWorkflowImpl implements CredentialManagementWor
                 .collectList()
                 .map(PendingCredentials::new);
     }
+
+    @Override
+    public Mono<CredentialProcedures> getCredentialsByOrganizationId(String organizationId) {
+        return credentialProcedureService.getAllCredentialByOrganizationIdentifier(organizationId)
+                .map(credentialItem -> CredentialProcedures.CredentialProcedure.builder()
+                        .credentialProcedure(credentialItem)
+                        .build())
+                .collectList()
+                .map(CredentialProcedures::new);
+    }
+
+
 
     @Override
     public Mono<Void> updateSignedCredentials(SignedCredentials signedCredentials) {
@@ -60,6 +81,5 @@ public class CredentialManagementWorkflowImpl implements CredentialManagementWor
                 })
                 .then();
     }
-
 
 }

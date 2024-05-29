@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialManagementWorkflow;
+import es.in2.issuer.domain.model.dto.CredentialProcedures;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,16 @@ public class CredentialManagementController {
 //                .doOnEach(credential -> log.info("CredentialManagementController - getCredentials(): {}", credential.get())); // Handle all errors from the stream
 //    }
 
-    @GetMapping(value = "/pending_credentials", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/credentials", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<CredentialProcedures> getCredentials(
+            @RequestHeader(value = "X-SSL-Client-Cert") String clientCert)
+    {
+        log.debug(clientCert);
+        return credentialManagementWorkflow.getCredentialsByOrganizationId(clientCert);
+    }
+
+    @GetMapping(value = "/pending-credentials", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<PendingCredentials> getUnsignedCredentials(
             @RequestHeader(value = "X-SSL-Client-Cert") String clientCert)

@@ -1,8 +1,11 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.ParseCredentialJsonException;
+import es.in2.issuer.domain.model.dto.CredentialItem;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
@@ -13,9 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -117,6 +122,32 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     public Flux<String> getAllIssuedCredentialByOrganizationIdentifier(String organizationIdentifier) {
         return credentialProcedureRepository.findByCredentialStatusAndOrganizationIdentifier(CredentialStatus.ISSUED, organizationIdentifier)
                 .map(CredentialProcedure::getCredentialDecoded);
+    }
+
+
+    @Override
+    public Flux<CredentialItem> getAllCredentialByOrganizationIdentifier(String organizationIdentifier) {
+        return credentialProcedureRepository.findByOrganizationIdentifier(organizationIdentifier)
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential).zipWith(Mono.just(credentialProcedure));
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
+                })
+                .map(tuple -> {
+                    JsonNode parsedCredential = tuple.getT1();
+                    CredentialProcedure credentialProcedure = tuple.getT2();
+
+                    return CredentialItem.builder()
+                            .procedureId(credentialProcedure.getProcedureId())
+                            .fullName(parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText() + " " + parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText())
+                            .status(String.valueOf(credentialProcedure.getCredentialStatus()))
+                            .updated(credentialProcedure.getUpdatedAt())
+                            .build();
+                })
+                .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
     }
 
     @Override
