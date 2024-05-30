@@ -4,7 +4,7 @@ import es.in2.issuer.domain.model.dto.CredentialConfiguration;
 import es.in2.issuer.domain.model.dto.CredentialDefinition;
 import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,11 +22,11 @@ import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 @RequiredArgsConstructor
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
 
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
-        String credentialIssuerDomain = ensureUrlHasProtocol(apiConfig.getIssuerApiExternalDomain());
+        String credentialIssuerDomain = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain());
         CredentialConfiguration learCredentialEmployee = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())

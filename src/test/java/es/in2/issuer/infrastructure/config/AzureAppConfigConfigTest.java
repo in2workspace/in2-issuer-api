@@ -12,7 +12,7 @@ import org.mockito.MockitoAnnotations;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
-class AzureApiConfigConfigTest {
+class AzureAppConfigConfigTest {
     @Mock
     private AzureProperties azureProperties;
 

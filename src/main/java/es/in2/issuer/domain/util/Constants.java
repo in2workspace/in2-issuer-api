@@ -31,6 +31,10 @@ public class Constants {
     public static final String ID = "id";
     public static final String BEARER_PREFIX = "Bearer ";
     public static final String ENGLISH = "en";
+    public static final String UTF_8 = "UTF-8";
     public static final String NO_REPLAY_EMAIL = "noreply@example.com";
+    public static final String CONTENT_TYPE = "Content-Type";
+    public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
+    public static final String CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded";
 
 }

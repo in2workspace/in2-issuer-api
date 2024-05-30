@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,14 +22,14 @@ import static org.mockito.Mockito.when;
 class CredentialOfferServiceImplTest {
 
     @Mock
-    private ApiConfig apiConfig;
+    private AppConfig appConfig;
 
     @InjectMocks
     private CredentialOfferServiceImpl credentialOfferService;
 
     @BeforeEach
     void setUp() {
-        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
+        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
     }
 
     @Test
@@ -37,9 +37,7 @@ class CredentialOfferServiceImplTest {
         String credentialType = "type1";
         String preAuthCode = "code123";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
-
-        when(apiConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
-
+        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
         StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
                 .expectNextMatches(offer ->
                         offer.credentialIssuer().equals("https://example.com") &&
@@ -55,9 +53,7 @@ class CredentialOfferServiceImplTest {
     @Test
     void testCreateCredentialOfferUri() {
         String nonce = "abc123";
-
         Mono<String> result = credentialOfferService.createCredentialOfferUri(nonce);
-
         StepVerifier.create(result)
                 .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fabc123")
                 .verifyComplete();

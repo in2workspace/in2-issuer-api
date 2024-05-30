@@ -6,8 +6,6 @@ import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,10 +59,10 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping("/{transaction_code}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@PathVariable("transaction_code") String transactionCode) {
-        log.info("Building Credential Offer...");
+    @GetMapping("/transaction-code/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<String> getCredentialOfferByTransactionCode(@PathVariable("id") String transactionCode) {
+        log.info("Retrieving Credential Offer with Transaction Code...");
         String processId = UUID.randomUUID().toString();
         return credentialOfferIssuanceWorkflow.buildCredentialOfferUri(processId, transactionCode)
                 .doOnSuccess(credentialOfferUri -> {
@@ -78,13 +76,6 @@ public class CredentialOfferController {
             summary = "Returns a credential offer by ID",
             description = "This operation is used to retrieve a specific credential offer. Users should provide the ID of the desired credential offer in the URL path. The response will contain detailed information about the credential offer.",
             tags = {SwaggerConfig.TAG_PUBLIC}
-    )
-    @Parameter(
-            name = "id",
-            description = "The ID of the credential offer to retrieve",
-            required = true,
-            in = ParameterIn.PATH,
-            schema = @Schema(type = "string")
     )
     @ApiResponses(
             value = {
@@ -104,10 +95,9 @@ public class CredentialOfferController {
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
-        log.info("Retrieving Credential Offer...");
+        log.info("Getting Credential Offer...");
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
         return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id);
     }
-
 }

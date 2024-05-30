@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.dto.CredentialItem;
+import es.in2.issuer.domain.model.dto.ProcedureBasicInfo;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
@@ -21,11 +21,11 @@ public interface CredentialManagementService {
 
     Mono<Void> deleteCredentialDeferred(String transactionId);
 
-    Flux<CredentialItem> getCredentials(String userId, int page, int size, String sort, Sort.Direction direction);
+    Flux<ProcedureBasicInfo> getCredentials(String userId, int page, int size, String sort, Sort.Direction direction);
 
     Mono<PendingCredentials> getPendingCredentials(String userId, int page, int size, String sort, Sort.Direction direction);
 
-    Mono<CredentialItem> getCredential(UUID credentialId, String userId);
+    Mono<ProcedureBasicInfo> getCredential(UUID credentialId, String userId);
 
     Mono<CredentialProcedure> getDeferredCredentialByTransactionId(String transactionId);
 }

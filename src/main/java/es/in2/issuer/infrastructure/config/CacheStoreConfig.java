@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class CacheStoreConfig {
 
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
 
     @Bean
     public CacheStore<String> cacheStoreDefault() {
@@ -22,12 +22,12 @@ public class CacheStoreConfig {
 
     @Bean
     public CacheStore<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {
-        return new CacheStore<>(apiConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
+        return new CacheStore<>(appConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
     }
 
     @Bean
     public CacheStore<CustomCredentialOffer> cacheStoreForCredentialOffer() {
-        return new CacheStore<>(apiConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
+        return new CacheStore<>(appConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
     }
 
 }

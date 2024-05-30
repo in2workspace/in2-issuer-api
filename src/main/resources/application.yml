@@ -5,12 +5,12 @@ spring:
   main:
     web-application-type: reactive
   r2dbc:
-    url: "r2dbc:postgresql://issuer-postgres:5432/dbtest"
+    url: "r2dbc:postgresql://localhost:5434/issuer"
     username: "postgres"
     password: "postgres"
     generate-unique-name: true
   flyway:
-    url: "jdbc:postgresql://issuer-postgres:5432/dbtest"
+    url: "jdbc:postgresql://localhost:5434/issuer"
     locations: classpath:db/migration
   mail:
     host: localhost
@@ -87,11 +87,15 @@ openapi:
 
 api:
   external-domain: "http://localhost:8081"
-  internal-domain: "http://issuer-api:8080"
+  internal-domain: "http://localhost:8081"
   config-source:  yaml
   cache_lifetime:
     credential_offer: 10
     verifiable_credential: 10
+
+issuer-ui:
+  external-domain: "http://localhost:4201"
+  internal-domain: "http://localhost:4201"
 
 azure:
   endpoint: "https://myappconfig.azconfig.io"
@@ -100,20 +104,26 @@ azure:
 
 auth-server:
   provider: keycloak
-  external-domain: "http://localhost:8088"
-  internal-domain: "http://issuer-keycloak:8080"
+  external-domain: "http://localhost:8081"
+  internal-domain: "http://localhost:8081"
   realm: CredentialIssuer
   paths:
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
-    jwt-decoder-path: "/realms/${realm}/protocol/openid-connect/certs"
-    jwt-decoder-local-path: "/realms/${realm}"
-    jwt-validator: "http://localhost:8088/realms/${realm}"
-    pre-authorized-code-path: "/realms/${realm}/verifiable-credential/${issuer-did}/credential-offer"
-    token-path: "/realms/${realm}/verifiable-credential/${issuer-did}/token"
-    nonce-validation-path: "/realms/${realm}/verifiable-credential/${issuer-did}/nonce-valid"
+    jwt-decoder-path: "/realms/${auth-server.realm}/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/${auth-server.realm}"
+    jwt-validator-path: "/realms/${auth-server.realm}"
+    pre-authorized-code-path: "/realms/${auth-server.realm}/verifiable-credential/${auth-server.paths.issuer-did}/credential-offer"
+    token-path: "/realms/${auth-server.realm}/protocol/openid-connect/token"
+    nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
+  client:
+    client-id: "oidc4vci-wallet-client"
+    username: "user"
+    password: "user"
+
 
 remote-signature:
   external-domain: "http://localhost:8082"
   internal-domain: "http://remote-signature:8080"
   paths:
     sign-path: "/signature/sign"
+

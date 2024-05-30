@@ -9,7 +9,7 @@ import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.when;
 
-class ApiConfigTest {
+class AppConfigTest {
 
     @Mock
     private ConfigAdapterFactory configAdapterFactory;
@@ -20,14 +20,14 @@ class ApiConfigTest {
     @Mock
     private ConfigAdapter configAdapter;
 
-    private ApiConfig apiConfig;
+    private AppConfig appConfig;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        apiConfig = new ApiConfig(configAdapterFactory, apiProperties);
-    }
+//    @BeforeEach
+//    public void setUp() {
+//        MockitoAnnotations.openMocks(this);
+//        when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
+//        appConfig = new AppConfig(configAdapterFactory, apiProperties);
+//    }
 
 //    @Test
 //    void testGetKeycloakDomain() {

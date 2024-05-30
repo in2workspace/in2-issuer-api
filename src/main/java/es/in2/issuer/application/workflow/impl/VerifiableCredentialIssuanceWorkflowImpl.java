@@ -7,11 +7,8 @@ import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.enums.SignatureType;
-import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.domain.service.ProofValidationService;
-import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.infrastructure.config.ApiConfig;
+import es.in2.issuer.domain.service.*;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -23,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.ByteArrayOutputStream;
+import java.text.ParseException;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
@@ -37,20 +35,20 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
 
     private final RemoteSignatureService remoteSignatureService;
-    //    private final ObjectMapper objectMapper;
-//    private final AuthenticSourcesRemoteService authenticSourcesRemoteService;
     private final VerifiableCredentialService verifiableCredentialService;
-    private final ApiConfig apiConfig;
+    private final AppConfig appConfig;
     private final ProofValidationService proofValidationService;
-    //    private final CredentialManagementService credentialManagementService;
     private final EmailService emailService;
+    private final CredentialProcedureService credentialProcedureService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
     public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
         return verifiableCredentialService.generateVc(processId, type, learCredentialRequest)
                 .flatMap(transactionCode -> {
                     String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", apiConfig.getIssuerApiExternalDomain() + "?transaction_code=" + transactionCode);
+                    String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").toString();
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName);
                 });
 
     }
@@ -61,6 +59,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             CredentialRequest credentialRequest,
             String token
     ) {
+        try {
+        JWSObject jwsObject = JWSObject.parse(token);
+        String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
         return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
                 .flatMap(isValid -> {
                     if (Boolean.FALSE.equals(isValid)) {
@@ -69,10 +70,16 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         return extractDidFromJwtProof(credentialRequest.proof().jwt());
                     }
                 })
-                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, token, credentialRequest.format()));
-        // add the email to legal representative
-//                .flatMap(credentialResponse -> emailService.()
-//                        .then(Mono.just(credentialResponse)));
+                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
+                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                .flatMap(credentialProcedureService::getMandatorEmailFromDecodedCredentialByProcedureId)
+                                .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
+                                        .then(Mono.just(credentialResponse)))));
+        }
+        catch (ParseException e){
+            log.error("Error parsing the accessToken", e);
+            throw new RuntimeException("Error parsing accessToken", e);
+        }
     }
 
     @Override
@@ -96,9 +103,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
-        return null;
-        //        return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
-//                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
+                return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
     @Override

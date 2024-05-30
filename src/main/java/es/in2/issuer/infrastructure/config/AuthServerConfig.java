@@ -3,11 +3,13 @@ package es.in2.issuer.infrastructure.config;
 import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.infrastructure.config.properties.AuthServerProperties;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Map;
 
 @Configuration
+@Slf4j
 public class AuthServerConfig {
 
     private final ConfigAdapter configAdapter;
@@ -26,6 +28,16 @@ public class AuthServerConfig {
         return configAdapter.getConfiguration(authServerProperties.internalDomain());
     }
 
+    public String getAuthServerClientId(){
+        return configAdapter.getConfiguration(authServerProperties.client().clientId());
+    }
+
+    public String getAuthServerUsername(){
+        return configAdapter.getConfiguration(authServerProperties.client().username());
+    }
+    public String getAuthServerUserPassword(){
+        return configAdapter.getConfiguration(authServerProperties.client().password());
+    }
     public String getAuthServerRealm() {
         return configAdapter.getConfiguration(authServerProperties.realm());
     }
@@ -42,8 +54,8 @@ public class AuthServerConfig {
         return configAdapter.getConfiguration(authServerProperties.paths().jwtDecoderLocalPath());
     }
 
-    public String getAuthServerJwtValidator() {
-        return configAdapter.getConfiguration(authServerProperties.paths().jwtValidator());
+    public String getAuthServerJwtValidatorPath() {
+        return configAdapter.getConfiguration(authServerProperties.paths().jwtValidatorPath());
     }
 
     public String getAuthServerPreAuthorizedCodePath() {
@@ -59,7 +71,8 @@ public class AuthServerConfig {
     }
 
     public String getJwtDecoder() {
-        return getAuthServerExternalDomain() + getAuthServerJwtDecoderPath();
+        log.info(getAuthServerInternalDomain() + getAuthServerJwtDecoderPath());
+        return getAuthServerInternalDomain() + getAuthServerJwtDecoderPath();
     }
 
     public String getJwtDecoderLocal() {
@@ -75,7 +88,8 @@ public class AuthServerConfig {
     }
 
     public String getJwtValidator() {
-        return getAuthServerJwtValidator();
+        log.info(getAuthServerExternalDomain() + getAuthServerJwtValidatorPath());
+        return getAuthServerExternalDomain() + getAuthServerJwtValidatorPath();
     }
 
     private String resolveTemplate(String template, Map<String, String> placeholders) {
