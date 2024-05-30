@@ -37,9 +37,7 @@ class CredentialOfferServiceImplTest {
         String credentialType = "type1";
         String preAuthCode = "code123";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
-
         when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
-
         StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
                 .expectNextMatches(offer ->
                         offer.credentialIssuer().equals("https://example.com") &&
@@ -55,11 +53,9 @@ class CredentialOfferServiceImplTest {
     @Test
     void testCreateCredentialOfferUri() {
         String nonce = "abc123";
-
         Mono<String> result = credentialOfferService.createCredentialOfferUri(nonce);
-
         StepVerifier.create(result)
-                .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fretrieval%2Fabc123")
+                .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fabc123")
                 .verifyComplete();
     }
 
