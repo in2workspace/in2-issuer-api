@@ -65,6 +65,17 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
+    public Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId) {
+        return deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
+                .flatMap(existingDeferredCredentialMetadata -> generateCustomNonce()
+                        .flatMap(nonce -> cacheStore.add(nonce, nonce)
+                                .then(Mono.just(nonce))
+                                .doOnNext(existingDeferredCredentialMetadata::setTransactionCode))
+                        .flatMap(newNonce -> deferredCredentialMetadataRepository.save(existingDeferredCredentialMetadata)
+                                .then(Mono.just(newNonce))));
+    }
+
+    @Override
     public Mono<String> getProcedureIdByTransactionCode(String transactionCode) {
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
                 .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getProcedureId().toString()));

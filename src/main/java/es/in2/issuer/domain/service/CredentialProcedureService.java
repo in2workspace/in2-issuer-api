@@ -11,11 +11,15 @@ public interface CredentialProcedureService {
 
     Mono<String> getCredentialTypeByProcedureId(String procedureId);
 
+    Mono<String> getCredentialStatusByProcedureId(String procedureId);
+
     Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential, String format);
 
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId(String procedureId);
+
+    Mono<String> getMandateeFirstNameFromDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getMandatorEmailFromDecodedCredentialByProcedureId(String procedureId);
 

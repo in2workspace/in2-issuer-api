@@ -92,12 +92,31 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
+    public Mono<String> getCredentialStatusByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findCredentialStatusByProcedureId(UUID.fromString(procedureId));
+    }
+
+    @Override
     public Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
+
+                });
+    }
+
+    @Override
+    public Mono<String> getMandateeFirstNameFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").toString());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
