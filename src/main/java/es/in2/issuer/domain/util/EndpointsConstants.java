@@ -1,10 +1,12 @@
 package es.in2.issuer.domain.util;
 
 public class EndpointsConstants {
+
     private EndpointsConstants() {
         throw new IllegalStateException("Utility class");
     }
-    public static final String CREDENTIAL_OFFER = "/api/v1/credential-offer/retrieval/";
+
+    public static final String CREDENTIAL_OFFER = "/api/v1/credential-offer";
     public static final String LEAR_CREDENTIAL_URI = "/api/v1/credential-offer?credential_offer_uri=";
     public static final String OPENID_CREDENTIAL_OFFER = "openid-credential-offer://?credential_offer_uri=";
     public static final String CREDENTIAL = "/api/v1/credentials/request-credential";
@@ -20,4 +22,5 @@ public class EndpointsConstants {
     public static final String SWAGGER_API_DOCS = "/api-docs/**";
     public static final String SWAGGER_SPRING_UI = "/spring-ui/**";
     public static final String SWAGGER_WEBJARS = "/webjars/swagger-ui/**";
+
 }

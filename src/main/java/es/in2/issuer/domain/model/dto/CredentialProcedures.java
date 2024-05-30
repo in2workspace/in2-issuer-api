@@ -14,7 +14,7 @@ public record CredentialProcedures(
     @Builder
     public record CredentialProcedure(
             @JsonProperty("credential_procedure")
-            CredentialItem credentialProcedure
+            ProcedureBasicInfo credentialProcedure
     ){}
 
 }

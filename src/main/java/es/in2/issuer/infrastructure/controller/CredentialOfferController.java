@@ -6,8 +6,6 @@ import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -61,10 +59,10 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping("/{transaction_code}")
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<String> buildCredentialOffer(@PathVariable("transaction_code") String transactionCode) {
-        log.info("Building Credential Offer...");
+    @GetMapping("/transaction-code/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Mono<String> getCredentialOfferByTransactionCode(@PathVariable("id") String transactionCode) {
+        log.info("Retrieving Credential Offer with Transaction Code...");
         String processId = UUID.randomUUID().toString();
         return credentialOfferIssuanceWorkflow.buildCredentialOfferUri(processId, transactionCode)
                 .doOnSuccess(credentialOfferUri -> {
@@ -94,10 +92,10 @@ public class CredentialOfferController {
                     )
             }
     )
-    @GetMapping(value = "/retrieval/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CustomCredentialOffer> getCredentialOffer(@PathVariable("id") String id, ServerWebExchange exchange) {
-        log.info("Retrieving Credential Offer...");
+        log.info("Getting Credential Offer...");
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
         return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id);

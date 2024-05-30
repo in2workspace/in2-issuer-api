@@ -1,12 +1,14 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
-import es.in2.issuer.domain.model.dto.CredentialItem;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.CredentialProcedures;
+import es.in2.issuer.domain.model.dto.ProcedureBasicInfo;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -59,8 +61,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 }
                             }
                             return Mono.justOrEmpty(credentialType);
-                        }
-                        else {
+                        } else {
                             return Mono.error(new RuntimeException("The credential type is missing"));
                         }
                     } catch (JsonProcessingException e) {
@@ -87,7 +88,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     @Override
     public Mono<String> getDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
-                .flatMap(credentialProcedure ->Mono.just(credentialProcedure.getCredentialDecoded()));
+                .flatMap(credentialProcedure -> Mono.just(credentialProcedure.getCredentialDecoded()));
     }
 
     @Override
@@ -97,7 +98,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
-                    } catch (JsonProcessingException e){
+                    } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
 
@@ -111,7 +112,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandator").get("emailAddress").toString());
-                    } catch (JsonProcessingException e){
+                    } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
 
@@ -125,50 +126,20 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
-    public Flux<CredentialItem> getAllCredentialByOrganizationIdentifier(String organizationIdentifier) {
-        return credentialProcedureRepository.findByOrganizationIdentifier(organizationIdentifier)
-                .flatMap(credentialProcedure -> {
-                    try {
-                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential).zipWith(Mono.just(credentialProcedure));
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException());
-                    }
-                })
-                .map(tuple -> {
-                    JsonNode parsedCredential = tuple.getT1();
-                    CredentialProcedure credentialProcedure = tuple.getT2();
-
-                    return CredentialItem.builder()
-                            .procedureId(credentialProcedure.getProcedureId())
-                            .fullName(parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText() + " " + parsedCredential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText())
-                            .status(String.valueOf(credentialProcedure.getCredentialStatus()))
-                            .updated(credentialProcedure.getUpdatedAt())
-                            .build();
-                })
-                .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
-    }
-
-    @Override
-    public Mono<CredentialDetails> getCredentialByProcedureIdAndOrganizationId(String procedureId, String organizationIdentifier) {
+    public Mono<CredentialDetails> getProcedureDetailByProcedureIdAndOrganizationId(String organizationIdentifier, String procedureId) {
         return credentialProcedureRepository.findByProcedureIdAndOrganizationIdentifier(UUID.fromString(procedureId), organizationIdentifier)
                 .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found for procedureId: " + procedureId)))
                 .flatMap(credentialProcedure -> {
                     try {
-                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential).zipWith(Mono.just(credentialProcedure));
+                        return Mono.just(CredentialDetails.builder()
+                                .procedureId(credentialProcedure.getProcedureId())
+                                .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
+                                .build());
                     } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException());
+                        log.warn("Error parsing credential", e);
+                        return Mono.error(new JsonParseException(null, "Error parsing credential"));
                     }
-                })
-                .map(tuple -> {
-                    JsonNode parsedCredential = tuple.getT1();
-                    CredentialProcedure credentialProcedure = tuple.getT2();
-                    return CredentialDetails.builder()
-                            .procedureId(credentialProcedure.getProcedureId())
-                            .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
-                            .credential(parsedCredential.get("vc"))
-                            .build();
                 })
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
     }
@@ -177,11 +148,38 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     public Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId) {
         return credentialProcedureRepository.findByCredentialId(UUID.fromString(credentialId))
                 .flatMap(credentialProcedure -> {
-                        credentialProcedure.setCredentialEncoded(encodedCredential);
-                        credentialProcedure.setCredentialStatus(CredentialStatus.VALID);
-                        return credentialProcedureRepository.save(credentialProcedure)
-                                .then(Mono.just(credentialProcedure.getProcedureId().toString()));
+                    credentialProcedure.setCredentialEncoded(encodedCredential);
+                    credentialProcedure.setCredentialStatus(CredentialStatus.VALID);
+                    return credentialProcedureRepository.save(credentialProcedure)
+                            .then(Mono.just(credentialProcedure.getProcedureId().toString()));
                 });
+    }
+
+    @Override
+    public Mono<CredentialProcedures> getAllProceduresBasicInfoByOrganizationId(String organizationIdentifier) {
+        return credentialProcedureRepository.findAllByOrganizationIdentifier(organizationIdentifier)
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        String subjectFullName = credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText()
+                                + " "
+                                + credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText();
+                        return Mono.just(ProcedureBasicInfo.builder()
+                                .procedureId(credentialProcedure.getProcedureId())
+                                .fullName(subjectFullName)
+                                .status(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                .updated(credentialProcedure.getUpdatedAt())
+                                .build());
+                    } catch (JsonProcessingException e) {
+                        log.warn("Error processing json", e);
+                        return Mono.error(new JsonParseException(null, "Error parsing credential"));
+                    }
+                })
+                .map(procedureBasicInfo -> CredentialProcedures.CredentialProcedure.builder()
+                        .credentialProcedure(procedureBasicInfo)
+                        .build())
+                .collectList()
+                .map(CredentialProcedures::new);
     }
 
 }
