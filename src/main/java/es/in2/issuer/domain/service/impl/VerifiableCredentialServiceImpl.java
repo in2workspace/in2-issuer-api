@@ -98,7 +98,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                                 return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid)
                                                         .flatMap(bindCredential -> {
                                                             log.info("Bind Credential obtained: " + bindCredential);
-                                                            return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential)
+                                                            return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
                                                                     .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format)
                                                                             .flatMap(transactionId -> {
                                                                                 log.info("Transaction ID obtained: " + transactionId);
