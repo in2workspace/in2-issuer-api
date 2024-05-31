@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/api/v1/credentials").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/credential-offer/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/notifications").permitAll()
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
