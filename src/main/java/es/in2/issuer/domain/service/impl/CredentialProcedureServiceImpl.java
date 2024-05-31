@@ -168,9 +168,20 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
         return credentialProcedureRepository.findByCredentialId(UUID.fromString(credentialId))
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setCredentialEncoded(encodedCredential);
-                    credentialProcedure.setCredentialStatus(CredentialStatus.VALID);
+                    credentialProcedure.setCredentialStatus(CredentialStatus.PEND_DOWNLOAD);
                     return credentialProcedureRepository.save(credentialProcedure)
                             .then(Mono.just(credentialProcedure.getProcedureId().toString()));
+                });
+    }
+
+    @Override
+    public Mono<Void> updateCredentialProcedureCredentialStatusToValidByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    credentialProcedure.setCredentialStatus(CredentialStatus.VALID);
+                    return credentialProcedureRepository.save(credentialProcedure)
+                            .doOnSuccess(result -> log.info("Updated credential"))
+                            .then();
                 });
     }
 

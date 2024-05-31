@@ -128,6 +128,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                         return Mono.just(DeferredCredentialMetadataDeferredResponse.builder()
                                 .vc(deferredCredentialMetadata.getVc())
                                 .id(deferredCredentialMetadata.getId().toString())
+                                .procedureId(deferredCredentialMetadata.getProcedureId().toString())
                                 .build());
                     }
                     else {

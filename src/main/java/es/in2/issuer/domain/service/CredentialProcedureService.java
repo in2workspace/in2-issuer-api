@@ -29,5 +29,7 @@ public interface CredentialProcedureService {
 
     Mono<CredentialDetails> getProcedureDetailByProcedureIdAndOrganizationId(String organizationIdentifier, String procedureId);
 
+    Mono<Void> updateCredentialProcedureCredentialStatusToValidByProcedureId(String procedureId);
+
     Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId);
 }
