@@ -13,13 +13,16 @@ spring:
     url: "jdbc:postgresql://localhost:5434/issuer"
     locations: classpath:db/migration
   mail:
-    host: localhost
-    port: 1025
+    host:
+    port:
     username:
     password:
-    properties.mail.smtp:
-      auth: false
-      starttls.enable: false
+    properties:
+      mail:
+        smtp:
+          auth:
+          starttls.enable:
+          ssl.trust:
 
 # Spring Logging Configuration
 logging:

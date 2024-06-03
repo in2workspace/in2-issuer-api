@@ -102,7 +102,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").toString());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
@@ -116,7 +116,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").toString());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
@@ -130,7 +130,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandator").get("emailAddress").toString());
+                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandator").get("emailAddress").asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }

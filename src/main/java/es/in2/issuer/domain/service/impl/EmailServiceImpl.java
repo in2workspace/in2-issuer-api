@@ -12,7 +12,7 @@ import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import static es.in2.issuer.domain.util.Constants.NO_REPLAY_EMAIL;
+import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
 
 @Slf4j
@@ -27,7 +27,7 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -49,7 +49,7 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -69,7 +69,7 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -91,7 +91,7 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(NO_REPLAY_EMAIL);
+            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
