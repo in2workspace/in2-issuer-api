@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -104,13 +106,18 @@ public class LEARCredentialEmployeeFactory {
                 LEARCredentialEmployeeJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
                         .learCredentialEmployee(learCredentialEmployee)
-                        .expirationTime(learCredentialEmployee.expirationDate())
-                        .issuedAt(learCredentialEmployee.issuanceDate())
-                        .notValidBefore(learCredentialEmployee.validFrom())
+                        .expirationTime(parseDateToUnixTime(learCredentialEmployee.expirationDate()))
+                        .issuedAt(parseDateToUnixTime(learCredentialEmployee.issuanceDate()))
+                        .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
                         .issuer(learCredentialEmployee.issuer())
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );
+    }
+
+    private long parseDateToUnixTime(String date) {
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        return zonedDateTime.toInstant().getEpochSecond();
     }
 
     private Mono<LEARCredentialEmployeeJwtPayload> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee, String mandateeId) {
@@ -139,10 +146,11 @@ public class LEARCredentialEmployeeFactory {
                                                 .build())
                                         .build())
                                 .build())
-                        .subject(baseLearCredentialEmployee.subject())
+                        .subject(mandateeId)
                         .JwtId(baseLearCredentialEmployee.JwtId())
                         .expirationTime(baseLearCredentialEmployee.expirationTime())
                         .issuedAt(baseLearCredentialEmployee.issuedAt())
+                        .issuer(baseLearCredentialEmployee.issuer())
                         .notValidBefore(baseLearCredentialEmployee.notValidBefore())
                         .build());
     }
@@ -157,16 +165,27 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
-        return accessTokenService.getOrganizationIdFromCurrentSession()
-                .flatMap(organizationId ->
-                        Mono.just(
-                                CredentialProcedureCreationRequest.builder()
-                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
-                                        .organizationIdentifier(organizationId)
-                                        .credentialDecoded(decodedCredential)
-                                        .build()
-                        )
-                );
+        return Mono.just(
+                CredentialProcedureCreationRequest.builder()
+                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+                        .organizationIdentifier(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier())
+                        .credentialDecoded(decodedCredential)
+                        .build()
+        );
     }
+
+    //TODO: metodo que implemente la extracción del organizationIdentifier desde la sessión (reemplaza al buildCredentialProcedureCreationRequest())
+//    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
+//        return accessTokenService.getOrganizationIdFromCurrentSession()
+//                .flatMap(organizationId ->
+//                        Mono.just(
+//                                CredentialProcedureCreationRequest.builder()
+//                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+//                                        .organizationIdentifier(organizationId)
+//                                        .credentialDecoded(decodedCredential)
+//                                        .build()
+//                        )
+//                );
+//    }
 
 }
