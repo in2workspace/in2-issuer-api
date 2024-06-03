@@ -17,12 +17,10 @@ spring:
     port:
     username:
     password:
-    properties:
-      mail:
-        smtp:
-          auth:
-          starttls.enable:
-          ssl.trust:
+    properties.mail.smtp:
+      auth:
+      starttls.enable:
+      ssl.trust:
 
 # Spring Logging Configuration
 logging:

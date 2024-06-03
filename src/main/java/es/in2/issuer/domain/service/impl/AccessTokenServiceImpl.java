@@ -7,6 +7,8 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -56,5 +58,29 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     }
                 })
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
+    }
+
+    @Override
+    public Mono<String> getOrganizationIdFromCurrentSession() {
+        return getTokenFromCurrentSession()
+                .flatMap(this::getCleanBearerToken)
+                .flatMap(token -> {
+                    try {
+                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
+                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
+                        return Mono.just(jsonObject.get("organizationIdentifier").asText());
+                    } catch (ParseException | JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+                })
+                .switchIfEmpty(Mono.error(new InvalidTokenException()));
+    }
+
+    private Mono<String> getTokenFromCurrentSession() {
+        return ReactiveSecurityContextHolder.getContext()
+                .map(ctx -> {
+                    JwtAuthenticationToken token = (JwtAuthenticationToken) ctx.getAuthentication();
+                    return token.getToken().getTokenValue();
+                });
     }
 }

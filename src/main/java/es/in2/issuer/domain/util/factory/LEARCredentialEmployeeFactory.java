@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
+import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,7 @@ import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CREDENTIAL;
 public class LEARCredentialEmployeeFactory {
 
     private final ObjectMapper objectMapper;
+    private final AccessTokenService accessTokenService;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) {
         LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
@@ -155,13 +157,16 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
-        return Mono.just(
-                CredentialProcedureCreationRequest.builder()
-                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
-                        .organizationIdentifier(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier())
-                        .credentialDecoded(decodedCredential)
-                        .build()
-        );
+        return accessTokenService.getOrganizationIdFromCurrentSession()
+                .flatMap(organizationId ->
+                        Mono.just(
+                                CredentialProcedureCreationRequest.builder()
+                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+                                        .organizationIdentifier(organizationId)
+                                        .credentialDecoded(decodedCredential)
+                                        .build()
+                        )
+                );
     }
 
 }
