@@ -19,8 +19,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
-import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CREDENTIAL;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Component
 @RequiredArgsConstructor
@@ -84,7 +83,7 @@ public class LEARCredentialEmployeeFactory {
                 .validFrom(currentTime.toString())
                 .id(UUID.randomUUID().toString())
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                .issuer(baseLearCredentialEmployee.mandate().mandator().organizationIdentifier())
+                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().mandator().organizationIdentifier())
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
@@ -165,27 +164,16 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
-        return Mono.just(
-                CredentialProcedureCreationRequest.builder()
-                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
-                        .organizationIdentifier(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier())
-                        .credentialDecoded(decodedCredential)
-                        .build()
-        );
+        return accessTokenService.getOrganizationIdFromCurrentSession()
+                .flatMap(organizationId ->
+                        Mono.just(
+                                CredentialProcedureCreationRequest.builder()
+                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+                                        .organizationIdentifier(organizationId)
+                                        .credentialDecoded(decodedCredential)
+                                        .build()
+                        )
+                );
     }
-
-    //TODO: metodo que implemente la extracción del organizationIdentifier desde la sessión (reemplaza al buildCredentialProcedureCreationRequest())
-//    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
-//        return accessTokenService.getOrganizationIdFromCurrentSession()
-//                .flatMap(organizationId ->
-//                        Mono.just(
-//                                CredentialProcedureCreationRequest.builder()
-//                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
-//                                        .organizationIdentifier(organizationId)
-//                                        .credentialDecoded(decodedCredential)
-//                                        .build()
-//                        )
-//                );
-//    }
 
 }
