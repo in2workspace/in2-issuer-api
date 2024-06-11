@@ -1,47 +1,69 @@
-//package es.in2.issuer.infrastructure.config.adapter.factory;
-//
-//import es.in2.issuer.infrastructure.config.adapter.exception.ConfigAdapterFactoryException;
-//import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
-//
-//import java.util.Collections;
-//import java.util.List;
-//
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertThrows;
-//
-//class ConfigAdapterFactoryTest {
-//
-//    @Mock
-//    private ConfigAdapter mockAdapter;
-//
-//    private ConfigAdapterFactory configAdapterFactory;
-//
-//    @BeforeEach
-//    void setUp() {
-//        MockitoAnnotations.openMocks(this);
-//        configAdapterFactory = new ConfigAdapterFactory(Collections.singletonList(mockAdapter));
-//    }
-//
-//    @Test
-//    void getAdapter_Success() {
-//        ConfigAdapter adapter = configAdapterFactory.getAdapter();
-//        assertEquals(mockAdapter, adapter);
-//    }
-//
-//    @Test
-//    void getAdapter_ExceptionThrownWhenNoAdapterPresent() {
-//        configAdapterFactory = new ConfigAdapterFactory(Collections.emptyList());
-//        assertThrows(ConfigAdapterFactoryException.class, configAdapterFactory::getAdapter);
-//    }
-//
-//    @Test
-//    void getAdapter_ExceptionThrownWhenMultipleAdaptersPresent() {
-//        List<ConfigAdapter> multipleAdapters = List.of(mockAdapter, mockAdapter);
-//        configAdapterFactory = new ConfigAdapterFactory(multipleAdapters);
-//        assertThrows(ConfigAdapterFactoryException.class, configAdapterFactory::getAdapter);
-//    }
-//}
+package es.in2.issuer.infrastructure.config.adapter.factory;
+
+import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.infrastructure.config.adapter.impl.AzureConfigAdapter;
+import es.in2.issuer.infrastructure.config.adapter.impl.YamlConfigAdapter;
+import es.in2.issuer.infrastructure.config.properties.ApiProperties;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ConfigAdapterFactoryTest {
+
+    @Mock
+    private ApiProperties apiProperties;
+
+    @Mock
+    private AzureConfigAdapter azureConfigAdapter;
+
+    @Mock
+    private YamlConfigAdapter yamlConfigAdapter;
+
+    @InjectMocks
+    private ConfigAdapterFactory configAdapterFactory;
+
+    @Test
+    void getAdapter_AzureConfig() {
+        //Arrange
+        when(apiProperties.configSource()).thenReturn("azure");
+
+        // Act
+        ConfigAdapter configAdapter = configAdapterFactory.getAdapter();
+
+        // Assert
+        assertEquals(azureConfigAdapter, configAdapter);
+    }
+
+    @Test
+    void getAdapter_YamlConfig() {
+        //Arrange
+        when(apiProperties.configSource()).thenReturn("yaml");
+
+        // Act
+        ConfigAdapter configAdapter = configAdapterFactory.getAdapter();
+
+        // Assert
+        assertEquals(yamlConfigAdapter, configAdapter);
+    }
+
+    @Test
+    void getAdapter_InvalidConfig() {
+        //Arrange
+        when(apiProperties.configSource()).thenReturn("invalid");
+
+        // Act & Assert
+        IllegalArgumentException illegalArgumentException = assertThrows(
+                IllegalArgumentException.class,
+                () -> configAdapterFactory.getAdapter()
+        );
+
+        assertEquals("Invalid Config Adapter Provider: invalid", illegalArgumentException.getMessage());
+    }
+}
