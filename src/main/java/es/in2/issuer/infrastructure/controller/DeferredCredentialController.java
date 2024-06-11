@@ -23,8 +23,9 @@ public class DeferredCredentialController {
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<PendingCredentials> getUnsignedCredentials(ServerWebExchange exchange) {
-        return certificateService.getOrganizationIdFromCertificate(exchange)
+    public Mono<PendingCredentials> getUnsignedCredentials(@RequestHeader(value = "X-SSL-Client-Cert") String clientCert) {
+        // todo: implement clientCert validation through Keycloak before executing the following code
+        return certificateService.getOrganizationIdFromCertificate(clientCert)
                 .flatMap(deferredCredentialWorkflow::getPendingCredentialsByOrganizationId);
     }
 
