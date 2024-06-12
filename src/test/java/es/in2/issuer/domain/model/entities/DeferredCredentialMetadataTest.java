@@ -36,4 +36,47 @@ class DeferredCredentialMetadataTest {
         assertEquals(vc, deferredCredentialMetadata.getVc());
         assertEquals(vcFormat, deferredCredentialMetadata.getVcFormat());
     }
+
+    @Test
+    public void testSettersAndGetters() {
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+
+        UUID uuid = UUID.randomUUID();
+        String transactionCode = "transactionCode";
+        String authServerNonce = "authServerNonce";
+        String transactionId = "transactionId";
+        UUID procedureId = UUID.randomUUID();
+        String vc = "vc";
+        String vcFormat = "vcFormat";
+
+        deferredCredentialMetadata.setId(uuid);
+        deferredCredentialMetadata.setTransactionCode(transactionCode);
+        deferredCredentialMetadata.setAuthServerNonce(authServerNonce);
+        deferredCredentialMetadata.setTransactionId(transactionId);
+        deferredCredentialMetadata.setProcedureId(procedureId);
+        deferredCredentialMetadata.setVc(vc);
+        deferredCredentialMetadata.setVcFormat(vcFormat);
+
+        assertEquals(uuid, deferredCredentialMetadata.getId());
+        assertEquals(transactionCode, deferredCredentialMetadata.getTransactionCode());
+        assertEquals(authServerNonce, deferredCredentialMetadata.getAuthServerNonce());
+        assertEquals(transactionId, deferredCredentialMetadata.getTransactionId());
+        assertEquals(procedureId, deferredCredentialMetadata.getProcedureId());
+        assertEquals(vc, deferredCredentialMetadata.getVc());
+        assertEquals(vcFormat, deferredCredentialMetadata.getVcFormat());
+    }
+
+    @Test
+    void testToString() {
+        DeferredCredentialMetadata deferredCredentialMetadata = DeferredCredentialMetadata.builder().build();
+
+        String expected = "DeferredCredentialMetadata(id=" + deferredCredentialMetadata.getId() +
+                ", transactionCode=" + deferredCredentialMetadata.getTransactionCode() +
+                ", authServerNonce=" + deferredCredentialMetadata.getAuthServerNonce() +
+                ", transactionId=" + deferredCredentialMetadata.getTransactionId() +
+                ", procedureId=" + deferredCredentialMetadata.getProcedureId() +
+                ", vc=" + deferredCredentialMetadata.getVc() +
+                ", vcFormat=" + deferredCredentialMetadata.getVcFormat() + ")";
+        assertEquals(expected, deferredCredentialMetadata.toString());
+    }
 }
