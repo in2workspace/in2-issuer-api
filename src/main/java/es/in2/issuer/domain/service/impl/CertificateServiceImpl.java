@@ -26,18 +26,24 @@ public class CertificateServiceImpl implements CertificateService {
     private final AccessTokenService accessTokenService;
 
     @Override
-    public Mono<String> getOrganizationIdFromCertificate(ServerWebExchange exchange){
-        return extractClientCertificate(exchange)
+    public Mono<String> getOrganizationIdFromCertificate(String cert){
+        return extractClientCertificate(cert)
                 .flatMap(this::extractOrganizationIdFromCert);
                 //.flatMap(accessTokenService::getOrganizationId);
     }
 
-    public Mono<X509Certificate> extractClientCertificate(ServerWebExchange exchange) {
-        return Mono.justOrEmpty(exchange.getRequest().getHeaders().getFirst("X-Client-Cert"))
+    public Mono<X509Certificate> extractClientCertificate(String cert) {
+        return Mono.justOrEmpty(cert)
                 .flatMap(encodedCert -> {
                     try {
-                        // Decode the Base64 encoded certificate
-                        byte[] decodedBytes = Base64.getDecoder().decode(encodedCert);
+                        // Clean the certificate by removing PEM headers and any whitespace or newlines
+                        String cleanedCert = encodedCert
+                                .replaceAll("-----BEGIN CERTIFICATE-----", "")
+                                .replaceAll("-----END CERTIFICATE-----", "")
+                                .replaceAll("\\s+", ""); // Remove any whitespace
+
+                        // Decode the cleaned Base64 encoded certificate
+                        byte[] decodedBytes = Base64.getDecoder().decode(cleanedCert);
 
                         // Convert bytes to X509Certificate
                         CertificateFactory factory = CertificateFactory.getInstance("X.509");
