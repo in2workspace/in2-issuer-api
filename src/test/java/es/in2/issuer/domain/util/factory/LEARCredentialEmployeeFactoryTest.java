@@ -19,12 +19,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class LEARCredentialEmployeeFactoryTest {
+class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private ObjectMapper objectMapper;
@@ -36,7 +35,7 @@ public class LEARCredentialEmployeeFactoryTest {
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
 
     @Test
-    public void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException {
+    void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException {
         //Arrange
         String learCredential = "validCredentialString";
         String mandateeId = "mandateeId";
@@ -75,7 +74,7 @@ public class LEARCredentialEmployeeFactoryTest {
     }
 
     @Test
-    public void testMapAndBuildLEARCredentialEmployee() throws JsonProcessingException {
+    void testMapAndBuildLEARCredentialEmployee() throws JsonProcessingException {
         //Arrange
         String json = "{\"test\": \"test\"}";
         JsonNode jsonNode = objectMapper.readTree(json);
@@ -87,7 +86,7 @@ public class LEARCredentialEmployeeFactoryTest {
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> mockPowerList = new ArrayList<>();
         mockPowerList.add(mockPower);
 
-        when(objectMapper.convertValue(eq(jsonNode), eq(LEARCredentialEmployee.CredentialSubject.Mandate.class)))
+        when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
         when(mockMandate.mandator()).thenReturn(mockMandator);
         when(mockMandator.organizationIdentifier()).thenReturn("orgId");

@@ -43,7 +43,7 @@ class CredentialProcedureTest {
     }
 
     @Test
-    public void testSettersAndGetters() {
+    void testSettersAndGetters() {
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         UUID procedureId = UUID.randomUUID();
         UUID credentialId = UUID.randomUUID();
@@ -74,7 +74,7 @@ class CredentialProcedureTest {
     }
 
     @Test
-    public void testToString() {
+    void testToString() {
         CredentialProcedure credentialProcedure = CredentialProcedure.builder().build();
 
         String expected = "CredentialProcedure(procedureId=" + credentialProcedure.getProcedureId() +

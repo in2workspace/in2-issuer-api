@@ -47,9 +47,9 @@ class LEARCredentialEmployeeJwtPayloadTest {
     @Test
     void testConstructorAndGetters() {
         // Arrange
-        String expectedSubject = "subject";
+        String subject = "subject";
         Long expectedNotValidBefore = 1622548800L;
-        String expectedIssuer = "issuer";
+        String issuer = "issuer";
         Long expectedExpirationTime = 1625130800L;
         Long expectedIssuedAt = 1622548800L;
         LEARCredentialEmployee learCredentialEmployee1 = learCredentialEmployee;
@@ -57,9 +57,9 @@ class LEARCredentialEmployeeJwtPayloadTest {
 
         // Act
         LEARCredentialEmployeeJwtPayload payload = new LEARCredentialEmployeeJwtPayload(
-                expectedSubject,
+                subject,
                 expectedNotValidBefore,
-                expectedIssuer,
+                issuer,
                 expectedExpirationTime,
                 expectedIssuedAt,
                 learCredentialEmployee1,
@@ -67,9 +67,9 @@ class LEARCredentialEmployeeJwtPayloadTest {
         );
 
         // Assert
-        assertEquals(expectedSubject, payload.subject());
+        assertEquals(subject, payload.subject());
         assertEquals(expectedNotValidBefore, payload.notValidBefore());
-        assertEquals(expectedIssuer, payload.issuer());
+        assertEquals(issuer, payload.issuer());
         assertEquals(expectedExpirationTime, payload.expirationTime());
         assertEquals(expectedIssuedAt, payload.issuedAt());
         assertEquals(learCredentialEmployee1, payload.learCredentialEmployee());
@@ -111,13 +111,12 @@ class LEARCredentialEmployeeJwtPayloadTest {
     @Test
     void lombokGeneratedMethodsTest() {
         // Arrange
-        String expectedSubject = "subject";
+        String subject = "subject";
         Long expectedNotValidBefore = 1622548800L;
-        String expectedIssuer = "issuer";
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = getLearCredentialEmployeeJwtPayload(expectedSubject, expectedNotValidBefore, expectedIssuer);
+        String issuer = "issuer";
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = getLearCredentialEmployeeJwtPayload(subject, expectedNotValidBefore, issuer);
 
         // Assert
-        assertEquals(learCredentialEmployeeJwtPayload, learCredentialEmployeeJwtPayload);
         assertEquals(learCredentialEmployeeJwtPayload.hashCode(), learCredentialEmployeeJwtPayload.hashCode());
     }
 
@@ -125,7 +124,7 @@ class LEARCredentialEmployeeJwtPayloadTest {
         Long expectedExpirationTime = 1625130800L;
         Long expectedIssuedAt = 1622548800L;
         LEARCredentialEmployee learCredentialEmployee1 = learCredentialEmployee;
-        String expectedJwtId = "jwtId";
+        String jwtId = "jwtId";
 
         return new LEARCredentialEmployeeJwtPayload(
                 expectedSubject,
@@ -134,7 +133,7 @@ class LEARCredentialEmployeeJwtPayloadTest {
                 expectedExpirationTime,
                 expectedIssuedAt,
                 learCredentialEmployee1,
-                expectedJwtId
+                jwtId
         );
     }
 

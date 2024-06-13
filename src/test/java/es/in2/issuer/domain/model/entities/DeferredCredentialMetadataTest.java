@@ -38,7 +38,7 @@ class DeferredCredentialMetadataTest {
     }
 
     @Test
-    public void testSettersAndGetters() {
+    void testSettersAndGetters() {
         DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
 
         UUID uuid = UUID.randomUUID();

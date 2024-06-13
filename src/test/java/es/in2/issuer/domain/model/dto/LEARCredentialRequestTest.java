@@ -1,6 +1,5 @@
 package es.in2.issuer.domain.model;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.domain.model.dto.LEARCredentialRequest;
@@ -13,7 +12,7 @@ class LEARCredentialRequestTest {
     ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
-    void testConstructorAndGetters() throws JsonProcessingException {
+    void testConstructorAndGetters() {
         // Arrange
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("key", "value");
@@ -26,7 +25,7 @@ class LEARCredentialRequestTest {
     }
 
     @Test
-    void testSetters() throws JsonProcessingException {
+    void testSetters() {
         // Arrange
         ObjectNode objectNode = objectMapper.createObjectNode();
         objectNode.put("newKey", "newValue");
