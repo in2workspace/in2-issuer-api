@@ -10,11 +10,11 @@ import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.impl.CredentialProcedureServiceImpl;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -27,6 +27,7 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class CredentialProcedureServiceImplTest {
 
     @Mock
@@ -37,11 +38,6 @@ class CredentialProcedureServiceImplTest {
 
     @Mock
     private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void createCredentialProcedure_shouldSaveProcedureAndReturnProcedureId() {
