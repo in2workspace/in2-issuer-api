@@ -5,11 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -17,8 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class VerifiableCredentialServiceImplTest {
 
+    private final String processId = "process-id-123";
+    private final String preAuthCode = "pre-auth-code-456";
+    private final String transactionId = "transaction-id-789";
+    private final String deferredResponseId = "deferred-response-id-456";
+    private final String procedureId = "procedure-id-321";
+    private final String vcValue = "vc-value-123";
     @Mock
     private DeferredCredentialMetadataService deferredCredentialMetadataService;
     @Mock
@@ -27,23 +34,8 @@ class VerifiableCredentialServiceImplTest {
     private CredentialProcedureService credentialProcedureService;
     @Mock
     private ObjectMapper objectMapper;
-
     @InjectMocks
     private VerifiableCredentialServiceImpl verifiableCredentialServiceImpl;
-
-
-    private final String processId = "process-id-123";
-    private final String preAuthCode = "pre-auth-code-456";
-    private final String transactionId = "transaction-id-789";
-    private final String deferredResponseId = "deferred-response-id-456";
-    private final String procedureId = "procedure-id-321";
-    private final String vcValue = "vc-value-123";
-
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void bindAccessTokenByPreAuthorizedCode_Success() {

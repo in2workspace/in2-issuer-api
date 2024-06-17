@@ -6,27 +6,25 @@ import es.in2.issuer.infrastructure.config.adapter.impl.AzureConfigAdapter;
 import es.in2.issuer.infrastructure.config.properties.AzureProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class AzureConfigAdapterTest {
 
+    private final AzureProperties.AzurePropertiesLabel azurePropertiesLabel = new AzureProperties.AzurePropertiesLabel("DummyLabel");
+    private final AzureProperties azureProperties = new AzureProperties("DummyEndpoint", azurePropertiesLabel);
     @Mock
     private ConfigurationClient configurationClient;
-
-    private final AzureProperties.AzurePropertiesLabel azurePropertiesLabel = new AzureProperties.AzurePropertiesLabel("DummyLabel");
-
-    private final AzureProperties azureProperties = new AzureProperties("DummyEndpoint", azurePropertiesLabel);
-
     private ConfigAdapter azureConfigAdapter;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
         azureConfigAdapter = new AzureConfigAdapter(configurationClient, azureProperties);
     }
 
