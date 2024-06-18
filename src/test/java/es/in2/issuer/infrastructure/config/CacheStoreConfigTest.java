@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CacheStoreConfigTest {
+class CacheStoreConfigTest {
 
     @Mock
     private AppConfig appConfig;

@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -41,7 +42,7 @@ class VerifiableCredentialServiceImplTest {
     void bindAccessTokenByPreAuthorizedCode_Success() {
         // Arrange: Mock the service to return a Mono.empty()
         String expectedJti = "expected-jti-value";
-        when(deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(eq(expectedJti), eq(preAuthCode)))
+        when(deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(expectedJti, preAuthCode))
                 .thenReturn(Mono.empty());
 
         // Act: Call the method
@@ -61,10 +62,11 @@ class VerifiableCredentialServiceImplTest {
         // Arrange: Use an invalid JWT token
         String invalidAccessToken = "invalid-token";
 
-        // Act and Assert: Call the method with the invalid token and catch the exception
-        assertThrows(RuntimeException.class, () -> {
+        // Act and Assert
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             verifiableCredentialServiceImpl.bindAccessTokenByPreAuthorizedCode(processId, invalidAccessToken, preAuthCode).block();
         });
+        assertNull(exception.getMessage());
 
         // Verify that no interaction with deferredCredentialMetadataService happens
         verify(deferredCredentialMetadataService, times(0))
@@ -73,7 +75,6 @@ class VerifiableCredentialServiceImplTest {
 
     @Test
     void generateVc_Success() throws Exception {
-        ObjectMapper objectMapper = new ObjectMapper();
         // Arrange: Create a sample JsonNode for LEARCredentialRequest
         JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
         LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder()
@@ -87,17 +88,17 @@ class VerifiableCredentialServiceImplTest {
                 .credentialDecoded("decoded-credential")
                 .build();
         String vcType = "vc-type-789";
-        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(eq(processId), eq(vcType), eq(credentialJsonNode)))
+        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode))
                 .thenReturn(Mono.just(mockCreationRequest));
 
         // Mock the behavior of credentialProcedureService
         String createdProcedureId = "created-procedure-id-456";
-        when(credentialProcedureService.createCredentialProcedure(eq(mockCreationRequest)))
+        when(credentialProcedureService.createCredentialProcedure(mockCreationRequest))
                 .thenReturn(Mono.just(createdProcedureId));
 
         // Mock the behavior of deferredCredentialMetadataService
         String metadataId = "metadata-id-789";
-        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(eq(createdProcedureId)))
+        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(createdProcedureId))
                 .thenReturn(Mono.just(metadataId));
 
         // Act: Call the generateVc method
@@ -110,13 +111,13 @@ class VerifiableCredentialServiceImplTest {
 
         // Verify that all the interactions occurred as expected
         verify(credentialFactory, times(1))
-                .mapCredentialIntoACredentialProcedureRequest(eq(processId), eq(vcType), eq(credentialJsonNode));
+                .mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode);
 
         verify(credentialProcedureService, times(1))
-                .createCredentialProcedure(eq(mockCreationRequest));
+                .createCredentialProcedure(mockCreationRequest);
 
         verify(deferredCredentialMetadataService, times(1))
-                .createDeferredCredentialMetadata(eq(createdProcedureId));
+                .createDeferredCredentialMetadata(createdProcedureId);
     }
 
     @Test
@@ -134,11 +135,11 @@ class VerifiableCredentialServiceImplTest {
                 .build();
 
         // Mock the service methods
-        when(deferredCredentialMetadataService.getVcByTransactionId(eq(transactionId)))
+        when(deferredCredentialMetadataService.getVcByTransactionId(transactionId))
                 .thenReturn(Mono.just(mockResponseWithVc));
-        when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(eq(procedureId)))
+        when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
                 .thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(eq(deferredResponseId)))
+        when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(deferredResponseId))
                 .thenReturn(Mono.empty());
 
         // Act: Call the method
@@ -152,11 +153,11 @@ class VerifiableCredentialServiceImplTest {
 
         // Verify the interactions
         verify(deferredCredentialMetadataService, times(1))
-                .getVcByTransactionId(eq(transactionId));
+                .getVcByTransactionId(transactionId);
         verify(credentialProcedureService, times(1))
-                .updateCredentialProcedureCredentialStatusToValidByProcedureId(eq(procedureId));
+                .updateCredentialProcedureCredentialStatusToValidByProcedureId((procedureId));
         verify(deferredCredentialMetadataService, times(1))
-                .deleteDeferredCredentialMetadataById(eq(deferredResponseId));
+                .deleteDeferredCredentialMetadataById(deferredResponseId);
     }
 
     @Test
@@ -174,7 +175,7 @@ class VerifiableCredentialServiceImplTest {
                 .build();
 
         // Mock the service methods
-        when(deferredCredentialMetadataService.getVcByTransactionId(eq(transactionId)))
+        when(deferredCredentialMetadataService.getVcByTransactionId(transactionId))
                 .thenReturn(Mono.just(mockResponseWithoutVc));
 
         // Act: Call the method
@@ -188,7 +189,7 @@ class VerifiableCredentialServiceImplTest {
 
         // Verify the interactions
         verify(deferredCredentialMetadataService, times(1))
-                .getVcByTransactionId(eq(transactionId));
+                .getVcByTransactionId(transactionId);
         verify(credentialProcedureService, times(0))
                 .updateCredentialProcedureCredentialStatusToValidByProcedureId(anyString());
         verify(deferredCredentialMetadataService, times(0))
@@ -219,27 +220,27 @@ class VerifiableCredentialServiceImplTest {
 
         // Arrange: Mock the service methods
         String authServerNonce = "auth-server-nonce-789";
-        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(eq(authServerNonce)))
+        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
                 .thenReturn(Mono.just(procedureId));
 
         String credentialType = "credential-type-123";
-        when(credentialProcedureService.getCredentialTypeByProcedureId(eq(procedureId)))
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
         String decodedCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
-        when(credentialProcedureService.getDecodedCredentialByProcedureId(eq(procedureId)))
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(decodedCredential));
 
         String subjectDid = "did:example:123456789";
         String bindCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
-        when(credentialFactory.mapCredentialAndBindMandateeId(eq(processId), eq(credentialType), eq(decodedCredential), eq(subjectDid)))
+        when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
                 .thenReturn(Mono.just(bindCredential));
 
         String format = "json";
-        when(credentialProcedureService.updateDecodedCredentialByProcedureId(eq(procedureId), eq(bindCredential), eq(format)))
+        when(credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format))
                 .thenReturn(Mono.empty());
 
-        when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(eq(authServerNonce), eq(format)))
+        when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
                 .thenReturn(Mono.just(transactionId));
 
         // Act: Call the method

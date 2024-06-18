@@ -182,25 +182,6 @@ class CredentialProcedureServiceImplTest {
                 .verify();
     }
 
-//    @Test
-//    void getCredentialTypeByProcedureId_shouldReturnErrorIfProcedureNotFound() {
-//        // Given
-//        String procedureId = UUID.randomUUID().toString();
-//
-//        // When
-//        when(credentialProcedureRepository.findById(any(UUID.class)))
-//                .thenReturn(Mono.empty());
-//
-//        // Execute
-//        Mono<String> result = credentialProcedureService.getCredentialTypeByProcedureId(procedureId);
-//
-//        // Then
-//        StepVerifier.create(result)
-//                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
-//                        throwable.getMessage().equals("Procedure not found"))
-//                .verify();
-//    }
-
     @Test
     void updateDecodedCredentialByProcedureId_shouldUpdateAndSaveCredentialProcedure() {
         // Given
@@ -406,7 +387,7 @@ class CredentialProcedureServiceImplTest {
 
         // When
         when(credentialProcedureRepository.findByCredentialStatusAndOrganizationIdentifier(
-                eq(CredentialStatus.ISSUED), eq(organizationIdentifier)))
+                CredentialStatus.ISSUED, organizationIdentifier))
                 .thenReturn(Flux.fromIterable(issuedCredentials));
 
         // Execute
@@ -426,7 +407,7 @@ class CredentialProcedureServiceImplTest {
 
         // When
         when(credentialProcedureRepository.findByCredentialStatusAndOrganizationIdentifier(
-                eq(CredentialStatus.ISSUED), eq(organizationIdentifier)))
+                CredentialStatus.ISSUED, organizationIdentifier))
                 .thenReturn(Flux.empty());
 
         // Execute
