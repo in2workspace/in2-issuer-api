@@ -1,7 +1,5 @@
-package es.in2.issuer.domain.model;
+package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.dto.SignatureConfiguration;
-import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import org.junit.jupiter.api.Test;
 

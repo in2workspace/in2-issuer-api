@@ -1,7 +1,5 @@
-package es.in2.issuer.domain.model;
+package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.domain.model.dto.Grant;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

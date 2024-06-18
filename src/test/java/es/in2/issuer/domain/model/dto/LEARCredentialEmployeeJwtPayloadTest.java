@@ -1,7 +1,5 @@
-package es.in2.issuer.domain.model;
+package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 

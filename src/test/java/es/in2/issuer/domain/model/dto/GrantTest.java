@@ -1,6 +1,5 @@
-package es.in2.issuer.domain.model;
+package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.dto.Grant;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,7 +24,7 @@ class GrantTest {
         Grant grant = Grant.builder().preAuthorizedCode("5678").txCode(Grant.TxCode.builder().length(6).build()).build();
         // Assert
         assertEquals("5678", grant.preAuthorizedCode());
-        assertEquals(6,grant.txCode().length());
+        assertEquals(6, grant.txCode().length());
     }
 
     @Test
