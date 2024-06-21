@@ -53,22 +53,22 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 //            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
 //        });
 //    }
+
     @Override
     public Mono<VerifiableCredentialResponse> generateDeferredCredentialResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
         return deferredCredentialMetadataService.getVcByTransactionId(deferredCredentialRequest.transactionId())
                 .flatMap(deferredCredentialMetadataDeferredResponse -> {
-                    if (deferredCredentialMetadataDeferredResponse.vc() != null){
-                        return deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(deferredCredentialMetadataDeferredResponse.id())
+                    if (deferredCredentialMetadataDeferredResponse.vc() != null) {
+                        return credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(deferredCredentialMetadataDeferredResponse.procedureId())
+                                .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(deferredCredentialMetadataDeferredResponse.id()))
                                 .then(Mono.just(VerifiableCredentialResponse.builder()
                                         .credential(deferredCredentialMetadataDeferredResponse.vc())
                                         .build()));
-                    }
-                    else {
+                    } else {
                         return Mono.just(VerifiableCredentialResponse.builder()
-                                        .transactionId(deferredCredentialMetadataDeferredResponse.transactionId())
+                                .transactionId(deferredCredentialMetadataDeferredResponse.transactionId())
                                 .build());
                     }
-
                 });
     }
 

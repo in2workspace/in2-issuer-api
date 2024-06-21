@@ -7,6 +7,7 @@ import java.util.List;
 
 @Builder
 public record LEARCredentialEmployee(
+        @JsonProperty("@context") List<String> context,
         @JsonProperty("id") String id,
         @JsonProperty("type") List<String> type,
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,

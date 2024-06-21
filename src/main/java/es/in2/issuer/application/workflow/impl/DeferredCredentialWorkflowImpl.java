@@ -45,8 +45,8 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get("vc").get("id").asText();
-                        String email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").toString();
-                        String firstName = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").toString();
+                        String email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
+                        String firstName = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
                         // Update the credential in the database
                         return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
                                 .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId))

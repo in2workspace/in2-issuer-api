@@ -11,11 +11,15 @@ public interface CredentialProcedureService {
 
     Mono<String> getCredentialTypeByProcedureId(String procedureId);
 
+    Mono<String> getCredentialStatusByProcedureId(String procedureId);
+
     Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential, String format);
 
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId(String procedureId);
+
+    Mono<String> getMandateeFirstNameFromDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getMandatorEmailFromDecodedCredentialByProcedureId(String procedureId);
 
@@ -24,6 +28,8 @@ public interface CredentialProcedureService {
     Mono<CredentialProcedures> getAllProceduresBasicInfoByOrganizationId(String organizationIdentifier);
 
     Mono<CredentialDetails> getProcedureDetailByProcedureIdAndOrganizationId(String organizationIdentifier, String procedureId);
+
+    Mono<Void> updateCredentialProcedureCredentialStatusToValidByProcedureId(String procedureId);
 
     Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId);
 }

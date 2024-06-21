@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.repository;
 
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
+import org.springframework.data.r2dbc.repository.Query;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
@@ -14,5 +15,8 @@ public interface CredentialProcedureRepository extends ReactiveCrudRepository<Cr
     Flux<CredentialProcedure> findByCredentialStatusAndOrganizationIdentifier(CredentialStatus credentialStatus, String organizationIdentifier);
     Flux<CredentialProcedure> findAllByOrganizationIdentifier(String organizationIdentifier);
     Mono<CredentialProcedure> findByProcedureIdAndOrganizationIdentifier(UUID procedureId, String organizationIdentifier);
+    @Query("SELECT credential_status FROM credentials.credential_procedure WHERE procedure_id = :procedureId")
+    Mono<String> findCredentialStatusByProcedureId(UUID procedureId);
     Mono<CredentialProcedure> findByCredentialId(UUID credentialId);
+    Mono<CredentialProcedure> findByProcedureId(UUID procedureId);
 }

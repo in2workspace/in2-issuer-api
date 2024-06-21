@@ -9,16 +9,16 @@ public record LEARCredentialEmployeeJwtPayload(
         String subject,
 
         @JsonProperty("nbf")
-        String notValidBefore,
+        Long notValidBefore,
 
         @JsonProperty("iss")
         String issuer,
 
         @JsonProperty("exp")
-        String expirationTime,
+        Long expirationTime,
 
         @JsonProperty("iat")
-        String issuedAt,
+        Long issuedAt,
 
         @JsonProperty("vc")
         LEARCredentialEmployee learCredentialEmployee,

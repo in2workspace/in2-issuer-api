@@ -84,7 +84,7 @@ public class CredentialController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<BatchCredentialResponse> createVerifiableCredentials(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody BatchCredentialRequest batchCredentialRequest) {
         return accessTokenService.getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> accessTokenService.getUserIdFromHeader(authorizationHeader)
+                .flatMap(token -> accessTokenService.getUserId(authorizationHeader)
                         .flatMap(userId -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialBatchResponse(userId, batchCredentialRequest, token)))
                 .doOnNext(result -> log.info("VerifiableCredentialController - createVerifiableCredential()"));
     }

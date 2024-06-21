@@ -46,8 +46,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
         return verifiableCredentialService.generateVc(processId, type, learCredentialRequest)
                 .flatMap(transactionCode -> {
-                    String email = learCredentialRequest.credential().get("mandatee").get("email").toString();
-                    String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").toString();
+                    String email = learCredentialRequest.credential().get("mandatee").get("email").asText();
+                    String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").asText();
                     return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName);
                 });
 

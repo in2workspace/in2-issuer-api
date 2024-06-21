@@ -1,189 +1,239 @@
-//package es.in2.issuer.domain.service;
-//
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.core.type.TypeReference;
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import es.in2.issuer.domain.model.entities.CredentialProcedure;
-//import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
-//import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
-//import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
-//import es.in2.issuer.domain.service.impl.CredentialManagementServiceImpl;
-//import es.in2.issuer.domain.util.CredentialStatus;
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.api.extension.ExtendWith;
-//import org.mockito.InjectMocks;
-//import org.mockito.Mock;
-//import org.mockito.junit.jupiter.MockitoExtension;
-//import org.springframework.data.domain.Sort;
-//import reactor.core.publisher.Flux;
-//import reactor.core.publisher.Mono;
-//import reactor.test.StepVerifier;
-//
-//import java.sql.Timestamp;
-//import java.util.Map;
-//import java.util.UUID;
-//
-//import static es.in2.issuer.domain.util.Constants.JWT_VC;
-//import static org.mockito.ArgumentMatchers.any;
-//import static org.mockito.ArgumentMatchers.eq;
-//import static org.mockito.Mockito.verify;
-//import static org.mockito.Mockito.when;
-//
-//@ExtendWith(MockitoExtension.class)
-//class DeferredCredentialMetadataServiceImplTest {
-//
-//    @Mock
-//    private CredentialProcedureRepository credentialProcedureRepository;
-//
-//    @Mock
-//    private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
-//
-//    @Mock
-//    private ObjectMapper objectMapper;
-//
-//    @Mock
-//    private VerifiableCredentialService verifiableCredentialService;
-//
-//    @InjectMocks
-//    private CredentialManagementServiceImpl credentialManagementService;
-//
-//    private final String userId = "user-id";
-//    private final String credential = "{\"example\": \"data\"}";
-//    private final String format = "json";
-//    private DeferredCredentialMetadata deferredCredentialMetadata;
-//    private CredentialProcedure credentialProcedure;
-//
-//    @BeforeEach
-//    void setUp() {
-//        deferredCredentialMetadata = new DeferredCredentialMetadata();
-//        deferredCredentialMetadata.setId(UUID.randomUUID());
-//        deferredCredentialMetadata.setUserId(userId);
-//        deferredCredentialMetadata.setCredentialDecoded(credential);
-//        deferredCredentialMetadata.setCredentialFormat(format);
-//        deferredCredentialMetadata.setCredentialStatus("ISSUED");
-//        deferredCredentialMetadata.setModifiedAt(new Timestamp(System.currentTimeMillis()));
-//
-//        credentialProcedure = new CredentialProcedure();
-//        credentialProcedure.setId(UUID.randomUUID());
-//        credentialProcedure.setCredentialId(deferredCredentialMetadata.getId());
-//        credentialProcedure.setTransactionId("transaction-id");
-//    }
-//
-//    @Test
-//    void testCommitCredential() {
-//        when(credentialProcedureRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
-//        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
-//
-//        StepVerifier.create(credentialManagementService.commitCredential(credential, userId, format))
-//                .expectNextMatches(transactionId -> !transactionId.isEmpty())
-//                .verifyComplete();
-//
-//        verify(credentialProcedureRepository).save(any(DeferredCredentialMetadata.class));
-//        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
-//    }
-//
-//    @Test
-//    void testUpdateCredential() {
-//        UUID credentialId = deferredCredentialMetadata.getId();
-//        String credential = "some_encoded_credential_data";
-//
-//        when(credentialProcedureRepository.findByIdAndUserId(credentialId, userId)).thenReturn(Mono.just(deferredCredentialMetadata));
-//
-//        when(credentialProcedureRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
-//
-//        when(deferredCredentialMetadataRepository.findByCredentialId(credentialId)).thenReturn(Mono.just(new CredentialProcedure()));
-//
-//        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(new CredentialProcedure()));
-//
-//        StepVerifier.create(credentialManagementService.updateCredential(testCredential, credentialId, userId))
-//                .verifyComplete();
-//
-//        verify(credentialProcedureRepository).findByIdAndUserId(credentialId, userId);
-//        verify(credentialProcedureRepository).save(any(DeferredCredentialMetadata.class));
-//        verify(deferredCredentialMetadataRepository).findByCredentialId(credentialId);
-//        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
-//    }
-//
-//    @Test
-//    void testUpdateTransactionId() {
-//        when(deferredCredentialMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
-//        when(deferredCredentialMetadataRepository.save(any(CredentialProcedure.class))).thenReturn(Mono.just(credentialProcedure));
-//
-//        StepVerifier.create(credentialManagementService.updateTransactionId("transaction-id"))
-//                .expectNextMatches(newTransactionId -> !newTransactionId.isEmpty())
-//                .verifyComplete();
-//
-//        verify(deferredCredentialMetadataRepository).findByTransactionId("transaction-id");
-//        verify(deferredCredentialMetadataRepository).save(any(CredentialProcedure.class));
-//    }
-//
-//    @Test
-//    void testDeleteCredentialDeferred() {
-//        when(deferredCredentialMetadataRepository.findByTransactionId("transaction-id")).thenReturn(Mono.just(credentialProcedure));
-//        when(deferredCredentialMetadataRepository.delete(credentialProcedure)).thenReturn(Mono.empty());
-//
-//        StepVerifier.create(credentialManagementService.deleteCredentialDeferred("transaction-id"))
-//                .verifyComplete();
-//
-//        verify(deferredCredentialMetadataRepository).findByTransactionId("transaction-id");
-//        verify(deferredCredentialMetadataRepository).delete(credentialProcedure);
-//    }
-//
-//    @Test
-//    void getCredentialsTest() throws JsonProcessingException {
-//        UUID credentialId = UUID.randomUUID();
-//        String testUserId = "user123";
-//        String jsonCredential = "{\"name\": \"John Doe\"}";
-//        Map<String, Object> parsedCredential = Map.of("name", "John Doe");
-//
-//        DeferredCredentialMetadata cm = new DeferredCredentialMetadata();
-//        cm.setId(credentialId);
-//        cm.setUserId(testUserId);
-//        cm.setCredentialDecoded(jsonCredential);
-//        cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
-//        cm.setCredentialFormat(JWT_VC);
-//        cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
-//
-//
-//        when(credentialProcedureRepository.findByUserIdOrderByModifiedAtDesc(eq(userId), any()))
-//                .thenReturn(Flux.just(cm));
-//        when(objectMapper.readValue(eq(cm.getCredentialDecoded()), any(TypeReference.class)))
-//                .thenReturn(parsedCredential);
-//
-//        StepVerifier.create(credentialManagementService.getCredentials(testUserId, 0, 10, "modifiedAt", Sort.Direction.DESC))
-//                .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
-//                .verifyComplete();
-//
-//        verify(credentialProcedureRepository).findByUserIdOrderByModifiedAtDesc(eq(userId), any());
-//    }
-//
-//    @Test
-//    void getCredentialTest() throws JsonProcessingException {
-//        UUID credentialId = UUID.randomUUID();
-//        String credentialTestUserId = "user123";
-//        String jsonCredential = "{\"name\": \"John Doe\"}";
-//        Map<String, Object> parsedCredential = Map.of("name", "John Doe");
-//
-//        DeferredCredentialMetadata cm = new DeferredCredentialMetadata();
-//        cm.setId(credentialId);
-//        cm.setUserId(credentialTestUserId);
-//        cm.setCredentialDecoded(jsonCredential);
-//        cm.setCredentialStatus(CredentialStatus.ISSUED.getName());
-//        cm.setCredentialFormat(JWT_VC);
-//        cm.setModifiedAt(new Timestamp(System.currentTimeMillis()));
-//
-//        when(credentialProcedureRepository.findByIdAndUserId(credentialId, userId))
-//                .thenReturn(Mono.just(cm));
-//        when(objectMapper.readValue(eq(cm.getCredentialDecoded()), any(TypeReference.class)))
-//                .thenReturn(parsedCredential);
-//
-//
-//        StepVerifier.create(credentialManagementService.getCredential(credentialId, credentialTestUserId))
-//                .expectNextMatches(item -> item.credential().get("name").equals("John Doe"))
-//                .verifyComplete();
-//
-//        verify(credentialProcedureRepository).findByIdAndUserId(credentialId, userId);
-//    }
-//}
-//
+package es.in2.issuer.domain.service;
+
+import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
+import es.in2.issuer.domain.service.impl.DeferredCredentialMetadataServiceImpl;
+import es.in2.issuer.domain.util.Utils;
+import es.in2.issuer.infrastructure.repository.CacheStore;
+import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.util.Objects;
+import java.util.UUID;
+
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class DeferredCredentialMetadataServiceImplTest {
+
+    @Mock
+    private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
+
+    @Mock
+    private CacheStore<String> cacheStore;
+
+    @InjectMocks
+    private DeferredCredentialMetadataServiceImpl deferredCredentialMetadataService;
+
+    @Test
+    void testValidateTransactionCode_Success() {
+        // Arrange
+        String transactionCode = "transaction-code";
+        when(cacheStore.get(transactionCode)).thenReturn(Mono.just(transactionCode));
+        doNothing().when(cacheStore).delete(transactionCode);
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.validateTransactionCode(transactionCode))
+                .verifyComplete();
+
+        // Assert
+        verify(cacheStore, times(1)).get(transactionCode);
+        verify(cacheStore, times(1)).delete(transactionCode);
+    }
+
+    @Test
+    void testUpdateAuthServerNonceByAuthServerNonce_Success() {
+        // Arrange
+        String accessToken = "access-token";
+        String preAuthCode = "pre-auth-code";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        when(deferredCredentialMetadataRepository.findByAuthServerNonce(preAuthCode)).thenReturn(Mono.just(deferredCredentialMetadata));
+        when(deferredCredentialMetadataRepository.save(deferredCredentialMetadata)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(accessToken, preAuthCode))
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByAuthServerNonce(preAuthCode);
+        verify(deferredCredentialMetadataRepository, times(1)).save(deferredCredentialMetadata);
+    }
+
+    @Test
+    void testCreateDeferredCredentialMetadata_Success() {
+        // Arrange
+        String procedureId = UUID.randomUUID().toString();
+        String nonce = "nonce";
+        String transactionCode = "transaction-code";
+
+        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
+            mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(nonce));
+        }
+        when(cacheStore.add(anyString(), anyString())).thenReturn(Mono.just(transactionCode));
+        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(new DeferredCredentialMetadata()));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.createDeferredCredentialMetadata(procedureId))
+                .expectNext(transactionCode)
+                .verifyComplete();
+
+        // Assert
+        verify(cacheStore, times(1)).add(anyString(), anyString());
+        verify(deferredCredentialMetadataRepository, times(1)).save(any(DeferredCredentialMetadata.class));
+    }
+
+    @Test
+    void testUpdateTransactionCodeInDeferredCredentialMetadata_Success() {
+        // Arrange
+        String procedureId = UUID.randomUUID().toString();
+        String nonce = "nonce";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        when(deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))).thenReturn(Mono.just(deferredCredentialMetadata));
+        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
+            mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(nonce));
+        }
+        when(cacheStore.add(anyString(), anyString())).thenReturn(Mono.just(nonce));
+        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
+                .expectNextMatches(Objects::nonNull)
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByProcedureId(UUID.fromString(procedureId));
+        verify(cacheStore, times(1)).add(anyString(), anyString());
+        verify(deferredCredentialMetadataRepository, times(1)).save(any(DeferredCredentialMetadata.class));
+    }
+
+    @Test
+    void testGetProcedureIdByTransactionCode_Success() {
+        // Arrange
+        String transactionCode = "transaction-code";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
+        when(deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
+                .expectNext(deferredCredentialMetadata.getProcedureId().toString())
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
+    }
+
+    @Test
+    void testGetProcedureIdByAuthServerNonce_Success() {
+        // Arrange
+        String authServerNonce = "auth-server-nonce";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
+        when(deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
+                .expectNext(deferredCredentialMetadata.getProcedureId().toString())
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByAuthServerNonce(authServerNonce);
+    }
+
+    @Test
+    void testUpdateAuthServerNonceByTransactionCode_Success() {
+        // Arrange
+        String transactionCode = "transaction-code";
+        String authServerNonce = "auth-server-nonce";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        when(deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)).thenReturn(Mono.just(deferredCredentialMetadata));
+        when(deferredCredentialMetadataRepository.save(deferredCredentialMetadata)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode, authServerNonce))
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
+        verify(deferredCredentialMetadataRepository, times(1)).save(deferredCredentialMetadata);
+    }
+
+    @Test
+    void testUpdateDeferredCredentialMetadataByAuthServerNonce_Success() {
+        // Arrange
+        String authServerNonce = "auth-server-nonce";
+        String format = "format";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        when(deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(deferredCredentialMetadata));
+        when(deferredCredentialMetadataRepository.save(deferredCredentialMetadata)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
+                .expectNextMatches(Objects::nonNull)
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByAuthServerNonce(authServerNonce);
+        verify(deferredCredentialMetadataRepository, times(1)).save(deferredCredentialMetadata);
+    }
+
+    @Test
+    void testUpdateVcByProcedureId_Success() {
+        // Arrange
+        String vc = "vc";
+        String procedureId = UUID.randomUUID().toString();
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        when(deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))).thenReturn(Mono.just(deferredCredentialMetadata));
+        when(deferredCredentialMetadataRepository.save(deferredCredentialMetadata)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.updateVcByProcedureId(vc, procedureId))
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByProcedureId(UUID.fromString(procedureId));
+        verify(deferredCredentialMetadataRepository, times(1)).save(deferredCredentialMetadata);
+    }
+
+    @Test
+    void testGetVcByTransactionId_Success() {
+        // Arrange
+        String transactionId = UUID.randomUUID().toString();
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        deferredCredentialMetadata.setVc("vc");
+        deferredCredentialMetadata.setId(UUID.randomUUID());
+        deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
+        when(deferredCredentialMetadataRepository.findByTransactionId(transactionId)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.getVcByTransactionId(transactionId))
+                .expectNextMatches(response -> response.vc().equals(deferredCredentialMetadata.getVc())
+                        && response.id().equals(deferredCredentialMetadata.getId().toString())
+                        && response.procedureId().equals(deferredCredentialMetadata.getProcedureId().toString()))
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByTransactionId(transactionId);
+    }
+
+    @Test
+    void testDeleteDeferredCredentialMetadataById_Success() {
+        // Arrange
+        String id = UUID.randomUUID().toString();
+        when(deferredCredentialMetadataRepository.deleteById(UUID.fromString(id))).thenReturn(Mono.empty());
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(id))
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).deleteById(UUID.fromString(id));
+    }
+
+}
