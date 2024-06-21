@@ -1,8 +1,5 @@
 package es.in2.issuer.infrastructure.controller;
 
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
@@ -18,6 +15,10 @@ import reactor.test.StepVerifier;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler globalExceptionHandler;
@@ -141,6 +142,23 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
+    void handleUserDoesNotExistException_withMessage() {
+        String errorMessage = "Error message for testing";
+        UserDoesNotExistException userDoesNotExistException = new UserDoesNotExistException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleUserDoesNotExistException(userDoesNotExistException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.USER_DOES_NOT_EXIST, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
     void handleVcTemplateDoesNotExist() {
         VcTemplateDoesNotExistException exception = new VcTemplateDoesNotExistException(null);
 
@@ -152,6 +170,23 @@ class GlobalExceptionHandlerTest {
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.VC_TEMPLATE_DOES_NOT_EXIST, responseEntity.getBody().error());
                     assertEquals("The given template name is not supported", responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleVcTemplateDoesNotExist_withMessage() {
+        String errorMessage = "Error message for testing";
+        VcTemplateDoesNotExistException vcTemplateDoesNotExistException = new VcTemplateDoesNotExistException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.vcTemplateDoesNotExist(vcTemplateDoesNotExistException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.VC_TEMPLATE_DOES_NOT_EXIST, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
                 })
                 .verifyComplete();
     }
