@@ -1,15 +1,14 @@
 package es.in2.issuer.domain.util;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import javax.annotation.Nullable;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Component
 @Slf4j
@@ -42,6 +41,14 @@ public class HttpUtils {
                         Mono.error(new RuntimeException("Error during post request:" + clientResponse.statusCode())))
                 .bodyToMono(String.class)
                 .doOnNext(response -> logCRUD(url, headers, body, response, "POST"));
+    }
+
+    public Mono<List<Map.Entry<String, String>>> prepareHeadersWithAuth(String token) {
+        return Mono.fromCallable(() -> {
+            List<Map.Entry<String, String>> headers = new ArrayList<>();
+            headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
+            return headers;
+        });
     }
 
     private void logCRUD(String url, List<Map.Entry<String, String>> headers, String requestBody, String responseBody, String method) {

@@ -1,69 +1,47 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
-import es.in2.issuer.domain.model.CredentialsSupported;
-import es.in2.issuer.domain.model.VcTemplate;
+import es.in2.issuer.domain.model.dto.CredentialConfiguration;
+import es.in2.issuer.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.infrastructure.config.AppConfiguration;
-import es.in2.issuer.infrastructure.iam.util.IamAdapterFactory;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
-import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL;
+import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 import static es.in2.issuer.domain.util.HttpUtils.ensureUrlHasProtocol;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMetadataService {
 
-    private final IamAdapterFactory iamAdapterFactory;
-    private final AppConfiguration appConfiguration;
-
-    // fixme: this is a temporary solution to load credential templates from resources
-    @Value("classpath:credentials/templates/LEARCredentialTemplate.json")
-    private Resource learCredentialTemplate;
-
-    @Value("classpath:credentials/templates/VerifiableIdTemplate.json")
-    private Resource verifiableIdTemplate;
+    private final AppConfig appConfig;
 
     @Override
     public Mono<CredentialIssuerMetadata> generateOpenIdCredentialIssuer() {
-        String credentialIssuerDomain = ensureUrlHasProtocol(appConfiguration.getIssuerDomain());
+        String credentialIssuerDomain = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain());
+        CredentialConfiguration learCredentialEmployee = CredentialConfiguration.builder()
+                .format(JWT_VC_JSON)
+                .cryptographicBindingMethodsSupported(List.of())
+                .credentialSigningAlgValuesSupported(List.of())
+                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL, VERIFIABLE_CREDENTIAL)).build())
+                .build();
         return Mono.just(
                 CredentialIssuerMetadata.builder()
                         .credentialIssuer(credentialIssuerDomain)
-                        // fixme: Este path debe capturarse de la configuración
-                        .credentialEndpoint(credentialIssuerDomain + "/api/vc/credential")
-                        .credentialToken(iamAdapterFactory.getAdapter().getTokenUri())
-                        .credentialsSupported(generateCredentialsSupportedList())
+                        .credentialEndpoint(credentialIssuerDomain + CREDENTIAL)
+                        .batchCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_BATCH)
+                        .deferredCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_DEFERRED)
+                        .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_EMPLOYEE, learCredentialEmployee))
                         .build()
         );
-    }
-
-    private List<CredentialsSupported> generateCredentialsSupportedList() {
-        // Injecting templates from local files:
-        VcTemplate learCredentialVcTemplate;
-        VcTemplate verifiableIdVcTemplate;
-        try {
-            learCredentialVcTemplate = VcTemplate.builder().mutable(true).name(LEAR_CREDENTIAL).template(new String(learCredentialTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8)).build();
-            verifiableIdVcTemplate = VcTemplate.builder().mutable(true).name("VerifiableId").template(new String(verifiableIdTemplate.getInputStream().readAllBytes(), StandardCharsets.UTF_8)).build();
-        } catch (IOException e) {
-            // fixme: need a custom exception
-            throw new RuntimeException(e);
-        }
-        CredentialsSupported verifiableIdJWT = CredentialsSupported.builder().format("jwt_vc_json").id("VerifiableId_JWT").types(Arrays.asList("VerifiableCredential", "VerifiableAttestation", "VerifiableId")).cryptographicBindingMethodsSupported(List.of("did")).cryptographicSuitesSupported(List.of()).credentialSubject(learCredentialVcTemplate).build();
-        CredentialsSupported learCredential = CredentialsSupported.builder().format("jwt_vc_json").id(LEAR_CREDENTIAL).types(Arrays.asList("VerifiableCredential", "VerifiableAttestation", "LEARCredential")).cryptographicBindingMethodsSupported(List.of("did")).cryptographicSuitesSupported(List.of()).credentialSubject(verifiableIdVcTemplate).build();
-        return List.of(verifiableIdJWT, learCredential);
     }
 
 }

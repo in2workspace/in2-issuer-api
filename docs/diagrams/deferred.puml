@@ -1,0 +1,29 @@
+@startuml
+
+autonumber
+
+boundary "Issuer FrontEnd" as issuerSpa
+boundary "Credential Issuer" as issuerVci
+boundary "Wallet" as wallet
+group 1.OFRECIDA
+    issuerSpa -> issuerVci: Create Credential Offer \n->User and Credential Data
+    issuerVci -> issuerVci: Save Data in DB
+    issuerVci -> issuerVci: Send Credential Offer by Email
+end
+group 2.DESCARGADA
+    wallet -> wallet: Execute Credential Offer
+    wallet -> issuerVci: Get Credential
+    issuerVci -> issuerVci: Generate Credential and transaction_id \nSave in DB
+    issuerVci -> wallet: Return Unsigned Credential, transaction_id
+end
+group 3.FIRMADA
+    issuerSpa -> issuerVci: Sign Credential \n->Digital Certificate
+    issuerVci -> issuerVci: Sign Credential \nUpdate in DB
+    issuerVci -> issuerVci: Send Email notification
+end
+group 4.EMITIDA
+    wallet -> issuerVci: Get Deferred Credential \ntransaction_id
+    issuerVci -> issuerVci: Delete transaction_id
+    issuerVci -> wallet: Return Signed Credential
+end
+@enduml

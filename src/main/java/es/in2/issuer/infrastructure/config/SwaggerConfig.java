@@ -15,7 +15,6 @@ public class SwaggerConfig {
     private static final String GROUP_NAME_PUBLIC = "Public API";
     private static final String GROUP_NAME_PRIVATE = "Private API";
     private static final String ALL_PATHS_MATCHER = "/**";
-
     public static final String TAG_PUBLIC = "Public";
     public static final String TAG_PRIVATE = "Private";
 

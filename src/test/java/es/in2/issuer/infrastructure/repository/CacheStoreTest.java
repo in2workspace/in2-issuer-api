@@ -1,128 +1,91 @@
 package es.in2.issuer.infrastructure.repository;
 
+import static org.mockito.Mockito.*;
 import com.google.common.cache.Cache;
-import es.in2.issuer.infrastructure.repository.CacheStore;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import org.springframework.test.util.ReflectionTestUtils;
+import reactor.test.StepVerifier;
 
 class CacheStoreTest {
 
-    private Cache<String, String> mockCache;
     private CacheStore<String> cacheStore;
+    private Cache<String, String> cache;
 
     @BeforeEach
-    public void setUp() {
-        mockCache = Mockito.mock(Cache.class);
-        cacheStore = new CacheStore<>(mockCache);
+    void setUp() {
+        // Mock the cache since we are only testing the CacheStore logic, not the cache itself
+        cache = mock(Cache.class);
+        // Build the cache store with arbitrary expiry and TimeUnit
+        cacheStore = new CacheStore<>(1, TimeUnit.MINUTES);
+        // Inject the mocked cache into our CacheStore
+        ReflectionTestUtils.setField(cacheStore, "cache", cache);
     }
 
     @Test
-    void constructorWithExpiryDurationAndTimeUnit() {
-        // Arrange
-        long expiryDuration = 10;
-        TimeUnit timeUnit = TimeUnit.MINUTES;
-        CacheStore<String> cacheStore = new CacheStore<>(expiryDuration, timeUnit);
+    void testAddValidData() {
+        String key = "key1";
+        String value = "value1";
+        when(cache.getIfPresent(key)).thenReturn(value);
 
-        // Assert
-        assertNotNull(cacheStore);
+        StepVerifier.create(cacheStore.add(key, value))
+                .expectSubscription()
+                .expectNext(key)
+                .verifyComplete();
+
+        verify(cache).put(key, value);
     }
 
     @Test
-    void getExistingKey() {
-        // Arrange
-        String key = "existingKey";
-        String value = "existingValue";
-        when(mockCache.getIfPresent(key)).thenReturn(value);
+    void testGetExistingKey() {
+        String key = "key1";
+        String expectedValue = "value1";
+        when(cache.getIfPresent(key)).thenReturn(expectedValue);
 
-        // Act
-        String result = cacheStore.get(key);
+        StepVerifier.create(cacheStore.get(key))
+                .expectSubscription()
+                .expectNext(expectedValue)
+                .verifyComplete();
 
-        // Assert
-        assertEquals(value, result);
-        verify(mockCache).getIfPresent(key);
+        verify(cache).getIfPresent(key);
     }
 
     @Test
-    void getNonExistingKey() {
-        // Arrange
-        String key = "nonExistingKey";
-        when(mockCache.getIfPresent(key)).thenReturn(null);
+    void testDeleteKey() {
+        String key = "key1";
+        doNothing().when(cache).invalidate(key);
 
-        // Act
-        String result = cacheStore.get(key);
-
-        // Assert
-        assertNull(result);
-        verify(mockCache).getIfPresent(key);
-    }
-
-    @Test
-    void deleteKey() {
-        // Arrange
-        String key = "keyToDelete";
-
-        // Act
         cacheStore.delete(key);
 
-        // Assert
-        verify(mockCache).invalidate(key);
+        verify(cache).invalidate(key);
     }
 
     @Test
-    void addValidKeyAndValue() {
-        // Arrange
-        String key = "validKey";
-        String value = "validValue";
+    void testAddNullKeyOrValue() {
+        // Test with null key
+        StepVerifier.create(cacheStore.add(null, "value"))
+                .expectSubscription()
+                .verifyComplete(); // Verify that it completes without emitting any value
 
-        // Act
-        cacheStore.add(key, value);
+        // Test with null value
+        StepVerifier.create(cacheStore.add("key", null))
+                .expectSubscription()
+                .verifyComplete(); // Verify that it completes without emitting any value
 
-        // Assert
-        verify(mockCache).put(key, value);
+        // Ensure that no put operation was performed in the cache
+        verify(cache, never()).put(anyString(), any());
     }
 
     @Test
-    void addNullKey() {
-        // Arrange
-        String value = "validValue";
+    void testGetNonExistingKey() {
+        String key = "nonExisting";
+        when(cache.getIfPresent(key)).thenReturn(null);
 
-        // Act
-        cacheStore.add(null, value);
+        StepVerifier.create(cacheStore.get(key))
+                .expectSubscription()
+                .verifyComplete(); // Verify that it completes without emitting any value
 
-        // Assert
-        verify(mockCache, Mockito.never()).put(any(), any());
+        verify(cache).getIfPresent(key);
     }
-
-    @Test
-    void addEmptyKey() {
-        // Arrange
-        String key = "   ";
-        String value = "validValue";
-
-        // Act
-        cacheStore.add(key, value);
-
-        // Assert
-        verify(mockCache, Mockito.never()).put(any(), any());
-    }
-
-    @Test
-    void addNullValue() {
-        // Arrange
-        String key = "validKey";
-        // Act
-        cacheStore.add(key, null);
-
-        // Assert
-        verify(mockCache, Mockito.never()).put(any(), any());
-    }
-
 }

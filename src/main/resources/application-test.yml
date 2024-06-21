@@ -1,15 +1,120 @@
-azure:
-  app:
-    config:
-      endpoint: ${APP_CONFIG_ENDPOINT}
-      label:
-        global: service-discovery
+# Spring Configuration
+spring:
+  application:
+    name: issuer-api
+  main:
+    web-application-type: reactive
+  r2dbc:
+    url: "r2dbc:postgresql://localhost:5434/issuer"
+    username:
+    password:
+    generate-unique-name: true
+  flyway:
+    url: "jdbc:postgresql://localhost:5434/issuer"
+    locations: classpath:db/migration
+  mail:
+    host: localhost
+    port: 1025
+    username:
+    password:
+    properties.mail.smtp:
+      auth: false
+      starttls.enable: false
+      ssl.trust:
 
-app:
-  configs:
-    iam-external-domain: aca-cross-keycloak-ms-uri
-    issuer-domain: aca-issuer-vci-ms-uri
-    authentic-sources-domain: aca-issuer-auth-src-ms-uri
-    key-vault-domain: key-vault-uri
-    remote-signature-domain: aca-cross-rmt-sign-ms-uri
-    issuer-did: issuer-info-id-did
+# Spring Logging Configuration
+logging:
+  pattern:
+    level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
+  level:
+    org.springframework.security: INFO
+    es.in2.issuer: INFO
+
+# Spring Management Configuration - Actuator
+management:
+  endpoints:
+    enabled-by-default: false
+    web:
+      exposure:
+        include: health, info, loggers, metrics, prometheus
+      base-path: /
+      path-mapping:
+        health: health
+        info: info
+        loggers: loggers
+        metrics: metrics
+        prometheus: prometheus
+  endpoint:
+    health:
+      enabled: true
+      show-details: always
+    loggers:
+      enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+
+# SpringDoc Configuration - OpenAPI 3.0 Documentation & Swagger UI
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+
+# Server Configuration
+server:
+  port: 8080
+
+# Application Configuration
+openapi:
+  server:
+    url: "https://localhost:8081"
+    description: "Server Description"
+  info:
+    title: "Issuer API"
+    version: "0.0.1-SNAPSHOT"
+    description: "Issuer API Web Server"
+    termsOfService: "https://example.com/terms-of-service"
+    license:
+      name: "Apache 2.0"
+      url: "https://www.apache.org/licenses/LICENSE-2.0.html"
+    contact:
+      email: "test@example.com"
+      name: "Test Name"
+      url: "https://example.com"
+
+api:
+  external-domain: "http://localhost:8081"
+  internal-domain: "http://issuer-api:8080"
+  config-source:  yaml
+  cache_lifetime:
+    credential_offer: 10
+    verifiable_credential: 10
+
+azure:
+  endpoint: "https://myappconfig.azconfig.io"
+  label:
+    global: "issuer-api"
+
+auth-server:
+  provider: "keycloak"
+  external-domain: "http://localhost:8088"
+  internal-domain: "http://issuer-keycloak:8080"
+  realm: CredentialIssuer
+  paths:
+    issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
+    jwt-decoder-path: "/realms/EAAProvider/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/EAAProvider"
+    jwt-validator: "http://localhost:8088/realms/EAAProvider"
+    pre-authorized-code-path: "/realms/EAAProvider/verifiable-credential/${issuer-did}/credential-offer"
+    token-path: "/realms/EAAProvider/verifiable-credential/${issuer-did}/token"
+    nonce-validation-path: "/realms/CredentialIssuer/verifiable-credential/${issuer-did}/nonce-valid"
+
+remote-signature:
+  external-domain: "http://localhost:8082"
+  internal-domain: "http://remote-signature:8080"
+  paths:
+    sign-path: "/signature/sign"

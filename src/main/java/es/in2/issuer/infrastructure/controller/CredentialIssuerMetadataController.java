@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.model.CredentialIssuerMetadata;
-import es.in2.issuer.domain.model.GlobalErrorMessage;
+import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,13 +10,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+
+import static es.in2.issuer.domain.util.Constants.ENGLISH;
 
 @RestController
 @RequestMapping("/.well-known/openid-credential-issuer")
@@ -44,9 +49,10 @@ public class CredentialIssuerMetadataController {
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
-    public Mono<CredentialIssuerMetadata> getOpenIdCredentialIssuer() {
-        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer()
-                .onErrorResume(e -> Mono.error(new RuntimeException(e)));
+    public Mono<CredentialIssuerMetadata> getCredentialIssuerMetadata(ServerWebExchange exchange) {
+        ServerHttpResponse response = exchange.getResponse();
+        response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
+        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer();
     }
 
 }
