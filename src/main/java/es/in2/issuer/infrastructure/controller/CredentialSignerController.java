@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.domain.model.dto.ProcedureIdRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -21,7 +22,7 @@ public class CredentialSignerController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-            @RequestBody String procedureId) {
-        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureId);
+            @RequestBody ProcedureIdRequest procedureIdRequest) {
+        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId());
     }
 }
