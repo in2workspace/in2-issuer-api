@@ -339,11 +339,11 @@ class CredentialProcedureServiceImplTest {
     }
 
     @Test
-    void getMandatorEmailFromDecodedCredentialByProcedureId_shouldReturnMandatorEmail() throws Exception {
+    void getSignerEmailFromDecodedCredentialByProcedureId_shouldReturnMandatorEmail() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedEmail = "mandator@example.com";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"emailAddress\":\"" + expectedEmail + "\"}}}}}";
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"signer\":{\"emailAddress\":\"" + expectedEmail + "\"}}}}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -358,7 +358,7 @@ class CredentialProcedureServiceImplTest {
                 .thenReturn(credentialNode);
 
         // Execute
-        Mono<String> result = credentialProcedureService.getMandatorEmailFromDecodedCredentialByProcedureId(procedureId);
+        Mono<String> result = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId);
 
         // Then
         StepVerifier.create(result)

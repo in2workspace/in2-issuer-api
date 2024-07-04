@@ -26,7 +26,8 @@ public record LEARCredentialEmployee(
                 @JsonProperty("life_span") LifeSpan lifeSpan,
                 @JsonProperty("mandatee") Mandatee mandatee,
                 @JsonProperty("mandator") Mandator mandator,
-                @JsonProperty("power") List<Power> power
+                @JsonProperty("power") List<Power> power,
+                @JsonProperty("signer") Signer signer
         ) {
             @Builder
             public record LifeSpan(
@@ -58,6 +59,16 @@ public record LEARCredentialEmployee(
                     @JsonProperty("tmf_domain") String tmfDomain,
                     @JsonProperty("tmf_function") String tmfFunction,
                     @JsonProperty("tmf_type") String tmfType
+            ) {}
+
+            @Builder
+            public record Signer(
+                    @JsonProperty("commonName") String commonName,
+                    @JsonProperty("country") String country,
+                    @JsonProperty("emailAddress") String emailAddress,
+                    @JsonProperty("organization") String organization,
+                    @JsonProperty("organizationIdentifier") String organizationIdentifier,
+                    @JsonProperty("serialNumber") String serialNumber
             ) {}
         }
     }
