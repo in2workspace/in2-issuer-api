@@ -62,7 +62,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             return Mono.error(e);
         }
         List<Map.Entry<String, String>> headers = new ArrayList<>();
-        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
         // todo: refactorizar: debe implementarse la llamada aquí y no en el Utils
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON);
