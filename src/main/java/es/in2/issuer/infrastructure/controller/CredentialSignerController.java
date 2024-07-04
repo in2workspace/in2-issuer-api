@@ -17,11 +17,11 @@ public class CredentialSignerController {
 
     private final CredentialSignerWorkflow credentialSignerWorkflow;
 
-    @PostMapping(value = "/{procedure_id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-            @PathVariable("procedure_id") String procedureId) {
+            @RequestBody String procedureId) {
         return credentialSignerWorkflow.signCredential(authorizationHeader, procedureId);
     }
 }
