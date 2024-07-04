@@ -68,7 +68,9 @@
     </div>
     <div class="content">
         <p>Hello, <span th:text="@{${name}}">Employee</span>.</p>
-        <p>You have a new credential offer. Please click the button below to start the process.</p>
+        <p>You have a new credential offer. Please follow the next steps:</p>
+        <p>1. Register and log into the <a href="https://wallet.dome-marketplace.org/">Wallet Application</a>.</p>
+        <p>2. Click the button below to start the process:</p>
         <p><a th:href="@{${link}}" class="btn">Start Credential Offer</a></p>
     </div>
     <div class="footer">
