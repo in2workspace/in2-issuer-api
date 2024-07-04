@@ -72,7 +72,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 })
                 .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
                         .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                .flatMap(credentialProcedureService::getMandatorEmailFromDecodedCredentialByProcedureId)
+                                .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
                                 .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
                                         .then(Mono.just(credentialResponse)))));
         }

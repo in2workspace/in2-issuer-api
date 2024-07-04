@@ -145,7 +145,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
         when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format())).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
-        when(credentialProcedureService.getMandatorEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
+        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
         when(emailService.sendPendingCredentialNotification(mandatorEmail,"Pending Credential")).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
