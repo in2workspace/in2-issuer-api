@@ -53,7 +53,7 @@ public class TokenController {
         /*return Mono.empty();
     }*/
 
-    @PostMapping(path = "/token")
+    @PostMapping
     public Mono<String> handleData(ServerWebExchange exchange) {
         Mono<MultiValueMap<String, String>> formDataMono = exchange.getFormData();
 
