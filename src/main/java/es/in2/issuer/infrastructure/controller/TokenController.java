@@ -4,10 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -30,21 +27,28 @@ public class TokenController {
             .evictInBackground(Duration.ofSeconds(80))
             .build();
 
-    @PostMapping(value = "/token", consumes = "application/x-www-form-urlencoded")
-    public Mono<Object> tokenBypass(@RequestBody Map<String, String> formData) {
-        log.debug("Start token redirection: [formData:{}]", formData);
-        WebClient webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(
-                        HttpClient.create(connectionProvider).followRedirect(false))
-                )
-                .build();
+    @PostMapping(value = "/token", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+    public Mono<Void> tokenBypass(@RequestBody Map<String, String> formData,
+                                    @RequestHeader("Content-Type") String contentType) {
 
-        return webClient.post()
-                .uri(URI.create("https://in2-dome-marketplace-test.org/issuer-keycloak/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token"))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(new LinkedMultiValueMap<>()))
-                .retrieve()
-                .bodyToMono(Object.class);
+        log.info("Received token request with form data: {}", formData);
+        log.info("Received token request with content type: {}", contentType);
+
+//        WebClient webClient = WebClient.builder()
+//                .clientConnector(new ReactorClientHttpConnector(
+//                        HttpClient.create(connectionProvider).followRedirect(false))
+//                )
+//                .build();
+
+//        return webClient.post()
+//                .uri(URI.create("https://in2-dome-marketplace-test.org/issuer-keycloak/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token"))
+//                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+//                .body(BodyInserters.fromFormData(new LinkedMultiValueMap<>()))
+//                .retrieve()
+//                .bodyToMono(Object.class);
+
+        return Mono.empty();
+
     }
 
 
