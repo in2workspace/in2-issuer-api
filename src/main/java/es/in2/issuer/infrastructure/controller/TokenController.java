@@ -46,7 +46,14 @@ public class TokenController {
                             .with("pre-authorized_code", Objects.requireNonNull(formData.getFirst("pre-authorized_code")))
                             .with("tx_code", Objects.requireNonNull(formData.getFirst("tx_code"))))
                     .retrieve()
-                    .bodyToMono(Object.class);
+                    .bodyToMono(Object.class)
+                    .onErrorResume(error -> {
+                        log.info("\n==================================\n");
+                        log.error("[WebClientException:{}]", error.getMessage());
+                        log.info("\n==================================\n");
+
+                        return Mono.error(error);
+                    });
         });
     }
 }
