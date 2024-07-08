@@ -16,6 +16,7 @@ public class EndpointsConstants {
     public static final String PUBLIC_CREDENTIAL_OFFER = "/api/v1/credential-offer/**";
     public static final String PUBLIC_DISCOVERY_ISSUER = "/.well-known/openid-credential-issuer";
     public static final String PUBLIC_DISCOVERY_AUTH_SERVER = "/.well-known/openid-configuration";
+    public static final String PUBLIC_TOKEN_AUTH_SERVER = "/token";
     public static final String LOCAL_ISSUER_UI = "http://localhost:4201";
     public static final String SWAGGER_UI = "/swagger-ui/**";
     public static final String SWAGGER_RESOURCES = "/swagger-resources/**";
