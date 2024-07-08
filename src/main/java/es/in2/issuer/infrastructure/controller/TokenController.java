@@ -25,7 +25,7 @@ import java.util.Objects;
 public class TokenController {
 
     @PostMapping
-    public Mono<String> handleData(ServerWebExchange exchange) {
+    public Mono<Object> handleData(ServerWebExchange exchange) {
         Mono<MultiValueMap<String, String>> formDataMono = exchange.getFormData();
 
         log.info("Get formDataMono. [Exchange:{}]", exchange);
@@ -46,7 +46,7 @@ public class TokenController {
                             .with("pre-authorized_code", Objects.requireNonNull(formData.getFirst("pre-authorized_code")))
                             .with("tx_code", Objects.requireNonNull(formData.getFirst("tx_code"))))
                     .retrieve()
-                    .bodyToMono(String.class);
+                    .bodyToMono(Object.class);
         });
     }
 }
