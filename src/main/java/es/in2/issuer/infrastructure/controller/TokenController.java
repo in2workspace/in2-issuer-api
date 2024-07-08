@@ -16,6 +16,7 @@ import reactor.netty.resources.ConnectionProvider;
 
 import java.net.URI;
 import java.time.Duration;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -30,7 +31,7 @@ public class TokenController {
             .build();
 
     @PostMapping(value = "/token", consumes = "application/x-www-form-urlencoded")
-    public Mono<Object> tokenBypass(@RequestBody LinkedMultiValueMap<String, String> formData) {
+    public Mono<Object> tokenBypass(@RequestBody Map<String, String> formData) {
         log.debug("Start token redirection: [formData:{}]", formData);
         WebClient webClient = WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(
@@ -41,7 +42,7 @@ public class TokenController {
         return webClient.post()
                 .uri(URI.create("https://in2-dome-marketplace-test.org/issuer-keycloak/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token"))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(formData))
+                .body(BodyInserters.fromFormData(new LinkedMultiValueMap<>()))
                 .retrieve()
                 .bodyToMono(Object.class);
     }
