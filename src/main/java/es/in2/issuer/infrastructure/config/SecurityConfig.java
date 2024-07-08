@@ -59,6 +59,7 @@ public class SecurityConfig {
                         .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
+                        .pathMatchers(HttpMethod.POST,  "/token").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
                         .anyExchange().authenticated()
