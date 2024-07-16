@@ -33,6 +33,7 @@ checkstyleTest {
     source = 'src/test/java'
 }
 
+// The token controller class needs test and must be removed from sonar coverage exclusions
 sonar {
     properties {
         property "sonar.projectName", "Issuer API"
@@ -42,6 +43,7 @@ sonar {
         property "sonar.coverage.exclusions",
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
                         "src/main/java/es/in2/desmos/infrastructure/config/FlywayConfig.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java" +
                         "src/main/java/es/in2/desmos/infrastructure/config/SecurityConfig.java, "
 
     }
