@@ -45,7 +45,7 @@ To utilize the Credential Issuer, you will need the following components:
 - **Issuer-UI**
 - **Issuer-API**
 - **Postgres Database**
-- **Our Custom Keycloak Solution**
+- **Issuer Keycloak Plugin**
 - **SMTP Email Server**
 
 For each dependency, you can refer to their respective repositories for detailed setup instructions.
@@ -62,6 +62,7 @@ The Server application of the Issuer needs key environment variables to be confi
 - SPRING_R2DBC_PASSWORD
 - SPRING_FLYWAY_URL
 ##### SMTP Email Server
+- SPRING_MAIL_HOST
 - SPRING_MAIL_PORT
 - SPRING_MAIL_USERNAME
 - SPRING_MAIL_PASSWORD
@@ -123,10 +124,9 @@ docker run -d \
   postgres:16.3
 ```
 
-### Custom Keycloak
+### Issuer Keycloak Plugin
 Keycloak is used for identity and access management, as well as for other OpenID4VCI DOME profile requirements.
-
-It's an implementation of the official quay.io keycloak image with a custom plugin.
+It's an implementation of the official quay.io keycloak image with a custom layer.
 Refer to the [Keycloak Plugin Documentation](https://github.com/in2workspace/issuer-keycloak-plugin) for more information on setup and configuration variables.
 
 ### SMTP Email Server
