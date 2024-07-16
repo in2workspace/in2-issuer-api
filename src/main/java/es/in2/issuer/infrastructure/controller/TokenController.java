@@ -1,15 +1,15 @@
 package es.in2.issuer.infrastructure.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
@@ -17,38 +17,48 @@ import reactor.netty.resources.ConnectionProvider;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Map;
+import java.util.Objects;
 
+/**
+ * @deprecated This class is obsolete and will be removed in future versions.
+ * @since 1.0.0
+ */
+@Deprecated(since = "1.0.0", forRemoval = true)
 @Slf4j
 @RestController
 @RequestMapping("/token")
 public class TokenController {
 
-    private static final ConnectionProvider connectionProvider = ConnectionProvider.builder("custom")
-            .maxConnections(500)
-            .maxIdleTime(Duration.ofSeconds(50))
-            .maxLifeTime(Duration.ofSeconds(300))
-            .evictInBackground(Duration.ofSeconds(80))
-            .build();
+    @PostMapping
+    public Mono<Object> handleData(ServerWebExchange exchange) {
+        Mono<MultiValueMap<String, String>> formDataMono = exchange.getFormData();
 
-    @PostMapping(value = "/token", consumes = "application/x-www-form-urlencoded")
-    public Mono<Object> tokenBypass(@RequestBody Map<String, String> formData) {
-        log.debug("Start token redirection: [formData:{}]", formData);
-        WebClient webClient = WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(
-                        HttpClient.create(connectionProvider).followRedirect(false))
-                )
-                .build();
+        log.info("Get formDataMono. [Exchange:{}]", exchange);
 
-        return webClient.post()
-                .uri(URI.create("https://in2-dome-marketplace-test.org/issuer-keycloak/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token"))
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .body(BodyInserters.fromFormData(new LinkedMultiValueMap<>()))
-                .retrieve()
-                .bodyToMono(Object.class);
+        return formDataMono.flatMap(formData -> {
+            log.info("\n==================================\n");
+            log.info("[TokenFormData:{}]", formData);
+            log.info("\n==================================\n");
+
+            var client = WebClient.builder()
+                    .baseUrl("http://dome-issuer-keycloak:8080")
+                    .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
+                    .build();
+
+            return client.post()
+                    .uri("issuer-keycloak/realms/CredentialIssuer/verifiable-credential/did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa/token")
+                    .body(BodyInserters.fromFormData("grant_type", Objects.requireNonNull(formData.getFirst("grant_type")))
+                            .with("pre-authorized_code", Objects.requireNonNull(formData.getFirst("pre-authorized_code")))
+                            .with("tx_code", Objects.requireNonNull(formData.getFirst("tx_code"))))
+                    .retrieve()
+                    .bodyToMono(Object.class)
+                    .onErrorResume(error -> {
+                        log.info("\n==================================\n");
+                        log.error("[WebClientException:{}]", error.getMessage());
+                        log.info("\n==================================\n");
+
+                        return Mono.error(error);
+                    });
+        });
     }
-
-
-
-
-
 }

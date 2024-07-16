@@ -36,7 +36,7 @@ class DeferredCredentialMetadataServiceImplTest {
         // Arrange
         String transactionCode = "transaction-code";
         when(cacheStore.get(transactionCode)).thenReturn(Mono.just(transactionCode));
-        doNothing().when(cacheStore).delete(transactionCode);
+        when(cacheStore.delete(transactionCode)).thenReturn(Mono.empty());
 
         // Act
         StepVerifier.create(deferredCredentialMetadataService.validateTransactionCode(transactionCode))
