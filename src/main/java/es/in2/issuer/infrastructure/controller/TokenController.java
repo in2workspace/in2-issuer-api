@@ -19,6 +19,11 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * @deprecated This class is obsolete and will be removed in future versions.
+ * @since 1.0.0
+ */
+@Deprecated(since = "1.0.0", forRemoval = true)
 @Slf4j
 @RestController
 @RequestMapping("/token")
