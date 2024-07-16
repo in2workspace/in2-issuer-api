@@ -5,6 +5,7 @@ import com.google.common.cache.CacheBuilder;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -22,10 +23,15 @@ public class CacheStore<T> {
 
     public Mono<T> get(String key) {
         T value = cache.getIfPresent(key);
-        return Mono.justOrEmpty(value); // This will return an empty Mono if the value is null
+        if (value != null) {
+            return Mono.just(value);
+        } else {
+            return Mono.error(new NoSuchElementException("Value is not present."));
+        }
     }
-    public void delete(String key) {
-        cache.invalidate(key);
+
+    public Mono<Void> delete(String key) {
+        return Mono.fromRunnable(() -> cache.invalidate(key));
     }
 
     public Mono<String> add(String key, T value) {

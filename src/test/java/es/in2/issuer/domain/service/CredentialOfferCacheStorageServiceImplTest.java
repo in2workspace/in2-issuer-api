@@ -46,7 +46,7 @@ class CredentialOfferCacheStorageServiceImplTest {
         CustomCredentialOffer offer = CustomCredentialOffer.builder().build(); // Populate this object as necessary
 
         when(cacheStore.get(nonce)).thenReturn(Mono.just(offer));
-        doNothing().when(cacheStore).delete(nonce);
+        when(cacheStore.delete(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
                 .expectNextMatches(retrievedOffer -> retrievedOffer.equals(offer))

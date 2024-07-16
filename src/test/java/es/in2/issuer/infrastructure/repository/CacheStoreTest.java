@@ -2,6 +2,8 @@ package es.in2.issuer.infrastructure.repository;
 
 import static org.mockito.Mockito.*;
 import com.google.common.cache.Cache;
+
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +58,9 @@ class CacheStoreTest {
         String key = "key1";
         doNothing().when(cache).invalidate(key);
 
-        cacheStore.delete(key);
+        StepVerifier.create(cacheStore.delete(key))
+                .expectSubscription()
+                .verifyComplete();
 
         verify(cache).invalidate(key);
     }
@@ -84,7 +88,8 @@ class CacheStoreTest {
 
         StepVerifier.create(cacheStore.get(key))
                 .expectSubscription()
-                .verifyComplete(); // Verify that it completes without emitting any value
+                .expectError(NoSuchElementException.class)
+                .verify();
 
         verify(cache).getIfPresent(key);
     }
