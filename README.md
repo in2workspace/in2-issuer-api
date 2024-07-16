@@ -50,6 +50,10 @@ To utilize the Credential Issuer, you will need the following components:
 
 For each dependency, you can refer to their respective repositories for detailed setup instructions.
 
+### Issuer UI
+Issuer UI is the user interface for the Credential Issuer.
+Refer to the [Issuer UI Documentation](https://github.com/in2workspace/issuer-ui) for more information on configuration variables.
+
 ### Issuer API
 The Server application of the Issuer needs key environment variables to be configured
 ##### Database
@@ -64,7 +68,7 @@ The Server application of the Issuer needs key environment variables to be confi
 - SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
 - SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
 - SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST
-##### Authorization Server(Keycloak)
+##### Authorization Server (Keycloak)
 - AUTH_SERVER_EXTERNAL_DOMAIN
 - AUTH_SERVER_INTERNAL_DOMAIN
 - AUTH_SERVER_REALM: name of the keycloak realm
@@ -103,6 +107,7 @@ docker run -d \
   -p 8081:8080 \
   in2workspace/issuer-api:v1.1.0-SNAPSHOT
 ```
+
 ### Postgres Database
 Postgres is used as the database for the Issuer API.
 You can find more information in the [official documentation](https://www.postgresql.org/docs/).
@@ -117,11 +122,6 @@ docker run -d \
   -v postgres_data:/var/lib/postgresql/issuer-api-data \
   postgres:16.3
 ```
-
-### Issuer UI
-Issuer UI is the user interface for the Credential Issuer.
-Refer to the [Issuer UI Documentation](https://github.com/in2workspace/issuer-ui) for more information on configuration variables.
-
 
 ### Custom Keycloak
 Keycloak is used for identity and access management, as well as for other OpenID4VCI DOME profile requirements.
