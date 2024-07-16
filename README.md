@@ -26,12 +26,6 @@ Credential Issuer is a service that allows to generate verifiable credentials. I
 # Architecture
 ![Architecture](docs/images/issuer-architecture.png)
 The Issuer solution includes the requested features described in the technical specification [OpenID4VCI DOME profile](https://dome-marketplace.github.io/OpenID4VCI-DOMEprofile/openid-4-verifiable-credential-issuance-wg-draft.html) (Issuer-initiated flow)
-it integrates the following key components and dependencies:
-- Issuer-API: [Official Docker Image](https://hub.docker.com/r/in2workspace/issuer-api/tags)
-- Posgres Data Base [Official Docker Image](postgres:16.3)
-- Issuer-UI [Official Docker Image](https://hub.docker.com/r/in2workspace/issuer-ui)
-- IAM: a custom implementation of Quay.io Keycloak Docker image [Official Docker Image](https://hub.docker.com/r/in2workspace/dome-issuer-keycloak)
-
 
 # Functionalities
 - Issuance of LEAR Credential Employee
@@ -45,50 +39,21 @@ it integrates the following key components and dependencies:
 We offer Docker images of the necessary components to run the solution.
 You can follow the instruction to instance the necessary components and the necessary configurations of each one to sucessfully run/deploy the Issuer.
 
-## Running the application
-Before running the Issuer service you need to configure and run the IAM solution:
+## Dependencies
+To utilize the Credential Issuer, you will need the following components:
+- **Issuer-UI**
+- **Issuer-API**
+- **Custom Keycloak Solution**
+- **Postgres Database**
+
+For each dependency, you can refer to their respective repositories for detailed setup instructions.
+
 ### Keycloak
-```bash
-docker run -d \
-  --name issuer-keycloak \
-  -e KEYCLOAK_ADMIN=admin \
-  -e KEYCLOAK_ADMIN_PASSWORD=admin \
-  -e KC_HOSTNAME_URL=https://localhost:8443 \
-  -e KC_HOSTNAME_ADMIN_URL=https://localhost:8443 \
-  -e KC_HTTPS_CLIENT_AUTH=request \
-  -e KC_DB=postgres \
-  -e KC_DB_USERNAME=postgres \
-  -e KC_DB_PASSWORD=postgres \
-  -e KC_DB_URL=jdbc:postgresql://issuer-keycloak-postgres/cred \
-  -e DB_PORT=5432 \
-  -e ISSUER_API_URL=http://issuer-api:8080 \
-  -e ISSUER_API_EXTERNAL_URL=http://issuer-api-external.com \
-  -e PRE_AUTH_LIFESPAN=10 \
-  -e PRE_AUTH_LIFESPAN_TIME_UNIT=MINUTES \
-  -e TX_CODE_SIZE=4 \
-  -e TX_CODE_DESCRIPTION="Enter the PIN code" \
-  -e TOKEN_EXPIRATION=2592000 \
-  -p 7001:8080 \
-  -p 8443:8443 \
-  in2workspace/dome-issuer-keycloak:v1.0.0-SNAPSHOT
-```
-### Keycloak Postgres
-```bash
-docker run -d \
-  --name issuer-keycloak-postgres \
-  -e POSTGRES_DB=cred \
-  -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=postgres \
-  -p 5433:5432 \
-  -v postgres_data:/var/lib/postgresql/data \
-  postgres:16.3
-```
-Ensure you have the volume postgres_data created before running the postgres container:
-```bash
-docker volume create postgres_data
-```
-And then the functional components of the Issuer service as follows:
+Keycloak is used for identity and access management, it's an implementation of the official quay.io keycloak image with a custom plugin.
+You can find more information and a setup and configuration info in the following [link](https://github.com/in2workspace/dome-issuer-keycloak)
+
 ### Issuer API
+The Server application of the Issuer needs key enviroment variables to be configured
 ```bash
 docker run -d \
   --name issuer-api \
@@ -133,6 +98,8 @@ docker run -d \
 ```
 
 ### Issuer UI
+Issuer UI is the user interface for the Credential Issuer.
+Refer to the Issuer UI Documentation for more information on configuration variables.
 ```bash
 docker run -d \
   --name issuer-ui \
@@ -152,6 +119,7 @@ docker run -d \
 
 
 ## Understanding the Configuration
+Each component has its own set of environment variables that need to be configured to run the service successfully. The key variables for each component are highlighted in their respective sections above.
 
 ## Contribution
 
