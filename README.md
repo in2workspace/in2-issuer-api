@@ -149,7 +149,7 @@ This project is currently in development.
 ## Contact
 For any inquiries or further information, feel free to reach out to us:
 
-- **Email:** [Oriol Canadés](mailto:oriol.canades@in2.es)
+- **Email:** [In2 Dome Support](mailto:domesupport@in2.es)
 - **Name:** IN2, Ingeniería de la Información
 - **Website:** [https://in2.es](https://in2.es)
 
