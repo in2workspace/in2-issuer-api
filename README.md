@@ -41,19 +41,41 @@ You can follow the instruction to instance the necessary components and the nece
 
 ## Dependencies
 To utilize the Credential Issuer, you will need the following components:
+
 - **Issuer-UI**
 - **Issuer-API**
-- **Custom Keycloak Solution**
 - **Postgres Database**
+- **Our Custom Keycloak Solution**
+- **SMTP Email Server**
 
 For each dependency, you can refer to their respective repositories for detailed setup instructions.
 
-### Keycloak
-Keycloak is used for identity and access management, it's an implementation of the official quay.io keycloak image with a custom plugin.
-You can find more information and a setup and configuration info in the following [link](https://github.com/in2workspace/dome-issuer-keycloak)
-
 ### Issuer API
-The Server application of the Issuer needs key enviroment variables to be configured
+The Server application of the Issuer needs key environment variables to be configured
+##### Database
+- SPRING_R2DBC_URL
+- SPRING_R2DBC_USERNAME
+- SPRING_R2DBC_PASSWORD
+- SPRING_FLYWAY_URL
+##### SMTP Email Server
+- SPRING_MAIL_PORT
+- SPRING_MAIL_USERNAME
+- SPRING_MAIL_PASSWORD
+- SPRING_MAIL_PROPERTIES_MAIL_SMTP_AUTH
+- SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE
+- SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST
+##### Authorization Server(Keycloak)
+- AUTH_SERVER_EXTERNAL_DOMAIN
+- AUTH_SERVER_INTERNAL_DOMAIN
+- AUTH_SERVER_REALM: name of the keycloak realm
+- AUTH_SERVER_CLIENT_CLIENT_ID: client of the dedicated user for M2M communication
+- AUTH_SERVER_CLIENT_USERNAME: dedicated user for M2M communication
+- AUTH_SERVER_CLIENT_PASSWORD
+##### API
+- API_EXTERNAL_DOMAIN
+- API_CACHE_LIFETIME_CREDENTIAL_OFFER: duration in minutes of the Credential Offer
+- REMOTE_SIGNATURE_EXTERNAL_DOMAIN: 
+#### Example of a typical configuration:
 ```bash
 docker run -d \
   --name issuer-api \
@@ -69,15 +91,11 @@ docker run -d \
   -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_STARTTLS_ENABLE=true \
   -e SPRING_MAIL_PROPERTIES_MAIL_SMTP_SSL_TRUST=smtp.example.com \
   -e API_EXTERNAL_DOMAIN=http://issuer-api-external.com \
-  -e API_CONFIG_SOURCE=yaml \
   -e API_CACHE_LIFETIME_CREDENTIAL_OFFER=10 \
-  -e API_CACHE_LIFETIME_VERIFIABLE_CREDENTIAL=10 \
-  -e AUTH_SERVER_PROVIDER=keycloak \
   -e AUTH_SERVER_EXTERNAL_DOMAIN=https://keycloak-external.com \
   -e AUTH_SERVER_INTERNAL_DOMAIN=http://issuer-keycloak:8080 \
   -e AUTH_SERVER_REALM=CredentialIssuer \
   -e AUTH_SERVER_CLIENT_CLIENT_ID=oidc4vci-wallet-client \
-  -e AUTH_SERVER_CLIENT_CLIENT_SECRET=qVB2taQhqWmVndVIG5QR1INH8rfsbTrS \
   -e AUTH_SERVER_CLIENT_USERNAME=user \
   -e AUTH_SERVER_CLIENT_PASSWORD=user \
   -e ISSUER_UI_EXTERNAL_DOMAIN=http://localhost:4201 \
@@ -85,7 +103,10 @@ docker run -d \
   -p 8081:8080 \
   in2workspace/issuer-api:v1.1.0-SNAPSHOT
 ```
-### Issuer Postgres
+### Postgres Database
+Postgres is used as the database for the Issuer API.
+You can find more information in the [official documentation](https://www.postgresql.org/docs/).
+#### Example of a typical configuration:
 ```bash
 docker run -d \
   --name issuer-postgres \
@@ -99,27 +120,20 @@ docker run -d \
 
 ### Issuer UI
 Issuer UI is the user interface for the Credential Issuer.
-Refer to the Issuer UI Documentation for more information on configuration variables.
-```bash
-docker run -d \
-  --name issuer-ui \
-  -e LOGIN_URL=http://keycloak-external.org/realms/CredentialIssuer \
-  -e CLIENT_ID=account-console \
-  -e SCOPE="openid profile email offline_access" \
-  -e GRANT_TYPE=code \
-  -e BASE_URL=http://issuer-api.com/ \
-  -e WALLET_URL=http://wallet.com/ \
-  -e PROCEDURES=/api/v1/procedures \
-  -e SAVE_CREDENTIAL="/api/v1/credentials?type=LEARCredentialEmployee" \
-  -e CREDENTIAL_OFFER_URL=/api/v1/credential-offer \
-  -e NOTIFICATION=/api/v1/notifications \
-  -p 4201:8080 \
-  in2workspace/issuer-ui:v1.0.0
-```
+Refer to the [Issuer UI Documentation](https://github.com/in2workspace/issuer-ui) for more information on configuration variables.
 
+
+### Custom Keycloak
+Keycloak is used for identity and access management, as well as for other OpenID4VCI DOME profile requirements.
+
+It's an implementation of the official quay.io keycloak image with a custom plugin.
+Refer to the [Keycloak Plugin Documentation](https://github.com/in2workspace/issuer-keycloak-plugin) for more information on setup and configuration variables.
+
+### SMTP Email Server
+An SMTP Email Server of your choice. It must support StartTLS for a secure connection.
 
 ## Understanding the Configuration
-Each component has its own set of environment variables that need to be configured to run the service successfully. The key variables for each component are highlighted in their respective sections above.
+Each component has its own set of environment variables that need to be configured to run the service successfully. The key variables are highlighted in their respective sections above or in the linked documentation.
 
 ## Contribution
 
