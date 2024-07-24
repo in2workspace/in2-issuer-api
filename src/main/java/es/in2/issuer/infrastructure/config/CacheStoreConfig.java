@@ -4,6 +4,7 @@ import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,6 +18,11 @@ public class CacheStoreConfig {
 
     @Bean
     public CacheStore<String> cacheStoreDefault() {
+        return new CacheStore<>(10, TimeUnit.MINUTES);
+    }
+
+    @Bean
+    public CacheStore<String> cacheStoreForTransactionCode() {
         return new CacheStore<>(72, TimeUnit.HOURS);
     }
 
