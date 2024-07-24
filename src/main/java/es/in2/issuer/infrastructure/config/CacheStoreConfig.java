@@ -17,7 +17,7 @@ public class CacheStoreConfig {
 
     @Bean
     public CacheStore<String> cacheStoreDefault() {
-        return new CacheStore<>(10, TimeUnit.MINUTES);
+        return new CacheStore<>(72, TimeUnit.HOURS);
     }
 
     @Bean
