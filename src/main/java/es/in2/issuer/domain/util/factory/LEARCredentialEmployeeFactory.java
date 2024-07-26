@@ -40,8 +40,8 @@ public class LEARCredentialEmployeeFactory {
 
         return buildFinalLearCredentialEmployee(baseLearCredentialEmployee)
                 .flatMap(this::buildLEARCredentialEmployeeJwtPayload)
-                .flatMap(learCredentialEmployeeJwtPayload -> convertLEARCredentialEmployeeInToString(learCredentialEmployeeJwtPayload)
-                        .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential, learCredentialEmployeeJwtPayload))
+                .flatMap(LEARCredentialEmployeeJwtPayload -> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload)
+                        .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential, LEARCredentialEmployeeJwtPayload))
                 );
     }
 
@@ -158,21 +158,21 @@ public class LEARCredentialEmployeeFactory {
                         .build());
     }
 
-    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
+    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload) {
         try {
 
-            return Mono.just(objectMapper.writeValueAsString(learCredentialEmployeeJwtPayload));
+            return Mono.just(objectMapper.writeValueAsString(LEARCredentialEmployeeJwtPayload));
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException());
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload) {
         return accessTokenService.getOrganizationIdFromCurrentSession()
                 .flatMap(organizationId ->
                         Mono.just(
                                 CredentialProcedureCreationRequest.builder()
-                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+                                        .credentialId(LEARCredentialEmployeeJwtPayload.learCredentialEmployee().id())
                                         .organizationIdentifier(organizationId)
                                         .credentialDecoded(decodedCredential)
                                         .build()

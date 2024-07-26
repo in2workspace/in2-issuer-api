@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
-import es.in2.issuer.domain.model.dto.LEARCredentialRequest;
+import es.in2.issuer.domain.model.dto.CredentialData;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
@@ -30,8 +30,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, LEARCredentialRequest learCredentialRequest) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, learCredentialRequest.credential())
+    public Mono<String> generateVc(String processId, String vcType, CredentialData credentialData) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialData.credential())
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
 
@@ -95,7 +95,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                     return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                                             .flatMap(credential -> {
                                                 log.info("Decoded Credential obtained: " + credential);
-                                                return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid)
+                                                return credentialFactory.mapCredentialBasedOnType(processId, credentialType, credential, subjectDid)
                                                         .flatMap(bindCredential -> {
                                                             log.info("Bind Credential obtained: " + bindCredential);
                                                             return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)

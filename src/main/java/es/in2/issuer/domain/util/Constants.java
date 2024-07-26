@@ -10,6 +10,7 @@ public class Constants {
 
     public static final String LEAR_CREDENTIAL = "LEARCredential";
     public static final String VERIFIABLE_CREDENTIAL = "VerifiableCredential";
+    public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";
     public static final String JWT_VC = "jwt_vc_json";
     public static final String CWT_VC = "cwt_vc";
     public static final String JWT_VC_JSON = "jwt_vc_json";

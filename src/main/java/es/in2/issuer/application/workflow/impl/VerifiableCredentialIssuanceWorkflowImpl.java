@@ -4,6 +4,7 @@ import com.nimbusds.jose.JWSObject;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.exception.Base45Exception;
+import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.enums.SignatureType;
@@ -25,8 +26,7 @@ import java.util.Base64;
 import java.util.Collections;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
-import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Slf4j
 @Service
@@ -43,14 +43,22 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
-    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest) {
-        return verifiableCredentialService.generateVc(processId, type, learCredentialRequest)
+    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, CredentialData credentialData) {
+        return verifiableCredentialService.generateVc(processId, type, credentialData)
                 .flatMap(transactionCode -> {
-                    String email = learCredentialRequest.credential().get("mandatee").get("email").asText();
-                    String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").asText();
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName);
+                    String email;
+                    String name;
+                    if (LEAR_CREDENTIAL.equals(type)) {
+                        email = credentialData.credential().get("mandatee").get("email").asText();
+                        name = credentialData.credential().get("mandatee").get("first_name").asText();
+                    } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
+                        email = credentialData.credential().get("credentialSubject").get("company").get("email").asText();
+                        name = credentialData.credential().get("credentialSubject").get("company").get("commonName").asText();
+                    } else {
+                        return Mono.error(new CredentialTypeUnsupportedException(type));
+                    }
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name);
                 });
-
     }
 
     @Override

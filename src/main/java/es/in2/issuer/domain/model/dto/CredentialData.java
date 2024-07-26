@@ -5,5 +5,5 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 
 @Builder
-public record LEARCredentialRequest(@JsonProperty("credential") JsonNode credential) {
+public record CredentialData(@JsonProperty("credential") JsonNode credential) {
 }

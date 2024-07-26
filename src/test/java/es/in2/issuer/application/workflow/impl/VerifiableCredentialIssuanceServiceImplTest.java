@@ -110,15 +110,15 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder().credential(jsonNode).build();
+        CredentialData credentialData = CredentialData.builder().credential(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
 
-        when(verifiableCredentialService.generateVc(processId,type,learCredentialRequest)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId,type, credentialData)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon")).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId,type,learCredentialRequest))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId,type, credentialData))
                 .verifyComplete();
     }
 

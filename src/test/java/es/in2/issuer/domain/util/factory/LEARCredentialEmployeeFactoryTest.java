@@ -40,16 +40,16 @@ class LEARCredentialEmployeeFactoryTest {
         String learCredential = "validCredentialString";
         String mandateeId = "mandateeId";
         String expectedString = "expectedString";
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
+        LEARCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
 
-        when(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class)).thenReturn(learCredentialEmployeeJwtPayload);
-        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
-        when(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject()).thenReturn(credentialSubject);
+        when(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class)).thenReturn(LEARCredentialEmployeeJwtPayload);
+        when(LEARCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
+        when(LEARCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject()).thenReturn(credentialSubject);
         when(credentialSubject.mandate()).thenReturn(mandate);
         when(mandate.id()).thenReturn("mandateeId");
         when(mandate.mandator()).thenReturn(mandator);
@@ -60,11 +60,11 @@ class LEARCredentialEmployeeFactoryTest {
         when(mandatee.mobilePhone()).thenReturn("mobilePhone");
         when(mandate.power()).thenReturn(List.of(LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder().build()));
         when(mandate.lifeSpan()).thenReturn(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder().build());
-        when(learCredentialEmployeeJwtPayload.JwtId()).thenReturn("jwtId");
-        when(learCredentialEmployeeJwtPayload.expirationTime()).thenReturn(0L);
-        when(learCredentialEmployeeJwtPayload.issuedAt()).thenReturn(0L);
-        when(learCredentialEmployeeJwtPayload.issuer()).thenReturn("issuer");
-        when(learCredentialEmployeeJwtPayload.notValidBefore()).thenReturn(0L);
+        when(LEARCredentialEmployeeJwtPayload.JwtId()).thenReturn("jwtId");
+        when(LEARCredentialEmployeeJwtPayload.expirationTime()).thenReturn(0L);
+        when(LEARCredentialEmployeeJwtPayload.issuedAt()).thenReturn(0L);
+        when(LEARCredentialEmployeeJwtPayload.issuer()).thenReturn("issuer");
+        when(LEARCredentialEmployeeJwtPayload.notValidBefore()).thenReturn(0L);
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(expectedString);
 
         //Act & Assert

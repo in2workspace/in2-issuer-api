@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface VerifiableCredentialIssuanceWorkflow {
-    Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest);
+    Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, CredentialData credentialData);
 
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId, CredentialRequest credentialRequest, String token);
 
