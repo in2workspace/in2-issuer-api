@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -33,12 +34,6 @@ public class VerifiableCertificationFactory {
     }
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
-        // reemplazar el "issuer" con el VATES de IN2
-
-        // agregar el objeto "signer"
-
-        // meter la credencial en un payload
-
         return Mono.fromCallable(() -> setIssuerAndSigner(credential))
                 .flatMap(this::buildVerifiableCertificationJwtPayload)
                 .flatMap(verifiableCertificationJwtPayload ->
@@ -58,11 +53,23 @@ public class VerifiableCertificationFactory {
             // todo extraer los datos del signer de las configuraciones
 
             // Replace the "issuer"
-            objectNode.put("issuer", DID_ELSI + "VATEU-BXXXXXXXX");
+            //objectNode.put("issuer", DID_ELSI + "VATEU-B99999999");
+
+            // Access the issuer object node
+            ObjectNode issuerNode = (ObjectNode) modifiedCredential.get("issuer");
+
+            // Set new values for commonName and country
+            issuerNode.put("commonName", "ZEUS OLIMPOS");
+            issuerNode.put("country", "EU");
+            issuerNode.put("id", DID_ELSI + "VATEU-B99999999");
+            issuerNode.put("organization", "IN2");
+
+            // Update issuer in the credential
+            objectNode.set("issuer", issuerNode);
 
             // Create the Signer object
             Signer signer = Signer.builder()
-                    .commonName("Name")
+                    .commonName("ZEUS OLIMPOS")
                     .country("EU")
                     .emailAddress("domesupport@in2.es")
                     .organization("IN2")
@@ -99,14 +106,20 @@ public class VerifiableCertificationFactory {
                         .expirationTime(parseDateToUnixTime(credential.get("expirationDate").asText()))
                         .issuedAt(parseDateToUnixTime(credential.get("issuanceDate").asText()))
                         .notValidBefore(parseDateToUnixTime(credential.get("validFrom").asText()))
-                        .issuer(credential.get("issuer").asText())
-                        .subject(credential.get("product").get("productId").asText())
+                        .issuer(credential.get("issuer").get("id").asText())
+                        .subject(credential.get("credentialSubject").get("product").get("productId").asText())
                         .build()
         );
     }
 
+//    private long parseDateToUnixTime(String date) {
+//        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+//        return zonedDateTime.toInstant().getEpochSecond();
+//    }
+
     private long parseDateToUnixTime(String date) {
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS X 'UTC'");
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, formatter.withZone(ZoneOffset.UTC));
         return zonedDateTime.toInstant().getEpochSecond();
     }
 
@@ -121,7 +134,7 @@ public class VerifiableCertificationFactory {
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
         // todo extraer el organization id de las configuraciones
-        String organizationId = "VATEU-BXXXXXXXX";
+        String organizationId = "VATEU-B99999999";
 
         return Mono.just(
                 CredentialProcedureCreationRequest.builder()

@@ -48,7 +48,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .flatMap(transactionCode -> {
                     String email;
                     String name;
-                    if (LEAR_CREDENTIAL.equals(type)) {
+                    if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
                         email = credentialData.credential().get("mandatee").get("email").asText();
                         name = credentialData.credential().get("mandatee").get("first_name").asText();
                     } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
