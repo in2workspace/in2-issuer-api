@@ -28,17 +28,17 @@ public class NotificationServiceImpl implements NotificationService {
         return credentialProcedureService.getCredentialStatusByProcedureId(procedureId)
                 .flatMap(status -> credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId)
                         .flatMap(email -> credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId)
-                                .flatMap(firstName -> {
+                                .flatMap(name -> {
                                     if (status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
                                                 .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
                                                         email,
                                                         "Credential Offer",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
-                                                        firstName
+                                                        name
                                                 ));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
-                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", name);
                                     } else {
                                         return Mono.empty();
                                     }

@@ -315,7 +315,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedFirstName = "John";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"" + expectedFirstName + "\"}}}}}";
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"" + expectedFirstName + "\"}}},\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));

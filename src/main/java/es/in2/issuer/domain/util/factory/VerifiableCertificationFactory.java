@@ -3,10 +3,9 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.DefaultIssuerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -24,8 +23,8 @@ import static es.in2.issuer.domain.util.Constants.DID_ELSI;
 @Slf4j
 public class VerifiableCertificationFactory {
 
+    private final DefaultIssuerConfig defaultIssuerConfig;
     private final ObjectMapper objectMapper;
-    private final AccessTokenService accessTokenService;
 
     public Mono<String> mapCredential(String credential) {
         VerifiableCertificationJwtPayload baseLearCredentialEmployee = mapStringToVerifiableCertification(credential);
@@ -48,23 +47,22 @@ public class VerifiableCertificationFactory {
 
 
     public Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential) {
-            // todo extraer los datos del signer de las configuraciones
             // Create the Issuer object
             VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
-                    .commonName("ZEUS OLIMPOS")
-                    .country("EU")
-                    .id(DID_ELSI + "VATEU-B99999999")
-                    .organization("IN2")
+                    .commonName(defaultIssuerConfig.getCommonName())
+                    .country(defaultIssuerConfig.getCountry())
+                    .id(DID_ELSI + defaultIssuerConfig.getOrganizationIdentifier())
+                    .organization(defaultIssuerConfig.getOrganization())
                     .build();
 
             // Create the Signer object
             VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
-                    .commonName("ZEUS OLIMPOS")
-                    .country("EU")
-                    .emailAddress("domesupport@in2.es")
-                    .organization("IN2")
-                    .organizationIdentifier("VATEU-BXXXXXXXX")
-                    .serialNumber("IDCEU-XXXXXXXXP")
+                    .commonName(defaultIssuerConfig.getCommonName())
+                    .country(defaultIssuerConfig.getCountry())
+                    .emailAddress(defaultIssuerConfig.getEmail())
+                    .organization(defaultIssuerConfig.getOrganization())
+                    .organizationIdentifier(defaultIssuerConfig.getOrganizationIdentifier())
+                    .serialNumber(defaultIssuerConfig.getSerialNumber())
                     .build();
 
             return Mono.just(VerifiableCertification.builder()
@@ -123,28 +121,13 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
-        // todo extraer el organization id de las configuraciones
-        String organizationId = "VATEU-B99999999";
-
         return Mono.just(
                 CredentialProcedureCreationRequest.builder()
                         .credentialId(verifiableCertificationJwtPayload.credential().id())
-                        .organizationIdentifier(organizationId)
+                        .organizationIdentifier(defaultIssuerConfig.getOrganizationIdentifier())
                         .credentialDecoded(decodedCredential)
                         .build()
         );
     }
-//    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
-//        return accessTokenService.getOrganizationIdFromCurrentSession()
-//                .flatMap(organizationId ->
-//                        Mono.just(
-//                                CredentialProcedureCreationRequest.builder()
-//                                        .credentialId(verifiableCertificationJwtPayload.credential().get("id").asText())
-//                                        .organizationIdentifier(organizationId)
-//                                        .credentialDecoded(decodedCredential)
-//                                        .build()
-//                        )
-//                );
-//    }
 
 }
