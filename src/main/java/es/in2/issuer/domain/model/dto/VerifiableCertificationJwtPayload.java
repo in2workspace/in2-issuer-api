@@ -22,7 +22,7 @@ public record VerifiableCertificationJwtPayload(
         Long issuedAt,
 
         @JsonProperty("vc")
-        JsonNode credential,
+        VerifiableCertification credential,
 
         @JsonProperty("jti")
         String JwtId

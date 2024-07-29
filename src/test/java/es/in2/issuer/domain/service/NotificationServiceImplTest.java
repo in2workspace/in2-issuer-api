@@ -45,9 +45,9 @@ class NotificationServiceImplTest {
         String transactionCode = "transactionCode";
         when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
                 .thenReturn(Mono.just(CredentialStatus.WITHDRAWN.toString()));
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(firstName));
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
@@ -67,9 +67,9 @@ class NotificationServiceImplTest {
     void testSendNotification_WithPendDownloadStatus() {
         when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
                 .thenReturn(Mono.just(CredentialStatus.PEND_DOWNLOAD.toString()));
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(firstName));
         when(emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName))
                 .thenReturn(Mono.empty());
@@ -86,9 +86,9 @@ class NotificationServiceImplTest {
     void testSendNotification_WithUnhandledStatus() {
         when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
                 .thenReturn(Mono.just("UNHANDLED_STATUS"));
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
+        when(credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(firstName));
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);

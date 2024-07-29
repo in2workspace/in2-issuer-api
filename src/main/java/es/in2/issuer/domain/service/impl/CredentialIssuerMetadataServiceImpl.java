@@ -31,7 +31,13 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                 .format(JWT_VC_JSON)
                 .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
-                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL, VERIFIABLE_CREDENTIAL)).build())
+                .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL)).build())
+                .build();
+        CredentialConfiguration verifiableCertification = CredentialConfiguration.builder()
+                .format(JWT_VC_JSON)
+                .cryptographicBindingMethodsSupported(List.of())
+                .credentialSigningAlgValuesSupported(List.of())
+                .credentialDefinition(CredentialDefinition.builder().type(List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL)).build())
                 .build();
         return Mono.just(
                 CredentialIssuerMetadata.builder()
@@ -39,7 +45,10 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
                         .credentialEndpoint(credentialIssuerDomain + CREDENTIAL)
                         .batchCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_BATCH)
                         .deferredCredentialEndpoint(credentialIssuerDomain + CREDENTIAL_DEFERRED)
-                        .credentialConfigurationsSupported(Map.of(LEAR_CREDENTIAL_EMPLOYEE, learCredentialEmployee))
+                        .credentialConfigurationsSupported(Map.of(
+                                LEAR_CREDENTIAL_EMPLOYEE, learCredentialEmployee,
+                                VERIFIABLE_CERTIFICATION, verifiableCertification
+                        ))
                         .build()
         );
     }

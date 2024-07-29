@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
@@ -22,6 +23,9 @@ import reactor.core.publisher.Mono;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
+
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 
 @Service
 @RequiredArgsConstructor
@@ -97,12 +101,22 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
-    public Mono<String> getMandateeEmailFromDecodedCredentialByProcedureId(String procedureId) {
+    public Mono<String> getCredentialSubjectEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText());
+                        JsonNode types = credential.get("vc").get("type");
+                        if (types != null && types.isArray()) {
+                            for (JsonNode type : types) {
+                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                    return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText());
+                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                                    return Mono.just(credential.get("vc").get("credentialSubject").get("company").get("email").asText());
+                                }
+                            }
+                        }
+                        return Mono.error(new CredentialTypeUnsupportedException("Credential Type unsupported or missing"));
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
@@ -111,12 +125,22 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
-    public Mono<String> getMandateeFirstNameFromDecodedCredentialByProcedureId(String procedureId) {
+    public Mono<String> getCredentialSubjectNameFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText());
+                        JsonNode types = credential.get("vc").get("type");
+                        if (types != null && types.isArray()) {
+                            for (JsonNode type : types) {
+                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                    return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText());
+                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                                    return Mono.just(credential.get("vc").get("credentialSubject").get("company").get("commonName").asText());
+                                }
+                            }
+                        }
+                        return Mono.error(new CredentialTypeUnsupportedException("Credential Type unsupported or missing"));
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }

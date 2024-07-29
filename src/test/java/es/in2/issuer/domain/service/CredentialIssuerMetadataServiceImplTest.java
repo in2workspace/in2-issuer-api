@@ -56,7 +56,7 @@ class CredentialIssuerMetadataServiceImplTest {
 
                     CredentialDefinition definition = config.credentialDefinition();
                     assertNotNull(definition);
-                    assertEquals(List.of(Constants.LEAR_CREDENTIAL, Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
+                    assertEquals(List.of(Constants.LEAR_CREDENTIAL_EMPLOYEE, Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
                 })
                 .verifyComplete();
     }

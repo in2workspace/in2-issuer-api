@@ -287,7 +287,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedEmail = "mandatee@example.com";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"email\":\"" + expectedEmail + "\"}}}}}";
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"email\":\"" + expectedEmail + "\"}}},\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -302,7 +302,7 @@ class CredentialProcedureServiceImplTest {
                 .thenReturn(credentialNode);
 
         // Execute
-        Mono<String> result = credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId);
+        Mono<String> result = credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId);
 
         // Then
         StepVerifier.create(result)
@@ -330,7 +330,7 @@ class CredentialProcedureServiceImplTest {
                 .thenReturn(credentialNode);
 
         // Execute
-        Mono<String> result = credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId);
+        Mono<String> result = credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId);
 
         // Then
         StepVerifier.create(result)

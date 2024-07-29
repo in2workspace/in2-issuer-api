@@ -34,7 +34,9 @@ public class VerifiableCertificationFactory {
     }
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
-        return Mono.fromCallable(() -> setIssuerAndSigner(credential))
+        VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
+
+        return buildVerifiableCertification(verifiableCertification)
                 .flatMap(this::buildVerifiableCertificationJwtPayload)
                 .flatMap(verifiableCertificationJwtPayload ->
                         convertVerifiableCertificationInToString(verifiableCertificationJwtPayload)
@@ -44,31 +46,19 @@ public class VerifiableCertificationFactory {
                 );
     }
 
-    public JsonNode setIssuerAndSigner(JsonNode credential) {
-        try {
-            // Create a copy of the original JsonNode to avoid mutating the input
-            JsonNode modifiedCredential = objectMapper.readTree(credential.toString());
-            ObjectNode objectNode = (ObjectNode) modifiedCredential;
 
+    public Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential) {
             // todo extraer los datos del signer de las configuraciones
-
-            // Replace the "issuer"
-            //objectNode.put("issuer", DID_ELSI + "VATEU-B99999999");
-
-            // Access the issuer object node
-            ObjectNode issuerNode = (ObjectNode) modifiedCredential.get("issuer");
-
-            // Set new values for commonName and country
-            issuerNode.put("commonName", "ZEUS OLIMPOS");
-            issuerNode.put("country", "EU");
-            issuerNode.put("id", DID_ELSI + "VATEU-B99999999");
-            issuerNode.put("organization", "IN2");
-
-            // Update issuer in the credential
-            objectNode.set("issuer", issuerNode);
+            // Create the Issuer object
+            VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
+                    .commonName("ZEUS OLIMPOS")
+                    .country("EU")
+                    .id(DID_ELSI + "VATEU-B99999999")
+                    .organization("IN2")
+                    .build();
 
             // Create the Signer object
-            Signer signer = Signer.builder()
+            VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
                     .commonName("ZEUS OLIMPOS")
                     .country("EU")
                     .emailAddress("domesupport@in2.es")
@@ -77,16 +67,16 @@ public class VerifiableCertificationFactory {
                     .serialNumber("IDCEU-XXXXXXXXP")
                     .build();
 
-            // Convert Signer object to JsonNode
-            JsonNode signerNode = objectMapper.valueToTree(signer);
-
-            // Add the signer object to the credential
-            objectNode.set("signer", signerNode);
-
-            return modifiedCredential;
-        } catch (JsonProcessingException e) {
-            throw new ParseErrorException(e.getMessage());
-        }
+            return Mono.just(VerifiableCertification.builder()
+                    .id(credential.id())
+                    .type(credential.type())
+                    .issuer(issuer)
+                    .credentialSubject(credential.credentialSubject())
+                    .issuanceDate(credential.issuanceDate())
+                    .validFrom(credential.validFrom())
+                    .expirationDate(credential.expirationDate())
+                    .signer(signer)
+                    .build());
     }
 
     private VerifiableCertificationJwtPayload mapStringToVerifiableCertification(String credential) {
@@ -98,16 +88,16 @@ public class VerifiableCertificationFactory {
         }
     }
 
-    private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(JsonNode credential){
+    private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
                         .credential(credential)
-                        .expirationTime(parseDateToUnixTime(credential.get("expirationDate").asText()))
-                        .issuedAt(parseDateToUnixTime(credential.get("issuanceDate").asText()))
-                        .notValidBefore(parseDateToUnixTime(credential.get("validFrom").asText()))
-                        .issuer(credential.get("issuer").get("id").asText())
-                        .subject(credential.get("credentialSubject").get("product").get("productId").asText())
+                        .expirationTime(parseDateToUnixTime(credential.expirationDate()))
+                        .issuedAt(parseDateToUnixTime(credential.issuanceDate()))
+                        .notValidBefore(parseDateToUnixTime(credential.validFrom()))
+                        .issuer(credential.issuer().id())
+                        .subject(credential.credentialSubject().product().productId())
                         .build()
         );
     }
@@ -138,7 +128,7 @@ public class VerifiableCertificationFactory {
 
         return Mono.just(
                 CredentialProcedureCreationRequest.builder()
-                        .credentialId(verifiableCertificationJwtPayload.credential().get("id").asText())
+                        .credentialId(verifiableCertificationJwtPayload.credential().id())
                         .organizationIdentifier(organizationId)
                         .credentialDecoded(decodedCredential)
                         .build()

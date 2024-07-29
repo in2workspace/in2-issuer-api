@@ -26,8 +26,8 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public Mono<Void> sendNotification(String processId, String procedureId) {
         return credentialProcedureService.getCredentialStatusByProcedureId(procedureId)
-                .flatMap(status -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                        .flatMap(email -> credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId)
+                .flatMap(status -> credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId)
+                        .flatMap(email -> credentialProcedureService.getCredentialSubjectNameFromDecodedCredentialByProcedureId(procedureId)
                                 .flatMap(firstName -> {
                                     if (status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)

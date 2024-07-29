@@ -16,8 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 
 @Slf4j
@@ -46,7 +44,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                 .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
                                                         .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                         .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                        .flatMap(credentialOfferUri -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                        .flatMap(credentialOfferUri -> credentialProcedureService.getCredentialSubjectEmailFromDecodedCredentialByProcedureId(procedureId)
                                                                 .flatMap(email -> emailService.sendPin(email, "Pin Code", preAuthCodeResponse.pin()))
                                                                 .thenReturn(credentialOfferUri))
                                                 )
