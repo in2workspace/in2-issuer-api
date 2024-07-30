@@ -215,9 +215,19 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        String subjectFullName = credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText()
-                                + " "
-                                + credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText();
+                        String subjectFullName = "";
+                        JsonNode types = credential.get("vc").get("type");
+                        if (types != null && types.isArray()) {
+                            for (JsonNode type : types) {
+                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                    subjectFullName = credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText()
+                                            + " "
+                                            + credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText();
+                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                                    subjectFullName =  credential.get("vc").get("credentialSubject").get("product").get("productName").asText();
+                                }
+                            }
+                        }
                         return Mono.just(ProcedureBasicInfo.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
                                 .fullName(subjectFullName)

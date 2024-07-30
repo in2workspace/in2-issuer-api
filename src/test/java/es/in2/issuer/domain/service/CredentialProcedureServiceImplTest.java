@@ -548,8 +548,8 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldReturnBasicInfoForAllProcedures() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"Jane\", \"last_name\":\"Smith\"}}}}}";
+        String credentialDecoded1 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}},\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"]}}";
+        String credentialDecoded2 = "{\"vc\":{\"credentialSubject\":{\"product\":{\"productName\":\"Product Name\"}},\"type\":[\"VerifiableCertification\",\"VerifiableCredential\"]}}";
 
         UUID procedureId1 = UUID.randomUUID();
         UUID procedureId2 = UUID.randomUUID();
@@ -594,7 +594,7 @@ class CredentialProcedureServiceImplTest {
                             credentialProcedureList.get(0).credentialProcedure().status().equals(CredentialStatus.ISSUED.name()) &&
                             credentialProcedureList.get(0).credentialProcedure().updated().equals(updated1) &&
                             credentialProcedureList.get(1).credentialProcedure().procedureId().equals(procedureId2) &&
-                            credentialProcedureList.get(1).credentialProcedure().fullName().equals("Jane Smith") &&
+                            credentialProcedureList.get(1).credentialProcedure().fullName().equals("Product Name") &&
                             credentialProcedureList.get(1).credentialProcedure().status().equals(CredentialStatus.WITHDRAWN.name()) &&
                             credentialProcedureList.get(1).credentialProcedure().updated().equals(updated2);
                 })
