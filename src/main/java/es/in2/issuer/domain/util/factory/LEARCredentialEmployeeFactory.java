@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
-import es.in2.issuer.domain.model.dto.learCredentialEmployeeJwtPayload;
+import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +30,7 @@ public class LEARCredentialEmployeeFactory {
     private final AccessTokenService accessTokenService;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) {
-        learCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
+        LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
         return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
@@ -45,10 +45,10 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    private learCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) {
+    private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) {
         try {
-            log.info(objectMapper.readValue(learCredential, learCredentialEmployeeJwtPayload.class).toString());
-            return objectMapper.readValue(learCredential, learCredentialEmployeeJwtPayload.class);
+            log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
+            return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
         } catch (JsonProcessingException e) {
             // fixme: handle exception and return a custom exception
             throw new RuntimeException(e);
@@ -102,9 +102,9 @@ public class LEARCredentialEmployeeFactory {
     }
 
 
-    private Mono<learCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee){
+    private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee){
         return Mono.just(
-                learCredentialEmployeeJwtPayload.builder()
+                LEARCredentialEmployeeJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
                         .learCredentialEmployee(learCredentialEmployee)
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.expirationDate()))
@@ -121,9 +121,9 @@ public class LEARCredentialEmployeeFactory {
         return zonedDateTime.toInstant().getEpochSecond();
     }
 
-    private Mono<learCredentialEmployeeJwtPayload> bindMandateeIdToLearCredentialEmployee(learCredentialEmployeeJwtPayload baseLearCredentialEmployee, String mandateeId) {
+    private Mono<LEARCredentialEmployeeJwtPayload> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee, String mandateeId) {
         return Mono.just(
-                learCredentialEmployeeJwtPayload.builder().learCredentialEmployee(
+                LEARCredentialEmployeeJwtPayload.builder().learCredentialEmployee(
                         LEARCredentialEmployee.builder()
                                 .expirationDate(baseLearCredentialEmployee.learCredentialEmployee().expirationDate())
                                 .issuanceDate(baseLearCredentialEmployee.learCredentialEmployee().issuanceDate())
@@ -158,7 +158,7 @@ public class LEARCredentialEmployeeFactory {
                         .build());
     }
 
-    private Mono<String> convertLEARCredentialEmployeeInToString(learCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload) {
+    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload) {
         try {
 
             return Mono.just(objectMapper.writeValueAsString(LEARCredentialEmployeeJwtPayload));
@@ -167,12 +167,12 @@ public class LEARCredentialEmployeeFactory {
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, learCredentialEmployeeJwtPayload LEARCredentialEmployeeJwtPayload) {
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
         return accessTokenService.getOrganizationIdFromCurrentSession()
                 .flatMap(organizationId ->
                         Mono.just(
                                 CredentialProcedureCreationRequest.builder()
-                                        .credentialId(LEARCredentialEmployeeJwtPayload.learCredentialEmployee().id())
+                                        .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
                                         .organizationIdentifier(organizationId)
                                         .credentialDecoded(decodedCredential)
                                         .build()

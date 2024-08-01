@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 
 @Builder
-public record learCredentialEmployeeJwtPayload(
+public record LEARCredentialEmployeeJwtPayload(
         @JsonProperty("sub")
         String subject,
 
