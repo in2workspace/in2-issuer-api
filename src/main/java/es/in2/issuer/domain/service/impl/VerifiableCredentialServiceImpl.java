@@ -1,6 +1,5 @@
 package es.in2.issuer.domain.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
@@ -145,27 +144,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             return Mono.error(e);
         }
     }
-//    private String castCredential (String credential) throws JsonProcessingException {
-//        // Extract the credential types
-//        JsonNode types = objectMapper.readTree(credential).get("vc").get("type");
-//        // Extract the "vc" object
-//        JsonNode vcNode = objectMapper.readTree(credential).get("vc");
-//        if (types != null && types.isArray()) {
-//            for (JsonNode type : types) {
-//                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-//                    // Convert the "vc" object to LEARCredentialEmployee
-//                    LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
-//                    // Convert LEARCredentialEmployee back to string
-//                    return objectMapper.writeValueAsString(learCredential);
-//                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-//                    // Convert the "vc" object to VerifiableCertification
-//                    VerifiableCertification verifiableCertification = objectMapper.treeToValue(vcNode, VerifiableCertification.class);
-//                    // Convert VerifiableCertification back to string
-//                    return objectMapper.writeValueAsString(verifiableCertification);
-//                }
-//            }
-//        }
-//    }
 
 //    private void updateTemplateNode(JsonNode vcTemplateNode, String uuid, String issuerDid, Instant nowInstant, Instant expiration) {
 //        ((ObjectNode) vcTemplateNode).put(ID, uuid);
