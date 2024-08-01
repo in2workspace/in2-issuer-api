@@ -29,13 +29,12 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         String credentialIssuerDomain = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain());
         CredentialConfiguration learCredentialEmployee = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)
-                .cryptographicBindingMethodsSupported(List.of())
+                .cryptographicBindingMethodsSupported(List.of("did:key"))
                 .credentialSigningAlgValuesSupported(List.of())
                 .credentialDefinition(CredentialDefinition.builder().type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL)).build())
                 .build();
         CredentialConfiguration verifiableCertification = CredentialConfiguration.builder()
                 .format(JWT_VC_JSON)
-                .cryptographicBindingMethodsSupported(List.of())
                 .credentialSigningAlgValuesSupported(List.of())
                 .credentialDefinition(CredentialDefinition.builder().type(List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL)).build())
                 .build();

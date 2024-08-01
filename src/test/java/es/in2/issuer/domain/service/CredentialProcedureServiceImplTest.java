@@ -343,7 +343,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedEmail = "mandator@example.com";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"signer\":{\"emailAddress\":\"" + expectedEmail + "\"}}}}}";
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"signer\":{\"emailAddress\":\"" + expectedEmail + "\"}}},\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));

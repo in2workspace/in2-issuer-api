@@ -35,7 +35,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         .types(List.of(credentialType))
                         .build()
                 ))
-                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
+                .credentialConfigurationIds(List.of(credentialType))
                 .grants(Map.of(GRANT_TYPE, grant))
                 .build());
     }

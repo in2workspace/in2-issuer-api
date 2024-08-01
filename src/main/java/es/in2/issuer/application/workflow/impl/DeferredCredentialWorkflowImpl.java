@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
+import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -13,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import static es.in2.issuer.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 
 @Service
 @RequiredArgsConstructor
@@ -45,12 +49,25 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get("vc").get("id").asText();
-                        String email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                        String firstName = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+
+                        JsonNode types = credentialNode.get("vc").get("type");
+                        String email = "";
+                        String name = "";
+                        if (types != null && types.isArray()) {
+                            for (JsonNode type : types) {
+                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                    email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
+                                    name = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                                    email = credentialNode.get("vc").get("credentialSubject").get("company").get("email").asText();
+                                    name = credentialNode.get("vc").get("credentialSubject").get("company").get("commonName").asText();
+                                }
+                            }
+                        }
                         // Update the credential in the database
                         return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
                                 .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId))
-                                .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName));
+                                .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", name));
                     } catch (Exception e) {
                         return Mono.error(new RuntimeException("Failed to process signed credential", e));
                     }

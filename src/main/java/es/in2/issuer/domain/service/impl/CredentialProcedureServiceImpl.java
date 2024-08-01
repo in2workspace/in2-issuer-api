@@ -154,7 +154,17 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("signer").get("emailAddress").asText());
+                        JsonNode types = credential.get("vc").get("type");
+                        if (types != null && types.isArray()) {
+                            for (JsonNode type : types) {
+                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                    return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("signer").get("emailAddress").asText());
+                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                                    return Mono.just(credential.get("vc").get("signer").get("emailAddress").asText());
+                                }
+                            }
+                        }
+                        return Mono.error(new CredentialTypeUnsupportedException("Credential Type unsupported or missing"));
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }

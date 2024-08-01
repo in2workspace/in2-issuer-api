@@ -42,7 +42,7 @@ class CredentialOfferServiceImplTest {
                 .expectNextMatches(offer ->
                         offer.credentialIssuer().equals("https://example.com") &&
                                 offer.credentials().size() == 1 &&
-                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_EMPLOYEE)) &&
+                                offer.credentialConfigurationIds().equals(List.of("type1")) &&
                                 offer.grants().containsKey(GRANT_TYPE) &&
                                 offer.grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&
                                 offer.grants().get(GRANT_TYPE).txCode().length() == 4
