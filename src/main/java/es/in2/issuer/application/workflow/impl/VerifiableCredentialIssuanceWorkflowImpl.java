@@ -48,8 +48,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .flatMap(transactionCode -> {
                     String email = learCredentialRequest.credential().get("mandatee").get("email").asText();
                     String firstName =  learCredentialRequest.credential().get("mandatee").get("first_name").asText();
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName);
-                });
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName,appConfig.getWalletUrl());                });
 
     }
 
