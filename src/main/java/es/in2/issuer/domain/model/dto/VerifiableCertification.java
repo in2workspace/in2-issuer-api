@@ -8,7 +8,7 @@ import java.util.List;
 
 @Builder
 public record VerifiableCertification(
-        @NotNull
+        @JsonProperty("@context") List<String> context,
         @JsonProperty("id") String id,
         @NotNull
         @JsonProperty("type") List<String> type,

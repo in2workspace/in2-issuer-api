@@ -14,8 +14,10 @@ import reactor.core.publisher.Mono;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
+import static es.in2.issuer.domain.util.Constants.CREDENTIAL_CONTEXT;
 import static es.in2.issuer.domain.util.Constants.DID_ELSI;
 
 @Component
@@ -47,13 +49,14 @@ public class VerifiableCertificationFactory {
 
 
     public Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential) {
-            // Create the Issuer object
-            VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
-                    .commonName(defaultIssuerConfig.getCommonName())
-                    .country(defaultIssuerConfig.getCountry())
-                    .id(DID_ELSI + defaultIssuerConfig.getOrganizationIdentifier())
-                    .organization(defaultIssuerConfig.getOrganization())
-                    .build();
+        // Compliance list with new IDs
+        List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
+                .map(compliance -> VerifiableCertification.CredentialSubject.Compliance.builder()
+                        .id(UUID.randomUUID().toString())
+                        .scope(compliance.scope())
+                        .standard(compliance.standard())
+                        .build())
+                .toList();
 
             // Create the Signer object
             VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
@@ -66,10 +69,16 @@ public class VerifiableCertificationFactory {
                     .build();
 
             return Mono.just(VerifiableCertification.builder()
-                    .id(credential.id())
+                    .context(CREDENTIAL_CONTEXT)
+                    .id(UUID.randomUUID().toString())
                     .type(credential.type())
-                    .issuer(issuer)
-                    .credentialSubject(credential.credentialSubject())
+                    //.issuer(issuer)
+                    .issuer(credential.issuer())
+                    .credentialSubject(VerifiableCertification.CredentialSubject.builder()
+                            .company(credential.credentialSubject().company())
+                            .product(credential.credentialSubject().product())
+                            .compliance(populatedCompliance)
+                            .build())
                     .issuanceDate(credential.issuanceDate())
                     .validFrom(credential.validFrom())
                     .expirationDate(credential.expirationDate())
@@ -94,20 +103,14 @@ public class VerifiableCertificationFactory {
                         .expirationTime(parseDateToUnixTime(credential.expirationDate()))
                         .issuedAt(parseDateToUnixTime(credential.issuanceDate()))
                         .notValidBefore(parseDateToUnixTime(credential.validFrom()))
-                        .issuer(credential.issuer().id())
+                        .issuer(DID_ELSI + credential.signer().organizationIdentifier())
                         .subject(credential.credentialSubject().product().productId())
                         .build()
         );
     }
 
-//    private long parseDateToUnixTime(String date) {
-//        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME);
-//        return zonedDateTime.toInstant().getEpochSecond();
-//    }
-
     private long parseDateToUnixTime(String date) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSSSSS X 'UTC'");
-        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, formatter.withZone(ZoneOffset.UTC));
+        ZonedDateTime zonedDateTime = ZonedDateTime.parse(date, DateTimeFormatter.ISO_ZONED_DATE_TIME);
         return zonedDateTime.toInstant().getEpochSecond();
     }
 
