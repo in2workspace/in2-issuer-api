@@ -42,7 +42,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName) {
+    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName, String walletUrl) {
         firstName = firstName.replace("\"", "");
         final String finalName = firstName;
 
@@ -56,6 +56,7 @@ public class EmailServiceImpl implements EmailService {
             Context context = new Context();
             context.setVariable("link", link);
             context.setVariable("name", finalName);
+            context.setVariable("walletUrl", walletUrl);
             String htmlContent = templateEngine.process("transaction-code-email", context);
             helper.setText(htmlContent, true);
 

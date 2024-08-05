@@ -4,6 +4,7 @@ import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.infrastructure.config.properties.ApiProperties;
 import es.in2.issuer.infrastructure.config.properties.IssuerUiProperties;
+import es.in2.issuer.infrastructure.config.properties.WalletProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,12 +30,15 @@ class AppConfigTest {
     @Mock
     private IssuerUiProperties issuerUiProperties;
 
+    @Mock
+    private WalletProperties walletProperties;
+
     private AppConfig appConfig;
 
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties);
+        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties,walletProperties);
     }
 
     @Test

@@ -32,6 +32,12 @@ class CacheStoreConfigTest {
     }
 
     @Test
+    void testCacheStoreForTransactionCode() {
+        CacheStore<String> cacheStoreForTransactionCode = cacheStoreConfig.cacheStoreForTransactionCode();
+        assertNotNull(cacheStoreForTransactionCode);
+    }
+
+    @Test
     void testCacheStoreForVerifiableCredentialJwt() {
         long cacheLifetime = 30;
         when(appConfig.getCacheLifetimeForVerifiableCredential()).thenReturn(cacheLifetime);

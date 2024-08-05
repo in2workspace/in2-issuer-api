@@ -113,10 +113,12 @@ class VerifiableCredentialIssuanceServiceImplTest {
         LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder().credential(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
+        String walletUrl = "https://wallet.com";
 
         when(verifiableCredentialService.generateVc(processId,type,learCredentialRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon")).thenReturn(Mono.empty());
+        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId,type,learCredentialRequest))
                 .verifyComplete();

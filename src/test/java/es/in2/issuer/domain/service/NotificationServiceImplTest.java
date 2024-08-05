@@ -22,6 +22,7 @@ class NotificationServiceImplTest {
     private final String procedureId = "procedureId";
     private final String email = "test@example.com";
     private final String firstName = "John";
+    private final String walletUrl = "walletUrl";
     private final String issuerUiExternalDomain = "http://example.com";
 
     @Mock
@@ -51,8 +52,9 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(firstName));
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
+        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer",
-                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, firstName))
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, firstName,walletUrl))
                 .thenReturn(Mono.empty());
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
@@ -60,7 +62,7 @@ class NotificationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString());
+        verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -96,7 +98,7 @@ class NotificationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, never()).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString());
+        verify(emailService, never()).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString());
         verify(emailService, never()).sendCredentialSignedNotification(anyString(), anyString(), anyString());
     }
 }
