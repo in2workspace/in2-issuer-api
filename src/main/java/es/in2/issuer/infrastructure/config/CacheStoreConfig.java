@@ -21,6 +21,11 @@ public class CacheStoreConfig {
     }
 
     @Bean
+    public CacheStore<String> cacheStoreForTransactionCode() {
+        return new CacheStore<>(72, TimeUnit.HOURS);
+    }
+
+    @Bean
     public CacheStore<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {
         return new CacheStore<>(appConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
     }

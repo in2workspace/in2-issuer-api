@@ -35,7 +35,8 @@ public class NotificationServiceImpl implements NotificationService {
                                                         email,
                                                         "Credential Offer",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
-                                                        name
+                                                        name,
+                                                        appConfig.getWalletUrl()
                                                 ));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", name);

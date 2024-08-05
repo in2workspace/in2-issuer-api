@@ -57,7 +57,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     } else {
                         return Mono.error(new CredentialTypeUnsupportedException(type));
                     }
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name);
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
                 });
     }
 

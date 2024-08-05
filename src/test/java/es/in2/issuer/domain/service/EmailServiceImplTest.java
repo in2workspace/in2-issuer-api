@@ -49,7 +49,7 @@ class EmailServiceImplTest {
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("transaction-code-email"), any(Context.class))).thenReturn("htmlContent");
 
-        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "\"John\"");
+        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "\"John\"","walletUrl");
 
         StepVerifier.create(result)
                 .verifyComplete();
