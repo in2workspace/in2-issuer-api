@@ -54,23 +54,10 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode typeNode = credential.get("vc").get("type");
-                        if (typeNode != null && typeNode.isArray()) {
-                            String credentialType = null;
-                            for (JsonNode type : typeNode) {
-                                if (!type.asText().equals("VerifiableCredential") && !type.asText().equals("VerifiableAttestation")) {
-                                    credentialType = type.asText();
-                                    break;
-                                }
-                            }
-                            return Mono.justOrEmpty(credentialType);
-                        } else {
-                            return Mono.error(new RuntimeException("The credential type is missing"));
-                        }
+                        return extractCredentialType(credential);
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException(e));
                     }
-
                 });
     }
 
@@ -105,21 +92,10 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode types = credential.get("vc").get("type");
-                        if (types != null && types.isArray()) {
-                            for (JsonNode type : types) {
-                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                    return Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("email").asText());
-                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-                                    return Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get("company").get("email").asText());
-                                }
-                            }
-                        }
-                        return Mono.error(new CredentialTypeUnsupportedException(CREDENTIAL_TYPE_UNSUPPORTED));
+                        return extractCredentialDetail(credential, "email");
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
-
                 });
     }
 
@@ -129,21 +105,10 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode types = credential.get("vc").get("type");
-                        if (types != null && types.isArray()) {
-                            for (JsonNode type : types) {
-                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                    return Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("first_name").asText());
-                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-                                    return Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get("company").get("commonName").asText());
-                                }
-                            }
-                        }
-                        return Mono.error(new CredentialTypeUnsupportedException(CREDENTIAL_TYPE_UNSUPPORTED));
+                        return extractCredentialDetail(credential, "name");
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
-
                 });
     }
 
@@ -153,21 +118,10 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode types = credential.get("vc").get("type");
-                        if (types != null && types.isArray()) {
-                            for (JsonNode type : types) {
-                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                    return Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get("signer").get("emailAddress").asText());
-                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-                                    return Mono.just(credential.get("vc").get("signer").get("emailAddress").asText());
-                                }
-                            }
-                        }
-                        return Mono.error(new CredentialTypeUnsupportedException(CREDENTIAL_TYPE_UNSUPPORTED));
+                        return extractCredentialDetail(credential, "signerEmail");
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
-
                 });
     }
 
@@ -224,25 +178,13 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        String subjectFullName = "";
-                        JsonNode types = credential.get("vc").get("type");
-                        if (types != null && types.isArray()) {
-                            for (JsonNode type : types) {
-                                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                    subjectFullName = credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("first_name").asText()
-                                            + " "
-                                            + credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("last_name").asText();
-                                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-                                    subjectFullName =  credential.get("vc").get(CREDENTIAL_SUBJECT).get("product").get("productName").asText();
-                                }
-                            }
-                        }
-                        return Mono.just(ProcedureBasicInfo.builder()
-                                .procedureId(credentialProcedure.getProcedureId())
-                                .fullName(subjectFullName)
-                                .status(String.valueOf(credentialProcedure.getCredentialStatus()))
-                                .updated(credentialProcedure.getUpdatedAt())
-                                .build());
+                        return extractCredentialDetail(credential, "fullName")
+                                .map(subjectFullName -> ProcedureBasicInfo.builder()
+                                        .procedureId(credentialProcedure.getProcedureId())
+                                        .fullName(subjectFullName)
+                                        .status(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                        .updated(credentialProcedure.getUpdatedAt())
+                                        .build());
                     } catch (JsonProcessingException e) {
                         log.warn("Error processing json", e);
                         return Mono.error(new JsonParseException(null, PARSIGN_ERROR_MESSAGE));
@@ -255,4 +197,50 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .map(CredentialProcedures::new);
     }
 
+    private Mono<String> extractCredentialType(JsonNode credential) {
+        JsonNode typeNode = credential.get("vc").get("type");
+        if (typeNode != null && typeNode.isArray()) {
+            for (JsonNode type : typeNode) {
+                if (!type.asText().equals("VerifiableCredential") && !type.asText().equals("VerifiableAttestation")) {
+                    return Mono.just(type.asText());
+                }
+            }
+            return Mono.empty();
+        } else {
+            return Mono.error(new RuntimeException("The credential type is missing"));
+        }
+    }
+
+    private Mono<String> extractCredentialDetail(JsonNode credential, String detailType) {
+        JsonNode types = credential.get("vc").get("type");
+        if (types != null && types.isArray()) {
+            for (JsonNode type : types) {
+                if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                    return getDetailBasedOnType(credential, detailType, true);
+                } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
+                    return getDetailBasedOnType(credential, detailType, false);
+                }
+            }
+        }
+        return Mono.error(new CredentialTypeUnsupportedException(CREDENTIAL_TYPE_UNSUPPORTED));
+    }
+
+    private Mono<String> getDetailBasedOnType(JsonNode credential, String detailType, boolean isLEARCredential) {
+        return switch (detailType) {
+            case "email" ->
+                    isLEARCredential ? Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("email").asText())
+                            : Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get("company").get("email").asText());
+            case "name" ->
+                    isLEARCredential ? Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("first_name").asText())
+                            : Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get("company").get("commonName").asText());
+            case "signerEmail" ->
+                    isLEARCredential ? Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get("signer").get("emailAddress").asText())
+                            : Mono.just(credential.get("vc").get("signer").get("emailAddress").asText());
+            case "fullName" ->
+                    isLEARCredential ? Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("first_name").asText()
+                            + " " + credential.get("vc").get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get("last_name").asText())
+                            : Mono.just(credential.get("vc").get(CREDENTIAL_SUBJECT).get("product").get("productName").asText());
+            default -> Mono.error(new IllegalArgumentException("Unknown detail type: " + detailType));
+        };
+    }
 }

@@ -36,7 +36,7 @@ class CredentialControllerTest {
         CredentialData credentialData = CredentialData.builder()
                 .credential(null)
                 .build();
-        when(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(anyString(), eq(type), eq(credentialData))).thenReturn(Mono.empty());
+        when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData))).thenReturn(Mono.empty());
 
         Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, credentialData);
 

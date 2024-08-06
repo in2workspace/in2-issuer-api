@@ -17,8 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.UUID;
-
 import static es.in2.issuer.domain.util.Constants.CWT_VC;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -120,7 +118,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId,type, credentialData))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId,type, credentialData))
                 .verifyComplete();
     }
 

@@ -43,7 +43,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
-    public Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, CredentialData credentialData) {
+    public Mono<Void> completeWithdrawCredentialProcess(String processId, String type, CredentialData credentialData) {
         return verifiableCredentialService.generateVc(processId, type, credentialData)
                 .flatMap(transactionCode -> {
                     String email;
