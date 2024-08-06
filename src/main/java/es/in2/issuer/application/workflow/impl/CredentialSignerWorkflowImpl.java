@@ -2,13 +2,9 @@ package es.in2.issuer.application.workflow.impl;
 
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
-import es.in2.issuer.domain.model.dto.CredentialDetails;
-import es.in2.issuer.domain.model.dto.SignatureConfiguration;
-import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialProcedureService;
-import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.io.Console;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -41,7 +35,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                     log.info("Update Signed Credential");
                     return updateSignedCredential(signedCredential);
                 })
-                .doOnSuccess(x -> log.info("Credential Signed and updated successfull."));
+                .doOnSuccess(x -> log.info("Credential Signed and updated successfully."));
     }
 
     private @NotNull Mono<String> getCredential(String authorizationHeader, String procedureId) {
@@ -54,9 +48,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     }
 
     private @NotNull Mono<String> getSignedCredential(String unsignedCredential, String token) {
-        String userId = "";
-        UUID credentialId = null;
-        return verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, userId, credentialId, token);
+        return verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, token);
     }
 
     private Mono<Void> updateSignedCredential(String signedCredential) {

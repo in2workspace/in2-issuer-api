@@ -17,8 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.CREDENTIAL_CONTEXT;
-import static es.in2.issuer.domain.util.Constants.DID_ELSI;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Component
 @RequiredArgsConstructor
@@ -71,8 +70,7 @@ public class VerifiableCertificationFactory {
             return Mono.just(VerifiableCertification.builder()
                     .context(CREDENTIAL_CONTEXT)
                     .id(UUID.randomUUID().toString())
-                    .type(credential.type())
-                    //.issuer(issuer)
+                    .type(VERIFIABLE_CERTIFICATION_TYPE)
                     .issuer(credential.issuer())
                     .credentialSubject(VerifiableCertification.CredentialSubject.builder()
                             .company(credential.credentialSubject().company())

@@ -191,23 +191,19 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
         String unsignedCredential = "unsignedCredential";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
         String token = "dummyToken";
         String signedCredential = "signedJWTData";
 
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, userId, credentialId, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, token))
                 .assertNext(signedData -> assertEquals(signedCredential, signedData))
                 .verifyComplete();
     }
     @Test
     void signCredentialOnRequestedFormat_CWT_Success() {
         String unsignedCredential = "{\"data\":\"data\"}";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
         String token = "dummyToken";
         String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
         String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
@@ -216,7 +212,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
 
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, CWT_VC, userId, credentialId, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, CWT_VC, token))
                 .assertNext(signedData -> assertEquals(signedResult, signedData))
                 .verifyComplete();
     }
@@ -224,12 +220,10 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Test
     void signCredentialOnRequestedFormat_UnsupportedFormat() {
         String unsignedCredential = "unsignedCredential";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
         String token = "dummyToken";
         String unsupportedFormat = "unsupportedFormat";
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, unsupportedFormat, userId, credentialId, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, unsupportedFormat, token))
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }

@@ -133,7 +133,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     }
 
     @Override
-    public Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String userId, UUID credentialId, String token) {
+    public Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token) {
         return Mono.defer(() -> {
             if (format.equals(JWT_VC)) {
                 log.info(unsignedCredential);
