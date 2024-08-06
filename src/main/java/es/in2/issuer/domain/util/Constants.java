@@ -27,6 +27,8 @@ public class Constants {
     public static final String SUPPORTED_PROOF_ALG = "ES256";
     public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
     public static final String REQUEST_ERROR_MESSAGE = "Error processing the request";
+    public static final String PARSIGN_ERROR_MESSAGE = "Error parsing credential";
+    public static final String CREDENTIAL_TYPE_UNSUPPORTED = "Credential Type unsupported or missing";
     public static final String ISSUER = "issuer";
     public static final String VALID_FROM = "validFrom";
     public static final String ISSUANCE_DATE = "issuanceDate";
