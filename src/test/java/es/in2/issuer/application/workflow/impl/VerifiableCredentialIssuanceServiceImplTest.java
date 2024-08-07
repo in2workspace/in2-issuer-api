@@ -118,7 +118,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId,type, credentialData))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId,type, credentialData, "token"))
                 .verifyComplete();
     }
 

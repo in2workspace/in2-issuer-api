@@ -82,6 +82,12 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
+    public Mono<String> getEncodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> Mono.just(credentialProcedure.getCredentialEncoded()));
+    }
+
+    @Override
     public Mono<String> getCredentialStatusByProcedureId(String procedureId) {
         return credentialProcedureRepository.findCredentialStatusByProcedureId(UUID.fromString(procedureId));
     }

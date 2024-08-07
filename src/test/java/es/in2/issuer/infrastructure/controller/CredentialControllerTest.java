@@ -36,9 +36,9 @@ class CredentialControllerTest {
         CredentialData credentialData = CredentialData.builder()
                 .credential(null)
                 .build();
-        when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData))).thenReturn(Mono.empty());
+        when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData), anyString())).thenReturn(Mono.empty());
 
-        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, credentialData);
+        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, "authorizationHeader", credentialData);
 
         StepVerifier.create(result)
                 .verifyComplete();

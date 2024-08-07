@@ -37,10 +37,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     }
 
-    public Mono<String> generateSignedVc(String processId, String vcType, CredentialData credentialData){
+    @Override
+    public Mono<String> generateVerifiableCertification(String processId, String vcType, CredentialData credentialData){
         return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialData.credential())
-                .flatMap(credentialProcedureService::createCredentialProcedure)
-                .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
+                .flatMap(credentialProcedureService::createCredentialProcedure);
     }
 
     //    @Override

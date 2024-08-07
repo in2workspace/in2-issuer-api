@@ -46,28 +46,31 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         String jwt = signedCredential.credential();
                         SignedJWT signedJWT = SignedJWT.parse(jwt);
                         String payload = signedJWT.getPayload().toString();
+
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get("vc").get("id").asText();
 
                         JsonNode types = credentialNode.get("vc").get("type");
-                        String email = "";
-                        String name = "";
+
                         if (types != null && types.isArray()) {
                             for (JsonNode type : types) {
                                 if (type.asText().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                    email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                                    name = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                    String email = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
+                                    String name = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                    return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
+                                            .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId))
+                                            .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", name));
                                 } else if (type.asText().equals(VERIFIABLE_CERTIFICATION)) {
-                                    email = credentialNode.get("vc").get("credentialSubject").get("company").get("email").asText();
-                                    name = credentialNode.get("vc").get("credentialSubject").get("company").get("commonName").asText();
+                                    //todo: email comentado hasta cuando esté implementado la obtención de la verifiable certification en el wallet
+//                                    String email = credentialNode.get("vc").get("credentialSubject").get("company").get("email").asText();
+//                                    String name = credentialNode.get("vc").get("credentialSubject").get("company").get("commonName").asText();
+                                    return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId);
+//                                            .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", name));
                                 }
                             }
                         }
-                        // Update the credential in the database
-                        return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
-                                .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId))
-                                .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", name));
+                        return Mono.empty();
                     } catch (Exception e) {
                         return Mono.error(new RuntimeException("Failed to process signed credential", e));
                     }

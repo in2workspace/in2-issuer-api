@@ -17,6 +17,8 @@ public interface CredentialProcedureService {
 
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
 
+    Mono<String> getEncodedCredentialByProcedureId(String procedureId);
+
     Mono<String> getCredentialSubjectEmailFromDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getCredentialSubjectNameFromDecodedCredentialByProcedureId(String procedureId);

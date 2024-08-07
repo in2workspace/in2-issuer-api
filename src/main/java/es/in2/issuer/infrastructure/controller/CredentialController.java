@@ -43,9 +43,12 @@ public class CredentialController {
     )
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> createWithdrawnLEARCredential(@RequestParam String type, @RequestBody CredentialData credentialData) {
+    public Mono<Void> createWithdrawnLEARCredential(
+            @RequestParam String type,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+            @RequestBody CredentialData credentialData) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId, type, credentialData);
+        return verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId, type, credentialData, authorizationHeader);
     }
 
     @Operation(
