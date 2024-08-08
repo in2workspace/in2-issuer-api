@@ -22,6 +22,7 @@ class ProcedureBasicInfoTest {
                 uuid,
                 expectedFullName,
                 expectedStatus,
+                "Type",
                 timestamp
         );
 
@@ -67,12 +68,14 @@ class ProcedureBasicInfoTest {
                 uuid,
                 expectedFullName,
                 expectedStatus,
+                "Type",
                 timestamp
         );
         ProcedureBasicInfo procedureBasicInfo2 = new ProcedureBasicInfo(
                 uuid,
                 expectedFullName,
                 expectedStatus,
+                "Type",
                 timestamp
         );
 
