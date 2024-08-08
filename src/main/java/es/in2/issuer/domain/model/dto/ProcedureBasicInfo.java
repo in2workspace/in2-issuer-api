@@ -12,6 +12,7 @@ public record ProcedureBasicInfo(
         @JsonProperty("procedure_id") UUID procedureId,
         @JsonProperty("full_name") String fullName,
         @JsonProperty("status") String status,
+        @JsonProperty("credential_type") String credentialType,
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'", timezone = "UTC")
         @JsonProperty("updated") Timestamp updated
 ) {

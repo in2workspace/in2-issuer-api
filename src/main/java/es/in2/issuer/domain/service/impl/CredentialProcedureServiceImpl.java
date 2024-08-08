@@ -183,6 +183,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                         .procedureId(credentialProcedure.getProcedureId())
                                         .fullName(subjectFullName)
                                         .status(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                        .credentialType(credential.get("vc").get("type").get(0).asText())
                                         .updated(credentialProcedure.getUpdatedAt())
                                         .build());
                     } catch (JsonProcessingException e) {

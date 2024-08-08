@@ -17,6 +17,7 @@ class CredentialProceduresTest {
                 UUID.randomUUID(),
                 "John Doe",
                 "In Progress",
+                "Type",
                 Timestamp.valueOf("2023-01-01 12:00:00")
         );
         CredentialProcedures.CredentialProcedure credentialProcedure = new CredentialProcedures.CredentialProcedure(procedureBasicInfo);
@@ -36,6 +37,7 @@ class CredentialProceduresTest {
                 UUID.randomUUID(),
                 "Jane Doe",
                 "Completed",
+                "Type",
                 Timestamp.valueOf("2024-01-01 12:00:00")
         );
         CredentialProcedures.CredentialProcedure credentialProcedure = new CredentialProcedures.CredentialProcedure(procedureBasicInfo);
@@ -57,6 +59,7 @@ class CredentialProceduresTest {
                 UUID.randomUUID(),
                 "John Doe",
                 "In Progress",
+                "Type",
                 Timestamp.valueOf("2023-01-01 12:00:00")
         );
         CredentialProcedures.CredentialProcedure credentialProcedure = new CredentialProcedures.CredentialProcedure(procedureBasicInfo);
