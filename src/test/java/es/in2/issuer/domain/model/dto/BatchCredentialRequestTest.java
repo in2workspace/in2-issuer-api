@@ -15,8 +15,8 @@ class BatchCredentialRequestTest {
         Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
         CredentialDefinition expectedCredentialDefinition = new CredentialDefinition(List.of("type"));
         List<CredentialRequest> expectedCredentialRequests = List.of(
-                new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof),
-                new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof)
+                new CredentialRequest(expectedFormat, expectedCredentialDefinition, "LEARCredentialEmployee", expectedProof),
+                new CredentialRequest(expectedFormat, expectedCredentialDefinition, "LEARCredentialEmployee", expectedProof)
         );
 
         // Act
@@ -33,8 +33,8 @@ class BatchCredentialRequestTest {
         Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
         CredentialDefinition expectedCredentialDefinition = new CredentialDefinition(List.of("type"));
         List<CredentialRequest> newCredentialRequests = List.of(
-                new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof),
-                new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof)
+                new CredentialRequest(expectedFormat, expectedCredentialDefinition, "LEARCredentialEmployee", expectedProof),
+                new CredentialRequest(expectedFormat, expectedCredentialDefinition, "LEARCredentialEmployee", expectedProof)
         );
 
         // Act

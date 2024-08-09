@@ -98,7 +98,7 @@ class CredentialControllerTest {
         String expectedFormat = "sampleFormat";
         Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
         CredentialDefinition expectedCredentialDefinition = new CredentialDefinition(List.of("type"));
-        BatchCredentialRequest batchCredentialRequest = new BatchCredentialRequest(List.of(new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof)));
+        BatchCredentialRequest batchCredentialRequest = new BatchCredentialRequest(List.of(new CredentialRequest(expectedFormat, expectedCredentialDefinition, "LEARCredentialEmployee", expectedProof)));
         BatchCredentialResponse batchCredentialResponse = BatchCredentialResponse.builder()
                 .credentialResponses(newCredentialResponses)
                 .build();

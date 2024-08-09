@@ -223,7 +223,7 @@ class VerifiableCredentialServiceImplTest {
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
                 .thenReturn(Mono.just(procedureId));
 
-        String credentialType = "credential-type-123";
+        String credentialType = "LEARCredentialEmployee";
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
