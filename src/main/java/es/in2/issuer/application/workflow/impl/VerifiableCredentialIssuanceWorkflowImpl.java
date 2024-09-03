@@ -96,29 +96,31 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
             return verifiableCredentialService.generateVc(processId, type, credentialData)
                     .flatMap(transactionCode -> {
-                        String email = credentialData.credential().get("mandatee").get("email").asText();
-                        String name = credentialData.credential().get("mandatee").get("first_name").asText();
+                        String email = credentialData.payload().get("mandatee").get("email").asText();
+                        String name = credentialData.payload().get("mandatee").get("first_name").asText();
                         return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
                     });
         } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
             return verifiableCredentialService.generateVc(processId, type, credentialData)
-                    .flatMap(transactionCode -> deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
-                            .flatMap(credentialProcedureService::getDecodedCredentialByProcedureId)
-                            .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, token))
-                            .flatMap(signedCredential -> {
-                                List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
-                                SignedCredentials signedCredentials = new SignedCredentials(credentials);
-                                return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials)
-                                        .thenReturn(signedCredential);
-                            })
-                            .flatMap(signedCredential -> marketplaceService.sendVerifiableCertificationToMarketplace(signedCredential)
-                                    .thenReturn(transactionCode))
-                    )
-                    .flatMap(transactionCode -> {
-                        String email = credentialData.credential().get("credentialSubject").get("company").get("email").asText();
-                        String name = credentialData.credential().get("credentialSubject").get("company").get("commonName").asText();
-                        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-                    });
+                    .flatMap(transactionCode ->
+                            deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
+                                    .flatMap(credentialProcedureService::getDecodedCredentialByProcedureId)
+                                    .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, token))
+                                    .flatMap(signedCredential -> {
+                                        List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
+                                        SignedCredentials signedCredentials = new SignedCredentials(credentials);
+                                        return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials)
+                                                .thenReturn(signedCredential);
+                                    })
+                                    .flatMap(signedCredential -> {
+                                        String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
+                                        String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
+                                        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl())
+                                                .thenReturn(signedCredential);
+                                    })
+                                    .flatMap(marketplaceService::sendVerifiableCertificationToMarketplace
+                                    )
+                    );
         } else {
             return Mono.error(new CredentialTypeUnsupportedException(type));
         }

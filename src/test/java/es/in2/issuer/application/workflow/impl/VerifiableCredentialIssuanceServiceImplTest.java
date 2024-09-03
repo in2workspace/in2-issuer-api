@@ -108,7 +108,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        CredentialData credentialData = CredentialData.builder().credential(jsonNode).build();
+        CredentialData credentialData = CredentialData.builder().payload(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";

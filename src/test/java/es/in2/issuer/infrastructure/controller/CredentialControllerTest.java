@@ -34,7 +34,7 @@ class CredentialControllerTest {
     void createWithdrawnLEARCredential() {
         String type = "testType";
         CredentialData credentialData = CredentialData.builder()
-                .credential(null)
+                .payload(null)
                 .build();
         when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData), anyString())).thenReturn(Mono.empty());
 

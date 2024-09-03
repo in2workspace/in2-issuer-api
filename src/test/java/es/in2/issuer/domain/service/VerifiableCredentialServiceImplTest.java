@@ -78,7 +78,7 @@ class VerifiableCredentialServiceImplTest {
         // Arrange: Create a sample JsonNode for LEARCredentialRequest
         JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
         CredentialData credentialData = CredentialData.builder()
-                .credential(credentialJsonNode)
+                .payload(credentialJsonNode)
                 .build();
 
         // Mock the behavior of credentialFactory

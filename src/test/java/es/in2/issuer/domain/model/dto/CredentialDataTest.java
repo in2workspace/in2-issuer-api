@@ -17,10 +17,10 @@ class CredentialDataTest {
         objectNode.put("key", "value");
 
         // Act
-        CredentialData credentialData = new CredentialData(objectNode);
+        CredentialData credentialData = CredentialData.builder().payload(objectNode).build();
 
         // Assert
-        assertEquals(objectNode, credentialData.credential());
+        assertEquals(objectNode, credentialData.payload());
     }
 
     @Test
@@ -31,10 +31,10 @@ class CredentialDataTest {
 
         // Act
         CredentialData credentialData = CredentialData.builder()
-                .credential(objectNode)
+                .payload(objectNode)
                 .build();
 
         // Assert
-        assertEquals(objectNode, credentialData.credential());
+        assertEquals(objectNode, credentialData.payload());
     }
 }

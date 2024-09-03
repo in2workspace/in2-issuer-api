@@ -5,5 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Builder;
 
 @Builder
-public record CredentialData(@JsonProperty("credential") JsonNode credential) {
+public record CredentialData(
+        @JsonProperty("schema") String schema,
+        @JsonProperty("format") String format,
+        @JsonProperty("payload") JsonNode payload,
+        @JsonProperty("operationMode") String operationMode,
+        @JsonProperty("validity_period") int validityPeriod,
+        @JsonProperty("response_uri") String responseUri
+) {
 }
