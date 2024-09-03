@@ -23,6 +23,6 @@ public class CredentialSignerController {
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody ProcedureIdRequest procedureIdRequest) {
-        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId());
+        return credentialSignerWorkflow.signAndUpdateCredential(authorizationHeader, procedureIdRequest.procedureId()).then();
     }
 }

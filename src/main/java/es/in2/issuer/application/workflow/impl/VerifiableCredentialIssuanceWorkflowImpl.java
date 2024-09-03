@@ -2,6 +2,7 @@ package es.in2.issuer.application.workflow.impl;
 
 import com.nimbusds.jose.JWSObject;
 import com.upokecenter.cbor.CBORObject;
+import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.exception.Base45Exception;
@@ -36,60 +37,14 @@ import static es.in2.issuer.domain.util.Constants.*;
 @RequiredArgsConstructor
 public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCredentialIssuanceWorkflow {
 
-
-    private final RemoteSignatureService remoteSignatureService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final AppConfig appConfig;
     private final ProofValidationService proofValidationService;
     private final EmailService emailService;
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
-    private final DeferredCredentialWorkflow deferredCredentialWorkflow;
+    private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final MarketplaceService marketplaceService;
-
-//    @Override
-//    public Mono<Void> completeWithdrawCredentialProcess(String processId, String type, CredentialData credentialData) {
-//        return verifiableCredentialService.generateVc(processId, type, credentialData)
-//                .flatMap(transactionCode -> {
-//                    String email;
-//                    String name;
-//                    if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
-//                        email = credentialData.credential().get("mandatee").get("email").asText();
-//                        name = credentialData.credential().get("mandatee").get("first_name").asText();
-//                    } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
-//                        email = credentialData.credential().get("credentialSubject").get("company").get("email").asText();
-//                        name = credentialData.credential().get("credentialSubject").get("company").get("commonName").asText();
-//                    } else {
-//                        return Mono.error(new CredentialTypeUnsupportedException(type));
-//                    }
-//                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-//                });
-//    }
-
-//    @Override
-//    public Mono<Void> completeWithdrawCredentialProcess(String processId, String type, CredentialData credentialData, String token) {
-//        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
-//            return verifiableCredentialService.generateVc(processId, type, credentialData)
-//                    .flatMap(transactionCode -> {
-//                        String email = credentialData.credential().get("mandatee").get("email").asText();
-//                        String name = credentialData.credential().get("mandatee").get("first_name").asText();
-//                        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-//                    });
-//        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
-//            return verifiableCredentialService.generateVerifiableCertification(processId, type, credentialData)
-//                    .flatMap(credentialProcedureService::getDecodedCredentialByProcedureId)
-//                    .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, token))
-//                    .flatMap(signedCredential -> {
-//                        List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
-//                        SignedCredentials signedCredentials = new SignedCredentials(credentials);
-//                        return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials)
-//                                .thenReturn(signedCredential);
-//                    })
-//                    .flatMap(marketplaceService::sendVerifiableCertificationToMarketplace);
-//        } else {
-//            return Mono.error(new CredentialTypeUnsupportedException(type));
-//        }
-//    }
 
     @Override
     public Mono<Void> completeWithdrawCredentialProcess(String processId, String type, CredentialData credentialData, String token) {
@@ -104,14 +59,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             return verifiableCredentialService.generateVc(processId, type, credentialData)
                     .flatMap(transactionCode ->
                             deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
-                                    .flatMap(credentialProcedureService::getDecodedCredentialByProcedureId)
-                                    .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, token))
-                                    .flatMap(signedCredential -> {
-                                        List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
-                                        SignedCredentials signedCredentials = new SignedCredentials(credentials);
-                                        return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials)
-                                                .thenReturn(signedCredential);
-                                    })
+                                    .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredential(token, procedureId))
                                     .flatMap(signedCredential -> {
                                         String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
                                         String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
@@ -126,34 +74,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         }
     }
 
-//    @Override
-//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-//            String processId,
-//            CredentialRequest credentialRequest,
-//            String token
-//    ) {
-//        try {
-//        JWSObject jwsObject = JWSObject.parse(token);
-//        String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
-//        return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
-//                .flatMap(isValid -> {
-//                    if (Boolean.FALSE.equals(isValid)) {
-//                        return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
-//                    } else {
-//                        return extractDidFromJwtProof(credentialRequest.proof().jwt());
-//                    }
-//                })
-//                .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
-//                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-//                                .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-//                                .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
-//                                        .then(Mono.just(credentialResponse)))));
-//        }
-//        catch (ParseException e){
-//            log.error("Error parsing the accessToken", e);
-//            throw new RuntimeException("Error parsing accessToken", e);
-//        }
-//    }
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
@@ -220,94 +140,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
-    @Override
-    public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token) {
-        return null;
-//            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
-//                    .flatMap(vcPayload -> {
-//                        SignatureRequest signatureRequest = SignatureRequest.builder()
-//                                .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
-//                                .data(vcPayload)
-//                                .build();
-//                        return remoteSignatureService.sign(signatureRequest, token)
-//                                .publishOn(Schedulers.boundedElastic())
-//                                .map(SignedData::data);
-//                    })
-//                    .flatMap(signedCredential -> credentialManagementService.updateCredential(signedCredential, credentialId, userId))
-//                    .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
-    }
-
-    @Override
-    public Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token) {
-        return Mono.defer(() -> {
-            if (format.equals(JWT_VC)) {
-                log.info(unsignedCredential);
-                log.info("Signing credential in JADES remotely ...");
-                SignatureRequest signatureRequest = new SignatureRequest(
-                        new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
-                        unsignedCredential
-                );
-                return remoteSignatureService.sign(signatureRequest, token)
-                        .publishOn(Schedulers.boundedElastic())
-                        .map(SignedData::data);
-            } else if (format.equals(CWT_VC)) {
-                log.info(unsignedCredential);
-                return generateCborFromJson(unsignedCredential)
-                        .flatMap(cbor -> generateCOSEBytesFromCBOR(cbor, token))
-                        .flatMap(this::compressAndConvertToBase45FromCOSE);
-            } else {
-                return Mono.error(new IllegalArgumentException("Unsupported credential format: " + format));
-            }
-        });
-    }
-
-    /**
-     * Generate CBOR payload for COSE.
-     *
-     * @param edgcJson EDGC payload as JSON string
-     * @return Mono emitting CBOR bytes
-     */
-    private Mono<byte[]> generateCborFromJson(String edgcJson) {
-        return Mono.fromCallable(() -> CBORObject.FromJSONString(edgcJson).EncodeToBytes());
-    }
-
-    /**
-     * Generate COSE bytes from CBOR bytes.
-     *
-     * @param cbor  CBOR bytes
-     * @param token Authentication token
-     * @return Mono emitting COSE bytes
-     */
-    private Mono<byte[]> generateCOSEBytesFromCBOR(byte[] cbor, String token) {
-        log.info("Signing credential in COSE format remotely ...");
-        String cborBase64 = Base64.getEncoder().encodeToString(cbor);
-        SignatureRequest signatureRequest = new SignatureRequest(
-                new SignatureConfiguration(SignatureType.COSE, Collections.emptyMap()),
-                cborBase64
-        );
-        return remoteSignatureService.sign(signatureRequest, token).map(signedData -> Base64.getDecoder().decode(signedData.data()));
-    }
-
-    /**
-     * Compress COSE bytes and convert it to Base45.
-     *
-     * @param cose COSE Bytes
-     * @return Mono emitting COSE bytes compressed and in Base45
-     */
-    private Mono<String> compressAndConvertToBase45FromCOSE(byte[] cose) {
-        return Mono.fromCallable(() -> {
-            ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            try (CompressorOutputStream deflateOut = new CompressorStreamFactory()
-                    .createCompressorOutputStream(CompressorStreamFactory.DEFLATE, stream)) {
-                deflateOut.write(cose);
-            } // Automatically closed by try-with-resources
-            byte[] zip = stream.toByteArray();
-            return Base45.getEncoder().encodeToString(zip);
-        }).onErrorResume(e -> {
-            log.error("Error compressing and converting to Base45: " + e.getMessage(), e);
-            return Mono.error(new Base45Exception("Error compressing and converting to Base45"));
-        });
-    }
 
     private Mono<String> extractDidFromJwtProof(String jwtProof) {
         return Mono.fromCallable(() -> {
