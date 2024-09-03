@@ -68,7 +68,7 @@ public class VerifiableCertificationFactory {
                     .build();
 
             return Mono.just(VerifiableCertification.builder()
-                    .context(CREDENTIAL_CONTEXT)
+                    .context(CERTIFICATION_CONTEXT)
                     .id(UUID.randomUUID().toString())
                     .type(VERIFIABLE_CERTIFICATION_TYPE)
                     .issuer(credential.issuer())
