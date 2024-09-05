@@ -233,7 +233,7 @@ class VerifiableCredentialServiceImplTest {
 
         String subjectDid = "did:example:123456789";
         String bindCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
-        when(credentialFactory.mapCredentialBasedOnType(processId, credentialType, decodedCredential, subjectDid))
+        when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
                 .thenReturn(Mono.just(bindCredential));
 
         String format = "json";
@@ -280,7 +280,7 @@ class VerifiableCredentialServiceImplTest {
                 .getDecodedCredentialByProcedureId(procedureId);
 
         verify(credentialFactory, times(1))
-                .mapCredentialBasedOnType(processId, credentialType, decodedCredential, subjectDid);
+                .mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid);
 
         verify(credentialProcedureService, times(1))
                 .updateDecodedCredentialByProcedureId(procedureId, bindCredential, format);

@@ -27,11 +27,11 @@ public class VerifiableCertificationFactory {
     private final DefaultIssuerConfig defaultIssuerConfig;
     private final ObjectMapper objectMapper;
 
-    public Mono<String> mapCredential(String credential) {
-        VerifiableCertificationJwtPayload baseLearCredentialEmployee = mapStringToVerifiableCertification(credential);
-        return Mono.just(baseLearCredentialEmployee)
-                .flatMap(this::convertVerifiableCertificationInToString);
-    }
+//    public Mono<String> mapCredential(String credential) {
+//        VerifiableCertificationJwtPayload baseLearCredentialEmployee = mapStringToVerifiableCertification(credential);
+//        return Mono.just(baseLearCredentialEmployee)
+//                .flatMap(this::convertVerifiableCertificationInToString);
+//    }
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);

@@ -69,7 +69,7 @@ class CredentialFactoryTest {
                 .thenReturn(Mono.just(result));
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialBasedOnType(processId, credentialType, credential, mandateeId))
+        StepVerifier.create(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, mandateeId))
                 .expectNext(result)
                 .verifyComplete();
 
@@ -85,7 +85,7 @@ class CredentialFactoryTest {
         String mandateeId = "mandateeId";
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialBasedOnType(processId, credentialType, credential, mandateeId))
+        StepVerifier.create(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, mandateeId))
                 .expectError(CredentialTypeUnsupportedException.class)
                 .verify();
 

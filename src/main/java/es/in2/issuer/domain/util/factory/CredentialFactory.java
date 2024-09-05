@@ -27,12 +27,9 @@ public class CredentialFactory {
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));
     }
-    public Mono<String> mapCredentialBasedOnType(String processId, String credentialType, String credential, String mandateeId){
+    public Mono<String> mapCredentialAndBindMandateeId(String processId, String credentialType, String credential, String mandateeId){
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return learCredentialEmployeeFactory.mapCredentialAndBindMandateeIdInToTheCredential(credential, mandateeId)
-                    .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped and bind to the id: {}", processId, learCredentialEmployee));
-        } else if (credentialType.equals(VERIFIABLE_CERTIFICATION)) {
-            return verifiableCertificationFactory.mapCredential(credential)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped and bind to the id: {}", processId, learCredentialEmployee));
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));

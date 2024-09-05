@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
@@ -33,7 +34,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialData.payload())
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
-
     }
 
     //    @Override
@@ -83,6 +83,56 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     }
 
+//    @Override
+//    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format) {
+//        return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+//                .flatMap(procedureId -> {
+//                    log.info("Procedure ID obtained: " + procedureId);
+//                    return credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
+//                            .flatMap(credentialType -> {
+//                                log.info("Credential Type obtained: " + credentialType);
+//                                return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
+//
+//                                        .flatMap(credential -> {
+//                                            log.info("Decoded Credential obtained: " + credential);
+//                                            if(LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)){
+//                                                return credentialFactory.mapCredentialBasedOnType(processId, credentialType, credential, subjectDid)
+//                                                        .flatMap(bindCredential -> {
+//                                                            log.info("Bind Credential obtained: " + bindCredential);
+//                                                            return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
+//                                                                    .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format)
+//                                                                            .flatMap(transactionId -> {
+//                                                                                log.info("Transaction ID obtained: " + transactionId);
+//                                                                                return castCredential(bindCredential)
+//                                                                                        .flatMap(credentialJson -> {
+//                                                                                            log.info("Credential JSON: " + credentialJson);
+//                                                                                            return Mono.just(VerifiableCredentialResponse.builder()
+//                                                                                                    .credential(credentialJson)
+//                                                                                                    .transactionId(transactionId)
+//                                                                                                    .build());
+//                                                                                        })
+//                                                                                        .onErrorResume(e -> {
+//                                                                                            log.error("Error processing credential", e);
+//                                                                                            return Mono.error(e);
+//                                                                                        });
+//                                                                            }));
+//                                                        });
+//                                            } else if (VERIFIABLE_CERTIFICATION.equals(credentialType)) {
+//                                                return credentialProcedureService.getEncodedCredentialByProcedureId(procedureId)
+//                                                        .flatMap(encodedCredential ->
+//                                                            Mono.just(VerifiableCredentialResponse.builder()
+//                                                                            .format("jwt_vc")
+//                                                                    .credential(encodedCredential)
+//                                                                    .build())
+//                                                        );
+//                                            } else {
+//                                                return Mono.error(new CredentialTypeUnsupportedException(credentialType));
+//                                            }
+//                                        });
+//                            });
+//                });
+//    }
+
     @Override
     public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format) {
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
@@ -92,46 +142,40 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                             .flatMap(credentialType -> {
                                 log.info("Credential Type obtained: " + credentialType);
                                 return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
-
                                         .flatMap(credential -> {
                                             log.info("Decoded Credential obtained: " + credential);
-                                            if(LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)){
-                                                return credentialFactory.mapCredentialBasedOnType(processId, credentialType, credential, subjectDid)
-                                                        .flatMap(bindCredential -> {
-                                                            log.info("Bind Credential obtained: " + bindCredential);
-                                                            return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
-                                                                    .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format)
-                                                                            .flatMap(transactionId -> {
-                                                                                log.info("Transaction ID obtained: " + transactionId);
-                                                                                return castCredential(bindCredential)
-                                                                                        .flatMap(credentialJson -> {
-                                                                                            log.info("Credential JSON: " + credentialJson);
-                                                                                            return Mono.just(VerifiableCredentialResponse.builder()
-                                                                                                    .credential(credentialJson)
-                                                                                                    .transactionId(transactionId)
-                                                                                                    .build());
-                                                                                        })
-                                                                                        .onErrorResume(e -> {
-                                                                                            log.error("Error processing credential", e);
-                                                                                            return Mono.error(e);
-                                                                                        });
-                                                                            }));
-                                                        });
-                                            } else if (VERIFIABLE_CERTIFICATION.equals(credentialType)) {
-                                                return credentialProcedureService.getEncodedCredentialByProcedureId(procedureId)
-                                                        .flatMap(encodedCredential ->
-                                                            Mono.just(VerifiableCredentialResponse.builder()
-                                                                            .format("jwt_vc")
-                                                                    .credential(encodedCredential)
-                                                                    .build())
-                                                        );
-                                            } else {
-                                                return Mono.error(new CredentialTypeUnsupportedException(credentialType));
-                                            }
+                                            return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid)
+                                                    .flatMap(bindCredential -> {
+                                                        log.info("Bind Credential obtained: " + bindCredential);
+                                                        return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
+                                                                .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format)
+                                                                        .flatMap(transactionId -> {
+                                                                            log.info("Transaction ID obtained: " + transactionId);
+
+                                                                            try {
+                                                                                // Extract the "vc" object
+                                                                                JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
+                                                                                // Convert the "vc" object to LEARCredentialEmployee
+                                                                                LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
+                                                                                // Convert LEARCredentialEmployee back to string
+                                                                                String bindLearCredentialJson = objectMapper.writeValueAsString(learCredential);
+
+                                                                                log.info("LEAR Credential JSON: " + bindLearCredentialJson);
+                                                                                return Mono.just(VerifiableCredentialResponse.builder()
+                                                                                        .credential(bindLearCredentialJson)
+                                                                                        .transactionId(transactionId)
+                                                                                        .build());
+                                                                            } catch (JsonProcessingException e) {
+                                                                                log.error("Error processing JSON", e);
+                                                                                return Mono.error(e);
+                                                                            }
+                                                                        }));
+                                                    });
                                         });
                             });
                 });
     }
+
     public Mono<String> castCredential(String credential) {
         try {
             JsonNode typesNode = objectMapper.readTree(credential).get("vc").get("type");

@@ -84,8 +84,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     .flatMap(transactionCode ->
                             deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                                     .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredential(token, procedureId))
-                                    .flatMap(signedCredential -> sendCredentialOfferEmail(type, transactionCode, credentialData)
-                                            .thenReturn(signedCredential))
+                                    //TODO: envio de credential offer al email para emision asíncrona
+//                                    .flatMap(signedCredential -> sendCredentialOfferEmail(type, transactionCode, credentialData)
+//                                            .thenReturn(signedCredential))
                                     .flatMap(marketplaceService::sendVerifiableCertificationToMarketplace
                                     )
                     );
@@ -95,19 +96,59 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     }
 
     private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, CredentialData credentialData){
-        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
-            String email = credentialData.payload().get("mandatee").get("email").asText();
-            String name = credentialData.payload().get("mandatee").get("first_name").asText();
-            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
-            String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
-            String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
-            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-        } else {
-            return Mono.error(new CredentialTypeUnsupportedException(type));
-        }
+        String email = credentialData.payload().get("mandatee").get("email").asText();
+        String name = credentialData.payload().get("mandatee").get("first_name").asText();
+        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
+        //TODO: envio de credential offer al email condicional al tipo de VC
+//        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
+//            String email = credentialData.credential().get("mandatee").get("email").asText();
+//            String name = credentialData.credential().get("mandatee").get("first_name").asText();
+//            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
+//        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
+//            String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
+//            String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
+//            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
+//        } else {
+//            return Mono.error(new CredentialTypeUnsupportedException(type));
+//        }
     }
 
+
+//    @Override
+//    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
+//            String processId,
+//            CredentialRequest credentialRequest,
+//            String token
+//    ) {
+//        try {
+//            JWSObject jwsObject = JWSObject.parse(token);
+//            String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
+//
+//            if (VERIFIABLE_CERTIFICATION.equals(credentialRequest.credentialIdentifier())) {
+//                // Skip proof validation and return null for subjectDid
+//                return verifiableCredentialService.buildCredentialResponse(processId, null, authServerNonce, credentialRequest.format());
+//            } else if (LEAR_CREDENTIAL_EMPLOYEE.equals(credentialRequest.credentialIdentifier())) {
+//                return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
+//                        .flatMap(isValid -> {
+//                            if (Boolean.FALSE.equals(isValid)) {
+//                                return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
+//                            } else {
+//                                return extractDidFromJwtProof(credentialRequest.proof().jwt());
+//                            }
+//                        })
+//                        .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
+//                                .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+//                                        .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
+//                                        .flatMap(email -> emailService.sendPendingCredentialNotification(email, "Pending Credential")
+//                                                .then(Mono.just(credentialResponse)))));
+//            } else {
+//                return Mono.error(new IllegalArgumentException("Unsupported credential Identifier"));
+//            }
+//        } catch (ParseException e) {
+//            log.error("Error parsing the accessToken", e);
+//            throw new RuntimeException("Error parsing accessToken", e);
+//        }
+//    }
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
@@ -118,32 +159,21 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         try {
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
-
-            if (VERIFIABLE_CERTIFICATION.equals(credentialRequest.credentialIdentifier())) {
-                // Skip proof validation and return null for subjectDid
-                return verifiableCredentialService.buildCredentialResponse(processId, null, authServerNonce, credentialRequest.format())
-                        .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-                                .flatMap(email -> emailService.sendPendingCredentialNotification(email, "Pending Credential")
-                                        .then(Mono.just(credentialResponse))));
-            } else if (LEAR_CREDENTIAL_EMPLOYEE.equals(credentialRequest.credentialIdentifier())) {
-                return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
-                        .flatMap(isValid -> {
-                            if (Boolean.FALSE.equals(isValid)) {
-                                return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
-                            } else {
-                                return extractDidFromJwtProof(credentialRequest.proof().jwt());
-                            }
-                        })
-                        .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
-                                .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                        .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-                                        .flatMap(email -> emailService.sendPendingCredentialNotification(email, "Pending Credential")
-                                                .then(Mono.just(credentialResponse)))));
-            } else {
-                return Mono.error(new IllegalArgumentException("Unsupported credential Identifier"));
-            }
-        } catch (ParseException e) {
+            return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
+                    .flatMap(isValid -> {
+                        if (Boolean.FALSE.equals(isValid)) {
+                            return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
+                        } else {
+                            return extractDidFromJwtProof(credentialRequest.proof().jwt());
+                        }
+                    })
+                    .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
+                            .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                    .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
+                                    .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
+                                            .then(Mono.just(credentialResponse)))));
+        }
+        catch (ParseException e){
             log.error("Error parsing the accessToken", e);
             throw new RuntimeException("Error parsing accessToken", e);
         }
