@@ -211,4 +211,36 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
+    @ExceptionHandler(ResponseUriException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleResponseUriException(ResponseUriException ex) {
+        String description = "Error while sending VC to response uri";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.RESPONSE_URI_RETURNED_ERROR,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+    }
+    @ExceptionHandler(OperationNotSupportedException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleOperationNotSupportedException(OperationNotSupportedException ex) {
+        String description = "Operation is not supported";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+    }
 }

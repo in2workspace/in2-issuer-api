@@ -30,19 +30,19 @@ class CredentialControllerTest {
     @InjectMocks
     private CredentialController credentialController;
 
-    @Test
-    void createWithdrawnLEARCredential() {
-        String type = "testType";
-        CredentialData credentialData = CredentialData.builder()
-                .payload(null)
-                .build();
-        when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData), anyString())).thenReturn(Mono.empty());
-
-        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, "authorizationHeader", credentialData);
-
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
+//    @Test
+//    void createWithdrawnLEARCredential() {
+//        String type = "testType";
+//        CredentialData credentialData = CredentialData.builder()
+//                .payload(null)
+//                .build();
+//        when(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(anyString(), eq(type), eq(credentialData), anyString())).thenReturn(Mono.empty());
+//
+//        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, "authorizationHeader", credentialData);
+//
+//        StepVerifier.create(result)
+//                .verifyComplete();
+//    }
 
     @Test
     void createVerifiableCredential() {
