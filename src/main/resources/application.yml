@@ -129,5 +129,5 @@ remote-signature:
     sign-path: "/signature/sign"
 
 wallet:
-  url: "https://wallet.dome-marketplace-lcl.org"
+  url: "https://wallet.dome-marketplace.org"
 
