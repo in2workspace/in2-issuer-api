@@ -364,4 +364,38 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleResponseUriException_withMessage() {
+        String errorMessage = "Error message for testing";
+        ResponseUriException responseUriException = new ResponseUriException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleResponseUriException(responseUriException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.RESPONSE_URI_RETURNED_ERROR, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleOperationNotSupportedException_withMessage() {
+        String errorMessage = "Error message for testing";
+        OperationNotSupportedException operationNotSupportedException = new OperationNotSupportedException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleOperationNotSupportedException(operationNotSupportedException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
 }

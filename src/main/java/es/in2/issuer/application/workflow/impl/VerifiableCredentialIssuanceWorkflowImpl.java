@@ -10,8 +10,6 @@ import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -66,7 +64,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String email = credentialData.payload().get("mandatee").get("email").asText();
         String name = credentialData.payload().get("mandatee").get("first_name").asText();
         return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-        //TODO: envio de credential offer al email condicional al tipo de VC
+        // Lógica para el envio de credential offer al email condicional al tipo de VC
 //        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
 //            String email = credentialData.credential().get("mandatee").get("email").asText();
 //            String name = credentialData.credential().get("mandatee").get("first_name").asText();
@@ -80,25 +78,26 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 //        }
     }
 
-    private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
-        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
-                .encodedVc(encodedVc)
-                .build();
-
-        return webClient.commonWebClient()
-                .patch()
-                .uri(responseUri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                .bodyValue(responseUriRequest)
-                .exchangeToMono(response -> {
-                    if (response.statusCode().is2xxSuccessful()) {
-                        return Mono.empty();
-                    } else {
-                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
-                    }
-                });
-    }
+    // Método para el envio de la VC al response_uri
+//    private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
+//        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
+//                .encodedVc(encodedVc)
+//                .build();
+//
+//        return webClient.commonWebClient()
+//                .patch()
+//                .uri(responseUri)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+//                .bodyValue(responseUriRequest)
+//                .exchangeToMono(response -> {
+//                    if (response.statusCode().is2xxSuccessful()) {
+//                        return Mono.empty();
+//                    } else {
+//                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
+//                    }
+//                });
+//    }
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
