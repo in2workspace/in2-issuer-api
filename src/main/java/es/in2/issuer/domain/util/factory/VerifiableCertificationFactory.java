@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.infrastructure.config.DefaultIssuerConfig;
+import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,9 +22,8 @@ import static es.in2.issuer.domain.util.Constants.*;
 @RequiredArgsConstructor
 @Slf4j
 public class VerifiableCertificationFactory {
-
-    private final DefaultIssuerConfig defaultIssuerConfig;
     private final ObjectMapper objectMapper;
+    private final AccessTokenService accessTokenService;
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
@@ -50,31 +49,36 @@ public class VerifiableCertificationFactory {
                         .build())
                 .toList();
 
-            // Create the Signer object
-            VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
-                    .commonName(defaultIssuerConfig.getCommonName())
-                    .country(defaultIssuerConfig.getCountry())
-                    .emailAddress(defaultIssuerConfig.getEmail())
-                    .organization(defaultIssuerConfig.getOrganization())
-                    .organizationIdentifier(defaultIssuerConfig.getOrganizationIdentifier())
-                    .serialNumber(defaultIssuerConfig.getSerialNumber())
-                    .build();
+        // Chain the flow reactively without using Mono.just()
+        return accessTokenService.getUserDetailsFromCurrentSession()
+                .map(userDetails -> {
+                    // Create the Signer object using the retrieved UserDetails
+                    VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
+                            .commonName(userDetails.commonName())
+                            .country(userDetails.country())
+                            .emailAddress(userDetails.emailAddress())
+                            .organization(userDetails.organization())
+                            .organizationIdentifier(userDetails.organizationIdentifier())
+                            .serialNumber(userDetails.serialNumber())
+                            .build();
 
-            return Mono.just(VerifiableCertification.builder()
-                    .context(CREDENTIAL_CONTEXT)
-                    .id(UUID.randomUUID().toString())
-                    .type(VERIFIABLE_CERTIFICATION_TYPE)
-                    .issuer(credential.issuer())
-                    .credentialSubject(VerifiableCertification.CredentialSubject.builder()
-                            .company(credential.credentialSubject().company())
-                            .product(credential.credentialSubject().product())
-                            .compliance(populatedCompliance)
-                            .build())
-                    .issuanceDate(credential.issuanceDate())
-                    .validFrom(credential.validFrom())
-                    .expirationDate(credential.expirationDate())
-                    .signer(signer)
-                    .build());
+                    // Build the VerifiableCertification object
+                    return VerifiableCertification.builder()
+                            .context(CREDENTIAL_CONTEXT)
+                            .id(UUID.randomUUID().toString())
+                            .type(VERIFIABLE_CERTIFICATION_TYPE)
+                            .issuer(credential.issuer())
+                            .credentialSubject(VerifiableCertification.CredentialSubject.builder()
+                                    .company(credential.credentialSubject().company())
+                                    .product(credential.credentialSubject().product())
+                                    .compliance(populatedCompliance)
+                                    .build())
+                            .issuanceDate(credential.issuanceDate())
+                            .validFrom(credential.validFrom())
+                            .expirationDate(credential.expirationDate())
+                            .signer(signer)
+                            .build();
+                });
     }
 
     private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
@@ -106,13 +110,16 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
-        return Mono.just(
-                CredentialProcedureCreationRequest.builder()
-                        .credentialId(verifiableCertificationJwtPayload.credential().id())
-                        .organizationIdentifier(defaultIssuerConfig.getOrganizationIdentifier())
-                        .credentialDecoded(decodedCredential)
-                        .build()
-        );
+        return accessTokenService.getOrganizationIdFromCurrentSession()
+                .flatMap(organizationId ->
+                        Mono.just(
+                                CredentialProcedureCreationRequest.builder()
+                                        .credentialId(verifiableCertificationJwtPayload.credential().id())
+                                        .organizationIdentifier(organizationId)
+                                        .credentialDecoded(decodedCredential)
+                                        .build()
+                        )
+                );
     }
 
 }

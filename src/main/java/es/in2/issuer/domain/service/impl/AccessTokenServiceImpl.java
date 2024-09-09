@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
+import es.in2.issuer.domain.model.dto.UserDetails;
 import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -75,6 +76,30 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                 })
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
     }
+
+    @Override
+    public Mono<UserDetails> getUserDetailsFromCurrentSession() {
+        return getTokenFromCurrentSession()
+                .flatMap(this::getCleanBearerToken)
+                .flatMap(token -> {
+                    try {
+                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
+                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
+                        return Mono.just(UserDetails.builder()
+                                .commonName(jsonObject.get("commonName").asText())
+                                .country(jsonObject.get("country").asText())
+                                .emailAddress(jsonObject.get("emailAddress").asText())
+                                .serialNumber(jsonObject.get("serialNumber").asText())
+                                .organizationIdentifier(jsonObject.get("organizationIdentifier").asText())
+                                .organization(jsonObject.get("organization").asText())
+                                .build());
+                    } catch (ParseException | JsonProcessingException e) {
+                        return Mono.error(e);
+                    }
+                })
+                .switchIfEmpty(Mono.error(new InvalidTokenException()));
+    }
+
 
     private Mono<String> getTokenFromCurrentSession() {
         return ReactiveSecurityContextHolder.getContext()

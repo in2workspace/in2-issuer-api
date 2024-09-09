@@ -3,7 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.infrastructure.config.DefaultIssuerConfig;
+import es.in2.issuer.domain.service.AccessTokenService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -19,12 +19,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 class VerifiableCertificationFactoryTest {
-
-    @Mock
-    private DefaultIssuerConfig defaultIssuerConfig;
-
     @Mock
     private ObjectMapper objectMapper;
+
+    @Mock
+    private AccessTokenService accessTokenService;
 
     @InjectMocks
     private VerifiableCertificationFactory verifiableCertificationFactory;
@@ -33,13 +32,16 @@ class VerifiableCertificationFactoryTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        // Mocking DefaultIssuerConfig values
-        when(defaultIssuerConfig.getCommonName()).thenReturn("Common Name");
-        when(defaultIssuerConfig.getCountry()).thenReturn("Country");
-        when(defaultIssuerConfig.getEmail()).thenReturn("email@example.com");
-        when(defaultIssuerConfig.getOrganization()).thenReturn("Organization");
-        when(defaultIssuerConfig.getOrganizationIdentifier()).thenReturn("OrgIdentifier");
-        when(defaultIssuerConfig.getSerialNumber()).thenReturn("SerialNumber");
+        UserDetails userDetails = UserDetails.builder()
+                .commonName("Common Name")
+                .country("Country")
+                .emailAddress("email@example.com")
+                .organization("Organization")
+                .organizationIdentifier("OrgIdentifier")
+                .serialNumber("SerialNumber").build();
+
+        when(accessTokenService.getUserDetailsFromCurrentSession()).thenReturn(Mono.just(userDetails));
+        when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("OrgIdentifier"));
     }
 
     @Test

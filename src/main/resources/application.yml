@@ -121,14 +121,6 @@ auth-server:
     username: "user"
     password: "user"
 
-default-issuer:
-  common-name: "DOME DIGITAL IDENTITY"
-  country: "ES"
-  email: "domesupport@in2.es"
-  organization-identifier: "VATES-B60645900"
-  organization: "IN2"
-  serial-number: "IDCES-56565656P"
-
 remote-signature:
   external-domain: "http://localhost:8082"
   internal-domain: "http://remote-signature:8080"

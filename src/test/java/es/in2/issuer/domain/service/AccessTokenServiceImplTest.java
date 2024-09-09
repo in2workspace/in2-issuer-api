@@ -7,6 +7,7 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
+import es.in2.issuer.domain.model.dto.UserDetails;
 import es.in2.issuer.domain.service.impl.AccessTokenServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -124,6 +125,44 @@ class AccessTokenServiceImplTest {
             StepVerifier.create(result)
                     .expectError(ParseException.class)
                     .verify();
+        }
+    }
+
+    @Test
+    void testGetUserDetailsFromCurrentSession_ValidToken() throws ParseException {
+        String validJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21tb25OYW1lIjoiQ29tbW9uIE5hbWUiLCJjb3VudHJ5IjoiQ291bnRyeSIsImVtYWlsQWRkcmVzcyI6ImVtYWlsQGV4YW1wbGUuY29tIiwic2VyaWFsTnVtYmVyIjoiU2VyaWFsTnVtYmVyIiwib3JnYW5pemF0aW9uSWRlbnRpZmllciI6Ik9yZ0lkZW50aWZpZXIiLCJvcmdhbml6YXRpb24iOiJPcmdhbml6YXRpb24ifQ.i9zpO0jkK36n03c9-6xNfenr5siYZ02baGxvfSto3Eg";
+        UserDetails userDetails = UserDetails.builder()
+                .commonName("Common Name")
+                .country("Country")
+                .emailAddress("email@example.com")
+                .organization("Organization")
+                .organizationIdentifier("OrgIdentifier")
+                .serialNumber("SerialNumber").build();
+
+        String jwtPayload = "{\"commonName\": \"Common Name\",\"country\": \"Country\",\"emailAddress\": \"email@example.com\",\"serialNumber\": \"SerialNumber\",\"organizationIdentifier\": \"OrgIdentifier\",\"organization\": \"Organization\"}";
+
+        Jwt jwt = Jwt.withTokenValue(validJwtToken).header("alg", "HS256").claim("organizationIdentifier", "Organization").build();
+        JwtAuthenticationToken jwtAuthenticationToken = new JwtAuthenticationToken(jwt);
+        SecurityContext securityContext = new SecurityContextImpl(jwtAuthenticationToken);
+
+        try (MockedStatic<ReactiveSecurityContextHolder> mockedContextHolder = mockStatic(ReactiveSecurityContextHolder.class);
+             MockedStatic<SignedJWT> mockedJwtStatic = mockStatic(SignedJWT.class)) {
+
+            mockedContextHolder.when(ReactiveSecurityContextHolder::getContext)
+                    .thenReturn(Mono.just(securityContext));
+
+            // Create a JWSHeader and JWTClaimsSet from the payload
+            JWSHeader jwsHeader = new JWSHeader.Builder(JWSHeader.parse("{\"alg\":\"HS256\"}")).build();
+            JWTClaimsSet jwtClaimsSet = JWTClaimsSet.parse(jwtPayload);
+            SignedJWT signedJWT = new SignedJWT(jwsHeader, jwtClaimsSet);
+
+            mockedJwtStatic.when(() -> SignedJWT.parse(validJwtToken)).thenReturn(signedJWT);
+
+            Mono<UserDetails> result = accessTokenServiceImpl.getUserDetailsFromCurrentSession();
+
+            StepVerifier.create(result)
+                    .expectNext(userDetails)
+                    .verifyComplete();
         }
     }
 
