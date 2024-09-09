@@ -122,12 +122,12 @@ auth-server:
     password: "user"
 
 default-issuer:
-  common-name: "ZEUS OLIMPOS"
-  country: "EU"
+  common-name: "DOME DIGITAL IDENTITY"
+  country: "ES"
   email: "domesupport@in2.es"
-  organization-identifier: "VATEU-B99999999"
+  organization-identifier: "VATES-B60645900"
   organization: "IN2"
-  serial-number: "IDCEU-99999999P"
+  serial-number: "IDCES-56565656P"
 
 remote-signature:
   external-domain: "http://localhost:8082"
@@ -136,5 +136,5 @@ remote-signature:
     sign-path: "/signature/sign"
 
 wallet:
-  url: "https://wallet.dome-marketplace-lcl.org"
+  url: "https://wallet.dome-marketplace.org"
 

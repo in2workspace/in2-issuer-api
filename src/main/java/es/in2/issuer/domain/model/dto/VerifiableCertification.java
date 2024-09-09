@@ -52,6 +52,7 @@ public record VerifiableCertification(
                 @JsonProperty("scope") String scope,
                 @JsonProperty("standard") String standard
         ) {}
+        @Builder
         public record Product(
                 @JsonProperty("productId") String productId,
                 @JsonProperty("productName") String productName,

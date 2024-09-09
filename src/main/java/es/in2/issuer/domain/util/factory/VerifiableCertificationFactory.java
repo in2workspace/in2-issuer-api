@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,12 +26,6 @@ public class VerifiableCertificationFactory {
     private final DefaultIssuerConfig defaultIssuerConfig;
     private final ObjectMapper objectMapper;
 
-//    public Mono<String> mapCredential(String credential) {
-//        VerifiableCertificationJwtPayload baseLearCredentialEmployee = mapStringToVerifiableCertification(credential);
-//        return Mono.just(baseLearCredentialEmployee)
-//                .flatMap(this::convertVerifiableCertificationInToString);
-//    }
-
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
 
@@ -47,7 +40,7 @@ public class VerifiableCertificationFactory {
     }
 
 
-    public Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential) {
+    private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential) {
         // Compliance list with new IDs
         List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
                 .map(compliance -> VerifiableCertification.CredentialSubject.Compliance.builder()
@@ -82,15 +75,6 @@ public class VerifiableCertificationFactory {
                     .expirationDate(credential.expirationDate())
                     .signer(signer)
                     .build());
-    }
-
-    private VerifiableCertificationJwtPayload mapStringToVerifiableCertification(String credential) {
-        try {
-            log.info(objectMapper.readValue(credential, VerifiableCertificationJwtPayload.class).toString());
-            return objectMapper.readValue(credential, VerifiableCertificationJwtPayload.class);
-        } catch (JsonProcessingException e) {
-            throw new ParseErrorException(e.getMessage());
-        }
     }
 
     private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
