@@ -33,20 +33,19 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final WebClientConfig webClient;
 
     @Override
-    public Mono<Void> completeWithdrawCredentialProcess(String processId, String type, CredentialData credentialData, String token) {
-        if (credentialData.operationMode()==null || credentialData.operationMode().equals(SYNC)) {
-            return verifiableCredentialService.generateVc(processId, type, credentialData)
-                    .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, credentialData));
-        } else if (credentialData.operationMode().equals(ASYNC)) {
-            return verifiableCredentialService.generateVc(processId, type, credentialData)
+    public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
+        if (issuanceRequest.operationMode()==null || issuanceRequest.operationMode().equals(SYNC)) {
+            return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
+                    .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+        } else if (issuanceRequest.operationMode().equals(ASYNC)) {
+            return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
                     .flatMap(transactionCode ->
                             deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                                     .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredential(token, procedureId))
-                                    //TODO: envio de credential offer al email para emision asíncrona
-//                                    .flatMap(signedCredential -> sendCredentialOfferEmail(type, transactionCode, credentialData)
-//                                            .thenReturn(signedCredential))
+                                    .flatMap(signedCredential -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest)
+                                            .thenReturn(signedCredential))
                                     .flatMap(encodedVc -> {
-                                        if (credentialData.responseUri() != null) {
+                                        if (issuanceRequest.responseUri() != null) {
                                             return Mono.error(new OperationNotSupportedException("response_uri is not supported"));
                                             //TODO: envio de la VC al response_uri
                                             //return sendVcToResponseUri(credentialData.responseUri(), encodedVc, token);
@@ -60,22 +59,19 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         }
     }
 
-    private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, CredentialData credentialData){
-        String email = credentialData.payload().get("mandatee").get("email").asText();
-        String name = credentialData.payload().get("mandatee").get("first_name").asText();
-        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-        // Lógica para el envio de credential offer al email condicional al tipo de VC
-//        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
-//            String email = credentialData.credential().get("mandatee").get("email").asText();
-//            String name = credentialData.credential().get("mandatee").get("first_name").asText();
-//            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-//        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
+    private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, IssuanceRequest issuanceRequest){
+        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
+            String email = issuanceRequest.payload().get("mandatee").get("email").asText();
+            String name = issuanceRequest.payload().get("mandatee").get("first_name").asText();
+            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
+        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
 //            String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
 //            String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
 //            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-//        } else {
-//            return Mono.error(new CredentialTypeUnsupportedException(type));
-//        }
+            return Mono.empty();
+        } else {
+            return Mono.error(new CredentialTypeUnsupportedException(type));
+        }
     }
 
     // Método para el envio de la VC al response_uri

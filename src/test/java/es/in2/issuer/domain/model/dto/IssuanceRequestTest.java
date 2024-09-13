@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CredentialDataTest {
+class IssuanceRequestTest {
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -17,10 +17,10 @@ class CredentialDataTest {
         objectNode.put("key", "value");
 
         // Act
-        CredentialData credentialData = CredentialData.builder().payload(objectNode).build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(objectNode).build();
 
         // Assert
-        assertEquals(objectNode, credentialData.payload());
+        assertEquals(objectNode, issuanceRequest.payload());
     }
 
     @Test
@@ -30,11 +30,11 @@ class CredentialDataTest {
         objectNode.put("newKey", "newValue");
 
         // Act
-        CredentialData credentialData = CredentialData.builder()
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder()
                 .payload(objectNode)
                 .build();
 
         // Assert
-        assertEquals(objectNode, credentialData.payload());
+        assertEquals(objectNode, issuanceRequest.payload());
     }
 }

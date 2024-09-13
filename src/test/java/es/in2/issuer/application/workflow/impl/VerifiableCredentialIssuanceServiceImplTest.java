@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
@@ -18,11 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -112,17 +108,17 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        CredentialData credentialData = CredentialData.builder().payload(jsonNode).build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";
 
-        when(verifiableCredentialService.generateVc(processId,type, credentialData)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId,type, credentialData, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, "token"))
                 .verifyComplete();
     }
 
@@ -184,14 +180,19 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        CredentialData credentialData = CredentialData.builder().payload(jsonNode).operationMode("A").build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).operationMode("A").build();
         String transactionCode = "4321";
+        String issuerUIExternalDomain = "https://issuer-ui.com";
+        String walletUrl = "https://wallet.com";
 
-        when(verifiableCredentialService.generateVc(processId,type, credentialData)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just("procedureId"));
         when(credentialSignerWorkflow.signAndUpdateCredential("token", "procedureId")).thenReturn(Mono.just("encodedCredential"));
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
+        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId,type, credentialData, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, "token"))
                 .verifyComplete();
     }
 

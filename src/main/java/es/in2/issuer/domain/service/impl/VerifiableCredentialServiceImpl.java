@@ -26,8 +26,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, CredentialData credentialData) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialData.payload())
+    public Mono<String> generateVc(String processId, String vcType, IssuanceRequest issuanceRequest) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload())
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(deferredCredentialMetadataService::createDeferredCredentialMetadata);
     }

@@ -77,7 +77,7 @@ class VerifiableCredentialServiceImplTest {
     void generateVc_Success() throws Exception {
         // Arrange: Create a sample JsonNode for LEARCredentialRequest
         JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
-        CredentialData credentialData = CredentialData.builder()
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder()
                 .payload(credentialJsonNode)
                 .build();
 
@@ -102,7 +102,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(metadataId));
 
         // Act: Call the generateVc method
-        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, credentialData);
+        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, issuanceRequest);
 
         // Assert: Verify the result
         StepVerifier.create(result)

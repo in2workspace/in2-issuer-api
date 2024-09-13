@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.domain.model.dto.CredentialData;
+import es.in2.issuer.domain.model.dto.IssuanceRequest;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -26,8 +26,8 @@ public class IssuanceController {
     private final AccessTokenService accessTokenService;
 
     @Operation(
-            summary = "Creates a withdrawn credential",
-            description = "Generates a a withdrawn credential",
+            summary = "Initiate Credential Issuance",
+            description = "Starts the process of issuing a new credential. This endpoint handles the initial request for Verifiable Credential issuance, ensuring proper validation and preparation for subsequent steps in the issuance workflow.",
             tags = {SwaggerConfig.TAG_PUBLIC}
     )
     @ApiResponses(
@@ -41,8 +41,8 @@ public class IssuanceController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> issueCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-            @RequestBody CredentialData credentialData) {
+            @RequestBody IssuanceRequest issuanceRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeWithdrawCredentialProcess(processId, credentialData.schema(), credentialData, authorizationHeader);
+        return verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, authorizationHeader);
     }
 }
