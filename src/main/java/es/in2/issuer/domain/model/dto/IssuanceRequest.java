@@ -9,7 +9,7 @@ public record IssuanceRequest(
         @JsonProperty("schema") String schema,
         @JsonProperty("format") String format,
         @JsonProperty("payload") JsonNode payload,
-        @JsonProperty("operationMode") String operationMode,
+        @JsonProperty("operation_mode") String operationMode,
         @JsonProperty("validity_period") int validityPeriod,
         @JsonProperty("response_uri") String responseUri
 ) {

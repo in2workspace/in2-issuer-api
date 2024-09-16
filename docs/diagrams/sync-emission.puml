@@ -1,0 +1,43 @@
+@startuml
+autonumber
+boundary "Email" as email
+boundary "Wallet" as wallet
+boundary "Issuer SPA" as issuerSPA
+boundary "Issuer API" as issuerVCI
+boundary "Auth Server" as authserver
+boundary "DSS/Remote Signature" as remoteSignature
+
+group WITHDRAWN
+    issuerSPA -> issuerVCI: Issuance request \n POST /vci/v1/issuances
+    issuerVCI -> issuerVCI: Generate transaction_code \n Save transaction_code in cahe \n Save credential_procedure \n Save deferred_credential_metadata: transaction_code, operation_mode, response_uri
+    issuerVCI -> email: Send link to Credential Offer email (transaction_code) \n to: credential subject
+end
+group VALID
+issuerSPA -> issuerVCI: Open Credential Offer link
+issuerVCI -> issuerVCI: Check transaction_code is in cache \n Get credential_procedure by transaction_code
+issuerVCI <-> authserver: Get Pre Auth Code + PIN
+issuerVCI -> issuerVCI: Update deferred_credential_metadata with auth_server_nonce
+issuerVCI -> email: Send PIN email \n to: credential subject
+issuerVCI -> issuerVCI: Build Credential Offer
+issuerVCI -> issuerSPA: credential_offer_uri for QR
+wallet <-> issuerSPA: Scan QR
+wallet -> issuerVCI: Execute QR content \n GET /credential-offer/{nonce}
+issuerVCI -> wallet: Credential Offer
+wallet -> authserver: Get token using pre-auth-code + PIN
+authserver -> issuerVCI: Update deferred_credential_metadata with new auth_server_nonce \n /api/v1/deferred-credential-metadata/nonce
+authserver -> wallet: Token Response
+wallet -> issuerVCI: Request credential \n /api/v1/credentials/request-credential
+issuerVCI -> issuerVCI: Get credential_procedure by auth_server_nonce
+issuerVCI -> issuerVCI: Validate Proof and extract DID
+issuerVCI -> issuerVCI: Bind DID
+issuerVCI -> issuerVCI: Get operation_mode and reponse_uri in deferred_credential_metadata
+issuerVCI -> remoteSignature: Sign Credential
+remoteSignature -> issuerVCI: Credential encoded
+issuerVCI -> issuerVCI: Update credential_procedure with encoded credential
+issuerVCI -> issuerVCI: Delete deferred_credential_metadata
+issuerVCI -> issuerVCI: Send Signed Credential to response_uri
+issuerVCI -> wallet: Return credential_encoded
+end
+
+
+@enduml
