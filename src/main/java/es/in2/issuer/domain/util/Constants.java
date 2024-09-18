@@ -46,4 +46,5 @@ public class Constants {
     public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
+    public static final String JWT_VC_FORMAT = "jwt_vc";
 }

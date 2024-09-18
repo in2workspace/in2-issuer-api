@@ -12,6 +12,7 @@ public interface DeferredCredentialMetadataRepository extends ReactiveCrudReposi
 
     Mono<DeferredCredentialMetadata> findByTransactionId(String transactionId);
     Mono<DeferredCredentialMetadata> findByTransactionCode(String transactionCode);
-    Mono<DeferredCredentialMetadata> findByAuthServerNonce(String authServerNonce);
+    Mono<DeferredCredentialMetadata> findByAuthServerNonce(String deleteByAuthServerNonce);
     Mono<DeferredCredentialMetadata> findByProcedureId(UUID procedureId);
+    Mono<Void> deleteByAuthServerNonce(String deleteByAuthServerNonce);
 }

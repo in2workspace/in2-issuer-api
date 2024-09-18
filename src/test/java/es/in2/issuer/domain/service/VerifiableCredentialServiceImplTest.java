@@ -98,7 +98,7 @@ class VerifiableCredentialServiceImplTest {
 
         // Mock the behavior of deferredCredentialMetadataService
         String metadataId = "metadata-id-789";
-        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(createdProcedureId))
+        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(createdProcedureId, null, null))
                 .thenReturn(Mono.just(metadataId));
 
         // Act: Call the generateVc method
@@ -117,7 +117,7 @@ class VerifiableCredentialServiceImplTest {
                 .createCredentialProcedure(mockCreationRequest);
 
         verify(deferredCredentialMetadataService, times(1))
-                .createDeferredCredentialMetadata(createdProcedureId);
+                .createDeferredCredentialMetadata(createdProcedureId, null, null);
     }
 
     @Test
@@ -244,7 +244,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(transactionId));
 
         // Act: Call the method
-        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format);
+        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "A");
 
         // Convert the bindCredential JSON string to LEARCredentialEmployee
         JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");

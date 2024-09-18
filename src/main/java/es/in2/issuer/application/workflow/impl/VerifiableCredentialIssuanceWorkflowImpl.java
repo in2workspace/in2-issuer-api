@@ -34,26 +34,32 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
-        if (issuanceRequest.operationMode()==null || issuanceRequest.operationMode().equals(SYNC)) {
+        if (issuanceRequest.operationMode() == null || issuanceRequest.operationMode().equals(ASYNC)) {
             return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
                     .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
-        } else if (issuanceRequest.operationMode().equals(ASYNC)) {
+        } else if (issuanceRequest.operationMode().equals(SYNC)) {
             return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-                    .flatMap(transactionCode ->
-                            deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
+                    .flatMap(transactionCode -> {
+                        if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
+                            return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                                     .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredential(token, procedureId))
                                     .flatMap(signedCredential -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest)
                                             .thenReturn(signedCredential))
                                     .flatMap(encodedVc -> {
                                         if (issuanceRequest.responseUri() != null) {
                                             return Mono.error(new OperationNotSupportedException("response_uri is not supported"));
-                                            //TODO: envio de la VC al response_uri
-                                            //return sendVcToResponseUri(credentialData.responseUri(), encodedVc, token);
+                                            // TODO: envío de la VC al response_uri
+                                            // return sendVcToResponseUri(credentialData.responseUri(), encodedVc, token);
                                         } else {
                                             return Mono.empty();
                                         }
-                                    })
-                    );
+                                    });
+                        } else if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                            return sendCredentialOfferEmail(type, transactionCode, issuanceRequest);
+                        } else {
+                            return Mono.error(new CredentialTypeUnsupportedException(type));
+                        }
+                    });
         } else {
             return Mono.error(new CredentialTypeUnsupportedException(type));
         }
@@ -65,6 +71,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             String name = issuanceRequest.payload().get("mandatee").get("first_name").asText();
             return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
         } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
+            // Envío de email para VerifiableCertification
 //            String email = credentialData.payload().get("credentialSubject").get("company").get("email").asText();
 //            String name = credentialData.payload().get("credentialSubject").get("company").get("commonName").asText();
 //            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
@@ -104,6 +111,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         try {
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
+
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
                     .flatMap(isValid -> {
                         if (Boolean.FALSE.equals(isValid)) {
@@ -112,13 +120,31 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                             return extractDidFromJwtProof(credentialRequest.proof().jwt());
                         }
                     })
-                    .flatMap(subjectDid -> verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format())
-                            .flatMap(credentialResponse -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                    .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-                                    .flatMap(email -> emailService.sendPendingCredentialNotification(email,"Pending Credential")
-                                            .then(Mono.just(credentialResponse)))));
-        }
-        catch (ParseException e){
+                    .flatMap(subjectDid ->
+                            deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
+                                    .flatMap(operationMode ->
+                                            verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
+                                                    .flatMap(credentialResponse -> {
+                                                        if(operationMode.equals(ASYNC)){
+                                                            return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                    .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
+                                                                    .flatMap(email ->
+                                                                            emailService.sendPendingCredentialNotification(email, "Pending Credential")
+                                                                                    .then(Mono.just(credentialResponse))
+                                                                    );
+                                                        } else if (operationMode.equals(SYNC)) {
+                                                            return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                    .flatMap(credentialProcedureService::updateCredentialProcedureCredentialStatusToValidByProcedureId)
+                                                                    .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
+                                                                    .then(Mono.just(credentialResponse));
+                                                        } else {
+                                                            return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
+                                                        }
+                                                    }
+                                                    )
+                                    )
+                    );
+        } catch (ParseException e) {
             log.error("Error parsing the accessToken", e);
             throw new ParseErrorException("Error parsing accessToken");
         }

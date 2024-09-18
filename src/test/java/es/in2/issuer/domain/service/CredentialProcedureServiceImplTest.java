@@ -420,6 +420,41 @@ class CredentialProcedureServiceImplTest {
     }
 
     @Test
+    void getProcedureDetailByProcedureId_shouldReturnCredentialDetails() throws Exception {
+        // Given
+        String procedureId = UUID.randomUUID().toString();
+        String organizationIdentifier = "org-123";
+        String credentialDecoded = "{\"vc\":{\"type\":[\"TestCredentialType\"]}}";
+        UUID expectedProcedureId = UUID.fromString(procedureId);
+        CredentialStatus status = CredentialStatus.ISSUED;
+
+        CredentialProcedure credentialProcedure = new CredentialProcedure();
+        credentialProcedure.setProcedureId(expectedProcedureId);
+        credentialProcedure.setCredentialDecoded(credentialDecoded);
+        credentialProcedure.setCredentialStatus(status);
+        credentialProcedure.setOrganizationIdentifier(organizationIdentifier);
+
+        JsonNode credentialNode = new ObjectMapper().readTree(credentialDecoded);
+
+        // When
+        when(credentialProcedureRepository.findByProcedureId(any(UUID.class)))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(objectMapper.readTree(credentialDecoded))
+                .thenReturn(credentialNode);
+
+        // Execute
+        Mono<CredentialDetails> result = credentialProcedureService.getProcedureDetailByProcedureId(procedureId);
+
+        // Then
+        StepVerifier.create(result)
+                .expectNextMatches(details ->
+                        details.procedureId().equals(expectedProcedureId) &&
+                                details.credentialStatus().equals(status.name()) &&
+                                details.credential().equals(credentialNode))
+                .verifyComplete();
+    }
+
+    @Test
     void getProcedureDetailByProcedureIdAndOrganizationId_shouldReturnCredentialDetails() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();

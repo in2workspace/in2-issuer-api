@@ -30,6 +30,7 @@ public interface CredentialProcedureService {
     Mono<CredentialProcedures> getAllProceduresBasicInfoByOrganizationId(String organizationIdentifier);
 
     Mono<CredentialDetails> getProcedureDetailByProcedureIdAndOrganizationId(String organizationIdentifier, String procedureId);
+    Mono<CredentialDetails> getProcedureDetailByProcedureId(String procedureId);
 
     Mono<Void> updateCredentialProcedureCredentialStatusToValidByProcedureId(String procedureId);
 

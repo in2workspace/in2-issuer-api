@@ -110,7 +110,7 @@ public class LEARCredentialEmployeeFactory {
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.expirationDate()))
                         .issuedAt(parseDateToUnixTime(learCredentialEmployee.issuanceDate()))
                         .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
-                        .issuer(learCredentialEmployee.issuer())
+                        .issuer(DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier())
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );

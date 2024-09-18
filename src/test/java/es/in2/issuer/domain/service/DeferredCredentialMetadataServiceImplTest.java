@@ -79,7 +79,7 @@ class DeferredCredentialMetadataServiceImplTest {
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(new DeferredCredentialMetadata()));
 
         // Act
-        StepVerifier.create(deferredCredentialMetadataService.createDeferredCredentialMetadata(procedureId))
+        StepVerifier.create(deferredCredentialMetadataService.createDeferredCredentialMetadata(procedureId, "A", null))
                 .expectNext(transactionCode)
                 .verifyComplete();
 

@@ -9,10 +9,8 @@ import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.model.enums.SignatureType;
-import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -38,12 +36,11 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
 
     private final DeferredCredentialWorkflow deferredCredentialWorkflow;
     private final CredentialProcedureService credentialProcedureService;
-    private final AccessTokenService accessTokenService;
     private final RemoteSignatureService remoteSignatureService;
 
     @Override
     public Mono<String> signAndUpdateCredential(String authorizationHeader, String procedureId) {
-        return getCredential(authorizationHeader, procedureId)
+        return getCredential(procedureId)
                 .flatMap(unsignedCredential -> {
                     log.info("Start get signed credential.");
                     return signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, authorizationHeader);
@@ -56,12 +53,8 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                 .doOnSuccess(x -> log.info("Credential Signed and updated successfully."));
     }
 
-    private @NotNull Mono<String> getCredential(String authorizationHeader, String procedureId) {
-        return accessTokenService.getOrganizationId(authorizationHeader)
-                .flatMap(organizationId -> {
-                    log.info("Start get credential");
-                    return credentialProcedureService.getProcedureDetailByProcedureIdAndOrganizationId(organizationId, procedureId);
-                })
+    private @NotNull Mono<String> getCredential(String procedureId) {
+        return credentialProcedureService.getProcedureDetailByProcedureId(procedureId)
                 .map(credentialDetails -> credentialDetails.credential().toString());
     }
 

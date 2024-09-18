@@ -157,6 +157,25 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
+    public Mono<CredentialDetails> getProcedureDetailByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                .switchIfEmpty(Mono.error(new NoCredentialFoundException("No credential found for procedureId: " + procedureId)))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        return Mono.just(CredentialDetails.builder()
+                                .procedureId(credentialProcedure.getProcedureId())
+                                .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
+                                .build());
+                    } catch (JsonProcessingException e) {
+                        log.warn(PARSIGN_ERROR_MESSAGE, e);
+                        return Mono.error(new JsonParseException(null, PARSIGN_ERROR_MESSAGE));
+                    }
+                })
+                .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
+    }
+
+    @Override
     public Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId) {
         return credentialProcedureRepository.findByCredentialId(UUID.fromString(credentialId))
                 .flatMap(credentialProcedure -> {

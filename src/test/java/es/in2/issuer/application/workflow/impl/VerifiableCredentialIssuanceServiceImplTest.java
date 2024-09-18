@@ -123,7 +123,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     }
 
     @Test
-    void completeWithdrawAsyncProcessSuccess() throws JsonProcessingException {
+    void completeWithdrawSyncProcessSuccess() throws JsonProcessingException {
         String processId = "1234";
         String type = "LEARCredentialEmployee";
         String json = """
@@ -180,14 +180,14 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).operationMode("A").build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).operationMode("S").schema("LEARCredentialEmployee").build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";
 
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
-        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just("procedureId"));
-        when(credentialSignerWorkflow.signAndUpdateCredential("token", "procedureId")).thenReturn(Mono.just("encodedCredential"));
+//        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just("procedureId"));
+//        when(credentialSignerWorkflow.signAndUpdateCredential("token", "procedureId")).thenReturn(Mono.just("encodedCredential"));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
@@ -218,10 +218,11 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String mandatorEmail = "jhon@gmail.com";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format())).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "A")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
         when(emailService.sendPendingCredentialNotification(mandatorEmail,"Pending Credential")).thenReturn(Mono.empty());
+        when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("A"));
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
