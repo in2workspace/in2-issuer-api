@@ -147,6 +147,42 @@ class DeferredCredentialMetadataServiceImplTest {
     }
 
     @Test
+    void testGetOperationModeByAuthServerNonce_Success() {
+        // Arrange
+        String authServerNonce = "auth-server-nonce";
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
+        deferredCredentialMetadata.setOperationMode("A");
+        when(deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce))
+                .expectNext(deferredCredentialMetadata.getOperationMode())
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByAuthServerNonce(authServerNonce);
+    }
+
+    @Test
+    void testGetOperationModeByProcedureId_Success() {
+        // Arrange
+        UUID procedureId = UUID.randomUUID();
+        DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
+        deferredCredentialMetadata.setProcedureId(procedureId);
+        deferredCredentialMetadata.setOperationMode("A");
+        when(deferredCredentialMetadataRepository.findByProcedureId(procedureId)).thenReturn(Mono.just(deferredCredentialMetadata));
+
+        // Act
+        StepVerifier.create(deferredCredentialMetadataService.getOperationModeByProcedureId(String.valueOf(procedureId)))
+                .expectNext(deferredCredentialMetadata.getOperationMode())
+                .verifyComplete();
+
+        // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByProcedureId(procedureId);
+    }
+
+    @Test
     void testUpdateAuthServerNonceByTransactionCode_Success() {
         // Arrange
         String transactionCode = "transaction-code";
