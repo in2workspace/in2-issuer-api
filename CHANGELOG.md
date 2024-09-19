@@ -23,14 +23,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Batch credential support (extra)
 
 ## [Unreleased]: v0.3.0
-- Support for credential in JWT and CWT.
+- Support for credentials in JWT and CWT.
 - Remove of external libraries for CV generation
 - Native credential payload generation.
 - Local emission.
 
 ## [Unreleased]: v0.2.0
 - Adapter for Abstract Configuration loading.
-- Support for Configurations from Yaml file.
+- Support for Configurations from YAML file.
 - Support for Configurations from Azure App Configuration.
 
 ## [Unreleased]: v0.1.0
