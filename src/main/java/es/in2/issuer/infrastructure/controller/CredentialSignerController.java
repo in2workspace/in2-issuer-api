@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import static es.in2.issuer.domain.util.Constants.JWT_VC;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/sign-credential")
@@ -22,6 +24,6 @@ public class CredentialSignerController {
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody ProcedureIdRequest procedureIdRequest) {
-        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId()).then();
+        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId(), JWT_VC).then();
     }
 }

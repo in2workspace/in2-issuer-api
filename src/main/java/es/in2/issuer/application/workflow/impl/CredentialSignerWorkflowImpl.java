@@ -36,11 +36,11 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final RemoteSignatureService remoteSignatureService;
 
     @Override
-    public Mono<String> signCredential(String authorizationHeader, String procedureId) {
+    public Mono<String> signCredential(String authorizationHeader, String procedureId, String format) {
         return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                 .flatMap(unsignedCredential -> {
                     log.info("Start get signed credential.");
-                    return signCredentialOnRequestedFormat(unsignedCredential, Constants.JWT_VC, authorizationHeader);
+                    return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader);
                 })
                 .flatMap(signedCredential -> {
                     log.info("Update Signed Credential");

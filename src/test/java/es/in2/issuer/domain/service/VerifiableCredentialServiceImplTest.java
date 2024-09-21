@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
+import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -340,7 +341,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(transactionId));
 
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(procedureId));
-        when(credentialSignerWorkflow.signCredential(BEARER_PREFIX + "token", procedureId)).thenReturn(Mono.just("signedCredential"));
+        when(credentialSignerWorkflow.signCredential(BEARER_PREFIX + "token", procedureId, Constants.JWT_VC)).thenReturn(Mono.just("signedCredential"));
 
         // Act: Call the method
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "S");

@@ -1,6 +1,5 @@
 package es.in2.issuer.application.workflow.impl;
 
-import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
@@ -37,11 +36,6 @@ class CredentialSignerWorkflowImplTest {
     @InjectMocks
     CredentialSignerWorkflowImpl credentialSignerWorkflow;
 
-    //TODO
-   /* @Test
-    void itS*/
-
-
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
         String unsignedCredential = "unsignedCredential";
@@ -55,36 +49,43 @@ class CredentialSignerWorkflowImplTest {
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
         when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId))
+        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, JWT_VC))
                 .assertNext(signedData -> assertEquals(signedCredential, signedData))
                 .verifyComplete();
     }
-//    @Test
-//    void signCredentialOnRequestedFormat_CWT_Success() {
-//        String unsignedCredential = "{\"data\":\"data\"}";
-//        String token = "dummyToken";
-//        String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
-//        String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
-//
-//        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
-//                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
-//
-//
-//        StepVerifier.create(credentialSignerWorkflow.signCredentialOnRequestedFormat(unsignedCredential, CWT_VC, token))
-//                .assertNext(signedData -> assertEquals(signedResult, signedData))
-//                .verifyComplete();
-//    }
-//
-//    @Test
-//    void signCredentialOnRequestedFormat_UnsupportedFormat() {
-//        String unsignedCredential = "unsignedCredential";
-//        String token = "dummyToken";
-//        String unsupportedFormat = "unsupportedFormat";
-//
-//        StepVerifier.create(credentialSignerWorkflow.signCredentialOnRequestedFormat(unsignedCredential, unsupportedFormat, token))
-//                .expectError(IllegalArgumentException.class)
-//                .verify();
-//    }
+    @Test
+    void signCredentialOnRequestedFormat_CWT_Success() {
+        String unsignedCredential = "{\"data\":\"data\"}";
+        String token = "dummyToken";
+        String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
+        String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
+        String procedureId = "procedureId";
+
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
+        when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
+
+
+        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, CWT_VC))
+                .assertNext(signedData -> assertEquals(signedResult, signedData))
+                .verifyComplete();
+    }
+
+    @Test
+    void signCredentialOnRequestedFormat_UnsupportedFormat() {
+        String unsignedCredential = "unsignedCredential";
+        String token = "dummyToken";
+        String unsupportedFormat = "unsupportedFormat";
+        String procedureId = "procedureId";
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
+
+        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, unsupportedFormat))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+    }
 
 
 }
