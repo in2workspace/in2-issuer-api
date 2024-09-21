@@ -341,7 +341,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(transactionId));
 
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(procedureId));
-        when(credentialSignerWorkflow.signCredential(BEARER_PREFIX + "token", procedureId, Constants.JWT_VC)).thenReturn(Mono.just("signedCredential"));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "token", procedureId, Constants.JWT_VC)).thenReturn(Mono.just("signedCredential"));
 
         // Act: Call the method
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "S");

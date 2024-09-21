@@ -9,7 +9,6 @@ import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
-import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -136,7 +135,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             }
         } else if (operationMode.equals(SYNC)) {
             return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                    .flatMap(procedureId -> credentialSignerWorkflow.signCredential(BEARER_PREFIX + token, procedureId, JWT_VC))
+                    .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
                     .flatMap(signedCredential -> Mono.just(VerifiableCredentialResponse.builder()
                             .credential(signedCredential)
                             .build())

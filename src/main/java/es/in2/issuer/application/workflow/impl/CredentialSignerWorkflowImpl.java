@@ -36,7 +36,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final RemoteSignatureService remoteSignatureService;
 
     @Override
-    public Mono<String> signCredential(String authorizationHeader, String procedureId, String format) {
+    public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
         return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                 .flatMap(unsignedCredential -> {
                     log.info("Start get signed credential.");

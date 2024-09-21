@@ -49,7 +49,7 @@ class CredentialSignerWorkflowImplTest {
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
         when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
 
-        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, JWT_VC))
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
                 .assertNext(signedData -> assertEquals(signedCredential, signedData))
                 .verifyComplete();
     }
@@ -68,7 +68,7 @@ class CredentialSignerWorkflowImplTest {
         when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
 
 
-        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, CWT_VC))
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, CWT_VC))
                 .assertNext(signedData -> assertEquals(signedResult, signedData))
                 .verifyComplete();
     }
@@ -82,7 +82,7 @@ class CredentialSignerWorkflowImplTest {
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
 
-        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId, unsupportedFormat))
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, unsupportedFormat))
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
