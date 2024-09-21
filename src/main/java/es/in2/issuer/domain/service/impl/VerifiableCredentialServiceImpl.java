@@ -138,7 +138,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                     .flatMap(procedureId -> credentialSignerWorkflow.signCredential(BEARER_PREFIX + token, procedureId, JWT_VC))
                     .flatMap(signedCredential -> Mono.just(VerifiableCredentialResponse.builder()
-                            .format("jwt_vc")
                             .credential(signedCredential)
                             .build())
                     );
