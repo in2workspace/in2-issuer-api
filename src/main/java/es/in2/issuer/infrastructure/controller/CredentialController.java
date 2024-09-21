@@ -30,25 +30,6 @@ public class CredentialController {
     private final AccessTokenService accessTokenService;
 
     @Operation(
-            summary = "Creates a withdrawn credential",
-            description = "Generates a a withdrawn credential and sends a notification to the appointed employee",
-            tags = {SwaggerConfig.TAG_PUBLIC}
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "201", description = "Returns Created when the creation was successfully"),
-                    @ApiResponse(responseCode = "400", description = "The request is invalid or missing params Ensure the 'Authorization' header is set with a valid Bearer Token."),
-                    @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs.")
-            }
-    )
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> createWithdrawnLEARCredential(@RequestParam String type, @RequestBody LEARCredentialRequest learCredentialRequest) {
-        String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId, type, learCredentialRequest);
-    }
-
-    @Operation(
             summary = "Generate a new Verifiable Credential",
             description = "Generate a new Verifiable Credential and returns it with its id (nonce) assigned, lifetime in seconds and format",
             tags = {SwaggerConfig.TAG_PRIVATE}

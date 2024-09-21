@@ -31,20 +31,6 @@ class CredentialControllerTest {
     private CredentialController credentialController;
 
     @Test
-    void createWithdrawnLEARCredential() {
-        String type = "testType";
-        LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder()
-                .credential(null)
-                .build();
-        when(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(anyString(), eq(type), eq(learCredentialRequest))).thenReturn(Mono.empty());
-
-        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, learCredentialRequest);
-
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
-
-    @Test
     void createVerifiableCredential() {
         //Arrange
         String authorizationHeader = "Bearer testToken";

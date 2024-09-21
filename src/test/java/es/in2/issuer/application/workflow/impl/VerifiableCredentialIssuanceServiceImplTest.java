@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
@@ -17,19 +16,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.UUID;
-
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {
-    @Mock
-    private RemoteSignatureService remoteSignatureService;
 
     @Mock
     private VerifiableCredentialService verifiableCredentialService;
@@ -110,17 +101,17 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder().credential(jsonNode).build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";
 
-        when(verifiableCredentialService.generateVc(processId,type,learCredentialRequest)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId,type,learCredentialRequest))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest))
                 .verifyComplete();
     }
 
@@ -145,10 +136,11 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String mandatorEmail = "jhon@gmail.com";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format())).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "A")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
         when(emailService.sendPendingCredentialNotification(mandatorEmail,"Pending Credential")).thenReturn(Mono.empty());
+        when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("A"));
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
@@ -186,52 +178,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.bindAccessTokenByPreAuthorizedCode(processId,authServerNonceRequest))
                 .verifyComplete();
-    }
-
-    @Test
-    void signCredentialOnRequestedFormat_JWT_Success() {
-        String unsignedCredential = "unsignedCredential";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
-        String token = "dummyToken";
-        String signedCredential = "signedJWTData";
-
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
-                .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
-
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, userId, credentialId, token))
-                .assertNext(signedData -> assertEquals(signedCredential, signedData))
-                .verifyComplete();
-    }
-    @Test
-    void signCredentialOnRequestedFormat_CWT_Success() {
-        String unsignedCredential = "{\"data\":\"data\"}";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
-        String token = "dummyToken";
-        String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
-        String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
-
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
-                .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
-
-
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, CWT_VC, userId, credentialId, token))
-                .assertNext(signedData -> assertEquals(signedResult, signedData))
-                .verifyComplete();
-    }
-
-    @Test
-    void signCredentialOnRequestedFormat_UnsupportedFormat() {
-        String unsignedCredential = "unsignedCredential";
-        String userId = "user123";
-        UUID credentialId = UUID.randomUUID();
-        String token = "dummyToken";
-        String unsupportedFormat = "unsupportedFormat";
-
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.signCredentialOnRequestedFormat(unsignedCredential, unsupportedFormat, userId, credentialId, token))
-                .expectError(IllegalArgumentException.class)
-                .verify();
     }
 
 }

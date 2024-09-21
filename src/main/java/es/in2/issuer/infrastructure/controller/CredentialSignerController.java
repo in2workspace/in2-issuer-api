@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -23,6 +22,6 @@ public class CredentialSignerController {
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody ProcedureIdRequest procedureIdRequest) {
-        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId());
+        return credentialSignerWorkflow.signCredential(authorizationHeader, procedureIdRequest.procedureId()).then();
     }
 }

@@ -6,7 +6,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface VerifiableCredentialIssuanceWorkflow {
-    Mono<Void> completeWithdrawLearCredentialProcess(String processId, String type, LEARCredentialRequest learCredentialRequest);
+    Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest);
 
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId, CredentialRequest credentialRequest, String token);
 
@@ -16,9 +16,6 @@ public interface VerifiableCredentialIssuanceWorkflow {
 
     // Method for signing deferred credential using remote DSS, currently not in use in DOME profile
     Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token);
-
-    // Method for generating and signing credential using remote DSS, currently not in use in DOME profile
-    Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String userId, UUID credentialId, String token);
 
     Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest);
 }
