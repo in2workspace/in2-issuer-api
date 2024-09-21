@@ -1,9 +1,12 @@
 package es.in2.issuer.application.workflow.impl;
 
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
+import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.model.enums.SignatureType;
+import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +28,12 @@ class CredentialSignerWorkflowImplTest {
     @Mock
     private RemoteSignatureService remoteSignatureService;
 
+    @Mock
+    private CredentialProcedureService credentialProcedureService;
+
+    @Mock
+    private DeferredCredentialWorkflow deferredCredentialWorkflow;
+
     @InjectMocks
     CredentialSignerWorkflowImpl credentialSignerWorkflow;
 
@@ -33,19 +42,23 @@ class CredentialSignerWorkflowImplTest {
     void itS*/
 
 
-//    @Test
-//    void signCredentialOnRequestedFormat_JWT_Success() {
-//        String unsignedCredential = "unsignedCredential";
-//        String token = "dummyToken";
-//        String signedCredential = "signedJWTData";
-//
-//        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
-//                .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
-//
-//        StepVerifier.create(credentialSignerWorkflow.signCredentialOnRequestedFormat(unsignedCredential, JWT_VC, token))
-//                .assertNext(signedData -> assertEquals(signedCredential, signedData))
-//                .verifyComplete();
-//    }
+    @Test
+    void signCredentialOnRequestedFormat_JWT_Success() {
+        String unsignedCredential = "unsignedCredential";
+        String token = "dummyToken";
+        String signedCredential = "signedJWTData";
+        String procedureId = "procedureId";
+
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
+        when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(credentialSignerWorkflow.signCredential(token, procedureId))
+                .assertNext(signedData -> assertEquals(signedCredential, signedData))
+                .verifyComplete();
+    }
 //    @Test
 //    void signCredentialOnRequestedFormat_CWT_Success() {
 //        String unsignedCredential = "{\"data\":\"data\"}";

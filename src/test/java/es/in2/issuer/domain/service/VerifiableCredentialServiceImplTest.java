@@ -2,6 +2,7 @@ package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
@@ -13,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -33,6 +35,8 @@ class VerifiableCredentialServiceImplTest {
     private CredentialFactory credentialFactory;
     @Mock
     private CredentialProcedureService credentialProcedureService;
+    @Mock
+    private CredentialSignerWorkflow credentialSignerWorkflow;
     @Mock
     private ObjectMapper objectMapper;
     @InjectMocks
@@ -272,6 +276,98 @@ class VerifiableCredentialServiceImplTest {
         verify(deferredCredentialMetadataService, times(1))
                 .getProcedureIdByAuthServerNonce(authServerNonce);
 
+        verify(credentialProcedureService, times(1))
+                .getCredentialTypeByProcedureId(procedureId);
+
+        verify(credentialProcedureService, times(1))
+                .getDecodedCredentialByProcedureId(procedureId);
+
+        verify(credentialFactory, times(1))
+                .mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid);
+
+        verify(credentialProcedureService, times(1))
+                .updateDecodedCredentialByProcedureId(procedureId, bindCredential, format);
+
+        verify(deferredCredentialMetadataService, times(1))
+                .updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
+    }
+
+    @Test
+    void buildCredentialResponseSync_Success() throws Exception {
+        // Mock the behavior of ObjectMapper to parse the JSON string into JsonNode
+        when(objectMapper.readTree(anyString())).thenAnswer(invocation -> {
+            String json = invocation.getArgument(0, String.class);
+            return new ObjectMapper().readTree(json); // Use a new ObjectMapper to parse the string
+        });
+
+        // Mock the behavior of ObjectMapper to convert JsonNode to LEARCredentialEmployee
+        when(objectMapper.treeToValue(any(JsonNode.class), eq(LEARCredentialEmployee.class)))
+                .thenAnswer(invocation -> {
+                    JsonNode node = invocation.getArgument(0, JsonNode.class);
+                    return new ObjectMapper().treeToValue(node, LEARCredentialEmployee.class); // Use a new ObjectMapper to do the conversion
+                });
+
+        // Mock the behavior of ObjectMapper to convert LEARCredentialEmployee to JSON string
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class)))
+                .thenAnswer(invocation -> {
+                    LEARCredentialEmployee credential = invocation.getArgument(0, LEARCredentialEmployee.class);
+                    return new ObjectMapper().writeValueAsString(credential); // Use a new ObjectMapper to do the conversion
+                });
+
+        // Arrange: Mock the service methods
+        String authServerNonce = "auth-server-nonce-789";
+        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
+                .thenReturn(Mono.just(procedureId));
+
+        String credentialType = "LEARCredentialEmployee";
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialType));
+
+        String decodedCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(decodedCredential));
+
+        String subjectDid = "did:example:123456789";
+        String bindCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
+                .thenReturn(Mono.just(bindCredential));
+
+        String format = "json";
+        when(credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format))
+                .thenReturn(Mono.empty());
+
+        when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
+                .thenReturn(Mono.just(transactionId));
+
+        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(procedureId));
+        when(credentialSignerWorkflow.signCredential(BEARER_PREFIX + "token", procedureId)).thenReturn(Mono.just("signedCredential"));
+
+        // Act: Call the method
+        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "S");
+
+        // Convert the bindCredential JSON string to LEARCredentialEmployee
+        JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
+        LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
+
+        // Log the intermediate LEARCredentialEmployee object for debugging
+        System.out.println("Parsed LEARCredentialEmployee: " + learCredential);
+
+        // Convert the LEARCredentialEmployee to JSON string for expected value
+        String expectedCredentialJson = objectMapper.writeValueAsString(learCredential);
+
+        // Log the expected credential JSON for debugging
+        System.out.println("Expected Credential JSON: " + expectedCredentialJson);
+
+        // Assert: Verify the result
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    // Log the response for debugging
+                    System.out.println("Response: " + response);
+                    return response.credential().equals("signedCredential");
+                })
+                .verifyComplete();
+
+        // Verify the interactions
         verify(credentialProcedureService, times(1))
                 .getCredentialTypeByProcedureId(procedureId);
 
