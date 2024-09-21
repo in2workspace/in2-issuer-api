@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import static es.in2.issuer.domain.util.Constants.ASYNC;
+
 @Service
 @RequiredArgsConstructor
 public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflow {
@@ -49,8 +51,16 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         String firstName = credentialNode.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
                         // Update the credential in the database
                         return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
-                                .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId))
-                                .then(emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName));
+                                .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId)
+                                        // Send notification email depending on operationMode
+                                        .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
+                                        .flatMap(operationMode -> {
+                                            if(operationMode.equals(ASYNC)){
+                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                            }
+                                            return Mono.empty();
+                                        })
+                                );
                     } catch (Exception e) {
                         return Mono.error(new RuntimeException("Failed to process signed credential", e));
                     }
