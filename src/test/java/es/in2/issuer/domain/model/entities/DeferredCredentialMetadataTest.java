@@ -76,7 +76,9 @@ class DeferredCredentialMetadataTest {
                 ", transactionId=" + deferredCredentialMetadata.getTransactionId() +
                 ", procedureId=" + deferredCredentialMetadata.getProcedureId() +
                 ", vc=" + deferredCredentialMetadata.getVc() +
-                ", vcFormat=" + deferredCredentialMetadata.getVcFormat() + ")";
+                ", vcFormat=" + deferredCredentialMetadata.getVcFormat() +
+                ", operationMode=" + deferredCredentialMetadata.getOperationMode() +
+                ", responseUri=" + deferredCredentialMetadata.getResponseUri() + ")";
         assertEquals(expected, deferredCredentialMetadata.toString());
     }
 }

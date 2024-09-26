@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -28,25 +29,6 @@ public class CredentialController {
 
     private final VerifiableCredentialIssuanceWorkflow verifiableCredentialIssuanceWorkflow;
     private final AccessTokenService accessTokenService;
-
-    @Operation(
-            summary = "Creates a withdrawn credential",
-            description = "Generates a a withdrawn credential and sends a notification to the appointed employee",
-            tags = {SwaggerConfig.TAG_PUBLIC}
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(responseCode = "201", description = "Returns Created when the creation was successfully"),
-                    @ApiResponse(responseCode = "400", description = "The request is invalid or missing params Ensure the 'Authorization' header is set with a valid Bearer Token."),
-                    @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs.")
-            }
-    )
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<Void> createWithdrawnLEARCredential(@RequestParam String type, @RequestBody LEARCredentialRequest learCredentialRequest) {
-        String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(processId, type, learCredentialRequest);
-    }
 
     @Operation(
             summary = "Generate a new Verifiable Credential",
@@ -64,10 +46,19 @@ public class CredentialController {
     @PostMapping(value = "/request-credential", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     // fixme: repensar esta API
-    public Mono<VerifiableCredentialResponse> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
+    public Mono<ResponseEntity<VerifiableCredentialResponse>> createVerifiableCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader, @RequestBody CredentialRequest credentialRequest) {
+
         String processId = UUID.randomUUID().toString();
+
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
+                .map(verifiableCredentialResponse -> {
+                    if (verifiableCredentialResponse.transactionId() != null) {
+                        return ResponseEntity.status(HttpStatus.ACCEPTED).body(verifiableCredentialResponse);
+                    } else {
+                        return ResponseEntity.status(HttpStatus.OK).body(verifiableCredentialResponse);
+                    }
+                })
                 .doOnSuccess(result -> log.info("VerifiableCredentialController - createVerifiableCredential(): " + result.toString()));
     }
 

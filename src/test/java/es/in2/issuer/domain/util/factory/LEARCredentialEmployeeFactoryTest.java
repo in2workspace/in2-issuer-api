@@ -82,6 +82,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mockMandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mockMandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Power mockPower = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Power.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Signer mockSigner = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
 
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> mockPowerList = new ArrayList<>();
         mockPowerList.add(mockPower);
@@ -93,6 +94,8 @@ class LEARCredentialEmployeeFactoryTest {
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
         when(mockMandatee.id()).thenReturn("mandateeId");
+        when(mockMandate.signer()).thenReturn(mockSigner);
+        when(mockMandate.signer().organizationIdentifier()).thenReturn("signerOrgId");
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(json);
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));
 
