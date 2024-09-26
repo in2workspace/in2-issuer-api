@@ -15,6 +15,8 @@ public class Constants {
     public static final String JWT_VC_JSON = "jwt_vc_json";
     public static final String CWT_VC_JSON = "cwt_vc_json";
     public static final String PRE_AUTHORIZATION_CODE = "pre-authorization_code";
+    public static final String CLIENT_CREDENTIALS_GRANT_TYPE_VALUE = "client_credentials";
+    public static final String CLIENT_ASSERTION_TYPE_VALUE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     public static final String AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";

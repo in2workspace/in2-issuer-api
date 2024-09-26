@@ -121,6 +121,12 @@ auth-server:
     username: "user"
     password: "user"
 
+verifier:
+  external-domain: "http://localhost:9000"
+  internal-domain: "http://localhost:9000"
+  key: "TODO"
+  paths:
+    token-path: "/oidc/token"
 
 remote-signature:
   external-domain: "http://localhost:8082"

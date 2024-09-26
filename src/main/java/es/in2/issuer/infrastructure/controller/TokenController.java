@@ -1,5 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
+import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
+import es.in2.issuer.domain.service.AccessTokenService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -27,7 +30,15 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequestMapping("/token")
+@RequiredArgsConstructor
 public class TokenController {
+
+    private final AccessTokenService accessTokenService;
+
+    @PostMapping("/m2m")
+    public Mono<VerifierOauth2AccessToken> getToken() {
+        return accessTokenService.getM2MToken();
+    }
 
     @PostMapping
     public Mono<Object> handleData(ServerWebExchange exchange) {
