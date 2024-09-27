@@ -42,4 +42,6 @@ public class Constants {
     public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://dome-marketplace.eu/2022/credentials/learcredential/v1");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
+    public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";
+    public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
 }

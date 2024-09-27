@@ -40,6 +40,12 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                         issuanceRequest.responseUri()));
     }
 
+    @Override
+    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload())
+                .flatMap(credentialProcedureService::createCredentialProcedure);
+    }
+
     //    @Override
 //    public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
 //        return Mono.fromCallable(() -> {
