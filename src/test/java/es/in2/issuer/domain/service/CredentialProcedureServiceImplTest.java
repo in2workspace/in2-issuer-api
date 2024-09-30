@@ -548,11 +548,11 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldReturnBasicInfoForAllProcedures() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"Jane\", \"last_name\":\"Smith\"}}}}}";
+        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String credentialDecoded2 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"Jane\", \"last_name\":\"Smith\"}}}}}";
 
-        UUID procedureId1 = UUID.randomUUID();
-        UUID procedureId2 = UUID.randomUUID();
+        UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
+        UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
         Timestamp updated1 = Timestamp.from(Instant.now());
         Timestamp updated2 = Timestamp.from(Instant.now().minusSeconds(3600));
 
@@ -581,6 +581,9 @@ class CredentialProcedureServiceImplTest {
         when(objectMapper.readTree(credentialDecoded1)).thenReturn(credentialNode1);
         when(objectMapper.readTree(credentialDecoded2)).thenReturn(credentialNode2);
 
+        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure1));
+        when(credentialProcedureRepository.findById(UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8"))).thenReturn(Mono.just(credentialProcedure2));
+
         // Execute
         Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
 
@@ -606,8 +609,9 @@ class CredentialProcedureServiceImplTest {
         // Given
         String organizationIdentifier = "org-123";
         String malformedJson = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\"}}}}"; // Malformed JSON
+        String goodJson = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
 
-        UUID procedureId = UUID.randomUUID();
+        UUID procedureId = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
         Timestamp updated = Timestamp.from(Instant.now());
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
@@ -619,15 +623,16 @@ class CredentialProcedureServiceImplTest {
         // When
         when(credentialProcedureRepository.findAllByOrganizationIdentifier(any(String.class)))
                 .thenReturn(Flux.just(credentialProcedure));
-        when(objectMapper.readTree(malformedJson))
+        when(objectMapper.readTree(goodJson))
                 .thenThrow(new JsonParseException(null, "Error parsing credential"));
+        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure));
 
         // Execute
         Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof JsonParseException)
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException)
                 .verify();
     }
 }

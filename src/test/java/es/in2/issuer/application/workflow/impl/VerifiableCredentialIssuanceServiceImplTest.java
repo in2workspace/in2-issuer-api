@@ -101,7 +101,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().schema("LEARCredentialEmployee").payload(jsonNode).operationMode("A").build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";
@@ -111,7 +111,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, "token"))
                 .verifyComplete();
     }
 

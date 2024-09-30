@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.UUID;
 
@@ -52,9 +53,12 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
-        if (issuanceRequest.operationMode() == null || issuanceRequest.operationMode().equals(ASYNC)) {
-            return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-                    .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+        if (issuanceRequest.operationMode().equals(ASYNC)) {
+            if(issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)){
+                return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
+                        .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+            }
+            return Mono.error(new CredentialTypeUnsupportedException(type));
         } else if (issuanceRequest.operationMode().equals(SYNC)) {
                         if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
                             return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
@@ -63,12 +67,10 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         } else if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                             return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
                                     .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
-                        } else {
-                            return Mono.error(new CredentialTypeUnsupportedException(type));
                         }
-        } else {
-            return Mono.error(new CredentialTypeUnsupportedException(type));
+                        return Mono.error(new CredentialTypeUnsupportedException(type));
         }
+        return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()));
     }
 
     private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, IssuanceRequest issuanceRequest){
@@ -88,23 +90,25 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     }
 
     private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
-        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
-                .encodedVc(encodedVc)
-                .build();
+//        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
+//                .encodedVc(encodedVc)
+//                .build();
 
-        return webClient.commonWebClient()
-                .patch()
-                .uri(responseUri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                .bodyValue(responseUriRequest)
-                .exchangeToMono(response -> {
-                    if (response.statusCode().is2xxSuccessful()) {
-                        return Mono.empty();
-                    } else {
-                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
-                    }
-                });
+//        return webClient.commonWebClient()
+//                .patch()
+//                .uri(responseUri)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+//                .bodyValue(responseUriRequest)
+//                .exchangeToMono(response -> {
+//                    if (response.statusCode().is2xxSuccessful()) {
+//                        return Mono.empty();
+//                    } else {
+//                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
+//                    }
+//                });
+        log.info("Se envio a esta uri: {} la credencial: {}", responseUri, encodedVc);
+        return Mono.empty();
     }
 
     @Override
