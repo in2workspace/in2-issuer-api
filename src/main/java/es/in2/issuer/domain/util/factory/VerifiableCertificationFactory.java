@@ -110,16 +110,12 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
-        return accessTokenService.getOrganizationIdFromCurrentSession()
-                .flatMap(organizationId ->
-                        Mono.just(
-                                CredentialProcedureCreationRequest.builder()
-                                        .credentialId(verifiableCertificationJwtPayload.credential().id())
-                                        .organizationIdentifier(organizationId)
-                                        .credentialDecoded(decodedCredential)
-                                        .build()
-                        )
-                );
+        String organizationId = defaultSignerConfig.getOrganizationIdentifier();
+        return Mono.just(CredentialProcedureCreationRequest.builder()
+                .credentialId(verifiableCertificationJwtPayload.credential().id())
+                .organizationIdentifier(organizationId)
+                .credentialDecoded(decodedCredential)
+                .build()
+        );
     }
-
 }
