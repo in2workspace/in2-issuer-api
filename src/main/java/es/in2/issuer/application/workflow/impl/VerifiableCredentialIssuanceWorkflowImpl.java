@@ -41,16 +41,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
 
-//    @Override
-//    public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest) {
-//        return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-//                .flatMap(transactionCode -> {
-//                    String email = issuanceRequest.payload().get("mandatee").get("email").asText();
-//                    String firstName =  issuanceRequest.payload().get("mandatee").get("first_name").asText();
-//                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName,appConfig.getWalletUrl());
-//                });
-//    }
-
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
         if (issuanceRequest.operationMode().equals(ASYNC)) {
