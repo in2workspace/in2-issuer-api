@@ -112,6 +112,10 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
 
+    // Crypto
+    implementation 'org.bitcoinj:bitcoinj-core:0.17-alpha5'
+
+
     // AZURE
     implementation('com.azure.spring:spring-cloud-azure-starter-appconfiguration:5.7.0')
     implementation('com.azure.spring:spring-cloud-azure-starter-keyvault-secrets:5.7.0')

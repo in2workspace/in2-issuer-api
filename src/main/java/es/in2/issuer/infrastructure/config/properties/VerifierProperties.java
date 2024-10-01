@@ -12,16 +12,24 @@ import java.util.Optional;
 public record VerifierProperties(
         @NotNull String externalDomain,
         @NotNull String internalDomain,
-        @NotNull String key,
+        @NotNull String verifierKey,
+        @NotNull String vc,
+        @NotNull VerifierProperties.Crypto crypto,
         @NotNull VerifierProperties.Paths paths
 ) {
     @ConstructorBinding
-    public VerifierProperties(String externalDomain, String internalDomain, String key, VerifierProperties.Paths paths) {
+    public VerifierProperties(String externalDomain, String internalDomain, String verifierKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.Paths paths) {
         this.externalDomain = externalDomain;
         this.internalDomain = internalDomain;
-        this.key = key;
+        this.verifierKey = verifierKey;
+        this.vc = vc;
+        this.crypto = crypto;
         this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths(""));
 
+    }
+
+    @Validated
+    public record Crypto(@NotNull String privateKey) {
     }
 
     @Validated

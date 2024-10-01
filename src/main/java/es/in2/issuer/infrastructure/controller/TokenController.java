@@ -1,25 +1,18 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
-import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.domain.service.M2MTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.resources.ConnectionProvider;
 
-import java.net.URI;
-import java.time.Duration;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -33,11 +26,11 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class TokenController {
 
-    private final AccessTokenService accessTokenService;
+    private final M2MTokenService m2MTokenService;
 
     @PostMapping("/m2m")
     public Mono<VerifierOauth2AccessToken> getToken() {
-        return accessTokenService.getM2MToken();
+        return m2MTokenService.getM2MToken();
     }
 
     @PostMapping

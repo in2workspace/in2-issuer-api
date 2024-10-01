@@ -116,7 +116,10 @@ auth-server:
 verifier:
   external-domain:
   internal-domain:
-  key:
+  verifier-key:
+  vc:
+  crypto:
+    private-key:
   paths:
     token-path:
 

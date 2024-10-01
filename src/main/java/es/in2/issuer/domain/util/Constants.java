@@ -44,4 +44,6 @@ public class Constants {
     public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://dome-marketplace.eu/2022/credentials/learcredential/v1");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
+    public static final long MSB = 0x80L;
+    public static final long MSBALL = 0xFFFFFF80L;
 }

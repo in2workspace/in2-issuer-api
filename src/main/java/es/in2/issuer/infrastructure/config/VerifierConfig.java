@@ -24,7 +24,7 @@ public class VerifierConfig {
     }
 
     public String getVerifierSignPath() {
-        return configAdapter.getConfiguration(verifierProperties.key());
+        return configAdapter.getConfiguration(verifierProperties.verifierKey());
     }
 
 
