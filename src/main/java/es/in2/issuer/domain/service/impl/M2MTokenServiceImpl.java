@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,14 +62,23 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         Payload vcMachinePayload = jwtService.getPayloadFromSignedJWT(vcMachineJWT);
         String clientId = jwtService.getClaimFromPayload(vcMachinePayload,"sub");
 
-        String vpTokenJWTString = createVPTokenJWT(vcMachineString,clientId);
+        Instant issueTime = Instant.now();
+        Date iat = Date.from(issueTime);
+        Date exp = Date.from(issueTime.plus(
+                30,
+                ChronoUnit.MINUTES
+        ));
+
+        String vpTokenJWTString = createVPTokenJWT(vcMachineString,clientId, iat, exp);
+
+
 
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
                 "iss", clientId,
                 "aud", "https://verifier.dome-marketplace-lcl.org",
-                "iat", 1725951134,
-                "exp", 1760079134,
+                "iat", iat,
+                "exp", exp,
                 "jti", UUID.randomUUID(),
                 "vp_token", vpTokenJWTString
         ));
@@ -75,15 +86,15 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         return jwtService.generateJWT(payload.toString());
     }
 
-    private String createVPTokenJWT(String vcMachineString, String clientId) {
+    private String createVPTokenJWT(String vcMachineString, String clientId, Date iat, Date exp) {
         Map<String, Object> vp = createVP(vcMachineString,clientId);
 
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
                 "iss", clientId,
-                "nbf", "",
-                "iat", 1725951134,
-                "exp", 1760079134,
+                "nbf", iat, // The same value of Issue Time
+                "iat", iat,
+                "exp", exp,
                 "jti", UUID.randomUUID(),
                 "vp", vp
         ));
