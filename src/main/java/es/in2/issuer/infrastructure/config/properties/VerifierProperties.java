@@ -24,9 +24,9 @@ public record VerifierProperties(
         this.internalDomain = internalDomain;
         this.verifierKey = verifierKey;
         this.vc = vc;
-        this.crypto = crypto;
-        this.clientAssertion = clientAssertion;
-        this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths(""));
+        this.crypto = Optional.ofNullable(crypto).orElse(new VerifierProperties.Crypto(""));
+        this.clientAssertion = Optional.ofNullable(clientAssertion).orElse(new VerifierProperties.ClientAssertion(new Token("",0)));
+        this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths("",""));
 
     }
 
@@ -43,6 +43,6 @@ public record VerifierProperties(
     }
 
     @Validated
-    public record Paths(@NotNull String tokenPath) {
+    public record Paths(@NotNull String tokenPath, @NotNull String resolveDid) {
     }
 }

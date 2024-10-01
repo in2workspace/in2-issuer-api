@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono;
 public interface M2MTokenService {
 
     Mono<VerifierOauth2AccessToken> getM2MToken();
-    Mono<Void> verifyM2MToken(VerifierOauth2AccessToken token);
+    Mono<Void> verifyM2MToken(String token);
 }

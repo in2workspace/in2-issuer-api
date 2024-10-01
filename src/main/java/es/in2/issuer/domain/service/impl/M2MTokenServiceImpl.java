@@ -2,11 +2,13 @@ package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
+import es.in2.issuer.domain.model.dto.CustomJWK;
+import es.in2.issuer.domain.model.dto.CustomJWKS;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
+import es.in2.issuer.domain.model.enums.KeyType;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
 import es.in2.issuer.infrastructure.config.VerifierConfig;
-import es.in2.issuer.infrastructure.config.properties.VerifierProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -14,6 +16,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigInteger;
+import java.security.AlgorithmParameters;
+import java.security.KeyFactory;
+import java.security.PublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -34,7 +44,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
         return oauth2VerifierWebClient.post()
-                .uri(verifierConfig.getVerifierPathsTokenPaths())
+                .uri(verifierConfig.getVerifierPathsTokenPath())
                 .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
                 .bodyValue(getM2MFormUrlEncodeBodyValue())
                 .retrieve()
@@ -120,7 +130,64 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     }
 
     @Override
-    public Mono<Void> verifyM2MToken(VerifierOauth2AccessToken token) {
-        return null;
+    public Mono<Void> verifyM2MToken(String token) {
+
+        String uri = verifierConfig.getVerifierExternalDomain() + verifierConfig.getVerifierPathsResolveDidPath() + "/" + verifierConfig.getVerifierKey();
+
+        Mono<CustomJWKS> jwksMono = oauth2VerifierWebClient.get()
+                .uri(uri)
+                .retrieve()
+                .bodyToMono(CustomJWKS.class);
+
+        log.info(jwksMono.toString());
+
+        return jwksMono.flatMap(customJWKS -> {
+                    try {
+                        PublicKey publicKey = createPublicKeyFromJWK(customJWKS.keys().get(0));
+
+                        jwtService.verifyJWTSignature(token,publicKey, KeyType.EC);
+
+                        return Mono.empty();
+
+                    } catch (Exception e) {
+                        log.error("Error during signature verification", e);
+                        return Mono.error(new RuntimeException(e));
+                    }
+                })
+                .onErrorResume(error -> {
+                    // Manejar errores de la llamada web o del procesamiento del token
+                    log.info("\n==================================\n");
+                    log.error("[WebClientException:{}]", error.getMessage());
+                    log.info("\n==================================\n");
+
+                    return Mono.error(error);
+                }).then();
     }
+
+    private PublicKey createPublicKeyFromJWK(CustomJWK customJWK) throws Exception {
+
+        byte[] xDecoded = Base64.getUrlDecoder().decode(customJWK.x());
+        byte[] yDecoded = Base64.getUrlDecoder().decode(customJWK.y());
+
+        ECPoint ecPoint = new ECPoint(new BigInteger(1, xDecoded), new BigInteger(1, yDecoded));
+
+        ECParameterSpec ecParameterSpec = getECParameterSpec(customJWK.crv(), customJWK.kty());
+
+        ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(ecPoint, ecParameterSpec);
+
+        KeyFactory keyFactory = KeyFactory.getInstance(customJWK.kty());
+
+        return keyFactory.generatePublic(pubKeySpec);
+    }
+
+    private ECParameterSpec getECParameterSpec(String curve, String alg) throws Exception {
+        if ("P-256".equals(curve)) {
+            AlgorithmParameters parameters = AlgorithmParameters.getInstance(alg);
+            parameters.init(new ECGenParameterSpec("secp256r1"));
+            return parameters.getParameterSpec(ECParameterSpec.class);
+        } else {
+            throw new IllegalArgumentException("Unsupported curve: " + curve);
+        }
+    }
+
 }
