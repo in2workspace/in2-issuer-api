@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.crypto;
 
-import es.in2.issuer.infrastructure.config.properties.VerifierProperties;
+import es.in2.issuer.infrastructure.config.VerifierConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 
@@ -8,10 +8,10 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class CryptoConfig {
 
-    private final VerifierProperties verifierProperties;
+    private final VerifierConfig verifierConfig;
 
     public String getPrivateKey() {
-        String privateKey = verifierProperties.crypto().privateKey();
+        String privateKey = verifierConfig.getVerifierCryptoPrivateKey();
         if (privateKey.startsWith("0x")) {
             privateKey = privateKey.substring(2);
         }

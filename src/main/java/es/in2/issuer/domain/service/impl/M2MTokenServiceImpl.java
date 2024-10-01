@@ -5,6 +5,7 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
+import es.in2.issuer.infrastructure.config.VerifierConfig;
 import es.in2.issuer.infrastructure.config.properties.VerifierProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,13 +28,13 @@ import static es.in2.issuer.domain.util.Constants.CLIENT_ASSERTION_TYPE_VALUE;
 public class M2MTokenServiceImpl implements M2MTokenService {
 
     private final WebClient oauth2VerifierWebClient;
-    private final VerifierProperties verifierProperties;
+    private final VerifierConfig verifierConfig;
     private final JWTService jwtService;
 
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
         return oauth2VerifierWebClient.post()
-                .uri(verifierProperties.paths().tokenPath())
+                .uri(verifierConfig.getVerifierPathsTokenPaths())
                 .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
                 .bodyValue(getM2MFormUrlEncodeBodyValue())
                 .retrieve()
@@ -44,7 +45,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private String getM2MFormUrlEncodeBodyValue() {
         Map<String, String> parameters = Map.of(
                 OAuth2ParameterNames.GRANT_TYPE, CLIENT_CREDENTIALS_GRANT_TYPE_VALUE,
-                OAuth2ParameterNames.CLIENT_ID, verifierProperties.verifierKey(),
+                OAuth2ParameterNames.CLIENT_ID, verifierConfig.getVerifierKey(),
                 OAuth2ParameterNames.CLIENT_ASSERTION_TYPE, CLIENT_ASSERTION_TYPE_VALUE,
                 OAuth2ParameterNames.CLIENT_ASSERTION, createClientAssertion()
         );
@@ -63,11 +64,10 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         String clientId = jwtService.getClaimFromPayload(vcMachinePayload,"sub");
 
         Instant issueTime = Instant.now();
-        Date iat = Date.from(issueTime);
-        Date exp = Date.from(issueTime.plus(
-                30,
-                ChronoUnit.MINUTES
-        ));
+        long iat = issueTime.toEpochMilli();
+        long exp = issueTime.plus(
+                Long.parseLong(verifierConfig.getVerifierClientAssertionTokenExpiration()), // Amount to add
+                ChronoUnit.valueOf(verifierConfig.getVerifierClientAssertionTokenCronUnit())).toEpochMilli(); // Chron Unit
 
         String vpTokenJWTString = createVPTokenJWT(vcMachineString,clientId, iat, exp);
 
@@ -76,7 +76,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
                 "iss", clientId,
-                "aud", "https://verifier.dome-marketplace-lcl.org",
+                "aud", verifierConfig.getVerifierExternalDomain(),
                 "iat", iat,
                 "exp", exp,
                 "jti", UUID.randomUUID(),
@@ -86,7 +86,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         return jwtService.generateJWT(payload.toString());
     }
 
-    private String createVPTokenJWT(String vcMachineString, String clientId, Date iat, Date exp) {
+    private String createVPTokenJWT(String vcMachineString, String clientId, long iat, long exp) {
         Map<String, Object> vp = createVP(vcMachineString,clientId);
 
         Payload payload = new Payload(Map.of(
@@ -114,7 +114,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     }
 
     private String getVCinJWTDecodedFromBase64(){
-        String vcTokenBase64 = verifierProperties.vc();
+        String vcTokenBase64 = verifierConfig.getVerifierVc();
         byte [] vcTokenDecoded = Base64.getDecoder().decode(vcTokenBase64);
         return new String(vcTokenDecoded);
     }

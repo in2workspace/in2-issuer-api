@@ -120,6 +120,10 @@ verifier:
   vc:
   crypto:
     private-key:
+  client-assertion:
+    token:
+      cron-unit:
+      expiration:
   paths:
     token-path:
 

@@ -15,17 +15,27 @@ public record VerifierProperties(
         @NotNull String verifierKey,
         @NotNull String vc,
         @NotNull VerifierProperties.Crypto crypto,
+        @NotNull VerifierProperties.ClientAssertion clientAssertion,
         @NotNull VerifierProperties.Paths paths
 ) {
     @ConstructorBinding
-    public VerifierProperties(String externalDomain, String internalDomain, String verifierKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.Paths paths) {
+    public VerifierProperties(String externalDomain, String internalDomain, String verifierKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.ClientAssertion clientAssertion, VerifierProperties.Paths paths) {
         this.externalDomain = externalDomain;
         this.internalDomain = internalDomain;
         this.verifierKey = verifierKey;
         this.vc = vc;
         this.crypto = crypto;
+        this.clientAssertion = clientAssertion;
         this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths(""));
 
+    }
+
+    @Validated
+    public record ClientAssertion(@NotNull Token token) {
+    }
+
+    @Validated
+    public record Token(@NotNull String cronUnit, Integer expiration) {
     }
 
     @Validated
