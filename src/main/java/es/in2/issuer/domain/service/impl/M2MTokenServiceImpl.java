@@ -6,6 +6,7 @@ import es.in2.issuer.domain.model.dto.CustomJWK;
 import es.in2.issuer.domain.model.dto.CustomJWKS;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.domain.model.enums.KeyType;
+import es.in2.issuer.domain.service.DIDService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
 import es.in2.issuer.infrastructure.config.VerifierConfig;
@@ -40,6 +41,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private final WebClient oauth2VerifierWebClient;
     private final VerifierConfig verifierConfig;
     private final JWTService jwtService;
+    private final DIDService didService;
 
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
@@ -132,7 +134,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     @Override
     public Mono<Void> verifyM2MToken(String token) {
 
-        String uri = verifierConfig.getVerifierExternalDomain() + verifierConfig.getVerifierPathsResolveDidPath() + "/" + verifierConfig.getVerifierKey();
+        String uri = "http://localhost:9000" + verifierConfig.getVerifierPathsResolveDidPath() + "/" + verifierConfig.getVerifierKey();
 
         Mono<CustomJWKS> jwksMono = oauth2VerifierWebClient.get()
                 .uri(uri)
@@ -143,7 +145,8 @@ public class M2MTokenServiceImpl implements M2MTokenService {
 
         return jwksMono.flatMap(customJWKS -> {
                     try {
-                        PublicKey publicKey = createPublicKeyFromJWK(customJWKS.keys().get(0));
+                        PublicKey publicKey = didService.getPublicKeyFromDid(""); //TODO Implement this new version
+                        // createPublicKeyFromJWK(customJWKS.keys().get(0));
 
                         jwtService.verifyJWTSignature(token,publicKey, KeyType.EC);
 
