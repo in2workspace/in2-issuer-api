@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 
+import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -210,5 +211,22 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<Void>> handleNonceValidationException(NonceValidationException ex) {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    @ExceptionHandler(OperationNotSupportedException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleOperationNotSupportedException(Exception ex) {
+        String description = "The given operation is not supported";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
 }

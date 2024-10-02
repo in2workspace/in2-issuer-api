@@ -12,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -360,6 +361,23 @@ class GlobalExceptionHandlerTest {
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleOperationNotSupportedException_withMessage() {
+        String errorMessage = "Error message for testing";
+        OperationNotSupportedException operationNotSupportedException = new OperationNotSupportedException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleOperationNotSupportedException(operationNotSupportedException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
                 })
                 .verifyComplete();
     }

@@ -30,8 +30,6 @@ import static es.in2.issuer.domain.util.Constants.*;
 @RequiredArgsConstructor
 public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCredentialIssuanceWorkflow {
 
-
-    private final RemoteSignatureService remoteSignatureService;
     private final VerifiableCredentialService verifiableCredentialService;
     private final AppConfig appConfig;
     private final ProofValidationService proofValidationService;
@@ -43,24 +41,18 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
-        if (issuanceRequest.operationMode().equals(ASYNC)) {
-            if(issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)){
-                return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-                        .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+        if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+            return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
+                    .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+        } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
+            if (issuanceRequest.operationMode().equals(SYNC)) {
+                return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
+                        .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                        .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token));
             }
-            return Mono.error(new CredentialTypeUnsupportedException(type));
-        } else if (issuanceRequest.operationMode().equals(SYNC)) {
-                        if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
-                            return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                                    .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
-                                    .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token));
-                        } else if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                            return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-                                    .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
-                        }
-                        return Mono.error(new CredentialTypeUnsupportedException(type));
+            return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()+" with schema: "+issuanceRequest.schema()));
         }
-        return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()));
+        return Mono.error(new CredentialTypeUnsupportedException(type));
     }
 
     private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, IssuanceRequest issuanceRequest){
