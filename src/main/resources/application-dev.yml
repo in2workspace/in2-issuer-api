@@ -113,6 +113,20 @@ auth-server:
     token-path: "/realms/EAAProvider/verifiable-credential/${issuer-did}/token"
     nonce-validation-path: "/realms/CredentialIssuer/verifiable-credential/${issuer-did}/nonce-valid"
 
+verifier:
+  external-domain:
+  internal-domain:
+  credential-subject-key:
+  vc:
+  crypto:
+    private-key:
+  client-assertion:
+    token:
+      cron-unit:
+      expiration:
+  paths:
+    token-path:
+    resolve-did:
 remote-signature:
   external-domain: "http://localhost:8082"
   internal-domain: "http://remote-signature:8080"
