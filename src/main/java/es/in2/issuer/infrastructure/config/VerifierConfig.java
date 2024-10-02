@@ -23,8 +23,8 @@ public class VerifierConfig {
         return configAdapter.getConfiguration(verifierProperties.internalDomain());
     }
 
-    public String getVerifierKey() {
-        return configAdapter.getConfiguration(verifierProperties.verifierKey());
+    public String getCredentialSubjectKey() {
+        return configAdapter.getConfiguration(verifierProperties.credentialSubjectKey());
     }
 
     public String getVerifierVc() {

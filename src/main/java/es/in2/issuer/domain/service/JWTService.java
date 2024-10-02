@@ -1,16 +1,15 @@
 package es.in2.issuer.domain.service;
 
+import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.model.enums.KeyType;
-
-import java.security.PublicKey;
+import reactor.core.publisher.Mono;
 
 public interface JWTService {
 
     String generateJWT(String payload);
 
-    void verifyJWTSignature(String jwt, PublicKey publicKey, KeyType keyType);
+    Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject);
 
     SignedJWT parseJWT(String jwt);
 

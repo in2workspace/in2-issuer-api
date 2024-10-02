@@ -1,11 +1,10 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.model.dto.CustomJWK;
-import es.in2.issuer.domain.model.dto.CustomJWKS;
+import es.in2.issuer.domain.exception.JWTVerificationException;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
-import es.in2.issuer.domain.model.enums.KeyType;
 import es.in2.issuer.domain.service.DIDService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
@@ -17,14 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-import java.security.AlgorithmParameters;
-import java.security.KeyFactory;
-import java.security.PublicKey;
-import java.security.spec.ECGenParameterSpec;
-import java.security.spec.ECParameterSpec;
-import java.security.spec.ECPoint;
-import java.security.spec.ECPublicKeySpec;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -57,7 +49,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private String getM2MFormUrlEncodeBodyValue() {
         Map<String, String> parameters = Map.of(
                 OAuth2ParameterNames.GRANT_TYPE, CLIENT_CREDENTIALS_GRANT_TYPE_VALUE,
-                OAuth2ParameterNames.CLIENT_ID, verifierConfig.getVerifierKey(),
+                OAuth2ParameterNames.CLIENT_ID, verifierConfig.getCredentialSubjectKey(),
                 OAuth2ParameterNames.CLIENT_ASSERTION_TYPE, CLIENT_ASSERTION_TYPE_VALUE,
                 OAuth2ParameterNames.CLIENT_ASSERTION, createClientAssertion()
         );
@@ -132,65 +124,22 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     }
 
     @Override
-    public Mono<Void> verifyM2MToken(String token) {
-
-        String uri = "http://localhost:9000" + verifierConfig.getVerifierPathsResolveDidPath() + "/" + verifierConfig.getVerifierKey();
-
-        Mono<CustomJWKS> jwksMono = oauth2VerifierWebClient.get()
-                .uri(uri)
-                .retrieve()
-                .bodyToMono(CustomJWKS.class);
-
-        log.info(jwksMono.toString());
-
-        return jwksMono.flatMap(customJWKS -> {
-                    try {
-                        PublicKey publicKey = didService.getPublicKeyFromDid(""); //TODO Implement this new version
-                        // createPublicKeyFromJWK(customJWKS.keys().get(0));
-
-                        jwtService.verifyJWTSignature(token,publicKey, KeyType.EC);
-
+    public Mono<Void> verifyM2MToken(String m2mAccessToken) {
+        return Mono.fromCallable(() -> JWSObject.parse(m2mAccessToken))
+                .flatMap(jwtService::validateJwtSignatureReactive)
+                .flatMap(isValid -> {
+                    if (Boolean.TRUE.equals(isValid)) {
+                        log.info("M2MTokenServiceImpl -- verifyM2MToken -- IS VALID ?: {}", true);
                         return Mono.empty();
-
-                    } catch (Exception e) {
-                        log.error("Error during signature verification", e);
-                        return Mono.error(new RuntimeException(e));
+                    } else {
+                        return Mono.error(new JWTVerificationException("Token signature is invalid"));
                     }
                 })
-                .onErrorResume(error -> {
-                    // Manejar errores de la llamada web o del procesamiento del token
-                    log.info("\n==================================\n");
-                    log.error("[WebClientException:{}]", error.getMessage());
-                    log.info("\n==================================\n");
-
-                    return Mono.error(error);
+                .onErrorResume(e -> {
+                    log.error("Error while verifying M2M token", e);
+                    return Mono.error(e);
                 }).then();
     }
 
-    private PublicKey createPublicKeyFromJWK(CustomJWK customJWK) throws Exception {
-
-        byte[] xDecoded = Base64.getUrlDecoder().decode(customJWK.x());
-        byte[] yDecoded = Base64.getUrlDecoder().decode(customJWK.y());
-
-        ECPoint ecPoint = new ECPoint(new BigInteger(1, xDecoded), new BigInteger(1, yDecoded));
-
-        ECParameterSpec ecParameterSpec = getECParameterSpec(customJWK.crv(), customJWK.kty());
-
-        ECPublicKeySpec pubKeySpec = new ECPublicKeySpec(ecPoint, ecParameterSpec);
-
-        KeyFactory keyFactory = KeyFactory.getInstance(customJWK.kty());
-
-        return keyFactory.generatePublic(pubKeySpec);
-    }
-
-    private ECParameterSpec getECParameterSpec(String curve, String alg) throws Exception {
-        if ("P-256".equals(curve)) {
-            AlgorithmParameters parameters = AlgorithmParameters.getInstance(alg);
-            parameters.init(new ECGenParameterSpec("secp256r1"));
-            return parameters.getParameterSpec(ECParameterSpec.class);
-        } else {
-            throw new IllegalArgumentException("Unsupported curve: " + curve);
-        }
-    }
 
 }
