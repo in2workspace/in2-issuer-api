@@ -38,6 +38,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
+    private final M2MTokenService m2MTokenService;
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
@@ -48,7 +49,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             if (issuanceRequest.operationMode().equals(SYNC)) {
                 return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
                         .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
-                        .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token));
+                        .flatMap(encodedVc -> m2MTokenService.getM2MToken()
+                                    .flatMap(m2mToken ->sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken())));
             }
             return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()+" with schema: "+issuanceRequest.schema()));
         }
@@ -89,7 +91,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 //                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
 //                    }
 //                });
-        log.info("Se envio a esta uri: {} la credencial: {}", responseUri, encodedVc);
+        log.info("Se envio a esta uri: {} con tokenM2M: {} la credencial: {}", responseUri, token, encodedVc);
         return Mono.empty();
     }
 

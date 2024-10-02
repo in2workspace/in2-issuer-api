@@ -45,6 +45,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Mock
     private CredentialSignerWorkflow credentialSignerWorkflow;
 
+    @Mock
+    private M2MTokenService m2MTokenService;
+
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
 
@@ -238,6 +241,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+        when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(VerifierOauth2AccessToken.builder().accessToken("M2Mtoken").build()));
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
                 .verifyComplete();

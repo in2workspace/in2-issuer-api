@@ -15,7 +15,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class WebClientConfig {
 
-    private final VerifierProperties verifierProperties;
+    private final VerifierConfig verifierConfig;
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.builder("custom")
             .maxConnections(500)
@@ -37,7 +37,7 @@ public class WebClientConfig {
     public WebClient oauth2VerifierWebClient() {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.create(connectionProvider)
-                        .baseUrl(verifierProperties.externalDomain())
+                        .baseUrl(verifierConfig.getVerifierExternalDomain())
                         .followRedirect(false))
                 )
                 .build();
