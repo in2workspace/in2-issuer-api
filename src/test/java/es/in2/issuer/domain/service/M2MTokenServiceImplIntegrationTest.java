@@ -54,7 +54,7 @@ public class M2MTokenServiceImplIntegrationTest {
         ObjectMapper objectMapper = new ObjectMapper();
 
         JWTServiceImpl jwtService = new JWTServiceImpl(objectMapper, new CryptoComponent(new CryptoConfig(verifierConfig)));
-        m2MTokenService = new M2MTokenServiceImpl(webClient, verifierConfig, jwtService,objectMapper);
+        m2MTokenService = new M2MTokenServiceImpl(webClient, verifierConfig, jwtService);
     }
 
     private static @NotNull VerifierConfig getVerifierConfig() {

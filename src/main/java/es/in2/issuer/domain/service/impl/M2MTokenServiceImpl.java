@@ -5,6 +5,10 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTVerificationException;
+import es.in2.issuer.domain.exception.TokenFetchException;
+import es.in2.issuer.domain.exception.VerifierConfigurationException;
+import es.in2.issuer.domain.exception.WellKnownInfoFetchException;
+import es.in2.issuer.domain.model.dto.VerifierConfiguration;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
@@ -33,17 +37,34 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private final WebClient oauth2VerifierWebClient;
     private final VerifierConfig verifierConfig;
     private final JWTService jwtService;
-    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
-        return oauth2VerifierWebClient.post()
-                .uri(verifierConfig.getVerifierPathsTokenPath())
-                .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
-                .bodyValue(getM2MFormUrlEncodeBodyValue())
+        return getWellKnownInfo()
+                .flatMap(verifierConfiguration -> {
+                    if (verifierConfiguration == null) {
+                        return Mono.error(new RuntimeException("Verifier configuration is null"));
+                    }
+                    return oauth2VerifierWebClient.post()
+                            .uri(verifierConfiguration.tokenEndpoint())
+                            .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
+                            .bodyValue(getM2MFormUrlEncodeBodyValue())
+                            .retrieve()
+                            .bodyToMono(VerifierOauth2AccessToken.class)
+                            .onErrorMap(e -> new TokenFetchException("Error fetching token", e));
+                })
+                .switchIfEmpty(Mono.error(new VerifierConfigurationException("Failed to retrieve verifier configuration")));
+    }
+
+
+    private Mono<VerifierConfiguration> getWellKnownInfo(){
+        String wellKnownInfoEndpoint = verifierConfig.getVerifierExternalDomain() + WELL_KNOWN_VERIFIER_ENDPOINT_PATH;
+
+        return oauth2VerifierWebClient.get()
+                .uri(wellKnownInfoEndpoint)
                 .retrieve()
-                .bodyToMono(VerifierOauth2AccessToken.class)
-                .onErrorResume(e -> Mono.error(new RuntimeException("Error fetching token", e)));
+                .bodyToMono(VerifierConfiguration.class)
+                .onErrorResume(e -> Mono.error(new WellKnownInfoFetchException("Error fetching well known data", e)));
     }
 
     private String getM2MFormUrlEncodeBodyValue() {
@@ -74,8 +95,6 @@ public class M2MTokenServiceImpl implements M2MTokenService {
                 ChronoUnit.valueOf(verifierConfig.getVerifierClientAssertionTokenCronUnit())).toEpochMilli(); // Chron Unit
 
         String vpTokenJWTString = createVPTokenJWT(vcMachineString,clientId, iat, exp);
-
-
 
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
@@ -143,17 +162,9 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     }
 
     private String extractIssuerFromToken(String token) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) {
-                throw new IllegalArgumentException("Invalid JWT token format");
-            }
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-            Map claims = objectMapper.readValue(payload, Map.class);
-            return (String) claims.get("iss");
-        } catch (Exception ex) {
-            throw new RuntimeException("Error extracting subject from token", ex);
-        }
+        SignedJWT signedToken = jwtService.parseJWT(token);
+        Payload payload = jwtService.getPayloadFromSignedJWT(signedToken);
+        return jwtService.getClaimFromPayload(payload,"iss");
     }
 
 
