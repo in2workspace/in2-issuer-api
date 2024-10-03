@@ -9,17 +9,27 @@ import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
+import es.in2.issuer.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.ExchangeFunction;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.JWT_VC;
-import static es.in2.issuer.domain.util.Constants.JWT_VC_JSON;
+import java.util.function.Function;
+
+import static es.in2.issuer.domain.util.Constants.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {
@@ -47,6 +57,12 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
     @Mock
     private M2MTokenService m2MTokenService;
+
+    @Mock
+    private IssuerApiClientTokenService issuerApiClientTokenService;
+
+    @Mock
+    private WebClientConfig webClientConfig;
 
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
@@ -240,8 +256,20 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").operationMode("S").build();
 
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
-        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(VerifierOauth2AccessToken.builder().accessToken("M2Mtoken").build()));
+        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(token));
+
+        // Mock webClient
+        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
+        // Create a mock ClientResponse for a successful response
+        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
+                .header("Content-Type", "application/json")
+                .build();
+        // Stub the exchange function to return the mock ClientResponse
+        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
+        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
+        when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
                 .verifyComplete();

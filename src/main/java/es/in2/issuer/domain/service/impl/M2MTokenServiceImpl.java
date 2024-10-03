@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -31,6 +33,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private final WebClient oauth2VerifierWebClient;
     private final VerifierConfig verifierConfig;
     private final JWTService jwtService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
@@ -125,17 +128,32 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         return Mono.fromCallable(() -> JWSObject.parse(m2mAccessToken))
                 .flatMap(jwtService::validateJwtSignatureReactive)
                 .flatMap(isValid -> {
-                    if (Boolean.TRUE.equals(isValid)) {
+                    String issuerDidKey = extractIssuerFromToken(m2mAccessToken);
+                    if (Boolean.TRUE.equals(isValid) && verifierConfig.getVerifierDidKey().equals(issuerDidKey)) {
                         log.info("M2MTokenServiceImpl -- verifyM2MToken -- IS VALID ?: {}", true);
                         return Mono.empty();
                     } else {
-                        return Mono.error(new JWTVerificationException("Token signature is invalid"));
+                        return Mono.error(new JWTVerificationException("Token is invalid"));
                     }
                 })
                 .onErrorResume(e -> {
                     log.error("Error while verifying M2M token", e);
                     return Mono.error(e);
                 }).then();
+    }
+
+    private String extractIssuerFromToken(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                throw new IllegalArgumentException("Invalid JWT token format");
+            }
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            Map claims = objectMapper.readValue(payload, Map.class);
+            return (String) claims.get("iss");
+        } catch (Exception ex) {
+            throw new RuntimeException("Error extracting subject from token", ex);
+        }
     }
 
 

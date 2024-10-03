@@ -10,8 +10,8 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "verifier")
 @Validated
 public record VerifierProperties(
+        @NotNull String verifierDidKey,
         @NotNull String externalDomain,
-        @NotNull String internalDomain,
         @NotNull String credentialSubjectKey,
         @NotNull String vc,
         @NotNull VerifierProperties.Crypto crypto,
@@ -19,9 +19,9 @@ public record VerifierProperties(
         @NotNull VerifierProperties.Paths paths
 ) {
     @ConstructorBinding
-    public VerifierProperties(String externalDomain, String internalDomain, String credentialSubjectKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.ClientAssertion clientAssertion, VerifierProperties.Paths paths) {
+    public VerifierProperties(String verifierDidKey, String externalDomain, String credentialSubjectKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.ClientAssertion clientAssertion, VerifierProperties.Paths paths) {
+        this.verifierDidKey = verifierDidKey;
         this.externalDomain = externalDomain;
-        this.internalDomain = internalDomain;
         this.credentialSubjectKey = credentialSubjectKey;
         this.vc = vc;
         this.crypto = Optional.ofNullable(crypto).orElse(new VerifierProperties.Crypto(""));
