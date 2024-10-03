@@ -79,7 +79,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        log.info("Sending to response_uri: {} the VC: {}", responseUri,encodedVc);
+        log.info("Sending to response_uri: {} the VC: {} with M2Mtoken: {}", responseUri,encodedVc,token);
         return webClient.commonWebClient()
                 .patch()
                 .uri(responseUri)
