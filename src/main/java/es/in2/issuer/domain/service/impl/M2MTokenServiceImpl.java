@@ -5,11 +5,9 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTVerificationException;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
-import es.in2.issuer.domain.service.DIDService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
 import es.in2.issuer.infrastructure.config.VerifierConfig;
-import es.in2.issuer.infrastructure.config.WebClientConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -33,7 +31,6 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private final WebClient oauth2VerifierWebClient;
     private final VerifierConfig verifierConfig;
     private final JWTService jwtService;
-    private final DIDService didService;
 
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
