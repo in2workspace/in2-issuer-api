@@ -15,19 +15,16 @@ public record VerifierProperties(
         @NotNull String credentialSubjectKey,
         @NotNull String vc,
         @NotNull VerifierProperties.Crypto crypto,
-        @NotNull VerifierProperties.ClientAssertion clientAssertion,
-        @NotNull VerifierProperties.Paths paths
+        @NotNull VerifierProperties.ClientAssertion clientAssertion
 ) {
     @ConstructorBinding
-    public VerifierProperties(String verifierDidKey, String externalDomain, String credentialSubjectKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.ClientAssertion clientAssertion, VerifierProperties.Paths paths) {
+    public VerifierProperties(String verifierDidKey, String externalDomain, String credentialSubjectKey, String vc, VerifierProperties.Crypto crypto, VerifierProperties.ClientAssertion clientAssertion) {
         this.verifierDidKey = verifierDidKey;
         this.externalDomain = externalDomain;
         this.credentialSubjectKey = credentialSubjectKey;
         this.vc = vc;
         this.crypto = Optional.ofNullable(crypto).orElse(new VerifierProperties.Crypto(""));
         this.clientAssertion = Optional.ofNullable(clientAssertion).orElse(new VerifierProperties.ClientAssertion(new Token("",0)));
-        this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths("",""));
-
     }
 
     @Validated
@@ -40,9 +37,5 @@ public record VerifierProperties(
 
     @Validated
     public record Crypto(@NotNull String privateKey) {
-    }
-
-    @Validated
-    public record Paths(@NotNull String tokenPath, @NotNull String resolveDid) {
     }
 }

@@ -140,9 +140,6 @@ verifier:
     token:
       cron-unit: "DAYS"
       expiration: 30
-  paths:
-    token-path: "/oidc/token"
-    resolve-did: "/oidc/did"
 
 remote-signature:
   external-domain: "http://localhost:8082"

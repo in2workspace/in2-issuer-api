@@ -123,9 +123,7 @@ verifier:
     token:
       cron-unit:
       expiration:
-  paths:
-    token-path:
-    resolve-did:
+
 remote-signature:
   external-domain: "http://localhost:8082"
   internal-domain: "http://remote-signature:8080"

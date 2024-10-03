@@ -46,16 +46,12 @@ public class M2MTokenServiceImplTest {
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
         when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
 
-        // Mock the behavior of jwtService.validateJwtSignatureReactive
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
-
-        // Execute the method to test
         Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);
 
-        // Verify the result
         StepVerifier.create(result)
-                .verifyComplete(); // Should complete without errors
+                .verifyComplete();
     }
 
 
@@ -72,16 +68,12 @@ public class M2MTokenServiceImplTest {
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
         when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
 
-        // Mock the behavior of jwtService.validateJwtSignatureReactive
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
-
-        // Execute the method to test
         Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);
 
-        // Verify the result
         StepVerifier.create(result)
-                .expectError(JWTVerificationException.class) // Expect the specific exception type
+                .expectError(JWTVerificationException.class)
                 .verify();
     }
 

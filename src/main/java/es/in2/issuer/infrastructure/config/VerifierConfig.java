@@ -42,14 +42,4 @@ public class VerifierConfig {
     public String getVerifierClientAssertionTokenExpiration() {
         return configAdapter.getConfiguration(String.valueOf(verifierProperties.clientAssertion().token().expiration()));
     }
-
-    public String getVerifierPathsTokenPath() {
-        return configAdapter.getConfiguration(verifierProperties.paths().tokenPath());
-    }
-
-    public String getVerifierPathsResolveDidPath() {
-        return configAdapter.getConfiguration(verifierProperties.paths().resolveDid());
-    }
-
-
 }
