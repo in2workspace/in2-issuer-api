@@ -80,8 +80,6 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST,  "/token").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/token/m2m").permitAll() //TODO Test purposes
-                        .pathMatchers(HttpMethod.GET, "/token/verify").permitAll() //TODO Test purposes
                         .anyExchange().authenticated()
                 ).csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .oauth2ResourceServer(oauth2ResourceServer ->
