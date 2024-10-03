@@ -15,12 +15,12 @@ public class VerifierConfig {
         this.verifierProperties = verifierProperties;
     }
 
-    public String getVerifierExternalDomain() {
-        return configAdapter.getConfiguration(verifierProperties.externalDomain());
+    public String getVerifierDidKey() {
+        return configAdapter.getConfiguration(verifierProperties.verifierDidKey());
     }
 
-    public String getVerifierInternalDomain() {
-        return configAdapter.getConfiguration(verifierProperties.internalDomain());
+    public String getVerifierExternalDomain() {
+        return configAdapter.getConfiguration(verifierProperties.externalDomain());
     }
 
     public String getCredentialSubjectKey() {

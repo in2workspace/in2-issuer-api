@@ -39,6 +39,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
     private final M2MTokenService m2MTokenService;
+    private final IssuerApiClientTokenService issuerApiClientTokenService;
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
@@ -48,7 +49,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
             if (issuanceRequest.operationMode().equals(SYNC)) {
                 return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                        .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                        .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                                        .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+authServerToken, procedureId, JWT_VC)))
                         .flatMap(encodedVc -> m2MTokenService.getM2MToken()
                                     .flatMap(m2mToken ->sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken())));
             }
@@ -74,25 +76,23 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     }
 
     private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
-//        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
-//                .encodedVc(encodedVc)
-//                .build();
-
-//        return webClient.commonWebClient()
-//                .patch()
-//                .uri(responseUri)
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-//                .bodyValue(responseUriRequest)
-//                .exchangeToMono(response -> {
-//                    if (response.statusCode().is2xxSuccessful()) {
-//                        return Mono.empty();
-//                    } else {
-//                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
-//                    }
-//                });
-        log.info("Se envio a esta uri: {} con tokenM2M: {} la credencial: {}", responseUri, token, encodedVc);
-        return Mono.empty();
+        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
+                .encodedVc(encodedVc)
+                .build();
+        log.info("Sending to response_uri: {} the VC: {}", responseUri,encodedVc);
+        return webClient.commonWebClient()
+                .patch()
+                .uri(responseUri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+                .bodyValue(responseUriRequest)
+                .exchangeToMono(response -> {
+                    if (response.statusCode().is2xxSuccessful()) {
+                        return Mono.empty();
+                    } else {
+                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
+                    }
+                });
     }
 
     @Override
