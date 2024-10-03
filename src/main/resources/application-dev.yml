@@ -115,7 +115,6 @@ auth-server:
 
 verifier:
   external-domain:
-  internal-domain:
   credential-subject-key:
   vc:
   crypto:
