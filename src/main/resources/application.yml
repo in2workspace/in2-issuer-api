@@ -138,8 +138,8 @@ verifier:
     private-key: "83bd452e1e9536d244d9a440edd282d96738d9409b9168204377b5e1bba40329"
   client-assertion:
     token:
-      cron-unit: "DAYS"
-      expiration: 30
+      cron-unit: "MINUTES"
+      expiration: "2"
   paths:
     well-known-path: "/.well-known/openid-configuration"
 

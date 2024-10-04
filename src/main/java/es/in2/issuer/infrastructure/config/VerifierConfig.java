@@ -40,7 +40,7 @@ public class VerifierConfig {
     }
 
     public String getVerifierClientAssertionTokenExpiration() {
-        return configAdapter.getConfiguration(String.valueOf(verifierProperties.clientAssertion().token().expiration()));
+        return configAdapter.getConfiguration(verifierProperties.clientAssertion().token().expiration());
     }
 
     public String getVerifierWellKnownPath() {

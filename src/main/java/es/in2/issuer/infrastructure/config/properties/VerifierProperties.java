@@ -25,7 +25,7 @@ public record VerifierProperties(
         this.credentialSubjectKey = credentialSubjectKey;
         this.vc = vc;
         this.crypto = Optional.ofNullable(crypto).orElse(new VerifierProperties.Crypto(""));
-        this.clientAssertion = Optional.ofNullable(clientAssertion).orElse(new VerifierProperties.ClientAssertion(new Token("",0)));
+        this.clientAssertion = Optional.ofNullable(clientAssertion).orElse(new VerifierProperties.ClientAssertion(new Token("","")));
         this.paths = Optional.ofNullable(paths).orElse(new VerifierProperties.Paths(""));
 
     }
@@ -35,7 +35,7 @@ public record VerifierProperties(
     }
 
     @Validated
-    public record Token(@NotNull String cronUnit, Integer expiration) {
+    public record Token(@NotNull String cronUnit, String expiration) {
     }
 
     @Validated
