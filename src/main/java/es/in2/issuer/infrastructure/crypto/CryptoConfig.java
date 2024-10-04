@@ -1,7 +1,6 @@
 package es.in2.issuer.infrastructure.crypto;
 
 import es.in2.issuer.infrastructure.config.VerifierConfig;
-import es.in2.issuer.infrastructure.config.properties.VerifierProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 

@@ -58,7 +58,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
 
 
     private Mono<VerifierConfiguration> getWellKnownInfo(){
-        String wellKnownInfoEndpoint = verifierConfig.getVerifierExternalDomain() + WELL_KNOWN_VERIFIER_ENDPOINT_PATH;
+        String wellKnownInfoEndpoint = verifierConfig.getVerifierExternalDomain() + verifierConfig.getVerifierWellKnownPath();
 
         return oauth2VerifierWebClient.get()
                 .uri(wellKnownInfoEndpoint)

@@ -3,6 +3,7 @@ package es.in2.issuer.infrastructure.crypto;
 import com.nimbusds.jose.crypto.bc.BouncyCastleProviderSingleton;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
+import es.in2.issuer.domain.exception.DidKeyCreationException;
 import es.in2.issuer.domain.exception.ECKeyCreationException;
 import es.in2.issuer.domain.util.UVarInt;
 import lombok.RequiredArgsConstructor;
@@ -89,7 +90,7 @@ public class CryptoComponent {
             return "did:key:z" + multiBase58Btc;
 
         } catch (Exception e) {
-            throw new RuntimeException("Error converting public key to did:key", e);
+            throw new DidKeyCreationException("Error converting public key to did:key");
         }
     }
 

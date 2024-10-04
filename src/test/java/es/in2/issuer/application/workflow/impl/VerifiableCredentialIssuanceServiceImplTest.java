@@ -22,14 +22,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.function.Function;
-
 import static es.in2.issuer.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {

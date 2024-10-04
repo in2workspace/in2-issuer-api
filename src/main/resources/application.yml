@@ -140,6 +140,8 @@ verifier:
     token:
       cron-unit: "DAYS"
       expiration: 30
+  paths:
+    well-known-path: "/.well-known/openid-configuration"
 
 remote-signature:
   external-domain: "http://localhost:8082"

@@ -91,9 +91,7 @@ public class SecurityConfig {
     @Bean
     public ReactiveAuthenticationManager customAuthenticationManager() {
         return authentication -> jwtDecoder().decode(authentication.getCredentials().toString())
-                .flatMap(jwt -> {
-                    return Mono.just(new JwtAuthenticationToken(jwt, null, null));
-                })
+                .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
                 .cast(Authentication.class)
                 .onErrorResume(ex -> {
                     String token = authentication.getCredentials().toString();

@@ -10,6 +10,7 @@ public class Constants {
 
     public static final String LEAR_CREDENTIAL = "LEARCredential";
     public static final String VERIFIABLE_CREDENTIAL = "VerifiableCredential";
+    public static final String VERIFIABLE_ATTESTATION = "VerifiableAttestation";
     public static final String JWT_VC = "jwt_vc_json";
     public static final String CWT_VC = "cwt_vc";
     public static final String JWT_VC_JSON = "jwt_vc_json";
@@ -22,6 +23,15 @@ public class Constants {
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
+    public static final String VC = "vc";
+    public static final String TYPE = "type";
+    public static final String EMAIL = "email";
+    public static final String EMAIL_ADDRESS = "emailAddress";
+    public static final String FIRST_NAME = "first_name";
+    public static final String LAST_NAME = "last_name";
+    public static final String SIGNER = "signer";
+    public static final String PRODUCT = "product";
+    public static final String PRODUCT_NAME = "productName";
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
     public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
@@ -49,6 +59,5 @@ public class Constants {
     public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
     public static final long MSB = 0x80L;
     public static final long MSBALL = 0xFFFFFF80L;
-    public static final String WELL_KNOWN_VERIFIER_ENDPOINT_PATH = "/.well-known/openid-configuration";
 
 }

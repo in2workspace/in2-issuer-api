@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-public class M2MTokenServiceImplTest {
+class M2MTokenServiceImplTest {
 
     @Mock
     private JWTService jwtService;

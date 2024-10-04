@@ -3,7 +3,6 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

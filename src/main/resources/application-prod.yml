@@ -123,6 +123,8 @@ verifier:
     token:
       cron-unit:
       expiration:
+  paths:
+    well-known-path:
 
 remote-signature:
   external-domain: "http://localhost:8082"

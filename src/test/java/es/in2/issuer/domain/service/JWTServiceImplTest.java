@@ -6,9 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.SignedJWT;
@@ -30,15 +28,13 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class JWTServiceImplTest {
+class JWTServiceImplTest {
 
     @Mock
     private ObjectMapper objectMapper;
@@ -48,26 +44,6 @@ public class JWTServiceImplTest {
 
     @InjectMocks
     private JWTServiceImpl jwtService;
-
-//    @Test
-//    void generateJWT_shouldGenerateValidJWT() {
-//        ECKey ecKeyMock = mock(ECKey.class);
-//        when(ecKeyMock.getKeyID()).thenReturn("testKeyID");
-//
-//        when(cryptoComponent.getECKey()).thenReturn(ecKeyMock);
-//
-//        String payload = "{ \"iss\": \"did:key:zDnaef6ThjkPMi5tb6AhLJ8Tu8Zy3mhGQJbfT8axhHsH7SDdz\", " +
-//                "\"sub\": \"did:key:zDnaef6ThjkPMi5tb6AhLJ8Tu8Zy3mhGQJbfT8axhHsH7SDdz\", " +
-//                "\"exp\": 1760079134, \"iat\": 1725951134 }";
-//
-//        String jwt = jwtService.generateJWT(payload);
-//
-//        assertNotNull(jwt);
-//        assertFalse(jwt.isEmpty());
-//
-//        verify(cryptoComponent, times(1)).getECKey();
-//    }
-
 
     @Test
     void generateJWT_throws_JWTCreationException() throws JsonProcessingException {
