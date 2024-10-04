@@ -168,23 +168,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
-    @Override
-    public Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token) {
-        return null;
-//            return verifiableCredentialService.generateDeferredCredentialResponse(unsignedCredential)
-//                    .flatMap(vcPayload -> {
-//                        SignatureRequest signatureRequest = SignatureRequest.builder()
-//                                .configuration(SignatureConfiguration.builder().type(SignatureType.JADES).parameters(Collections.emptyMap()).build())
-//                                .data(vcPayload)
-//                                .build();
-//                        return remoteSignatureService.sign(signatureRequest, token)
-//                                .publishOn(Schedulers.boundedElastic())
-//                                .map(SignedData::data);
-//                    })
-//                    .flatMap(signedCredential -> credentialManagementService.updateCredential(signedCredential, credentialId, userId))
-//                    .onErrorResume(e -> Mono.error(new RuntimeException("Failed to sign and update the credential.", e)));
-    }
-
     private Mono<String> extractDidFromJwtProof(String jwtProof) {
         return Mono.fromCallable(() -> {
             JWSObject jwsObject = JWSObject.parse(jwtProof);

@@ -63,9 +63,7 @@ class JWTServiceImplTest {
         claimsMap .put("iat", 1516239022);
         when(objectMapper.convertValue(any(JsonNode.class), any(TypeReference.class))).thenReturn(claimsMap);
 
-        assertThrows(JWTCreationException.class, () -> {
-            jwtService.generateJWT(payload);
-        });
+        assertThrows(JWTCreationException.class, () -> jwtService.generateJWT(payload));
     }
 
     @Test
@@ -139,9 +137,7 @@ class JWTServiceImplTest {
             mockStaticSignedJWT.when(() -> SignedJWT.parse(invalidToken))
                     .thenThrow(new ParseException("Invalid token", 0));
 
-            JWTParsingException exception = assertThrows(JWTParsingException.class, () -> {
-                jwtService.parseJWT(invalidToken);
-            });
+            JWTParsingException exception = assertThrows(JWTParsingException.class, () -> jwtService.parseJWT(invalidToken));
 
             Assertions.assertEquals("Error al parsear el JWTs", exception.getMessage());
         }
@@ -183,9 +179,7 @@ class JWTServiceImplTest {
 
         when(payloadMock.toJSONObject()).thenReturn(new HashMap<>());
 
-        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> {
-            jwtService.getClaimFromPayload(payloadMock, claimName);
-        });
+        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getClaimFromPayload(payloadMock, claimName));
 
         Assertions.assertEquals(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName), exception.getMessage());
     }
@@ -201,9 +195,7 @@ class JWTServiceImplTest {
 
         when(payloadMock.toJSONObject()).thenReturn(claimsMap);
 
-        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> {
-            jwtService.getClaimFromPayload(payloadMock, claimName);
-        });
+        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getClaimFromPayload(payloadMock, claimName));
 
         Assertions.assertEquals(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName), exception.getMessage());
     }

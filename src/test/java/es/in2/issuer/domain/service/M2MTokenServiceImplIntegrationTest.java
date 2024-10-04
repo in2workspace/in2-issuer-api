@@ -24,6 +24,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.io.IOException;
+import java.util.Objects;
 
 class M2MTokenServiceImplIntegrationTest {
 
@@ -81,7 +82,7 @@ class M2MTokenServiceImplIntegrationTest {
         Mono<VerifierOauth2AccessToken> result = m2MTokenService.getM2MToken();
 
         StepVerifier.create(result)
-                .expectNextMatches(token -> token instanceof VerifierOauth2AccessToken)
+                .expectNextMatches(Objects::nonNull)
                 .expectComplete()
                 .verify();
     }

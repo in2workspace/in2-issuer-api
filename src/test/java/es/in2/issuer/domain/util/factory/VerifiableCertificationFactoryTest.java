@@ -94,7 +94,7 @@ class VerifiableCertificationFactoryTest {
         // Mock the objectMapper's convertValue method
         VerifiableCertification verifiableCertification = VerifiableCertification.builder()
                 .context(List.of("https://www.w3.org/2018/credentials/v1"))
-                .id("urn:uuid:" + UUID.randomUUID().toString())
+                .id("urn:uuid:" + UUID.randomUUID())
                 .type(List.of("VerifiableCertification"))
                 .issuer(VerifiableCertification.Issuer.builder()
                         .commonName("Issuer Common Name")
@@ -144,11 +144,9 @@ class VerifiableCertificationFactoryTest {
 
         // Then: Verify the result
         StepVerifier.create(resultMono)
-                .expectNextMatches(credentialProcedureCreationRequest -> {
-                    return credentialProcedureCreationRequest.credentialId() != null &&
-                            credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
-                            credentialProcedureCreationRequest.credentialDecoded() != null;
-                })
+                .expectNextMatches(credentialProcedureCreationRequest -> credentialProcedureCreationRequest.credentialId() != null &&
+                        credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
+                        credentialProcedureCreationRequest.credentialDecoded() != null)
                 .verifyComplete();
     }
 }

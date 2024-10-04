@@ -14,8 +14,5 @@ public interface VerifiableCredentialIssuanceWorkflow {
 
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest);
 
-    // Method for signing deferred credential using remote DSS, currently not in use in DOME profile
-    Mono<Void> signDeferredCredential(String unsignedCredential, String userId, UUID credentialId, String token);
-
     Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest);
 }
