@@ -21,7 +21,6 @@ import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
-import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.*;
 

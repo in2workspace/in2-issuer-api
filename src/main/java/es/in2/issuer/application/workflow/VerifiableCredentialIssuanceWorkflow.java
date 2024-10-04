@@ -3,8 +3,6 @@ package es.in2.issuer.application.workflow;
 import es.in2.issuer.domain.model.dto.*;
 import reactor.core.publisher.Mono;
 
-import java.util.UUID;
-
 public interface VerifiableCredentialIssuanceWorkflow {
     Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token);
 
