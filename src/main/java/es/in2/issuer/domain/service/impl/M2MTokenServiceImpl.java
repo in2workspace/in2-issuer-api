@@ -146,7 +146,11 @@ public class M2MTokenServiceImpl implements M2MTokenService {
                 .flatMap(jwtService::validateJwtSignatureReactive)
                 .flatMap(isValid -> {
                     String issuerDidKey = extractIssuerFromToken(m2mAccessToken);
-                    if (Boolean.TRUE.equals(isValid) && verifierConfig.getVerifierDidKey().equals(issuerDidKey)) {
+                    Long expirationEpoch = jwtService.getExpirationFromToken(m2mAccessToken);
+                    Instant expirationInstant = Instant.ofEpochSecond(expirationEpoch);
+                    if (Boolean.TRUE.equals(isValid)
+                            && verifierConfig.getVerifierDidKey().equals(issuerDidKey)
+                            && expirationInstant.isAfter(Instant.now())) {
                         log.info("M2MTokenServiceImpl -- verifyM2MToken -- IS VALID ?: {}", true);
                         return Mono.empty();
                     } else {
@@ -164,6 +168,5 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         Payload payload = jwtService.getPayloadFromSignedJWT(signedToken);
         return jwtService.getClaimFromPayload(payload,"iss");
     }
-
 
 }

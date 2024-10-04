@@ -229,4 +229,11 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
+
+    @ExceptionHandler(JWTVerificationException.class)
+    public Mono<ResponseEntity<Void>> handleJWTVerificationException(JWTVerificationException ex) {
+        log.info("-----ENTRO AL MANEJADOR!");
+        log.error(ex.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+    }
 }

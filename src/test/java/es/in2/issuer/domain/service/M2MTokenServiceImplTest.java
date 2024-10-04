@@ -45,7 +45,7 @@ class M2MTokenServiceImplTest {
         when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
         when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
-
+        when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
         Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);
@@ -67,7 +67,7 @@ class M2MTokenServiceImplTest {
         when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
         when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
-
+        when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
         Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);

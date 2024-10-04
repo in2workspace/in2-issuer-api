@@ -200,4 +200,33 @@ class JWTServiceImplTest {
         Assertions.assertEquals(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName), exception.getMessage());
     }
 
+    @Test
+    void getExpirationFromToken_token_shouldReturnExpiration() {
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZXhwIjoxNTE2MjM5MDIyfQ.E9bQ6QAil4HpH825QC5PtjNGEDQTtMpcj0SO2W8vmag";
+        Long expiration = 1516239022L;
+
+        Long result = jwtService.getExpirationFromToken(token);
+
+        assertNotNull(result);
+        Assertions.assertEquals(expiration, result);
+    }
+
+    @Test
+    void getExpirationFromToken_token_shouldThrowJWTClaimMissingExceptionMissingClaim() {
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIn0.Gfx6VO9tcxwk6xqx9yYzSfebfeakZp5JYIgP_edcw_A";
+
+        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getExpirationFromToken(token));
+
+        Assertions.assertEquals("The 'exp' claim is missing in the JWT payload.", exception.getMessage());
+    }
+
+    @Test
+    void getExpirationFromToken_token_shouldThrowJWTClaimMissingExceptionNotNumeric() {
+        String token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiZXhwIjoic3RyaW5nIn0.Ku5X63YN9UGSDkQTcrozyKLfGIcX1kKXaIXh3zl8c-8";
+
+        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getExpirationFromToken(token));
+
+        Assertions.assertEquals("The 'exp' claim is not a valid number in the JWT payload.", exception.getMessage());
+    }
+
 }

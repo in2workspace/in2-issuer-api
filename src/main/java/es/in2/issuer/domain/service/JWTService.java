@@ -17,4 +17,5 @@ public interface JWTService {
 
     String getClaimFromPayload(Payload payload, String claimName);
 
+    Long getExpirationFromToken(String token);
 }
