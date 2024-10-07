@@ -382,4 +382,17 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleJWTVerificationException() {
+        JWTVerificationException exception = new JWTVerificationException("message");
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleJWTVerificationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
 }

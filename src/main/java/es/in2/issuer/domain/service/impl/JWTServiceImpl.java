@@ -188,4 +188,18 @@ public class JWTServiceImpl implements JWTService {
         }
         return claimValue;
     }
+
+    @Override
+    public Long getExpirationFromToken(String token) {
+        Payload payload = getPayloadFromSignedJWT(parseJWT(token));
+        Object claimValue = payload.toJSONObject().get("exp");
+        if (claimValue == null) {
+            throw new JWTClaimMissingException("The 'exp' claim is missing in the JWT payload.");
+        }
+        if (claimValue instanceof Number number) {
+            return number.longValue();
+        } else {
+            throw new JWTClaimMissingException("The 'exp' claim is not a valid number in the JWT payload.");
+        }
+    }
 }
