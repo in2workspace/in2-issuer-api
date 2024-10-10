@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -36,8 +37,9 @@ public class IssuanceController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> issueCredential(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody IssuanceRequest issuanceRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest);
+        return verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, authorizationHeader);
     }
 }
