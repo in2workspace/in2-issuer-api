@@ -7,12 +7,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
@@ -88,21 +90,46 @@ public class SecurityConfig {
         return http.build();
     }
 
+//    @Bean
+//    public ReactiveAuthenticationManager customAuthenticationManager() {
+//        return authentication -> jwtDecoder().decode(authentication.getCredentials().toString())
+//                .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
+//                .cast(Authentication.class)
+//                .onErrorResume(ex -> {
+//                    String token = authentication.getCredentials().toString();
+//                    return m2MTokenService.verifyM2MToken(token)
+//                            .then(Mono.defer(() -> {
+//                                UsernamePasswordAuthenticationToken customToken =
+//                                        new UsernamePasswordAuthenticationToken(null, null, null);
+//                                return Mono.just(customToken).cast(Authentication.class);
+//                            }))
+//                            .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
+//                });
+//    }
+
     @Bean
     public ReactiveAuthenticationManager customAuthenticationManager() {
-        return authentication -> jwtDecoder().decode(authentication.getCredentials().toString())
-                .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
-                .cast(Authentication.class)
-                .onErrorResume(ex -> {
-                    String token = authentication.getCredentials().toString();
-                    return m2MTokenService.verifyM2MToken(token)
-                            .then(Mono.defer(() -> {
-                                // If M2MToken validation is OK return custom token
-                                UsernamePasswordAuthenticationToken customToken =
-                                        new UsernamePasswordAuthenticationToken(null, null, null);
-                                return Mono.just(customToken).cast(Authentication.class);
-                            }));
-                });
+        return authentication -> {
+            try {
+                // Try to validate token with default decoder
+                return jwtDecoder().decode(authentication.getCredentials().toString())
+                        .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
+                        .cast(Authentication.class)
+                        .onErrorResume(ex -> {
+                            // If default decoder fail, try to validate as M2M token
+                            String token = authentication.getCredentials().toString();
+                            return m2MTokenService.verifyM2MToken(token)
+                                    .then(Mono.defer(() -> {
+                                        UsernamePasswordAuthenticationToken customToken =
+                                                new UsernamePasswordAuthenticationToken(null, null, null);
+                                        return Mono.just(customToken).cast(Authentication.class);
+                                    }))
+                                    .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
+                        });
+            } catch (Exception e) {
+                return Mono.error(new BadCredentialsException("Authentication failed", e));
+            }
+        };
     }
 
     @Bean

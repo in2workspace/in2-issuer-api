@@ -15,6 +15,7 @@ import es.in2.issuer.domain.exception.JWTCreationException;
 import es.in2.issuer.domain.exception.JWTParsingException;
 import es.in2.issuer.domain.service.impl.JWTServiceImpl;
 import es.in2.issuer.infrastructure.crypto.CryptoComponent;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
