@@ -12,6 +12,7 @@ public class CredentialResponseErrorCodes {
     public static final String VC_DOES_NOT_EXIST = "vc_does_not_exist";
     public static final String USER_DOES_NOT_EXIST = "user_does_not_exist";
     public static final String DEFAULT_ERROR = "An error occurred";
+    public static final String OPERATION_NOT_SUPPORTED = "operation_not_supported";
 
     private CredentialResponseErrorCodes() {
         throw new IllegalStateException("Utility class");
