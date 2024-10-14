@@ -1,0 +1,145 @@
+name: Release
+on:
+  push:
+    branches:
+      - release/*
+      - hotfix/*
+  pull_request:
+    branches:
+      - develop
+    types: [opened, synchronize, reopened]
+jobs:
+  release-local:
+    name: release-local
+    runs-on: ubuntu-latest
+    # Se ejecuta si la PR es hacia develop y no proviene de una rama de release u hotfix.
+    # Este job no debe ejecutarse como push en cualquier rama release, pero sí en las ramas de hotfix.
+    if: ${{ (github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && !contains(github.event.pull_request.head.ref, 'release/') && !contains(github.event.pull_request.head.ref, 'hotfix/')) || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/hotfix/')) }}
+    environment: local
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+          SUFFIX: -snapshot
+  release-dev:
+    name: release-dev
+    runs-on: ubuntu-latest
+    needs: release-local
+    # Este job se ejecuta si el evento es un 'push' y ocurre en las ramas 'release' y 'hotfix'.
+    # Este job depende del resultado del job anterior, 'release-local', si la rama del evento es 'hotfix', no 'release'.
+    # Este job jamás se ejecutará por una 'pull_request'.
+    if: ${{ github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/release/') || (startsWith(github.ref, 'refs/heads/hotfix/') && success())) }}
+    environment: dev
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+          SUFFIX: -snapshot
+  release-test:
+    name: release-test
+    runs-on: ubuntu-latest
+    needs: release-dev
+    # Este job se ejecuta si el evento es un 'push' y ocurre en las ramas 'release' y 'hotfix'.
+    # Este job depende del resultado del job anterior, 'release-dev'.
+    # Este job jamás se ejecutará por una 'pull_request'.
+    if: ${{ github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') && success()) }}
+    environment: test
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+          SUFFIX: -rc1
+  release-prod:
+    name: release-prod
+    runs-on: ubuntu-latest
+    needs: release-test
+    # Este job se ejecuta si el evento es un 'push' y ocurre en las ramas 'release' y 'hotfix'.
+    # Este job depende del resultado del job anterior, 'release-test'.
+    # Este job jamás se ejecutará por una 'pull_request'.
+    if: ${{ github.event_name == 'push' && (startsWith(github.ref, 'refs/heads/release/') || startsWith(github.ref, 'refs/heads/hotfix/') && success()) }}
+    environment: prod
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ vars.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+          SUFFIX: -ga

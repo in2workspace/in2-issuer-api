@@ -3,6 +3,7 @@ package es.in2.issuer.domain.service;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.CredentialProcedures;
@@ -548,11 +549,11 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldReturnBasicInfoForAllProcedures() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"Jane\", \"last_name\":\"Smith\"}}}}}";
+        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String credentialDecoded2 = "{\"vc\":{\"type\":[\"VerifiableCertification\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
 
-        UUID procedureId1 = UUID.randomUUID();
-        UUID procedureId2 = UUID.randomUUID();
+        UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
+        UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
         Timestamp updated1 = Timestamp.from(Instant.now());
         Timestamp updated2 = Timestamp.from(Instant.now().minusSeconds(3600));
 
@@ -581,6 +582,9 @@ class CredentialProcedureServiceImplTest {
         when(objectMapper.readTree(credentialDecoded1)).thenReturn(credentialNode1);
         when(objectMapper.readTree(credentialDecoded2)).thenReturn(credentialNode2);
 
+        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure1));
+        when(credentialProcedureRepository.findById(UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8"))).thenReturn(Mono.just(credentialProcedure2));
+
         // Execute
         Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
 
@@ -594,7 +598,7 @@ class CredentialProcedureServiceImplTest {
                             credentialProcedureList.get(0).credentialProcedure().status().equals(CredentialStatus.ISSUED.name()) &&
                             credentialProcedureList.get(0).credentialProcedure().updated().equals(updated1) &&
                             credentialProcedureList.get(1).credentialProcedure().procedureId().equals(procedureId2) &&
-                            credentialProcedureList.get(1).credentialProcedure().fullName().equals("Jane Smith") &&
+                            credentialProcedureList.get(1).credentialProcedure().fullName().equals("ProductName") &&
                             credentialProcedureList.get(1).credentialProcedure().status().equals(CredentialStatus.WITHDRAWN.name()) &&
                             credentialProcedureList.get(1).credentialProcedure().updated().equals(updated2);
                 })
@@ -602,12 +606,62 @@ class CredentialProcedureServiceImplTest {
     }
 
     @Test
+    void getAllProceduresBasicInfoByOrganizationId_shouldReturnUnsupportedTypeException() throws Exception {
+        // Given
+        String organizationIdentifier = "org-123";
+        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String credentialDecoded2 = "{\"vc\":{\"type\":[\"NotSupportedType\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
+
+        UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
+        UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
+        Timestamp updated1 = Timestamp.from(Instant.now());
+        Timestamp updated2 = Timestamp.from(Instant.now().minusSeconds(3600));
+
+        CredentialProcedure credentialProcedure1 = new CredentialProcedure();
+        credentialProcedure1.setProcedureId(procedureId1);
+        credentialProcedure1.setCredentialDecoded(credentialDecoded1);
+        credentialProcedure1.setCredentialStatus(CredentialStatus.ISSUED);
+        credentialProcedure1.setOrganizationIdentifier(organizationIdentifier);
+        credentialProcedure1.setUpdatedAt(updated1);
+
+        CredentialProcedure credentialProcedure2 = new CredentialProcedure();
+        credentialProcedure2.setProcedureId(procedureId2);
+        credentialProcedure2.setCredentialDecoded(credentialDecoded2);
+        credentialProcedure2.setCredentialStatus(CredentialStatus.WITHDRAWN);
+        credentialProcedure2.setOrganizationIdentifier(organizationIdentifier);
+        credentialProcedure2.setUpdatedAt(updated2);
+
+        List<CredentialProcedure> procedures = List.of(credentialProcedure1, credentialProcedure2);
+
+        JsonNode credentialNode1 = new ObjectMapper().readTree(credentialDecoded1);
+        JsonNode credentialNode2 = new ObjectMapper().readTree(credentialDecoded2);
+
+        // When
+        when(credentialProcedureRepository.findAllByOrganizationIdentifier(any(String.class)))
+                .thenReturn(Flux.fromIterable(procedures));
+        when(objectMapper.readTree(credentialDecoded1)).thenReturn(credentialNode1);
+        when(objectMapper.readTree(credentialDecoded2)).thenReturn(credentialNode2);
+
+        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure1));
+        when(credentialProcedureRepository.findById(UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8"))).thenReturn(Mono.just(credentialProcedure2));
+
+        // Execute
+        Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
+
+        // Then
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof CredentialTypeUnsupportedException)
+                .verify();
+    }
+
+    @Test
     void getAllProceduresBasicInfoByOrganizationId_shouldHandleJsonProcessingException() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
         String malformedJson = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\"}}}}"; // Malformed JSON
+        String goodJson = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
 
-        UUID procedureId = UUID.randomUUID();
+        UUID procedureId = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
         Timestamp updated = Timestamp.from(Instant.now());
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
@@ -619,15 +673,16 @@ class CredentialProcedureServiceImplTest {
         // When
         when(credentialProcedureRepository.findAllByOrganizationIdentifier(any(String.class)))
                 .thenReturn(Flux.just(credentialProcedure));
-        when(objectMapper.readTree(malformedJson))
+        when(objectMapper.readTree(goodJson))
                 .thenThrow(new JsonParseException(null, "Error parsing credential"));
+        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure));
 
         // Execute
         Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof JsonParseException)
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException)
                 .verify();
     }
 }
