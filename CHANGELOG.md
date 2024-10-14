@@ -6,11 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.2.0
 ### Added
-- Sync issuance for LEARCredential.
 - Verifiable Certifications issuance and sending to response_uri.
 ### Changed
-- Issuance API contract.
 - List credentials in order from newest to oldest.
+
+## [Unreleased]: v1.1.0
+### Added
+- Sync issuance for LEARCredential.
+### Changed
+- Issuance API.
 
 ## [Unreleased]: v0.7.0
 - LEARCredential compliance.
