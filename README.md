@@ -4,19 +4,19 @@
 <span>by </span><a href="https://in2.es">in2.es</a>
 <p><p>
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=alert_status)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=alert_status)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
 
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=bugs)](https://sonarcloud.io/summary/new_code?in2workspace_credential-issuer)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=security_rating)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=in2workspace_credential-issuer)
-[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=ncloc)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=bugs)](https://sonarcloud.io/summary/new_code?in2workspace_in2-issuer-api)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=vulnerabilities)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=security_rating)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=in2workspace_in2-issuer-api)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=ncloc)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
 
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=coverage)](https://sonarcloud.io/summary/new_code?id=in2workspace_credential-issuer)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=in2workspace_credential-issuer)
-[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
-[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=in2workspace_credential-issuer)
-[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_credential-issuer&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=in2workspace_credential-issuer)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=coverage)](https://sonarcloud.io/summary/new_code?id=in2workspace_in2-issuer-api)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=in2workspace_in2-issuer-api)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=reliability_rating)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=sqale_rating)](https://sonarcloud.io/dashboard?id=in2workspace_in2-issuer-api)
+[![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=in2workspace_in2-issuer-api&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=in2workspace_in2-issuer-api)
 
 </div>
 
@@ -24,7 +24,6 @@
 Credential Issuer is a service that allows to generate verifiable credentials. It is designed to be used in a decentralized identity ecosystem, where users can generate the emission of verifiable credentials and store them using the Wallet Server service.
 
 # Architecture
-![Architecture](docs/images/issuer-architecture.png)
 The Issuer solution includes the requested features described in the technical specification [OpenID4VCI DOME profile](https://dome-marketplace.github.io/OpenID4VCI-DOMEprofile/openid-4-verifiable-credential-issuance-wg-draft.html) (Issuer-initiated flow)
 
 # Functionalities
@@ -52,7 +51,7 @@ For each dependency, you can refer to their respective repositories for detailed
 
 ### Issuer UI
 Issuer UI is the user interface for the Credential Issuer.
-Refer to the [Issuer UI Documentation](https://github.com/in2workspace/issuer-ui) for more information on configuration variables.
+Refer to the [Issuer UI Documentation](https://github.com/in2workspace/in2-issuer-ui) for more information on configuration variables.
 
 ### Issuer API
 The Server application of the Issuer needs key environment variables to be configured
@@ -127,7 +126,7 @@ docker run -d \
 ### Issuer Keycloak Plugin
 Keycloak is used for identity and access management, as well as for other OpenID4VCI DOME profile requirements.
 It's an implementation of the official quay.io keycloak image with a custom layer.
-Refer to the [Keycloak Plugin Documentation](https://github.com/in2workspace/issuer-keycloak-plugin) for more information on setup and configuration variables.
+Refer to the [Keycloak Plugin Documentation](https://github.com/in2workspace/in2-keycloak-extension) for more information on setup and configuration variables.
 
 ### SMTP Email Server
 An SMTP Email Server of your choice. It must support StartTLS for a secure connection.
@@ -141,7 +140,7 @@ Each component has its own set of environment variables that need to be configur
 If you want to contribute to this project, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file.
 
 ## License
-This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 — see the [LICENSE](LICENSE) file for details.
 
 ## Project/Component Status
 This project is currently in development.
@@ -154,4 +153,4 @@ For any inquiries or further information, feel free to reach out to us:
 - **Website:** [https://in2.es](https://in2.es)
 
 ## Acknowledgments
-This project is part of the IN2 strategic R&D, which has received funding from the [DOME](https://dome-marketplace.eu/) project within the European Union’s Horizon Europe Research and Innovation programme under the Grant Agreement No 101084071.
+This project is part of the IN2 strategic R&D, which has received funding from the [DOME](https://dome-marketplace.eu/) project within the European Union’s Horizon Europe Research and Innovation program under the Grant Agreement No. 101084071.
