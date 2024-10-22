@@ -118,3 +118,6 @@ remote-signature:
   internal-domain: "http://remote-signature:8080"
   paths:
     sign-path: "/signature/sign"
+
+trust-framework:
+  url:

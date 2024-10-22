@@ -36,14 +36,13 @@ checkstyleTest {
 // TODO: Remove Token Controller sonar exclusion once the deprecated class is deleted.
 sonar {
     properties {
-        property "sonar.projectName", "Issuer API"
-        property "sonar.projectKey", "in2workspace_credential-issuer"
+        property "sonar.projectName", "IN2 Issuer API"
+        property "sonar.projectKey", "in2workspace_in2-issuer-api"
         property "sonar.organization", "in2workspace"
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.exclusions",
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java"
-
     }
 }
 

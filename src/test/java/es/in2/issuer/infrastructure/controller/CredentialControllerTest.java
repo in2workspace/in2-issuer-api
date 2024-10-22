@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -31,20 +33,6 @@ class CredentialControllerTest {
     private CredentialController credentialController;
 
     @Test
-    void createWithdrawnLEARCredential() {
-        String type = "testType";
-        LEARCredentialRequest learCredentialRequest = LEARCredentialRequest.builder()
-                .credential(null)
-                .build();
-        when(verifiableCredentialIssuanceWorkflow.completeWithdrawLearCredentialProcess(anyString(), eq(type), eq(learCredentialRequest))).thenReturn(Mono.empty());
-
-        Mono<Void> result = credentialController.createWithdrawnLEARCredential(type, learCredentialRequest);
-
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
-
-    @Test
     void createVerifiableCredential() {
         //Arrange
         String authorizationHeader = "Bearer testToken";
@@ -58,13 +46,14 @@ class CredentialControllerTest {
                 .cNonce("sampleCNonce")
                 .cNonceExpiresIn(35)
                 .build();
+        ResponseEntity<VerifiableCredentialResponse> expectedResponse =  new ResponseEntity<>(verifiableCredentialResponse, HttpStatus.ACCEPTED);
         when(accessTokenService.getCleanBearerToken(authorizationHeader)).thenReturn(Mono.just("testToken"));
         when(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(anyString(), eq(credentialRequest), anyString())).thenReturn(Mono.just(verifiableCredentialResponse));
 
-        Mono<VerifiableCredentialResponse> result = credentialController.createVerifiableCredential(authorizationHeader, credentialRequest);
+        Mono<ResponseEntity<VerifiableCredentialResponse>> result = credentialController.createVerifiableCredential(authorizationHeader, credentialRequest);
 
         StepVerifier.create(result)
-                .assertNext(response -> assertEquals(verifiableCredentialResponse, response))
+                .assertNext(response -> assertEquals(expectedResponse, response))
                 .verifyComplete();
     }
 
