@@ -39,6 +39,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final WebClientConfig webClient;
     private final M2MTokenService m2MTokenService;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
+    private final AccessTokenService accessTokenService;
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
@@ -47,11 +48,12 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
         } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
             if (issuanceRequest.operationMode().equals(SYNC)) {
-                return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
+                return validateVerifiableCertificationToken(token)
+                        .then(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
                         .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+authServerToken, procedureId, JWT_VC)))
                         .flatMap(encodedVc -> m2MTokenService.getM2MToken()
-                                    .flatMap(m2mToken ->sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken())));
+                                    .flatMap(m2mToken ->sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken()))));
             }
             return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()+" with schema: "+issuanceRequest.schema()));
         }
@@ -91,6 +93,18 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     } else {
                         return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
                     }
+                });
+    }
+
+    private Mono<Void> validateVerifiableCertificationToken(String token) {
+        String tokenTspcDid = appConfig.getTrustServiceProvideForCertificationsDid();
+
+        return accessTokenService.getIssuer(token)
+                .flatMap(tspcDid -> {
+                    if (!tspcDid.equals(tokenTspcDid)) {
+                        return Mono.error(new IllegalArgumentException("Invalid token: TSPC did does not match"));
+                    }
+                    return Mono.empty();
                 });
     }
 

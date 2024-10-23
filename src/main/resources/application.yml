@@ -143,6 +143,9 @@ verifier:
   paths:
     well-known-path: "/.well-known/openid-configuration"
 
+trust-service-provider-for-certifications:
+  did: "did:elsi:VATES-Q0000000J"
+
 remote-signature:
   external-domain: "http://localhost:8082"
   internal-domain: "http://remote-signature:8080"

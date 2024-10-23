@@ -60,6 +60,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Mock
     private WebClientConfig webClientConfig;
 
+    @Mock
+    private AccessTokenService accessTokenService;
+
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
 
@@ -255,6 +258,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(VerifierOauth2AccessToken.builder().accessToken("M2Mtoken").build()));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(token));
+        when(appConfig.getTrustServiceProvideForCertificationsDid()).thenReturn("did-12345");
+        when(accessTokenService.getIssuer(token)).thenReturn(Mono.just("did-12345"));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
