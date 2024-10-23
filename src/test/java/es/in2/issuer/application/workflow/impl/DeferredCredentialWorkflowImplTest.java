@@ -142,6 +142,8 @@ class DeferredCredentialWorkflowImplTest {
         when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready",expectedFirstName))
                 .thenReturn(Mono.empty());
 
+        when(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("A"));
+
         StepVerifier.create(deferredCredentialWorkflow.updateSignedCredentials(signedCredentials))
                 .verifyComplete();
     }

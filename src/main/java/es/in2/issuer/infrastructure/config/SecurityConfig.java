@@ -1,22 +1,30 @@
 package es.in2.issuer.infrastructure.config;
 
+import es.in2.issuer.domain.service.M2MTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.ReactiveAuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
+import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoders;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -31,10 +39,9 @@ public class SecurityConfig {
 
     private final AuthServerConfig authServerConfig;
     private final AppConfig appConfig;
+    private final M2MTokenService m2MTokenService;
 
-    // fixme: why we need to use different jwtDecoder for sbx and dev-prod?
     @Bean
-    @Profile("!sbx")
     public ReactiveJwtDecoder jwtDecoder() {
         NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
                 .withJwkSetUri(authServerConfig.getJwtDecoder())
@@ -45,12 +52,25 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("sbx")
-    public ReactiveJwtDecoder jwtDecoderLocal() {
-        return ReactiveJwtDecoders.fromIssuerLocation(authServerConfig.getJwtDecoderLocal());
+    @Order(1)
+    public SecurityWebFilterChain issuancesFilterChain(ServerHttpSecurity http) {
+        http
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**"))
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(HttpMethod.POST, "/vci/v1/issuances").authenticated()
+                )
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
+                        .jwt(jwtSpec -> jwtSpec
+                                .jwtDecoder(jwtDecoder())
+                                .authenticationManager(customAuthenticationManager())
+                        )
+                );
+        return http.build();
     }
 
     @Bean
+    @Order(2)
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange(exchanges -> exchanges
@@ -68,6 +88,48 @@ public class SecurityConfig {
                         oauth2ResourceServer
                                 .jwt(withDefaults()));
         return http.build();
+    }
+
+//    @Bean
+//    public ReactiveAuthenticationManager customAuthenticationManager() {
+//        return authentication -> jwtDecoder().decode(authentication.getCredentials().toString())
+//                .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
+//                .cast(Authentication.class)
+//                .onErrorResume(ex -> {
+//                    String token = authentication.getCredentials().toString();
+//                    return m2MTokenService.verifyM2MToken(token)
+//                            .then(Mono.defer(() -> {
+//                                UsernamePasswordAuthenticationToken customToken =
+//                                        new UsernamePasswordAuthenticationToken(null, null, null);
+//                                return Mono.just(customToken).cast(Authentication.class);
+//                            }))
+//                            .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
+//                });
+//    }
+
+    @Bean
+    public ReactiveAuthenticationManager customAuthenticationManager() {
+        return authentication -> {
+            try {
+                // Try to validate token with default decoder
+                return jwtDecoder().decode(authentication.getCredentials().toString())
+                        .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
+                        .cast(Authentication.class)
+                        .onErrorResume(ex -> {
+                            // If default decoder fail, try to validate as M2M token
+                            String token = authentication.getCredentials().toString();
+                            return m2MTokenService.verifyM2MToken(token)
+                                    .then(Mono.defer(() -> {
+                                        UsernamePasswordAuthenticationToken customToken =
+                                                new UsernamePasswordAuthenticationToken(null, null, null);
+                                        return Mono.just(customToken).cast(Authentication.class);
+                                    }))
+                                    .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
+                        });
+            } catch (Exception e) {
+                return Mono.error(new BadCredentialsException("Authentication failed", e));
+            }
+        };
     }
 
     @Bean

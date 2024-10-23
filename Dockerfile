@@ -4,7 +4,6 @@ ARG SKIP_TESTS=false
 COPY build.gradle settings.gradle /home/gradle/src/
 COPY src /home/gradle/src/src
 COPY config /home/gradle/src/config
-COPY docs /home/gradle/src/docs
 COPY gradle /home/gradle/src/gradle
 WORKDIR /home/gradle/src
 RUN if [ "$SKIP_TESTS" = "true" ]; then \
