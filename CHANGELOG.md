@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.2.0
 ### Added
+- Request of obtain M2M tokens from Verifier using LEARmachine VC
+- Validation of M2M tokens
 - Verifiable Certifications issuance and sending to response_uri.
 ### Changed
 - List credentials in order from newest to oldest.
