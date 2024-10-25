@@ -49,7 +49,7 @@ public class AppConfig {
         return apiProperties.cacheLifetime().verifiableCredential();
     }
 
-    public String getTrustServiceProvideForCertificationsDid() {
+    public String getTrustServiceProviderForCertificationsDid() {
         return trustServiceProviderForCertificationsProperties.did();
     }
 

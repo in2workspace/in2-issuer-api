@@ -124,7 +124,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().schema("LEARCredentialEmployee").payload(jsonNode).operationMode("A").build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().schema("LEARCredentialEmployee").format(JWT_VC_JSON).payload(jsonNode).operationMode("A").build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
         String walletUrl = "https://wallet.com";
@@ -197,7 +197,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").operationMode("S").build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
@@ -252,13 +252,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").operationMode("S").build();
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(VerifierOauth2AccessToken.builder().accessToken("M2Mtoken").build()));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(token));
-        when(appConfig.getTrustServiceProvideForCertificationsDid()).thenReturn("did-12345");
+        when(appConfig.getTrustServiceProviderForCertificationsDid()).thenReturn("did-12345");
         when(accessTokenService.getIssuer(token)).thenReturn(Mono.just("did-12345"));
 
         // Mock webClient

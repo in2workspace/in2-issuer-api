@@ -89,11 +89,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleInvalidToken(Exception ex) {
-        log.error(ex.getMessage());
+        String description = "Credential Request contains the wrong Access Token or the Access Token is missing";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
 
         CredentialErrorResponse errorResponse = new CredentialErrorResponse(
                 CredentialResponseErrorCodes.INVALID_TOKEN,
-                "Credential Request contains the wrong Access Token or the Access Token is missing");
+                description
+                );
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
@@ -214,7 +220,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(OperationNotSupportedException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleOperationNotSupportedException(Exception ex) {
         String description = "The given operation is not supported";
 
@@ -227,13 +233,63 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
     }
 
     @ExceptionHandler(JWTVerificationException.class)
     public Mono<ResponseEntity<Void>> handleJWTVerificationException(JWTVerificationException ex) {
-        log.info("-----ENTRO AL MANEJADOR!");
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+    }
+
+    @ExceptionHandler(ResponseUriException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleResponseUriException(Exception ex) {
+        String description = "Request to response uri failed";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.RESPONSE_URI_ERROR,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+    }
+
+    @ExceptionHandler(FormatUnsupportedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleFormatUnsupportedException(Exception ex) {
+        String description = "Format is not supported";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
+
+    @ExceptionHandler(TrustServiceProviderForCertificationsException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleTrustServiceProviderForCertificationsException(Exception ex) {
+        String description = "Trust Service Provider for Certifications is not authorized";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.TRUST_SERVICE_PROVIDER_CERTIFICATIONS_NOT_AUTHORIZED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
 }

@@ -3,10 +3,7 @@ package es.in2.issuer.application.workflow.impl;
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
-import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
-import es.in2.issuer.domain.exception.ParseErrorException;
-import es.in2.issuer.domain.exception.ResponseUriException;
+import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
@@ -16,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -43,19 +41,28 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
+        // Check if the format is not "json_vc_jwt"
+        if (!JWT_VC_JSON.equals(issuanceRequest.format())) {
+            return Mono.error(new FormatUnsupportedException("Format: " + issuanceRequest.format() + " is not supported"));
+        }
+
         if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
                     .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
         } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
+            // Check if responseUri is null, empty, or only contains whitespace
+            if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
+                return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
+            }
             if (issuanceRequest.operationMode().equals(SYNC)) {
                 return validateVerifiableCertificationToken(token)
                         .then(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                        .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                        .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+authServerToken, procedureId, JWT_VC)))
-                        .flatMap(encodedVc -> m2MTokenService.getM2MToken()
-                                    .flatMap(m2mToken ->sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken()))));
+                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                                        .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + authServerToken, procedureId, JWT_VC)))
+                                .flatMap(encodedVc -> m2MTokenService.getM2MToken()
+                                        .flatMap(m2mToken -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken()))));
             }
-            return Mono.error(new OperationNotSupportedException("operation_mode: "+issuanceRequest.operationMode()+" with schema: "+issuanceRequest.schema()));
+            return Mono.error(new OperationNotSupportedException("operation_mode: " + issuanceRequest.operationMode() + " with schema: " + issuanceRequest.schema()));
         }
         return Mono.error(new CredentialTypeUnsupportedException(type));
     }
@@ -80,7 +87,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        log.info("Sending to response_uri: {} the VC: {} with M2Mtoken: {}", responseUri,encodedVc,token);
+        log.info("Sending to response_uri: {} the VC: {} with M2Mtoken: {}", responseUri, encodedVc, token);
+
         return webClient.commonWebClient()
                 .patch()
                 .uri(responseUri)
@@ -93,16 +101,19 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     } else {
                         return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
                     }
-                });
+                })
+                .onErrorMap(WebClientRequestException.class, ex ->
+                    new ResponseUriException("Network error while sending VC to response URI")
+                ).then();
     }
 
     private Mono<Void> validateVerifiableCertificationToken(String token) {
-        String tokenTspcDid = appConfig.getTrustServiceProvideForCertificationsDid();
+        String tspcDid = appConfig.getTrustServiceProviderForCertificationsDid();
 
         return accessTokenService.getIssuer(token)
-                .flatMap(tspcDid -> {
-                    if (!tspcDid.equals(tokenTspcDid)) {
-                        return Mono.error(new IllegalArgumentException("Invalid token: TSPC did does not match"));
+                .flatMap(tokenTspcDid -> {
+                    if (!tokenTspcDid.equals(tspcDid)) {
+                        return Mono.error(new TrustServiceProviderForCertificationsException("TSPC: "+tokenTspcDid+" is not authorized"));
                     }
                     return Mono.empty();
                 });

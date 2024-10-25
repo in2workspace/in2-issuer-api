@@ -121,7 +121,7 @@ class GlobalExceptionHandlerTest {
                     assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.INVALID_TOKEN, responseEntity.getBody().error());
-                    assertEquals("Credential Request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
+                    assertEquals("The request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
                 })
                 .verifyComplete();
     }
@@ -374,7 +374,7 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(responseEntityMono)
                 .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED, responseEntity.getBody().error());
                     assertEquals(errorMessage, responseEntity.getBody().description());
