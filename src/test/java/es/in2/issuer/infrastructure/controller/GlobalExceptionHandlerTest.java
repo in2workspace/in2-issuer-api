@@ -395,4 +395,55 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleResponseUriException_withMessage() {
+        String errorMessage = "Error message for testing";
+        ResponseUriException responseUriException = new ResponseUriException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleResponseUriException(responseUriException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.RESPONSE_URI_ERROR, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleFormatUnsupportedException_withMessage() {
+        String errorMessage = "Error message for testing";
+        FormatUnsupportedException formatUnsupportedException = new FormatUnsupportedException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleFormatUnsupportedException(formatUnsupportedException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleTrustServiceProviderForCertificationsException_withMessage() {
+        String errorMessage = "Error message for testing";
+        TrustServiceProviderForCertificationsException trustServiceProviderForCertificationsException = new TrustServiceProviderForCertificationsException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleTrustServiceProviderForCertificationsException(trustServiceProviderForCertificationsException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.TRUST_SERVICE_PROVIDER_CERTIFICATIONS_NOT_AUTHORIZED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
 }
