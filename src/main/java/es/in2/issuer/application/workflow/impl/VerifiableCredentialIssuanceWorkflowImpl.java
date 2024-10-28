@@ -45,6 +45,10 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         if (!JWT_VC_JSON.equals(issuanceRequest.format())) {
             return Mono.error(new FormatUnsupportedException("Format: " + issuanceRequest.format() + " is not supported"));
         }
+        // Check if operation_mode is different to sync
+        if (!issuanceRequest.operationMode().equals(SYNC)) {
+            return Mono.error(new OperationNotSupportedException("operation_mode: " + issuanceRequest.operationMode() + " with schema: " + issuanceRequest.schema()));
+        }
 
         if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
@@ -54,15 +58,20 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
                 return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
             }
-            if (issuanceRequest.operationMode().equals(SYNC)) {
-                return validateVerifiableCertificationToken(token)
-                        .then(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                        .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + authServerToken, procedureId, JWT_VC)))
-                                .flatMap(encodedVc -> m2MTokenService.getM2MToken()
-                                        .flatMap(m2mToken -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken()))));
-            }
-            return Mono.error(new OperationNotSupportedException("operation_mode: " + issuanceRequest.operationMode() + " with schema: " + issuanceRequest.schema()));
+            return validateVerifiableCertificationToken(token)
+                    .then(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
+                            .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                                    .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + authServerToken, procedureId, JWT_VC)))
+                            .flatMap(encodedVc -> m2MTokenService.getM2MToken()
+                                    .flatMap(m2mToken -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, m2mToken.accessToken())
+                                            .onErrorResume(ResponseUriException.class, ex -> {
+                                                        log.error("Error while sending VC to response_uri", ex);
+                                                        return emailService.sendResponseUriFailed(
+                                                                        "domesupport@in2.es",
+                                                                        issuanceRequest.payload().get("credentialSubject").get("product").get("productId").asText())
+                                                                .then();
+                                                    })
+                                    )));
         }
         return Mono.error(new CredentialTypeUnsupportedException(type));
     }
