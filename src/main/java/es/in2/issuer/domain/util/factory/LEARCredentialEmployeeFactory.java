@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
@@ -13,9 +14,10 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +31,7 @@ public class LEARCredentialEmployeeFactory {
     private final ObjectMapper objectMapper;
     private final AccessTokenService accessTokenService;
 
-    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) {
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) throws InvalidCredentialFormatException {
         LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
         return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
@@ -45,13 +47,13 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) {
+    private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
         try {
             log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
         } catch (JsonProcessingException e) {
-            // fixme: handle exception and return a custom exception
-            throw new RuntimeException(e);
+            log.error("Error parsing LEARCredentialEmployeeJwtPayload", e);
+            throw new InvalidCredentialFormatException("Error parsing LEARCredentialEmployeeJwtPayload");
         }
     }
 
@@ -65,6 +67,7 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
+        String expiration = calculateExpiration(currentTime).toString();
 
         // Creando una lista nueva de powers con nuevos IDs
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = baseLearCredentialEmployee.mandate().power().stream()
@@ -78,7 +81,7 @@ public class LEARCredentialEmployeeFactory {
 
 
         return Mono.just(LEARCredentialEmployee.builder()
-                .expirationDate(currentTime.plus(30, ChronoUnit.DAYS).toString())
+                .expirationDate(expiration)
                 .issuanceDate(currentTime.toString())
                 .validFrom(currentTime.toString())
                 .id(UUID.randomUUID().toString())
@@ -94,11 +97,23 @@ public class LEARCredentialEmployeeFactory {
                                 .signer(baseLearCredentialEmployee.mandate().signer())
                                 .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
                                         .startDateTime(currentTime.toString())
-                                        .endDateTime(currentTime.plus(30, ChronoUnit.DAYS).toString())
+                                        .endDateTime(expiration)
                                         .build())
                                 .build())
                         .build())
                 .build());
+    }
+
+    protected Instant calculateExpiration(Instant currentTime) {
+        LocalDate currentDate = currentTime.atZone(ZoneOffset.UTC).toLocalDate();
+
+        LocalDate expirationDate = currentDate.plusYears(1);
+
+        if (currentDate.getMonthValue() == 2 && currentDate.getDayOfMonth() == 29 && !expirationDate.isLeapYear()) {
+            expirationDate = LocalDate.of(expirationDate.getYear(), 2, 28);
+        }
+
+        return expirationDate.atStartOfDay().toInstant(ZoneOffset.UTC);
     }
 
 
