@@ -90,7 +90,6 @@ class LEARCredentialEmployeeFactoryTest {
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
         when(mockMandate.mandator()).thenReturn(mockMandator);
-        when(mockMandator.organizationIdentifier()).thenReturn("orgId");
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
         when(mockMandatee.id()).thenReturn("mandateeId");

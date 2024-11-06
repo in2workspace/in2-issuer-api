@@ -87,7 +87,7 @@ public class LEARCredentialEmployeeFactory {
                 .id(UUID.randomUUID().toString())
                 .context(CREDENTIAL_CONTEXT)
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().mandator().organizationIdentifier())
+                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().signer().organizationIdentifier())
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
