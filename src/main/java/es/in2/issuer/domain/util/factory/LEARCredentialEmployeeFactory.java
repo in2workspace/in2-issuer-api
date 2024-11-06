@@ -14,10 +14,9 @@ import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
@@ -67,12 +66,13 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
-        String expiration = calculateExpiration(currentTime).toString();
+        String expiration = currentTime.plus(365, ChronoUnit.DAYS).toString();
 
         // Creando una lista nueva de powers con nuevos IDs
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = baseLearCredentialEmployee.mandate().power().stream()
                 .map(power -> LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
                         .id(UUID.randomUUID().toString())
+                        .tmfDomain(power.tmfDomain())
                         .tmfType(power.tmfType())
                         .tmfAction(power.tmfAction())
                         .tmfFunction(power.tmfFunction())
@@ -103,19 +103,6 @@ public class LEARCredentialEmployeeFactory {
                         .build())
                 .build());
     }
-
-    protected Instant calculateExpiration(Instant currentTime) {
-        LocalDate currentDate = currentTime.atZone(ZoneOffset.UTC).toLocalDate();
-
-        LocalDate expirationDate = currentDate.plusYears(1);
-
-        if (currentDate.getMonthValue() == 2 && currentDate.getDayOfMonth() == 29 && !expirationDate.isLeapYear()) {
-            expirationDate = LocalDate.of(expirationDate.getYear(), 2, 28);
-        }
-
-        return expirationDate.atStartOfDay().toInstant(ZoneOffset.UTC);
-    }
-
 
     private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee){
         return Mono.just(

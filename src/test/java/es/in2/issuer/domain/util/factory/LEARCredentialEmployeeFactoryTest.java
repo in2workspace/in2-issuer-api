@@ -15,14 +15,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -111,36 +106,6 @@ class LEARCredentialEmployeeFactoryTest {
         StepVerifier.create(result)
                 .expectNextCount(1)
                 .verifyComplete();
-    }
-
-    @Test
-    void testCalculateExpirationOnFeb28LeapYear() {
-        Instant feb28LeapYear = LocalDate.of(2024, 2, 28).atStartOfDay(ZoneOffset.UTC).toInstant();
-
-        Instant expiration = learCredentialEmployeeFactory.calculateExpiration(feb28LeapYear);
-
-        Instant expectedExpiration = LocalDate.of(2025, 2, 28).atStartOfDay(ZoneOffset.UTC).toInstant();
-        assertEquals(expectedExpiration, expiration);
-    }
-
-    @Test
-    void testCalculateExpirationOnFeb29LeapYear() {
-        Instant feb29LeapYear = LocalDate.of(2024, 2, 29).atStartOfDay(ZoneOffset.UTC).toInstant();
-
-        Instant expiration = learCredentialEmployeeFactory.calculateExpiration(feb29LeapYear);
-
-        Instant expectedExpiration = LocalDate.of(2025, 2, 28).atStartOfDay(ZoneOffset.UTC).toInstant();
-        assertEquals(expectedExpiration, expiration);
-    }
-
-    @Test
-    void testCalculateExpirationOnNonLeapYear() {
-        Instant march1NonLeapYear = LocalDate.of(2023, 3, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
-
-        Instant expiration = learCredentialEmployeeFactory.calculateExpiration(march1NonLeapYear);
-
-        Instant expectedExpiration = LocalDate.of(2024, 3, 1).atStartOfDay(ZoneOffset.UTC).toInstant();
-        assertEquals(expectedExpiration, expiration);
     }
 
 }
