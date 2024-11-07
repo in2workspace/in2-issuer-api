@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +17,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static es.in2.issuer.domain.util.Constants.DID_ELSI;
 import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +42,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
     @Mock
     private DeferredCredentialMetadataService deferredCredentialMetadataService;
+
+    @Mock
+    private LEARCredentialEmployeeFactory credentialEmployeeFactory;
 
     @Mock
     private TrustFrameworkService trustFrameworkService;
@@ -144,7 +150,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
         when(emailService.sendPendingCredentialNotification(mandatorEmail,"Pending Credential")).thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("A"));
-        when(trustFrameworkService.registerParticipant(did)).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
@@ -169,6 +174,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .transactionId("4321")
                 .build();
         String procedureId = "123456";
+        String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
         when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
@@ -177,7 +183,32 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId("procedureId")).thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(jti)).thenReturn(Mono.empty());
-        when(trustFrameworkService.registerParticipant(did)).thenReturn(Mono.empty());
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
+
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+        LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Signer signer = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
+
+        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
+        when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
+        when(credentialSubject.mandate()).thenReturn(mandate);
+        when(mandate.signer()).thenReturn(signer);
+        when(mandate.mandator()).thenReturn(mandator);
+
+        String organizationIdentifier = "organizationIdentifier";
+        when(signer.organizationIdentifier()).thenReturn(organizationIdentifier);
+        when(mandator.organizationIdentifier()).thenReturn(organizationIdentifier);
+
+        String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
+
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(trustFrameworkService.validateDidFormat(processId,organizationIdentifierDid)).thenReturn(Mono.just(true));
+        when(trustFrameworkService.registerDid(processId,organizationIdentifierDid)).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)

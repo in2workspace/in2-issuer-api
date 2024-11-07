@@ -17,8 +17,7 @@ import reactor.core.publisher.Mono;
 import java.text.ParseException;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.ASYNC;
-import static es.in2.issuer.domain.util.Constants.SYNC;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Slf4j
 @Service
@@ -81,7 +80,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                                                                                 .flatMap(id -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
                                                                                         .then(credentialProcedureService.getDecodedCredentialByProcedureId(id)
-                                                                                                .doOnNext(this::processDecodedCredential)
+                                                                                                .flatMap(decodedCredential -> processDecodedCredential(processId,decodedCredential))
                                                                                         )
                                                                                 )
                                                                                 .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
@@ -151,24 +150,46 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         });
     }
 
-    private Mono<Void> processDecodedCredential(String decodedCredential) {
-        log.info("Decoded Credential: {}", decodedCredential);
 
-        // Map credential
+    private Mono<Void> processDecodedCredential(String processId, String decodedCredential) {
+        log.info("ProcessID: {} Decoded Credential: {}", processId, decodedCredential);
+
         LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
 
-        // Obtain the data to save into Trust Framework
         String signerOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().signer().organizationIdentifier();
+        if (signerOrgIdentifier == null || signerOrgIdentifier.isBlank() ){
+            log.error("ProcessID: {} Signer Organization Identifier connot be null or empty", processId);
+            return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
+        }
+
         String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
+        if (mandatorOrgIdentifier == null || mandatorOrgIdentifier.isBlank() ){
+            log.error("ProcessID: {} Mandator Organization Identifier connot be null or empty", processId);
+            return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
+        }
 
-        // TODO: Save into Trust Framework
-        saveToTrustFramework(signerOrgIdentifier, mandatorOrgIdentifier);
-        return Mono.empty();
+        return saveToTrustFramework(processId,signerOrgIdentifier, mandatorOrgIdentifier);
     }
 
-    private Mono<Void> saveToTrustFramework(String signerOrgIdentifier, String mandatorOrgIdentifier) {
-        // Implementación del guardado en Trust Framework
-        return Mono.empty();
+    private Mono<Void> saveToTrustFramework(String processId, String signerOrgIdentifier, String mandatorOrgIdentifier) {
+
+        String signerDid = DID_ELSI + signerOrgIdentifier;
+        String mandatorDid = DID_ELSI + mandatorOrgIdentifier;
+
+        return trustFrameworkService.validateDidFormat(processId, signerDid)
+                .flatMap(isValid -> registerDidIfValid(processId, signerDid, isValid))
+                .then(trustFrameworkService.validateDidFormat(processId, mandatorDid)
+                        .flatMap(isValid -> registerDidIfValid(processId, mandatorDid,isValid)));
     }
+
+    private Mono<Void> registerDidIfValid(String processId, String did, boolean isValid) {
+        if (isValid) {
+            return trustFrameworkService.registerDid(processId, did);
+        } else {
+            log.error("ProcessID: {} Did not registered because is invalid", processId);
+            return Mono.empty();
+        }
+    }
+
 
 }

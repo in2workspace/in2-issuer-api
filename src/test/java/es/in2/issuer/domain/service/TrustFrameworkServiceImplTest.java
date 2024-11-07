@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.exception.TrustFrameworkDidException;
 import es.in2.issuer.domain.exception.TrustFrameworkException;
 import es.in2.issuer.domain.service.impl.TrustFrameworkServiceImpl;
 import es.in2.issuer.infrastructure.config.TrustFrameworkConfig;
@@ -33,9 +34,9 @@ class TrustFrameworkServiceImplTest {
     private TrustFrameworkServiceImpl service;
 
     @Test
-    void registerParticipant() {
+    void registerDid() {
         String did = "did:key:1234";
-
+        String processId= "1234";
         Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
@@ -46,13 +47,14 @@ class TrustFrameworkServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         Mockito.when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        Mono<Void> result = service.registerParticipant(did);
+        Mono<Void> result = service.registerDid(processId,did);
         StepVerifier.create(result).verifyComplete();
     }
 
     @Test
-    void registerParticipant_ShouldReturnError_WhenDIDAlreadyExists() {
+    void registerDid_ShouldReturnError_WhenDIDAlreadyExists() {
         String did = "did:key:1234";
+        String processId= "1234";
 
         Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
@@ -63,19 +65,20 @@ class TrustFrameworkServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         Mockito.when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        Mono<Void> result = service.registerParticipant(did);
+        Mono<Void> result = service.registerDid(processId,did);
 
         StepVerifier.create(result)
                 .expectErrorSatisfies(throwable -> {
-                    assertThat(throwable).isInstanceOf(TrustFrameworkException.class);
-                    assertThat(throwable.getMessage()).contains("DID already exists in the trusted list");
+                    assertThat(throwable).isInstanceOf(TrustFrameworkDidException.class);
+                    assertThat(throwable.getMessage()).contains("Did already exists in the trusted participant list");
                 })
                 .verify();
     }
 
     @Test
-    void registerParticipant_ShouldReturnError_WhenServerErrorOccurred() {
+    void registerDid_ShouldReturnError_WhenServerErrorOccurred() {
         String did = "did:key:1234";
+        String processId= "1234";
 
         Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
@@ -86,35 +89,12 @@ class TrustFrameworkServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         Mockito.when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        Mono<Void> result = service.registerParticipant(did);
+        Mono<Void> result = service.registerDid(processId, did);
 
         StepVerifier.create(result)
                 .expectErrorSatisfies(throwable -> {
                     assertThat(throwable).isInstanceOf(TrustFrameworkException.class);
-                    assertThat(throwable.getMessage()).contains("Server error occurred: 500 INTERNAL_SERVER_ERROR");
-                })
-                .verify();
-    }
-
-    @Test
-    void registerParticipant_ShouldReturnError_WhenUnexpectedResponseStatus() {
-        String did = "did:key:1234";
-
-        Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
-
-        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-        ClientResponse clientResponse = ClientResponse.create(HttpStatus.NOT_FOUND).build();
-
-        Mockito.when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
-        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
-        Mockito.when(webClientConfig.commonWebClient()).thenReturn(webClient);
-
-        Mono<Void> result = service.registerParticipant(did);
-
-        StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    assertThat(throwable).isInstanceOf(TrustFrameworkException.class);
-                    assertThat(throwable.getMessage()).contains("Unexpected response status: 404 NOT_FOUND");
+                    assertThat(throwable.getMessage()).contains("Unexpected error in TrustFramework");
                 })
                 .verify();
     }
