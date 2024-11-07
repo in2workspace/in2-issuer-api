@@ -1,0 +1,28 @@
+name: Security Check
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '00 2 * * 1'
+jobs:
+  security_check:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Audit dependencies for vulnerabilities
+      run: npm audit --audit-level=high || echo "Vulnerabilities found"
+    - name: Send Email if vulnerabilities are found
+      if: failure()
+      uses: dawidd6/action-send-mail@v3
+      with:
+        server_address: smtp.gmail.com
+        server_port: 465
+        secure: true
+        username: ${{ secrets.SMTP_USERNAME }}
+        password: ${{ secrets.SMTP_PASSWORD }}
+        subject: "Security Alert: Vulnerabilities Detected"
+        body: "Dependabot found vulnerabilities in your project dependencies. Please review the logs."
+        to: "dome@in2.es"
+        from: "oriol.canades@in2.es"
