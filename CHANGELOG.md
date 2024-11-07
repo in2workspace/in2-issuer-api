@@ -6,9 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## v1.1.0
 ### Added
-- Sync issuance for LEARCredential.
+- LEARCredentialEmployee issuance in a synchronous way.
+- DOME Trust Framework integration to register issuers and participants.
 ### Changed
-- Issuance API.
+- Issuances API to support various issuance types.
 
 ## [Unreleased]: v0.7.0
 - LEARCredential compliance.
