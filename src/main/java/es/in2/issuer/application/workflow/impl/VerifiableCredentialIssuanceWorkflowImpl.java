@@ -6,6 +6,7 @@ import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final TrustFrameworkService trustFrameworkService;
+    private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
 
 
     @Override
@@ -64,30 +66,32 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         }
                     })
                     .flatMap(subjectDid ->
-                            trustFrameworkService.registerParticipant(subjectDid).then(
-                                    deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
-                                            .flatMap(operationMode ->
-                                                    verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
-                                                            .flatMap(credentialResponse -> {
-                                                                        if (operationMode.equals(ASYNC)) {
-                                                                            return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                                    .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-                                                                                    .flatMap(email ->
-                                                                                            emailService.sendPendingCredentialNotification(email, "Pending Credential")
-                                                                                                    .then(Mono.just(credentialResponse))
-                                                                                    );
-                                                                        } else if (operationMode.equals(SYNC)) {
-                                                                            return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                                    .flatMap(credentialProcedureService::updateCredentialProcedureCredentialStatusToValidByProcedureId)
-                                                                                    .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
-                                                                                    .then(Mono.just(credentialResponse));
-                                                                        } else {
-                                                                            return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
-                                                                        }
+                                deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
+                                        .flatMap(operationMode ->
+                                                verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
+                                                        .flatMap(credentialResponse -> {
+                                                                    if (operationMode.equals(ASYNC)) {
+                                                                        return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                                .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
+                                                                                .flatMap(email ->
+                                                                                        emailService.sendPendingCredentialNotification(email, "Pending Credential")
+                                                                                                .then(Mono.just(credentialResponse))
+                                                                                );
+                                                                    } else if (operationMode.equals(SYNC)) {
+                                                                        return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                                .flatMap(id -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
+                                                                                        .then(credentialProcedureService.getDecodedCredentialByProcedureId(id)
+                                                                                                .doOnNext(this::processDecodedCredential)
+                                                                                        )
+                                                                                )
+                                                                                .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
+                                                                                .then(Mono.just(credentialResponse));
+                                                                    } else {
+                                                                        return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
                                                                     }
-                                                            )
-                                            ))
-
+                                                                }
+                                                        )
+                                        )
                     );
         } catch (ParseException e) {
             log.error("Error parsing the accessToken", e);
@@ -145,6 +149,26 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             // Split the kid string at '#' and take the first part
             return kid.split("#")[0];
         });
+    }
+
+    private Mono<Void> processDecodedCredential(String decodedCredential) {
+        log.info("Decoded Credential: {}", decodedCredential);
+
+        // Map credential
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
+
+        // Obtain the data to save into Trust Framework
+        String signerOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().signer().organizationIdentifier();
+        String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
+
+        // TODO: Save into Trust Framework
+        saveToTrustFramework(signerOrgIdentifier, mandatorOrgIdentifier);
+        return Mono.empty();
+    }
+
+    private Mono<Void> saveToTrustFramework(String signerOrgIdentifier, String mandatorOrgIdentifier) {
+        // Implementación del guardado en Trust Framework
+        return Mono.empty();
     }
 
 }

@@ -46,7 +46,7 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
+    public LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
         try {
             log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
