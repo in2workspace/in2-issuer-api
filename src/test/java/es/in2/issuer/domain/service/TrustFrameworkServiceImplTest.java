@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.exception.TrustFrameworkDidException;
-import es.in2.issuer.domain.exception.TrustFrameworkException;
+
 import es.in2.issuer.domain.service.impl.TrustFrameworkServiceImpl;
 import es.in2.issuer.infrastructure.config.TrustFrameworkConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
@@ -17,7 +16,7 @@ import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
@@ -68,11 +67,7 @@ class TrustFrameworkServiceImplTest {
         Mono<Void> result = service.registerDid(processId,did);
 
         StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    assertThat(throwable).isInstanceOf(TrustFrameworkDidException.class);
-                    assertThat(throwable.getMessage()).contains("Did already exists in the trusted participant list");
-                })
-                .verify();
+                .verifyComplete();
     }
 
     @Test
@@ -92,11 +87,7 @@ class TrustFrameworkServiceImplTest {
         Mono<Void> result = service.registerDid(processId, did);
 
         StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    assertThat(throwable).isInstanceOf(TrustFrameworkException.class);
-                    assertThat(throwable.getMessage()).contains("Unexpected error in TrustFramework");
-                })
-                .verify();
+                .verifyComplete();
     }
 
     @Test

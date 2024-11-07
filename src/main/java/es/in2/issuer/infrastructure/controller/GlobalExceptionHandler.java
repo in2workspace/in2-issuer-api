@@ -211,16 +211,4 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
-    @ExceptionHandler(TrustFrameworkException.class)
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Mono<ResponseEntity<Void>> handleTrustFrameworkException(TrustFrameworkException ex) {
-        log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-    }
-    @ExceptionHandler(TrustFrameworkDidException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleTrustFrameworkDidException(Exception ex) {
-        log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.CONFLICT));
-    }
 }

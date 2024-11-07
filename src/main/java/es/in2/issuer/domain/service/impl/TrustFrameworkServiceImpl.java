@@ -1,7 +1,5 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.exception.TrustFrameworkDidException;
-import es.in2.issuer.domain.exception.TrustFrameworkException;
 import es.in2.issuer.domain.model.dto.ParticipantDidRequest;
 import es.in2.issuer.domain.service.TrustFrameworkService;
 import es.in2.issuer.infrastructure.config.TrustFrameworkConfig;
@@ -33,14 +31,14 @@ public class TrustFrameworkServiceImpl implements TrustFrameworkService {
                 .body(Mono.just(request), ParticipantDidRequest.class)
                 .exchangeToMono(response -> {
                     if (response.statusCode().value() == 409) {
-                        log.error("Did already exists in the trusted participant list");
-                        return Mono.error(new TrustFrameworkDidException("Did already exists in the trusted participant list"));
+                        log.error("ProcessId: {} TrustFrameworkServiceImpl -- registerDid() -- Did {} already exists in the trusted participant list", processId, did);
+                        return Mono.empty();
                     } else if (response.statusCode().value() == 201) {
-                        log.info("Successfully registered the did");
+                        log.info("ProcessId: {} TrustFrameworkServiceImpl -- registerDid() -- Successfully registered the did {}", processId, did);
                         return Mono.empty();
                     } else {
                         log.error("ProcessId: {} TrustFrameworkServiceImpl -- registerDid() -- Unexpected error with status code: {} , error: {}", processId, response.statusCode(), response);
-                        return Mono.error(new TrustFrameworkException("Unexpected error in TrustFramework"));
+                        return Mono.empty();
                     }
                 });
     }
@@ -48,7 +46,7 @@ public class TrustFrameworkServiceImpl implements TrustFrameworkService {
     @Override
     public Mono<Boolean> validateDidFormat(String processId, String did) {
         if (did == null || did.trim().isEmpty()) {
-            log.error("ProcessId: {} TrustFrameworkServiceImpl -- validateDid() -- DID is null or blank", processId);
+            log.error("ProcessId: {} TrustFrameworkServiceImpl -- validateDidFormat() -- DID is null or blank", processId);
             return Mono.just(false);
         }
         String pattern = "^did:[^:]*:[^:]*$";
@@ -57,7 +55,7 @@ public class TrustFrameworkServiceImpl implements TrustFrameworkService {
 
         boolean isValid = matcher.matches();
         if (!isValid) {
-            log.error("ProcessId: {} TrustFrameworkServiceImpl -- validateDid() -- Invalid did format", processId);
+            log.error("ProcessId: {} TrustFrameworkServiceImpl -- validateDidFormat() -- Invalid did format", processId);
             return Mono.just(false);
         }
         return Mono.just(true);
