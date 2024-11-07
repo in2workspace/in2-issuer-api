@@ -98,4 +98,50 @@ class TrustFrameworkServiceImplTest {
                 })
                 .verify();
     }
+
+    @Test
+    void validateDidFormat_ShouldReturnFalse_WhenDidIsBlank() {
+        String processId = "1234";
+        String blankDid = "";
+
+
+        StepVerifier.create(service.validateDidFormat(processId, blankDid))
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void validateDidFormat_ShouldReturnFalse_WhenDidIsNull() {
+        String processId = "1234";
+
+        Mono<Boolean> result = service.validateDidFormat(processId, null);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void validateDidFormat_ShouldReturnFalse_WhenDidFormatIsInvalid() {
+        String processId = "1234";
+        String invalidDid = "invalidDidFormat";
+
+        Mono<Boolean> result = service.validateDidFormat(processId, invalidDid);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void validateDidFormat_withValidDId_ShouldReturnTrue() {
+        String processId = "1234";
+        String invalidDid = "did:elsi:1234";
+
+        Mono<Boolean> result = service.validateDidFormat(processId, invalidDid);
+
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
+    }
 }
