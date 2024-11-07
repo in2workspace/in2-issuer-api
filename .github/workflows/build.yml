@@ -17,6 +17,20 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check for existing release tag (only on PR)
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION=$(./gradlew -q printVersion)
+          TAG_EXISTS=$(curl -H "Authorization: token $GITHUB_TOKEN" -s https://api.github.com/repos/${{ github.repository }}/releases | jq -r ".[] | select(.tag_name == \"v$VERSION\") | .tag_name")
+          if [ "$TAG_EXISTS" == "v$VERSION" ]; then
+            echo "Release tag v$VERSION already exists. Rejecting PR."
+            exit 1
+          else
+            echo "No existing release with tag v$VERSION found. Proceeding with build."
+          fi
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:

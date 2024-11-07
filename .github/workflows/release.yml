@@ -73,3 +73,14 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
           DOCKER_HUB_CLIENT_NAME: in2workspace
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v$VERSION"
+          release_name: "Release v$VERSION"
+          body: "Release of version v$VERSION"
+          draft: false
+          prerelease: true
