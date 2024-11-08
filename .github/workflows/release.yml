@@ -62,17 +62,21 @@ jobs:
       - name: Make Gradlew Executable
         run: chmod +x ./gradlew
 
+      - name: Get Project Version
+        id: get_version
+        run: echo "VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
+
       - name: Build and Push docker image
         run: |
           ./gradlew printVersion
           ./gradlew printProjectName
-          VERSION=$(./gradlew -q printVersion)
           PROJECT_NAME=$(./gradlew -q printProjectName)
           IMAGE_TAG="$PROJECT_NAME:v$VERSION"
           docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
           echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
           docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
         env:
+          VERSION: ${{ env.VERSION }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
           DOCKER_HUB_CLIENT_NAME: in2workspace
@@ -82,8 +86,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ./gradlew printVersion
-          release_name: "Release v$VERSION"
-          body: "Release of version v$VERSION"
+          tag_name: "v${{ env.VERSION }}"
+          release_name: "Release v${{ env.VERSION }}"
+          body: "Release of version v${{ env.VERSION }}"
           draft: false
           prerelease: true
