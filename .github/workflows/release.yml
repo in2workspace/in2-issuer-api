@@ -1,0 +1,86 @@
+name: Release
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types: [opened, synchronize, reopened]
+
+jobs:
+  release-snapshot:
+    if: github.event_name == 'pull_request'
+    name: release-snapshot
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+          SUFFIX: -snapshot
+
+  release:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Make Gradlew Executable
+        run: chmod +x ./gradlew
+
+      - name: Build and Push docker image
+        run: |
+          ./gradlew printVersion
+          ./gradlew printProjectName
+          VERSION=$(./gradlew -q printVersion)
+          PROJECT_NAME=$(./gradlew -q printProjectName)
+          IMAGE_TAG="$PROJECT_NAME:v$VERSION"
+          docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
+          echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
+          docker push $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_TOKEN }}
+          DOCKER_HUB_CLIENT_NAME: in2workspace
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "v$VERSION"
+          release_name: "Release v$VERSION"
+          body: "Release of version v$VERSION"
+          draft: false
+          prerelease: true

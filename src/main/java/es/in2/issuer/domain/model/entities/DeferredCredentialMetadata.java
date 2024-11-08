@@ -36,4 +36,10 @@ public class DeferredCredentialMetadata {
 
     @Column("vc_format")
     private String vcFormat;
+
+    @Column("operation_mode")
+    private String operationMode;
+
+    @Column("response_uri")
+    private String responseUri;
 }

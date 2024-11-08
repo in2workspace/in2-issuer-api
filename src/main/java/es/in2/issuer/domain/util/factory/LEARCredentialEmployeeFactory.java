@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
@@ -29,7 +30,7 @@ public class LEARCredentialEmployeeFactory {
     private final ObjectMapper objectMapper;
     private final AccessTokenService accessTokenService;
 
-    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) {
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) throws InvalidCredentialFormatException {
         LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
         return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
@@ -45,13 +46,13 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    private LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) {
+    public LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
         try {
             log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
         } catch (JsonProcessingException e) {
-            // fixme: handle exception and return a custom exception
-            throw new RuntimeException(e);
+            log.error("Error parsing LEARCredentialEmployeeJwtPayload", e);
+            throw new InvalidCredentialFormatException("Error parsing LEARCredentialEmployeeJwtPayload");
         }
     }
 
@@ -65,11 +66,13 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
+        String expiration = currentTime.plus(365, ChronoUnit.DAYS).toString();
 
         // Creando una lista nueva de powers con nuevos IDs
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = baseLearCredentialEmployee.mandate().power().stream()
                 .map(power -> LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
                         .id(UUID.randomUUID().toString())
+                        .tmfDomain(power.tmfDomain())
                         .tmfType(power.tmfType())
                         .tmfAction(power.tmfAction())
                         .tmfFunction(power.tmfFunction())
@@ -78,13 +81,13 @@ public class LEARCredentialEmployeeFactory {
 
 
         return Mono.just(LEARCredentialEmployee.builder()
-                .expirationDate(currentTime.plus(30, ChronoUnit.DAYS).toString())
+                .expirationDate(expiration)
                 .issuanceDate(currentTime.toString())
                 .validFrom(currentTime.toString())
                 .id(UUID.randomUUID().toString())
                 .context(CREDENTIAL_CONTEXT)
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().mandator().organizationIdentifier())
+                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().signer().organizationIdentifier())
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
@@ -94,13 +97,12 @@ public class LEARCredentialEmployeeFactory {
                                 .signer(baseLearCredentialEmployee.mandate().signer())
                                 .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
                                         .startDateTime(currentTime.toString())
-                                        .endDateTime(currentTime.plus(30, ChronoUnit.DAYS).toString())
+                                        .endDateTime(expiration)
                                         .build())
                                 .build())
                         .build())
                 .build());
     }
-
 
     private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee){
         return Mono.just(
@@ -110,7 +112,7 @@ public class LEARCredentialEmployeeFactory {
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.expirationDate()))
                         .issuedAt(parseDateToUnixTime(learCredentialEmployee.issuanceDate()))
                         .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
-                        .issuer(learCredentialEmployee.issuer())
+                        .issuer(DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier())
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );

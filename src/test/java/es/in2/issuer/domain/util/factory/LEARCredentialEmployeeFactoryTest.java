@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
@@ -14,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +35,7 @@ class LEARCredentialEmployeeFactoryTest {
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
 
     @Test
-    void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException {
+    void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
         //Arrange
         String learCredential = "validCredentialString";
         String mandateeId = "mandateeId";
@@ -82,6 +82,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mockMandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mockMandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Power mockPower = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Power.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Signer mockSigner = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
 
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> mockPowerList = new ArrayList<>();
         mockPowerList.add(mockPower);
@@ -89,10 +90,11 @@ class LEARCredentialEmployeeFactoryTest {
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
         when(mockMandate.mandator()).thenReturn(mockMandator);
-        when(mockMandator.organizationIdentifier()).thenReturn("orgId");
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
         when(mockMandatee.id()).thenReturn("mandateeId");
+        when(mockMandate.signer()).thenReturn(mockSigner);
+        when(mockMandate.signer().organizationIdentifier()).thenReturn("signerOrgId");
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(json);
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));
 
