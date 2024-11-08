@@ -87,7 +87,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: "v${{ env.VERSION }}"
-          release_name: "Release v${{ env.VERSION }}"
+          release_name: "v${{ env.VERSION }}"
           body: "Release of version v${{ env.VERSION }}"
           draft: false
           prerelease: true
