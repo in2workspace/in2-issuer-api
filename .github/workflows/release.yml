@@ -82,7 +82,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: "v$VERSION"
+          tag_name: ./gradlew printVersion
           release_name: "Release v$VERSION"
           body: "Release of version v$VERSION"
           draft: false
