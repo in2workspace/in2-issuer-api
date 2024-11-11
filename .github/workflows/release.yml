@@ -6,7 +6,7 @@ on:
   pull_request:
     branches:
       - main
-    types: [opened, synchronize, reopened]
+    types: [ opened, synchronize, reopened ]
 
 permissions:
   contents: write
@@ -14,7 +14,7 @@ permissions:
 jobs:
   release-snapshot:
     if: github.event_name == 'pull_request'
-    name: release-snapshot
+    name: Release Snapshot
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -33,9 +33,22 @@ jobs:
         id: get_version
         run: echo "VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
 
+      - name: Check for existing release tag (only on PR)
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+        run: |
+          TAG_EXISTS=$(curl -H "Authorization: token $GITHUB_TOKEN" -s https://api.github.com/repos/${{ github.repository }}/releases | jq -r ".[] | select(.tag_name == \"v$VERSION\") | .tag_name")
+          if [ "$TAG_EXISTS" == "v$VERSION" ]; then
+            echo "Release tag v$VERSION already exists. Rejecting PR."
+            exit 1
+          else
+            echo "No existing release with tag v$VERSION found. Proceeding with build."
+          fi
+
       - name: Build and Push docker image
         run: |
-          ./gradlew printProjectName
           PROJECT_NAME=$(./gradlew -q printProjectName)
           IMAGE_TAG="$PROJECT_NAME:v$VERSION$SUFFIX"
           docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
@@ -50,7 +63,7 @@ jobs:
 
   release:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    name: release
+    name: Release
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
@@ -69,10 +82,22 @@ jobs:
         id: get_version
         run: echo "VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
 
+      - name: Check for existing release tag (only on PR)
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ env.VERSION }}
+        run: |
+          TAG_EXISTS=$(curl -H "Authorization: token $GITHUB_TOKEN" -s https://api.github.com/repos/${{ github.repository }}/releases | jq -r ".[] | select(.tag_name == \"v$VERSION\") | .tag_name")
+          if [ "$TAG_EXISTS" == "v$VERSION" ]; then
+            echo "Release tag v$VERSION already exists. Rejecting PR."
+            exit 1
+          else
+            echo "No existing release with tag v$VERSION found. Proceeding with build."
+          fi
+
       - name: Build and Push docker image
         run: |
-          ./gradlew printVersion
-          ./gradlew printProjectName
           PROJECT_NAME=$(./gradlew -q printProjectName)
           IMAGE_TAG="$PROJECT_NAME:v$VERSION"
           docker build --file Dockerfile --build-arg SKIP_TESTS=true --tag $DOCKER_HUB_CLIENT_NAME/$IMAGE_TAG .
