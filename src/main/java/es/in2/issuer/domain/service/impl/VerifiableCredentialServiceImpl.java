@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
-import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
+import es.in2.issuer.domain.model.dto.IssuanceRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
@@ -40,23 +43,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                         issuanceRequest.responseUri()));
     }
 
-    //    @Override
-//    public Mono<String> generateVcPayLoad(String vcTemplate, String subjectDid, String issuerDid, String userData, Instant expiration) {
-//        return Mono.fromCallable(() -> {
-//            JsonNode vcTemplateNode = parseJson(vcTemplate);
-//            String uuid = UUID.randomUUID().toString();
-//            Instant nowInstant = Instant.now();
-//
-//            updateTemplateNode(vcTemplateNode, uuid, issuerDid, nowInstant, expiration);
-//
-//            JsonNode credentialSubjectValue = objectMapper.readTree(userData);
-//            ((ObjectNode) credentialSubjectValue).put(ID, subjectDid);
-//            ((ObjectNode) vcTemplateNode).set(CREDENTIAL_SUBJECT, credentialSubjectValue);
-//
-//            return objectMapper.writeValueAsString(constructFinalObjectNode(vcTemplateNode, subjectDid, issuerDid, uuid, nowInstant, expiration));
-//        });
-//    }
-
     @Override
     public Mono<VerifiableCredentialResponse> generateDeferredCredentialResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
         return deferredCredentialMetadataService.getVcByTransactionId(deferredCredentialRequest.transactionId())
@@ -81,7 +67,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             JWSObject jwsObject = JWSObject.parse(accessToken);
             String newAuthServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
             return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(newAuthServerNonce, preAuthCode);
-        } catch (ParseException e){
+        } catch (ParseException e) {
             throw new RuntimeException();
         }
 
@@ -145,31 +131,4 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         }
     }
 
-
-//    private void updateTemplateNode(JsonNode vcTemplateNode, String uuid, String issuerDid, Instant nowInstant, Instant expiration) {
-//        ((ObjectNode) vcTemplateNode).put(ID, uuid);
-//        ((ObjectNode) vcTemplateNode).put(ISSUER, issuerDid);
-//        ((ObjectNode) vcTemplateNode).put(ISSUANCE_DATE, nowInstant.toString());
-//        ((ObjectNode) vcTemplateNode).put(VALID_FROM, nowInstant.toString());
-//        ((ObjectNode) vcTemplateNode).put(EXPIRATION_DATE, expiration.toString());
-//    }
-//
-//    private ObjectNode constructFinalObjectNode(JsonNode vcTemplateNode, String subjectDid, String issuerDid, String uuid, Instant nowInstant, Instant expiration) {
-//        ObjectNode finalObject = objectMapper.createObjectNode();
-//        finalObject.put("sub", subjectDid);
-//        finalObject.put("nbf", nowInstant.getEpochSecond());
-//        finalObject.put("iss", issuerDid);
-//        finalObject.put("exp", expiration.getEpochSecond());
-//        finalObject.put("iat", nowInstant.getEpochSecond());
-//        finalObject.put("jti", uuid);
-//        finalObject.set("vc", vcTemplateNode);
-//        return finalObject;
-//    }
-//    private JsonNode parseJson(String json) {
-//        try {
-//            return objectMapper.readTree(json);
-//        } catch (JsonProcessingException e) {
-//            throw new ParseErrorException(e.getMessage());
-//        }
-//    }
 }
