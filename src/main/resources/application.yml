@@ -141,3 +141,5 @@ remote-signature:
 wallet:
   url: "https://wallet.dome-marketplace-lcl.org"
 
+trust-framework:
+  url: "http://localhost:8080"

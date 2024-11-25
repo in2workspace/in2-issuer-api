@@ -11,15 +11,14 @@ public record LEARCredentialEmployee(
         @JsonProperty("id") String id,
         @JsonProperty("type") List<String> type,
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,
-        @JsonProperty("expirationDate") String expirationDate,
-        @JsonProperty("issuanceDate") String issuanceDate,
         @JsonProperty("issuer") String issuer,
-        @JsonProperty("validFrom") String validFrom
+        @JsonProperty("validFrom") String validFrom,
+        @JsonProperty("validUntil") String validUntil
 ) {
+
     @Builder
-    public record CredentialSubject(
-            @JsonProperty("mandate") Mandate mandate
-    ) {
+    public record CredentialSubject(@JsonProperty("mandate") Mandate mandate) {
+
         @Builder
         public record Mandate(
                 @JsonProperty("id") String id,
@@ -29,11 +28,14 @@ public record LEARCredentialEmployee(
                 @JsonProperty("power") List<Power> power,
                 @JsonProperty("signer") Signer signer
         ) {
+
             @Builder
             public record LifeSpan(
                     @JsonProperty("end_date_time") String endDateTime,
                     @JsonProperty("start_date_time") String startDateTime
-            ) {}
+            ) {
+            }
+
             @Builder
             public record Mandatee(
                     @JsonProperty("id") String id,
@@ -41,7 +43,9 @@ public record LEARCredentialEmployee(
                     @JsonProperty("first_name") String firstName,
                     @JsonProperty("last_name") String lastName,
                     @JsonProperty("mobile_phone") String mobilePhone
-            ) {}
+            ) {
+            }
+
             @Builder
             public record Mandator(
                     @JsonProperty("commonName") String commonName,
@@ -50,16 +54,18 @@ public record LEARCredentialEmployee(
                     @JsonProperty("organization") String organization,
                     @JsonProperty("organizationIdentifier") String organizationIdentifier,
                     @JsonProperty("serialNumber") String serialNumber
-            ) {}
-            @Builder
+            ) {
+            }
 
+            @Builder
             public record Power(
                     @JsonProperty("id") String id,
                     @JsonProperty("tmf_action") Object tmfAction,
                     @JsonProperty("tmf_domain") String tmfDomain,
                     @JsonProperty("tmf_function") String tmfFunction,
                     @JsonProperty("tmf_type") String tmfType
-            ) {}
+            ) {
+            }
 
             @Builder
             public record Signer(
@@ -69,10 +75,9 @@ public record LEARCredentialEmployee(
                     @JsonProperty("organization") String organization,
                     @JsonProperty("organizationIdentifier") String organizationIdentifier,
                     @JsonProperty("serialNumber") String serialNumber
-            ) {}
+            ) {
+            }
+
         }
     }
 }
-
-
-

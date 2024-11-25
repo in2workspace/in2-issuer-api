@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
@@ -14,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,7 +35,7 @@ class LEARCredentialEmployeeFactoryTest {
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
 
     @Test
-    void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException {
+    void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
         //Arrange
         String learCredential = "validCredentialString";
         String mandateeId = "mandateeId";
@@ -90,7 +90,6 @@ class LEARCredentialEmployeeFactoryTest {
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
         when(mockMandate.mandator()).thenReturn(mockMandator);
-        when(mockMandator.organizationIdentifier()).thenReturn("orgId");
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
         when(mockMandatee.id()).thenReturn("mandateeId");

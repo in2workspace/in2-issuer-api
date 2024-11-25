@@ -11,11 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - List credentials in order from newest to oldest.
 
-## [Unreleased]: v1.1.0
+## [v1.1.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.1)
+### Fixed
+- Fixed LEARCredentialEmployee data model. Implement W3C DATA model v2.0 (validFrom, validUntil). 
+
+## v1.1.0
 ### Added
-- Sync issuance for LEARCredential.
+- LEARCredentialEmployee issuance in a synchronous way.
+- DOME Trust Framework integration to register issuers and participants.
 ### Changed
-- Issuance API.
+- Issuances API to support various issuance types.
 
 ## [Unreleased]: v0.7.0
 - LEARCredential compliance.
@@ -36,14 +41,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Batch credential support (extra)
 
 ## [Unreleased]: v0.3.0
-- Support for credentials in JWT and CWT.
+- Support for credential in JWT and CWT.
 - Remove of external libraries for CV generation
 - Native credential payload generation.
 - Local emission.
 
 ## [Unreleased]: v0.2.0
 - Adapter for Abstract Configuration loading.
-- Support for Configurations from YAML file.
+- Support for Configurations from Yaml file.
 - Support for Configurations from Azure App Configuration.
 
 ## [Unreleased]: v0.1.0
