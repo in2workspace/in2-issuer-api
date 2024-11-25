@@ -10,6 +10,7 @@ import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
+import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -52,7 +53,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     private CredentialSignerWorkflow credentialSignerWorkflow;
 
     @Mock
-    private M2MTokenService m2MTokenService;
+    private VerifierValidationService verifierValidationService;
 
     @Mock
     private IssuerApiClientTokenService issuerApiClientTokenService;
@@ -62,6 +63,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
     @Mock
     private AccessTokenService accessTokenService;
+    @Mock
+    private PolicyAuthorizationService policyAuthorizationService;
 
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
@@ -201,6 +204,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
+        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",null + "/credential-offer?transaction_code=" + transactionCode, "Jhon",null)).thenReturn(Mono.empty());
 
@@ -255,12 +259,10 @@ class VerifiableCredentialIssuanceServiceImplTest {
         JsonNode jsonNode = objectMapper.readTree(json);
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
+        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
-        when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(VerifierOauth2AccessToken.builder().accessToken("M2Mtoken").build()));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(token));
-        when(appConfig.getTrustServiceProviderForCertificationsDid()).thenReturn("did-12345");
-        when(accessTokenService.getIssuer(token)).thenReturn(Mono.just("did-12345"));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);

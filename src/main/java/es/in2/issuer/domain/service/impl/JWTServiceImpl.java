@@ -1,20 +1,14 @@
 package es.in2.issuer.domain.service.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.jwk.ECKey;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTClaimMissingException;
-import es.in2.issuer.domain.exception.JWTCreationException;
 import es.in2.issuer.domain.exception.JWTParsingException;
 import es.in2.issuer.domain.service.JWTService;
-import es.in2.issuer.infrastructure.crypto.CryptoComponent;
 import io.github.novacrypto.base58.Base58;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +28,6 @@ import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Map;
 
 import static es.in2.issuer.domain.util.Constants.DID_KEY;
 
@@ -44,30 +37,6 @@ import static es.in2.issuer.domain.util.Constants.DID_KEY;
 public class JWTServiceImpl implements JWTService {
 
     private final ObjectMapper objectMapper;
-    private final CryptoComponent cryptoComponent;
-
-    @Override
-    public String generateJWT(String payload) {
-        try {
-            // Get ECKey
-            ECKey ecJWK = cryptoComponent.getECKey();
-            // Set Header
-            JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.ES256)
-                    .keyID(cryptoComponent.getECKey().getKeyID())
-                    .type(JOSEObjectType.JWT)
-                    .build();
-            // Set Payload
-            JWTClaimsSet claimsSet = convertPayloadToJWTClaimsSet(payload);
-            // Create JWT for ES256R algorithm
-            SignedJWT jwt = new SignedJWT(jwsHeader, claimsSet);
-            // Sign with a private EC key
-            JWSSigner signer = new ECDSASigner(ecJWK);
-            jwt.sign(signer);
-            return jwt.serialize();
-        } catch (JOSEException e) {
-            throw new JWTCreationException("Error creating JWT");
-        }
-    }
 
     @Override
     public Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject) {
@@ -75,6 +44,14 @@ public class JWTServiceImpl implements JWTService {
         String encodedPublicKey = extractEncodedPublicKey(kid);
         return decodePublicKeyIntoBytes(encodedPublicKey)
                 .flatMap(publicKeyBytes -> validateJwtSignature(jwsObject.getParsedString(), publicKeyBytes));
+    }
+
+    @Override
+    public Mono<JsonNode> parseJwtVCAsJsonNode(String jwt) {
+        return Mono.fromCallable(() -> {
+            SignedJWT parsedJwt = SignedJWT.parse(jwt);
+            return objectMapper.readTree(parsedJwt.getPayload().toJSONObject().get("vc").toString());
+        });
     }
 
     public String extractEncodedPublicKey(String kid) {
@@ -146,23 +123,6 @@ public class JWTServiceImpl implements JWTService {
 
             return publicKeyBytes;
         });
-    }
-
-    private JWTClaimsSet convertPayloadToJWTClaimsSet(String payload) {
-        try {
-            JsonNode jsonNode = objectMapper.readTree(payload);
-            Map<String, Object> claimsMap = objectMapper.convertValue(jsonNode, new TypeReference<>() {
-            });
-            JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder();
-            for (Map.Entry<String, Object> entry : claimsMap.entrySet()) {
-                builder.claim(entry.getKey(), entry.getValue());
-            }
-            return builder.build();
-        } catch (JsonProcessingException e) {
-            log.error("Error while parsing the JWT payload", e);
-            throw new JWTCreationException("Error while parsing the JWT payload");
-        }
-
     }
 
     @Override

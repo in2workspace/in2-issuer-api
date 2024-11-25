@@ -4,7 +4,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTVerificationException;
-import es.in2.issuer.domain.service.impl.M2MTokenServiceImpl;
+import es.in2.issuer.domain.service.impl.VerifierValidationServiceImpl;
 
 import es.in2.issuer.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-class M2MTokenServiceImplTest {
+class VerifierValidationServiceImplTest {
 
     @Mock
     private JWTService jwtService;
@@ -30,11 +30,11 @@ class M2MTokenServiceImplTest {
     private VerifierConfig verifierConfig;
 
     @InjectMocks
-    private M2MTokenServiceImpl m2MTokenService;
+    private VerifierValidationServiceImpl m2MTokenService;
 
 
     @Test
-    void testVerifyM2MToken_validToken() {
+    void testVerifyToken_validToken() {
 
         String jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaXNzIjoiaXNzdWVyIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ZfZD0XwVq6wUi6csEKQ2tXKxguoaDMWrapvOf04h890";
         SignedJWT signedToken = mock(SignedJWT.class);
@@ -48,7 +48,7 @@ class M2MTokenServiceImplTest {
         when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
-        Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);
+        Mono<Void> result = m2MTokenService.verifyToken(jwtToken);
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -70,7 +70,7 @@ class M2MTokenServiceImplTest {
         when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
         when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
 
-        Mono<Void> result = m2MTokenService.verifyM2MToken(jwtToken);
+        Mono<Void> result = m2MTokenService.verifyToken(jwtToken);
 
         StepVerifier.create(result)
                 .expectError(JWTVerificationException.class)

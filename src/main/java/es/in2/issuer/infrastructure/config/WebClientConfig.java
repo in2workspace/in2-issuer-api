@@ -14,8 +14,6 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class WebClientConfig {
 
-    private final VerifierConfig verifierConfig;
-
     private static final ConnectionProvider connectionProvider = ConnectionProvider.builder("custom")
             .maxConnections(500)
             .maxIdleTime(Duration.ofSeconds(50))
@@ -28,16 +26,6 @@ public class WebClientConfig {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(
                         HttpClient.create(connectionProvider).followRedirect(false))
-                )
-                .build();
-    }
-
-    @Bean
-    public WebClient oauth2VerifierWebClient() {
-        return WebClient.builder()
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.create(connectionProvider)
-                        .baseUrl(verifierConfig.getVerifierExternalDomain())
-                        .followRedirect(false))
                 )
                 .build();
     }

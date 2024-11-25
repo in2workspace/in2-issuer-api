@@ -16,34 +16,7 @@ public class VerifierConfig {
     }
 
     public String getVerifierDidKey() {
-        return configAdapter.getConfiguration(verifierProperties.verifierDidKey());
+        return configAdapter.getConfiguration(verifierProperties.didKey());
     }
 
-    public String getVerifierExternalDomain() {
-        return configAdapter.getConfiguration(verifierProperties.externalDomain());
-    }
-
-    public String getCredentialSubjectKey() {
-        return configAdapter.getConfiguration(verifierProperties.credentialSubjectKey());
-    }
-
-    public String getVerifierVc() {
-        return configAdapter.getConfiguration(verifierProperties.vc());
-    }
-
-    public String getVerifierCryptoPrivateKey() {
-        return configAdapter.getConfiguration(verifierProperties.crypto().privateKey());
-    }
-
-    public String getVerifierClientAssertionTokenCronUnit() {
-        return configAdapter.getConfiguration(verifierProperties.clientAssertion().token().cronUnit());
-    }
-
-    public String getVerifierClientAssertionTokenExpiration() {
-        return configAdapter.getConfiguration(verifierProperties.clientAssertion().token().expiration());
-    }
-
-    public String getVerifierWellKnownPath() {
-        return configAdapter.getConfiguration(verifierProperties.paths().wellKnownPath());
-    }
 }

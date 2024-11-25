@@ -1,6 +1,8 @@
-package es.in2.issuer.infrastructure.config;
+package es.in2.issuer.infrastructure.config.security;
 
-import es.in2.issuer.domain.service.M2MTokenService;
+import es.in2.issuer.domain.service.VerifierValidationService;
+import es.in2.issuer.infrastructure.config.AppConfig;
+import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -14,7 +16,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.BadJwtException;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
@@ -39,7 +40,7 @@ public class SecurityConfig {
 
     private final AuthServerConfig authServerConfig;
     private final AppConfig appConfig;
-    private final M2MTokenService m2MTokenService;
+    private final VerifierValidationService verifierValidationService;
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
@@ -90,23 +91,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-//    @Bean
-//    public ReactiveAuthenticationManager customAuthenticationManager() {
-//        return authentication -> jwtDecoder().decode(authentication.getCredentials().toString())
-//                .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
-//                .cast(Authentication.class)
-//                .onErrorResume(ex -> {
-//                    String token = authentication.getCredentials().toString();
-//                    return m2MTokenService.verifyM2MToken(token)
-//                            .then(Mono.defer(() -> {
-//                                UsernamePasswordAuthenticationToken customToken =
-//                                        new UsernamePasswordAuthenticationToken(null, null, null);
-//                                return Mono.just(customToken).cast(Authentication.class);
-//                            }))
-//                            .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
-//                });
-//    }
-
     @Bean
     public ReactiveAuthenticationManager customAuthenticationManager() {
         return authentication -> {
@@ -116,15 +100,15 @@ public class SecurityConfig {
                         .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
                         .cast(Authentication.class)
                         .onErrorResume(ex -> {
-                            // If default decoder fail, try to validate as M2M token
+                            // If default decoder fail, try to validate as token from verifier
                             String token = authentication.getCredentials().toString();
-                            return m2MTokenService.verifyM2MToken(token)
+                            return verifierValidationService.verifyToken(token)
                                     .then(Mono.defer(() -> {
                                         UsernamePasswordAuthenticationToken customToken =
                                                 new UsernamePasswordAuthenticationToken(null, null, null);
                                         return Mono.just(customToken).cast(Authentication.class);
                                     }))
-                                    .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid M2M Token")));
+                                    .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid Token")));
                         });
             } catch (Exception e) {
                 return Mono.error(new BadCredentialsException("Authentication failed", e));
