@@ -6,6 +6,7 @@ import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
@@ -36,10 +37,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
-    private final IssuerApiClientTokenService issuerApiClientTokenService;
-    private final AccessTokenService accessTokenService;
     private final PolicyAuthorizationService policyAuthorizationService;
-
+    private final TrustFrameworkService trustFrameworkService;
+    private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
         // Check if the format is not "json_vc_jwt"
@@ -63,8 +63,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                             return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
                         }
                         return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                        .flatMap(authServerToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + authServerToken, procedureId, JWT_VC)))
+                                .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
                                 .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token)
                                                 .onErrorResume(ResponseUriException.class, ex -> {
                                                     log.error("Error while sending VC to response_uri", ex);
@@ -117,11 +116,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(
-            String processId,
-            CredentialRequest credentialRequest,
-            String token
-    ) {
+    public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId,
+                                                                                   CredentialRequest credentialRequest,
+                                                                                   String token) {
         try {
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
@@ -139,7 +136,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                     .flatMap(operationMode ->
                                             verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
                                                     .flatMap(credentialResponse -> {
-                                                                if(operationMode.equals(ASYNC)){
+                                                                if (operationMode.equals(ASYNC)) {
                                                                     return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                                                                             .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
                                                                             .flatMap(email ->
@@ -148,7 +145,11 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                             );
                                                                 } else if (operationMode.equals(SYNC)) {
                                                                     return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                            .flatMap(credentialProcedureService::updateCredentialProcedureCredentialStatusToValidByProcedureId)
+                                                                            .flatMap(id -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
+                                                                                    .then(credentialProcedureService.getDecodedCredentialByProcedureId(id)
+                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
+                                                                                    )
+                                                                            )
                                                                             .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
                                                                             .then(Mono.just(credentialResponse));
                                                                 } else {
@@ -197,6 +198,46 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             // Split the kid string at '#' and take the first part
             return kid.split("#")[0];
         });
+    }
+
+    private Mono<Void> processDecodedCredential(String processId, String decodedCredential) {
+        log.info("ProcessID: {} Decoded Credential: {}", processId, decodedCredential);
+
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
+
+        String signerOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().signer().organizationIdentifier();
+        if (signerOrgIdentifier == null || signerOrgIdentifier.isBlank()) {
+            log.error("ProcessID: {} Signer Organization Identifier connot be null or empty", processId);
+            return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
+        }
+
+        String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
+        if (mandatorOrgIdentifier == null || mandatorOrgIdentifier.isBlank()) {
+            log.error("ProcessID: {} Mandator Organization Identifier connot be null or empty", processId);
+            return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
+        }
+
+        return saveToTrustFramework(processId, signerOrgIdentifier, mandatorOrgIdentifier);
+    }
+
+    private Mono<Void> saveToTrustFramework(String processId, String signerOrgIdentifier, String mandatorOrgIdentifier) {
+
+        String signerDid = DID_ELSI + signerOrgIdentifier;
+        String mandatorDid = DID_ELSI + mandatorOrgIdentifier;
+
+        return trustFrameworkService.validateDidFormat(processId, signerDid)
+                .flatMap(isValid -> registerDidIfValid(processId, signerDid, isValid))
+                .then(trustFrameworkService.validateDidFormat(processId, mandatorDid)
+                        .flatMap(isValid -> registerDidIfValid(processId, mandatorDid, isValid)));
+    }
+
+    private Mono<Void> registerDidIfValid(String processId, String did, boolean isValid) {
+        if (isValid) {
+            return trustFrameworkService.registerDid(processId, did);
+        } else {
+            log.error("ProcessID: {} Did not registered because is invalid", processId);
+            return Mono.empty();
+        }
     }
 
 }

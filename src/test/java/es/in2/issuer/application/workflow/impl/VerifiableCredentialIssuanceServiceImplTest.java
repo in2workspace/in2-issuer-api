@@ -9,6 +9,7 @@ import es.in2.issuer.domain.exception.FormatUnsupportedException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
 import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
@@ -38,10 +39,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
     private VerifiableCredentialService verifiableCredentialService;
 
     @Mock
-    private AppConfig appConfig;
-
-    @Mock
     private ProofValidationService proofValidationService;
+    @Mock
+    private AppConfig appConfig;
 
     @Mock
     private EmailService emailService;
@@ -56,18 +56,15 @@ class VerifiableCredentialIssuanceServiceImplTest {
     private CredentialSignerWorkflow credentialSignerWorkflow;
 
     @Mock
-    private VerifierValidationService verifierValidationService;
-
-    @Mock
-    private IssuerApiClientTokenService issuerApiClientTokenService;
-
-    @Mock
     private WebClientConfig webClientConfig;
 
     @Mock
-    private AccessTokenService accessTokenService;
-    @Mock
     private PolicyAuthorizationService policyAuthorizationService;
+
+    @Mock
+    private TrustFrameworkService trustFrameworkService;
+    @Mock
+    private LEARCredentialEmployeeFactory credentialEmployeeFactory;
 
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
@@ -94,6 +91,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
     void completeWithdrawLEARProcessSyncSuccess() throws JsonProcessingException {
         String processId = "1234";
         String type = "LEARCredentialEmployee";
+        String walletUrl = "https://wallet.com";
+        String issuerUiExternalDomain = "https://example.com";
         String token = "token";
         String json = """
                 {
@@ -154,7 +153,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",null + "/credential-offer?transaction_code=" + transactionCode, "Jhon",null)).thenReturn(Mono.empty());
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
+        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
                 .verifyComplete();
@@ -210,7 +211,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
-        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(token));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
@@ -226,39 +226,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
                 .verifyComplete();
     }
-
-    @Test
-    void generateVerifiableCredentialResponseSuccess(){
-        String processId = "1234";
-        CredentialRequest credentialRequest = CredentialRequest.builder()
-                .format(JWT_VC)
-                .proof(Proof.builder()
-                        .proofType("jwt")
-                        .jwt("eyJraWQiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MjekRuYWVuMjN3TTc2Z3BpU0xIa3U0YkZEYnNzVlM5c3R5OXgzSzd5VnFqYlNkVFBXQyIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbjIzd003NmdwaVNMSGt1NGJGRGJzc1ZTOXN0eTl4M0s3eVZxamJTZFRQV0MiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjE3MTI5MTcwNDAsImlhdCI6MTcxMjA1MzA0MCwibm9uY2UiOiI4OVh4bXdMMlJtR2wyUlp1LU1UU3lRPT0ifQ.DdaaNm4vTn60njLtAQ7Q5oGsQILfA-5h9-sv4MBcVyNBAfSrUUajZqlUukT-5Bx8EqocSvf0RIFRHLcvO9_LMg")
-                        .build())
-                .build();
-        String token = "eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICIyQ1ltNzdGdGdRNS1uU2stU3p4T2VYYUVOUTRoSGRkNkR5U2NYZzJFaXJjIn0.eyJleHAiOjE3MTAyNDM2MzIsImlhdCI6MTcxMDI0MzMzMiwiYXV0aF90aW1lIjoxNzEwMjQwMTczLCJqdGkiOiJmY2NhNzU5MS02NzQyLTRjMzAtOTQ5Yy1lZTk3MDcxOTY3NTYiLCJpc3MiOiJodHRwczovL2tleWNsb2FrLXByb3ZpZGVyLmRvbWUuZml3YXJlLmRldi9yZWFsbXMvZG9tZSIsImF1ZCI6ImFjY291bnQiLCJzdWIiOiJlMmEwNjZmNS00YzAwLTQ5NTYtYjQ0NC03ZWE1ZTE1NmUwNWQiLCJ0eXAiOiJCZWFyZXIiLCJhenAiOiJhY2NvdW50LWNvbnNvbGUiLCJzZXNzaW9uX3N0YXRlIjoiYzFhMTUyYjYtNWJhNy00Y2M4LWFjOTktN2Q2ZTllODIyMjk2IiwicmVzb3VyY2VfYWNjZXNzIjp7ImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyJdfX0sInNjb3BlIjoib3BlbmlkIGVtYWlsIHByb2ZpbGUiLCJzaWQiOiJjMWExNTJiNi01YmE3LTRjYzgtYWM5OS03ZDZlOWU4MjIyOTYiLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsIm5hbWUiOiJQcm92aWRlciBMZWFyIiwicHJlZmVycmVkX3VzZXJuYW1lIjoicHJvdmlkZXItbGVhciIsImdpdmVuX25hbWUiOiJQcm92aWRlciIsImZhbWlseV9uYW1lIjoiTGVhciJ9.F8vTSNAMc5Fmi-KO0POuaMIxcjdpWxNqfXH3NVdQP18RPKGI5eJr5AGN-yKYncEEzkM5_H28abJc1k_lx7RjnERemqesY5RwoBpTl9_CzdSFnIFbroNOAY4BGgiU-9Md9JsLrENk5Na_uNV_Q85_72tmRpfESqy5dMVoFzWZHj2LwV5dji2n17yf0BjtaWailHdwbnDoSqQab4IgYsExhUkCLCtZ3O418BG9nrSvP-BLQh_EvU3ry4NtnnWxwi5rNk4wzT4j8rxLEAJpMMv-5Ew0z7rbFX3X3UW9WV9YN9eV79-YrmxOksPYahFQwNUXPckCXnM48ZHZ42B0H4iOiA";
-        String jti = "fcca7591-6742-4c30-949c-ee9707196756";
-        String did = "did:key:zDnaen23wM76gpiSLHku4bFDbssVS9sty9x3K7yVqjbSdTPWC";
-        VerifiableCredentialResponse verifiableCredentialResponse = VerifiableCredentialResponse.builder()
-                .credential("credential")
-                .transactionId("4321")
-                .build();
-        String procedureId = "123456";
-        String mandatorEmail = "jhon@gmail.com";
-
-        when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "A")).thenReturn(Mono.just(verifiableCredentialResponse));
-        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
-        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mandatorEmail));
-        when(emailService.sendPendingCredentialNotification(mandatorEmail,"Pending Credential")).thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("A"));
-
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
-                .expectNext(verifiableCredentialResponse)
-                .verifyComplete();
-    }
-
     @Test
     void generateVerifiableCredentialResponseSyncSuccess(){
         String processId = "1234";
@@ -277,15 +244,41 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .transactionId("4321")
                 .build();
         String procedureId = "123456";
+        String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
         when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
-
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId("procedureId")).thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(jti)).thenReturn(Mono.empty());
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
+
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+        LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Signer signer = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
+
+        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
+        when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
+        when(credentialSubject.mandate()).thenReturn(mandate);
+        when(mandate.signer()).thenReturn(signer);
+        when(mandate.mandator()).thenReturn(mandator);
+
+        String organizationIdentifier = "organizationIdentifier";
+        when(signer.organizationIdentifier()).thenReturn(organizationIdentifier);
+        when(mandator.organizationIdentifier()).thenReturn(organizationIdentifier);
+
+        String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
+
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(trustFrameworkService.validateDidFormat(processId,organizationIdentifierDid)).thenReturn(Mono.just(true));
+        when(trustFrameworkService.registerDid(processId,organizationIdentifierDid)).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
