@@ -4,8 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.ParseErrorException;
-import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.VerifiableCertification;
+import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +19,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.*;
-import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION_TYPE;
 
 @Component
 @RequiredArgsConstructor
@@ -26,7 +26,6 @@ import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION_TYPE;
 public class VerifiableCertificationFactory {
     private final DefaultSignerConfig defaultSignerConfig;
     private final ObjectMapper objectMapper;
-    private final AccessTokenService accessTokenService;
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
@@ -74,9 +73,8 @@ public class VerifiableCertificationFactory {
                         .product(credential.credentialSubject().product())
                         .compliance(populatedCompliance)
                         .build())
-                .issuanceDate(credential.issuanceDate())
                 .validFrom(credential.validFrom())
-                .expirationDate(credential.expirationDate())
+                .validUntil(credential.validUntil())
                 .signer(signer)
                 .build());
     }
@@ -86,8 +84,8 @@ public class VerifiableCertificationFactory {
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
                         .credential(credential)
-                        .expirationTime(parseDateToUnixTime(credential.expirationDate()))
-                        .issuedAt(parseDateToUnixTime(credential.issuanceDate()))
+                        .expirationTime(parseDateToUnixTime(credential.validUntil()))
+                        .issuedAt(parseDateToUnixTime(credential.validFrom()))
                         .notValidBefore(parseDateToUnixTime(credential.validFrom()))
                         .issuer(DID_ELSI + credential.signer().organizationIdentifier())
                         .subject(credential.credentialSubject().product().productId())

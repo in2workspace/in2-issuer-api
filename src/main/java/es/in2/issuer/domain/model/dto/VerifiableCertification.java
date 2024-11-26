@@ -16,11 +16,10 @@ public record VerifiableCertification(
         @NotNull
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,
         @NotNull
-        @JsonProperty("issuanceDate") String issuanceDate,
-        @NotNull
         @JsonProperty("validFrom") String validFrom,
+
         @NotNull
-        @JsonProperty("expirationDate") String expirationDate,
+        @JsonProperty("validUntil") String validUntil,
         @JsonProperty("signer") Signer signer
 ) {
     @Builder

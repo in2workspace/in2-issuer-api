@@ -2,7 +2,9 @@ package es.in2.issuer.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.VerifiableCertification;
+import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,9 +77,8 @@ class VerifiableCertificationFactoryTest {
                       "productVersion": "1.0"
                     }
                   },
-                  "issuanceDate": "2023-09-07T00:00:00Z",
                   "validFrom": "2023-09-07T00:00:00Z",
-                  "expirationDate": "2024-09-07T00:00:00Z",
+                  "validUntil": "2024-09-07T00:00:00Z",
                   "signer": {
                     "commonName": "Signer Name",
                     "country": "Signer Country",
@@ -122,9 +123,8 @@ class VerifiableCertificationFactoryTest {
                                 .productVersion("1.0")
                                 .build())
                         .build())
-                .issuanceDate("2023-09-07T00:00:00Z")
                 .validFrom("2023-09-07T00:00:00Z")
-                .expirationDate("2024-09-07T00:00:00Z")
+                .validUntil("2024-09-07T00:00:00Z")
                 .signer(VerifiableCertification.Signer.builder()
                         .commonName("Signer Name")
                         .country("Signer Country")
