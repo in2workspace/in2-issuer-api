@@ -20,7 +20,7 @@ public record LEARCredentialEmployeeJwtPayload(
         @JsonProperty("iat")
         Long issuedAt,
 
-        @JsonProperty("vc")
+        @JsonProperty("jwtCredential")
         LEARCredentialEmployee learCredentialEmployee,
 
         @JsonProperty("jti")

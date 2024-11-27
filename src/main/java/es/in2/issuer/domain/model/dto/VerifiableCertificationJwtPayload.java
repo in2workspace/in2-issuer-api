@@ -20,7 +20,7 @@ public record VerifiableCertificationJwtPayload(
         @JsonProperty("iat")
         Long issuedAt,
 
-        @JsonProperty("vc")
+        @JsonProperty("jwtCredential")
         VerifiableCertification credential,
 
         @JsonProperty("jti")

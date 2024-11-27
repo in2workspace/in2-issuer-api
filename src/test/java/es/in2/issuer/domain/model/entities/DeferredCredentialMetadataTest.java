@@ -46,7 +46,7 @@ class DeferredCredentialMetadataTest {
         String authServerNonce = "authServerNonce";
         String transactionId = "transactionId";
         UUID procedureId = UUID.randomUUID();
-        String vc = "vc";
+        String vc = "jwtCredential";
         String vcFormat = "vcFormat";
 
         deferredCredentialMetadata.setId(uuid);
@@ -75,7 +75,7 @@ class DeferredCredentialMetadataTest {
                 ", authServerNonce=" + deferredCredentialMetadata.getAuthServerNonce() +
                 ", transactionId=" + deferredCredentialMetadata.getTransactionId() +
                 ", procedureId=" + deferredCredentialMetadata.getProcedureId() +
-                ", vc=" + deferredCredentialMetadata.getVc() +
+                ", jwtCredential=" + deferredCredentialMetadata.getVc() +
                 ", vcFormat=" + deferredCredentialMetadata.getVcFormat() +
                 ", operationMode=" + deferredCredentialMetadata.getOperationMode() +
                 ", responseUri=" + deferredCredentialMetadata.getResponseUri() + ")";

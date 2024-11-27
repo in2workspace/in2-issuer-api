@@ -45,7 +45,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String credentialId = UUID.randomUUID().toString();
         String organizationIdentifier = "org-123";
-        String credentialDecoded = "{\"vc\":{\"type\":[\"VerifiableCredential\"]}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"type\":[\"VerifiableCredential\"]}}";
         String expectedProcedureId = UUID.randomUUID().toString();
 
         CredentialProcedureCreationRequest request = CredentialProcedureCreationRequest.builder()
@@ -80,7 +80,7 @@ class CredentialProcedureServiceImplTest {
     void getCredentialTypeByProcedureId_shouldReturnNonDefaultType() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String credentialDecoded = "{\"vc\":{\"type\":[\"VerifiableCredential\", \"TestType\"]}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"type\":[\"VerifiableCredential\", \"TestType\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -107,7 +107,7 @@ class CredentialProcedureServiceImplTest {
     void getCredentialTypeByProcedureId_shouldReturnEmptyIfOnlyDefaultTypesPresent() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String credentialDecoded = "{\"vc\":{\"type\":[\"VerifiableCredential\", \"VerifiableAttestation\"]}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"type\":[\"VerifiableCredential\", \"VerifiableAttestation\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -134,7 +134,7 @@ class CredentialProcedureServiceImplTest {
     void getCredentialTypeByProcedureId_shouldReturnErrorIfTypeMissing() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String credentialDecoded = "{\"vc\":{}}";
+        String credentialDecoded = "{\"jwtCredential\":{}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -162,7 +162,7 @@ class CredentialProcedureServiceImplTest {
     void getCredentialTypeByProcedureId_shouldReturnErrorIfJsonProcessingExceptionOccurs() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String invalidCredentialDecoded = "{\"vc\":{\"type\":[\"VerifiableCredential\", \"TestType\"}"; // Invalid JSON
+        String invalidCredentialDecoded = "{\"jwtCredential\":{\"type\":[\"VerifiableCredential\", \"TestType\"}"; // Invalid JSON
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -187,12 +187,12 @@ class CredentialProcedureServiceImplTest {
     void updateDecodedCredentialByProcedureId_shouldUpdateAndSaveCredentialProcedure() {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String newCredential = "{\"vc\":{\"type\":[\"NewCredentialType\"]}}";
+        String newCredential = "{\"jwtCredential\":{\"type\":[\"NewCredentialType\"]}}";
         String newFormat = "json";
 
         CredentialProcedure existingCredentialProcedure = new CredentialProcedure();
         existingCredentialProcedure.setProcedureId(UUID.fromString(procedureId));
-        existingCredentialProcedure.setCredentialDecoded("{\"vc\":{\"type\":[\"OldCredentialType\"]}}");
+        existingCredentialProcedure.setCredentialDecoded("{\"jwtCredential\":{\"type\":[\"OldCredentialType\"]}}");
         existingCredentialProcedure.setCredentialStatus(CredentialStatus.WITHDRAWN);
         existingCredentialProcedure.setCredentialFormat("old_format");
         existingCredentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
@@ -223,7 +223,7 @@ class CredentialProcedureServiceImplTest {
     void updateDecodedCredentialByProcedureId_shouldHandleProcedureNotFound() {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String newCredential = "{\"vc\":{\"type\":[\"NewCredentialType\"]}}";
+        String newCredential = "{\"jwtCredential\":{\"type\":[\"NewCredentialType\"]}}";
         String newFormat = "json";
 
         // When
@@ -245,7 +245,7 @@ class CredentialProcedureServiceImplTest {
     void getDecodedCredentialByProcedureId_shouldReturnDecodedCredential() {
         // Given
         String procedureId = UUID.randomUUID().toString();
-        String expectedDecodedCredential = "{\"vc\":{\"type\":[\"TestCredentialType\"]}}";
+        String expectedDecodedCredential = "{\"jwtCredential\":{\"type\":[\"TestCredentialType\"]}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -288,7 +288,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedEmail = "mandatee@example.com";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"email\":\"" + expectedEmail + "\"}}}}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"email\":\"" + expectedEmail + "\"}}}}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -316,7 +316,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedFirstName = "John";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"" + expectedFirstName + "\"}}}}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"" + expectedFirstName + "\"}}}}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -344,7 +344,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String expectedEmail = "mandator@example.com";
-        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"signer\":{\"emailAddress\":\"" + expectedEmail + "\"}}}}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"credentialSubject\":{\"mandate\":{\"signer\":{\"emailAddress\":\"" + expectedEmail + "\"}}}}}";
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -371,8 +371,8 @@ class CredentialProcedureServiceImplTest {
     void getAllIssuedCredentialByOrganizationIdentifier_shouldReturnAllIssuedCredentials() {
         // Given
         String organizationIdentifier = "org-123";
-        String credential1Decoded = "{\"vc\":{\"type\":[\"TestCredentialType1\"]}}";
-        String credential2Decoded = "{\"vc\":{\"type\":[\"TestCredentialType2\"]}}";
+        String credential1Decoded = "{\"jwtCredential\":{\"type\":[\"TestCredentialType1\"]}}";
+        String credential2Decoded = "{\"jwtCredential\":{\"type\":[\"TestCredentialType2\"]}}";
 
         CredentialProcedure credentialProcedure1 = new CredentialProcedure();
         credentialProcedure1.setCredentialDecoded(credential1Decoded);
@@ -425,7 +425,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String organizationIdentifier = "org-123";
-        String credentialDecoded = "{\"vc\":{\"type\":[\"TestCredentialType\"]}}";
+        String credentialDecoded = "{\"jwtCredential\":{\"type\":[\"TestCredentialType\"]}}";
         UUID expectedProcedureId = UUID.fromString(procedureId);
         CredentialStatus status = CredentialStatus.ISSUED;
 
@@ -460,7 +460,7 @@ class CredentialProcedureServiceImplTest {
         // Given
         String procedureId = UUID.randomUUID().toString();
         String organizationIdentifier = "org-123";
-        String invalidCredentialDecoded = "{\"vc\":{\"type\":[\"TestCredentialType\"}"; // Malformed JSON
+        String invalidCredentialDecoded = "{\"jwtCredential\":{\"type\":[\"TestCredentialType\"}"; // Malformed JSON
 
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
@@ -549,8 +549,8 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldReturnBasicInfoForAllProcedures() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"type\":[\"VerifiableCertification\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
+        String credentialDecoded1 = "{\"jwtCredential\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String credentialDecoded2 = "{\"jwtCredential\":{\"type\":[\"VerifiableCertification\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
 
         UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
         UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
@@ -609,8 +609,8 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldReturnUnsupportedTypeException() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"type\":[\"NotSupportedType\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
+        String credentialDecoded1 = "{\"jwtCredential\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String credentialDecoded2 = "{\"jwtCredential\":{\"type\":[\"NotSupportedType\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
 
         UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
         UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
@@ -658,8 +658,8 @@ class CredentialProcedureServiceImplTest {
     void getAllProceduresBasicInfoByOrganizationId_shouldHandleJsonProcessingException() throws Exception {
         // Given
         String organizationIdentifier = "org-123";
-        String malformedJson = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\"}}}}"; // Malformed JSON
-        String goodJson = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
+        String malformedJson = "{\"jwtCredential\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\"}}}}"; // Malformed JSON
+        String goodJson = "{\"jwtCredential\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
 
         UUID procedureId = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
         Timestamp updated = Timestamp.from(Instant.now());

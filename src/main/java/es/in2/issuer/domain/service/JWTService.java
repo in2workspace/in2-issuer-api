@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 
 public interface JWTService {
 
-
+    String generateJWT(String payload);
     Mono<Boolean> validateJwtSignatureReactive(JWSObject jwsObject);
     Mono<JsonNode> parseJwtVCAsJsonNode(String jwt);
 

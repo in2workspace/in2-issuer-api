@@ -31,7 +31,7 @@ public class DeferredCredentialMetadata {
     @Column("procedure_id")
     private UUID procedureId;
 
-    @Column("vc")
+    @Column("jwtCredential")
     private String vc;
 
     @Column("vc_format")

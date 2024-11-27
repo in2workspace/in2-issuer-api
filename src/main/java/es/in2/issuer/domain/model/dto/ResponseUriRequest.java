@@ -5,6 +5,6 @@ import lombok.Builder;
 
 @Builder
 public record ResponseUriRequest(
-        @JsonProperty("vc") String encodedVc
+        @JsonProperty("jwtCredential") String encodedVc
 ) {
 }

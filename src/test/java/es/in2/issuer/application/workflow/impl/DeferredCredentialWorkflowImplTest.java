@@ -77,7 +77,7 @@ class DeferredCredentialWorkflowImplTest {
                     "iss": "did:elsi:example",
                     "exp": 1720171652,
                     "iat": 1717579652,
-                    "vc": {
+                    "jwtCredential": {
                         "@context": [
                             "https://www.w3.org/ns/credentials/v2",
                             "https://dome-marketplace.eu/2022/credentials/learcredential/v1"

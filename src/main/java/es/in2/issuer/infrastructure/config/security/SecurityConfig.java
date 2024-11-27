@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.config.security;
 
-import es.in2.issuer.domain.service.VerifierValidationService;
+import es.in2.issuer.domain.service.VerifierService;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class SecurityConfig {
 
     private final AuthServerConfig authServerConfig;
     private final AppConfig appConfig;
-    private final VerifierValidationService verifierValidationService;
+    private final VerifierService verifierService;
 
     @Bean
     public ReactiveJwtDecoder jwtDecoder() {
@@ -102,7 +102,7 @@ public class SecurityConfig {
                         .onErrorResume(ex -> {
                             // If default decoder fail, try to validate as token from verifier
                             String token = authentication.getCredentials().toString();
-                            return verifierValidationService.verifyToken(token)
+                            return verifierService.verifyToken(token)
                                     .then(Mono.defer(() -> {
                                         UsernamePasswordAuthenticationToken customToken =
                                                 new UsernamePasswordAuthenticationToken(null, null, null);

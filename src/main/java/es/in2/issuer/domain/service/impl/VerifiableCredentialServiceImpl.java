@@ -109,9 +109,9 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private Mono<VerifiableCredentialResponse> buildCredentialResponseBasedOnOperationMode(String operationMode, String bindCredential, String transactionId, String authServerNonce, String token) {
         if (operationMode.equals(ASYNC)) {
             try {
-                // Extract the "vc" object
-                JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
-                // Convert the "vc" object to LEARCredentialEmployee
+                // Extract the "jwtCredential" object
+                JsonNode vcNode = objectMapper.readTree(bindCredential).get("jwtCredential");
+                // Convert the "jwtCredential" object to LEARCredentialEmployee
                 LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
                 // Convert LEARCredentialEmployee back to string
                 String bindLearCredentialJson = objectMapper.writeValueAsString(learCredential);

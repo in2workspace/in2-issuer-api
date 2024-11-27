@@ -4,7 +4,7 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTVerificationException;
-import es.in2.issuer.domain.service.impl.VerifierValidationServiceImpl;
+import es.in2.issuer.domain.service.impl.VerifierServiceImpl;
 
 import es.in2.issuer.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.when;
 
 
 @ExtendWith(MockitoExtension.class)
-class VerifierValidationServiceImplTest {
+class VerifierServiceImplTest {
 
     @Mock
     private JWTService jwtService;
@@ -30,7 +30,7 @@ class VerifierValidationServiceImplTest {
     private VerifierConfig verifierConfig;
 
     @InjectMocks
-    private VerifierValidationServiceImpl m2MTokenService;
+    private VerifierServiceImpl m2MTokenService;
 
 
     @Test
@@ -40,7 +40,7 @@ class VerifierValidationServiceImplTest {
         SignedJWT signedToken = mock(SignedJWT.class);
         Payload payload = mock(Payload.class);
 
-        when(verifierConfig.getVerifierDidKey()).thenReturn("issuer");
+        when(verifierConfig.getDidKey()).thenReturn("issuer");
 
         when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
@@ -62,7 +62,7 @@ class VerifierValidationServiceImplTest {
         SignedJWT signedToken = mock(SignedJWT.class);
         Payload payload = mock(Payload.class);
 
-        when(verifierConfig.getVerifierDidKey()).thenReturn("verifier-did-key-not-equal-issuer");
+        when(verifierConfig.getDidKey()).thenReturn("verifier-did-key-not-equal-issuer");
 
         when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
         when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);

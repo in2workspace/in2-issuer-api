@@ -54,7 +54,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
 
     private Mono<Void> processLearCredentialEmployeePolicy(JsonNode parsedJwt) {
         try {
-            // Map the "vc" object to LEARCredentialEmployee
+            // Map the "jwtCredential" object to LEARCredentialEmployee
             LEARCredentialEmployee learCredential = objectMapper.treeToValue(parsedJwt, LEARCredentialEmployee.class);
 
             // Check if any power contains tmf_function "Certification" and tmf_action includes "Attest"

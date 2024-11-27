@@ -115,6 +115,18 @@ auth-server:
 
 verifier:
   did-key:
+  external-domain:
+  paths:
+    well-known-path:
+
+issuer-identity:
+  credential-subject-did-key:
+  jwt-credential:
+  crypto:
+    private-key:
+  client-assertion:
+    expiration:
+    expiration-unit-time:
 
 default-signer:
   common-name:
