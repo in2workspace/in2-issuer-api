@@ -2,9 +2,12 @@ package es.in2.issuer.domain.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Builder;
+
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Builder
 public record OpenIDProviderMetadata(
         @JsonProperty("issuer") String issuer,
         @JsonProperty("authorization_endpoint") String authorizationEndpoint,
