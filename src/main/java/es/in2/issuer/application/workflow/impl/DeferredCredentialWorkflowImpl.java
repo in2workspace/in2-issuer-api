@@ -15,6 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.util.Constants.ASYNC;
+import static es.in2.issuer.domain.util.Constants.VC;
 
 @Service
 @RequiredArgsConstructor
@@ -46,7 +47,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         String payload = signedJWT.getPayload().toString();
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
-                        String credentialId = credentialNode.get("jwtCredential").get("id").asText();
+                        String credentialId = credentialNode.get(VC).get("id").asText();
                         // Update the credential in the database
                         return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
                                 .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId)
@@ -54,8 +55,8 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                String email = credentialNode.get("jwtCredential").get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                                                String firstName = credentialNode.get("jwtCredential").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                                String email = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
+                                                String firstName = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
                                             }
                                             return Mono.empty();

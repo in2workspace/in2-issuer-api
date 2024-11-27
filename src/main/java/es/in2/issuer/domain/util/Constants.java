@@ -23,7 +23,7 @@ public class Constants {
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
-    public static final String VC = "jwtCredential";
+    public static final String VC = "vc";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
     public static final String EMAIL_ADDRESS = "emailAddress";

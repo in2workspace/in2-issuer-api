@@ -75,7 +75,7 @@ class DeferredCredentialMetadataTest {
                 ", authServerNonce=" + deferredCredentialMetadata.getAuthServerNonce() +
                 ", transactionId=" + deferredCredentialMetadata.getTransactionId() +
                 ", procedureId=" + deferredCredentialMetadata.getProcedureId() +
-                ", jwtCredential=" + deferredCredentialMetadata.getVc() +
+                ", vc=" + deferredCredentialMetadata.getVc() +
                 ", vcFormat=" + deferredCredentialMetadata.getVcFormat() +
                 ", operationMode=" + deferredCredentialMetadata.getOperationMode() +
                 ", responseUri=" + deferredCredentialMetadata.getResponseUri() + ")";

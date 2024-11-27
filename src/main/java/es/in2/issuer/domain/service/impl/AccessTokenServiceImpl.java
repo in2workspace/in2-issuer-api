@@ -56,7 +56,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     try {
                         SignedJWT parsedVcJwt = SignedJWT.parse(token);
                         JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get("jwtCredential").get("issuer").get("id").asText());
+                        return Mono.just(jsonObject.get(VC).get("issuer").get("id").asText());
                     } catch (ParseException | JsonProcessingException e) {
                         return Mono.error(e);
                     }

@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static es.in2.issuer.domain.util.Constants.DID_KEY;
+import static es.in2.issuer.domain.util.Constants.VC;
 
 @Slf4j
 @Service
@@ -97,7 +98,7 @@ public class JWTServiceImpl implements JWTService {
     public Mono<JsonNode> parseJwtVCAsJsonNode(String jwt) {
         return Mono.fromCallable(() -> {
             SignedJWT parsedJwt = SignedJWT.parse(jwt);
-            return objectMapper.readTree(parsedJwt.getPayload().toJSONObject().get("jwtCredential").toString());
+            return objectMapper.readTree(parsedJwt.getPayload().toJSONObject().get(VC).toString());
         });
     }
 

@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS credentials.deferred_credential_metadata (
     transaction_id VARCHAR(255),
     auth_server_nonce VARCHAR(255),
     procedure_id uuid,
-    jwtCredential TEXT,
+    vc TEXT,
     vc_format VARCHAR(20),
     CONSTRAINT fk_credential_procedure
         FOREIGN KEY (procedure_id)

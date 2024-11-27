@@ -29,7 +29,7 @@ class VerifiableCredentialServiceImplTest {
     private final String transactionId = "transaction-id-789";
     private final String deferredResponseId = "deferred-response-id-456";
     private final String procedureId = "procedure-id-321";
-    private final String vcValue = "jwtCredential-value-123";
+    private final String vcValue = "vc-value-123";
     @Mock
     private DeferredCredentialMetadataService deferredCredentialMetadataService;
     @Mock
@@ -91,7 +91,7 @@ class VerifiableCredentialServiceImplTest {
                 .organizationIdentifier("org-id-123")
                 .credentialDecoded("decoded-credential")
                 .build();
-        String vcType = "jwtCredential-type-789";
+        String vcType = "vc-type-789";
         when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode))
                 .thenReturn(Mono.just(mockCreationRequest));
 
@@ -231,12 +231,12 @@ class VerifiableCredentialServiceImplTest {
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
-        String decodedCredential = "{\"jwtCredential\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        String decodedCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(decodedCredential));
 
         String subjectDid = "did:example:123456789";
-        String bindCredential = "{\"jwtCredential\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        String bindCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
         when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
                 .thenReturn(Mono.just(bindCredential));
 
@@ -251,7 +251,7 @@ class VerifiableCredentialServiceImplTest {
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "A");
 
         // Convert the bindCredential JSON string to LEARCredentialEmployee
-        JsonNode vcNode = objectMapper.readTree(bindCredential).get("jwtCredential");
+        JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
         LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
 
         // Log the intermediate LEARCredentialEmployee object for debugging
@@ -324,12 +324,12 @@ class VerifiableCredentialServiceImplTest {
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
-        String decodedCredential = "{\"jwtCredential\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        String decodedCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(decodedCredential));
 
         String subjectDid = "did:example:123456789";
-        String bindCredential = "{\"jwtCredential\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
+        String bindCredential = "{\"vc\":{\"@context\":[\"https://www.w3.org/2018/credentials/v1\"],\"id\":\"example-id\",\"type\":[\"VerifiableCredential\",\"LEARCredentialEmployee\"],\"credentialSubject\":{\"mandate\":{\"id\":\"mandate-id\",\"life_span\":{\"end_date_time\":\"2024-12-31T23:59:59Z\",\"start_date_time\":\"2023-01-01T00:00:00Z\"},\"mandatee\":{\"id\":\"mandatee-id\",\"email\":\"mandatee@example.com\",\"first_name\":\"John\",\"last_name\":\"Doe\",\"mobile_phone\":\"+123456789\"},\"mandator\":{\"commonName\":\"Company ABC\",\"country\":\"Country XYZ\",\"emailAddress\":\"mandator@example.com\",\"organization\":\"Org ABC\",\"organizationIdentifier\":\"org-123\",\"serialNumber\":\"1234567890\"},\"power\":[{\"id\":\"power-id\",\"tmf_action\":\"action\",\"tmf_domain\":\"domain\",\"tmf_function\":\"function\",\"tmf_type\":\"type\"}]}}},\"expirationDate\":\"2024-12-31T23:59:59Z\",\"issuanceDate\":\"2023-01-01T00:00:00Z\",\"issuer\":\"did:example:issuer\",\"validFrom\":\"2023-01-01T00:00:00Z\"}}";
         when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
                 .thenReturn(Mono.just(bindCredential));
 
@@ -347,7 +347,7 @@ class VerifiableCredentialServiceImplTest {
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "S");
 
         // Convert the bindCredential JSON string to LEARCredentialEmployee
-        JsonNode vcNode = objectMapper.readTree(bindCredential).get("jwtCredential");
+        JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
         LEARCredentialEmployee learCredential = objectMapper.treeToValue(vcNode, LEARCredentialEmployee.class);
 
         // Log the intermediate LEARCredentialEmployee object for debugging
