@@ -1,16 +1,25 @@
 package es.in2.issuer.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.JWTClaimMissingException;
+import es.in2.issuer.domain.exception.JWTCreationException;
 import es.in2.issuer.domain.exception.JWTParsingException;
 import es.in2.issuer.domain.service.impl.JWTServiceImpl;
+import es.in2.issuer.infrastructure.crypto.CryptoComponent;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -27,9 +36,34 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class JWTServiceImplTest {
 
+    @Mock
+    private ObjectMapper objectMapper;
+
+    @Mock
+    private CryptoComponent cryptoComponent;
     @InjectMocks
     private JWTServiceImpl jwtService;
 
+    @Test
+    void generateJWT_throws_JWTCreationException() throws JsonProcessingException {
+        String payload = "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022}";
+
+        ECKey ecKey = mock(ECKey.class);
+        when(ecKey.getKeyID()).thenReturn("testKeyID");
+        when(ecKey.getCurve()).thenReturn(Curve.P_256);
+        when(cryptoComponent.getECKey()).thenReturn(ecKey);
+
+        JsonNode mockJsonNode = mock(JsonNode.class);
+        when(objectMapper.readTree(payload)).thenReturn(mockJsonNode);
+
+        Map<String, Object> claimsMap  = new HashMap<>();
+        claimsMap .put("sub", "1234567890");
+        claimsMap .put("name", "John Doe");
+        claimsMap .put("iat", 1516239022);
+        when(objectMapper.convertValue(any(JsonNode.class), any(TypeReference.class))).thenReturn(claimsMap);
+
+        assertThrows(JWTCreationException.class, () -> jwtService.generateJWT(payload));
+    }
     @Test
     void validateJwtSignatureReactive_validSignature_shouldReturnTrue() throws Exception {
         String token = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlZjZUaGprUE1pNXRiNkFoTEo4VHU4WnkzbWhHUUpiZlQ4YXhoSHNIN1NEZHoiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlZjZUaGprUE1pNXRiNkFoTEo4VHU4WnkzbWhHUUpiZlQ4YXhoSHNIN1NEZHoiLCJzdWIiOiJkaWQ6a2V5OnpEbmFlZjZUaGprUE1pNXRiNkFoTEo4VHU4WnkzbWhHUUpiZlQ4YXhoSHNIN1NEZHoiLCJleHAiOjE3NjAwNzkxMzQsImlhdCI6MTcyNTk1MTEzNH0.5dHXb028Vt9PGai2FBluccJVxO3WXsjnreXGuSOSvUpKzzyCRKYGgWK2nMIBindKonxkOAgUkqaasSYby-gGpg";
