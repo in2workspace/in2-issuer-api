@@ -99,6 +99,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .verify();
     }
 
+
+
     @Test
     void completeWithdrawLEARProcessSyncSuccess() throws JsonProcessingException {
         String processId = "1234";
@@ -295,6 +297,20 @@ class VerifiableCredentialIssuanceServiceImplTest {
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
                 .verifyComplete();
+    }
+
+    @Test
+    void generateVerifiableCredentialDeferredResponseWithError() {
+        String processId = "1234";
+        DeferredCredentialRequest deferredCredentialRequest = mock(DeferredCredentialRequest.class);
+        Exception exception = new Exception("Service failure");
+
+        when(verifiableCredentialService.generateDeferredCredentialResponse(processId, deferredCredentialRequest))
+                .thenReturn(Mono.error(exception));
+
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialDeferredResponse(processId, deferredCredentialRequest))
+                .expectErrorMatches(e -> e instanceof RuntimeException && e.getMessage().contains("Failed to process the credential for the next processId: " + processId))
+                .verify();
     }
 
     @Test
