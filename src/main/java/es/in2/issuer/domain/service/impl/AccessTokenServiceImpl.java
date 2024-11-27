@@ -50,21 +50,6 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
-    public Mono<String> getIssuer(String authorizationHeader) {
-        return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> {
-                    try {
-                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
-                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get(VC).get("issuer").get("id").asText());
-                    } catch (ParseException | JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
-                })
-                .switchIfEmpty(Mono.error(new InvalidTokenException()));
-    }
-
-    @Override
     public Mono<String> getOrganizationId(String authorizationHeader) {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> {
