@@ -86,6 +86,18 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
+    @Test
+    void operationNotSupportedExceptionDueInvalidResponseUriTest(){
+        String processId = "1234";
+        String token = "token";
+        String type = "VerifiableCertification";
+
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
+        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
+                .expectError(OperationNotSupportedException.class)
+                .verify();
+    }
 
     @Test
     void completeWithdrawLEARProcessSyncSuccess() throws JsonProcessingException {
