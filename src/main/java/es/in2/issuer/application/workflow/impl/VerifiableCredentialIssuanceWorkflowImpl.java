@@ -56,7 +56,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .then(Mono.defer(() -> {
                     if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                         return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
-                                .flatMap(transactionCode -> sendCredentialOfferEmail(type, transactionCode, issuanceRequest));
+                                .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, issuanceRequest));
                     } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
                         // Check if responseUri is null, empty, or only contains whitespace
                         if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
@@ -78,17 +78,11 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 }));
     }
 
-    private Mono<Void> sendCredentialOfferEmail(String type, String transactionCode, IssuanceRequest issuanceRequest){
-        if (LEAR_CREDENTIAL_EMPLOYEE.equals(type)) {
-            String email = issuanceRequest.payload().get("mandatee").get("email").asText();
-            String name = issuanceRequest.payload().get("mandatee").get("first_name").asText();
-            return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
-        } else if (VERIFIABLE_CERTIFICATION.equals(type)) {
-            // TODO send email for download the verifiable certification
-            return Mono.empty();
-        } else {
-            return Mono.error(new CredentialTypeUnsupportedException(type));
-        }
+    private Mono<Void> sendCredentialOfferEmail(String transactionCode, IssuanceRequest issuanceRequest){
+        String email = issuanceRequest.payload().get("mandatee").get("email").asText();
+        String name = issuanceRequest.payload().get("mandatee").get("first_name").asText();
+        return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, name, appConfig.getWalletUrl());
+
     }
 
     private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
