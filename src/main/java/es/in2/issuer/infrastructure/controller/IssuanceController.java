@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.model.dto.IssuanceRequest;
+import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class IssuanceController {
     private final VerifiableCredentialIssuanceWorkflow verifiableCredentialIssuanceWorkflow;
+    private final AccessTokenService accessTokenService;
 
     @Operation(
             summary = "Initiate Credential Issuance",
@@ -40,6 +42,7 @@ public class IssuanceController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody IssuanceRequest issuanceRequest) {
         String processId = UUID.randomUUID().toString();
-        return verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, authorizationHeader);
+        return accessTokenService.getCleanBearerToken(authorizationHeader).flatMap(
+                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, token));
     }
 }

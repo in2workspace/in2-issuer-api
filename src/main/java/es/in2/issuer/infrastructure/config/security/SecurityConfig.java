@@ -1,36 +1,26 @@
 package es.in2.issuer.infrastructure.config.security;
 
-import es.in2.issuer.domain.service.VerifierService;
 import es.in2.issuer.infrastructure.config.AppConfig;
-import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
+import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-import org.springframework.security.oauth2.jwt.JwtValidators;
-import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
-import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
+import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
 
 import static es.in2.issuer.domain.util.EndpointsConstants.*;
-import static org.springframework.security.config.Customizer.withDefaults;
 
 @Slf4j
 @Configuration
@@ -38,20 +28,22 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AuthServerConfig authServerConfig;
     private final AppConfig appConfig;
-    private final VerifierService verifierService;
+    private final CustomAuthenticationManager customAuthenticationManager;
 
     @Bean
-    public ReactiveJwtDecoder jwtDecoder() {
-        NimbusReactiveJwtDecoder jwtDecoder = NimbusReactiveJwtDecoder
-                .withJwkSetUri(authServerConfig.getJwtDecoder())
-                .jwsAlgorithm(SignatureAlgorithm.RS256)
-                .build();
-        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(authServerConfig.getJwtValidator()));
-        return jwtDecoder;
+    public AuthenticationWebFilter customAuthenticationWebFilter() {
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
+        authenticationWebFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.anyExchange());
+
+        // Configure the Bearer token authentication converter
+        ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
+        authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
+
+        return authenticationWebFilter;
     }
 
+    // Security configuration for specific endpoints
     @Bean
     @Order(1)
     public SecurityWebFilterChain issuancesFilterChain(ServerHttpSecurity http) {
@@ -61,15 +53,11 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, "/vci/v1/issuances").authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .oauth2ResourceServer(oauth2ResourceServer -> oauth2ResourceServer
-                        .jwt(jwtSpec -> jwtSpec
-                                .jwtDecoder(jwtDecoder())
-                                .authenticationManager(customAuthenticationManager())
-                        )
-                );
+                .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
         return http.build();
     }
 
+    // General security configuration for other endpoints
     @Bean
     @Order(2)
     public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
@@ -80,63 +68,49 @@ public class SecurityConfig {
                         .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
                         .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
-                        .pathMatchers(HttpMethod.POST,  "/token").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
                         .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
                         .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
                         .anyExchange().authenticated()
-                ).csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .oauth2ResourceServer(oauth2ResourceServer ->
-                        oauth2ResourceServer
-                                .jwt(withDefaults()));
+                )
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
         return http.build();
     }
 
-    @Bean
-    public ReactiveAuthenticationManager customAuthenticationManager() {
-        return authentication -> {
-            try {
-                // Try to validate token with default decoder
-                return jwtDecoder().decode(authentication.getCredentials().toString())
-                        .flatMap(jwt -> Mono.just(new JwtAuthenticationToken(jwt, null, null)))
-                        .cast(Authentication.class)
-                        .onErrorResume(ex -> {
-                            // If default decoder fail, try to validate as token from verifier
-                            String token = authentication.getCredentials().toString();
-                            return verifierService.verifyToken(token)
-                                    .then(Mono.defer(() -> {
-                                        UsernamePasswordAuthenticationToken customToken =
-                                                new UsernamePasswordAuthenticationToken(null, null, null);
-                                        return Mono.just(customToken).cast(Authentication.class);
-                                    }))
-                                    .onErrorResume(ex2 -> Mono.error(new BadCredentialsException("Invalid Token")));
-                        });
-            } catch (Exception e) {
-                return Mono.error(new BadCredentialsException("Authentication failed", e));
-            }
-        };
-    }
-
+    // CORS configuration to allow requests from specified origins
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        corsConfig.setAllowedOrigins(List.of(appConfig.getIssuerUiExternalDomain(), "http://localhost:4200", "http://localhost:8080"));
-        corsConfig.setMaxAge(8000L);
+        // Allow specified origins
+        corsConfig.setAllowedOrigins(List.of(
+                appConfig.getIssuerUiExternalDomain(),
+                "http://localhost:4200",
+                "http://localhost:8080"
+        ));
+        // Allow specified HTTP methods
         corsConfig.setAllowedMethods(List.of(
                 HttpMethod.GET.name(),
                 HttpMethod.HEAD.name(),
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
                 HttpMethod.DELETE.name(),
-                HttpMethod.OPTIONS.name()));
+                HttpMethod.OPTIONS.name()
+        ));
+        // Set max age for preflight requests
         corsConfig.setMaxAge(1800L);
+        // Allow all headers
         corsConfig.addAllowedHeader("*");
         corsConfig.addExposedHeader("*");
+        // Allow credentials (cookies, authorization headers, etc.)
         corsConfig.setAllowCredentials(true);
+        // Apply the configuration to all paths
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig); // Apply the configuration to all paths
+        source.registerCorsConfiguration("/**", corsConfig);
         return source;
     }
 
+    // Helper method to get Swagger-related paths for permitting access
     private String[] getSwaggerPaths() {
         return new String[]{
                 SWAGGER_UI,
@@ -146,5 +120,4 @@ public class SecurityConfig {
                 SWAGGER_WEBJARS
         };
     }
-
 }

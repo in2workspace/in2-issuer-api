@@ -36,13 +36,13 @@ public class VerifierServiceImpl implements VerifierService {
         return Mono.fromCallable(() -> JWSObject.parse(accessToken))
                 .flatMap(jwtService::validateJwtSignatureReactive)
                 .flatMap(isValid -> {
-                    String issuerDidKey = extractIssuerFromToken(accessToken);
+                    String verifierIss = extractIssuerFromToken(accessToken);
                     Long expirationEpoch = jwtService.getExpirationFromToken(accessToken);
                     Instant expirationInstant = Instant.ofEpochSecond(expirationEpoch);
                     if (Boolean.TRUE.equals(isValid)
-                            && verifierConfig.getDidKey().equals(issuerDidKey)
+                            && verifierConfig.getVerifierExternalDomain().equals(verifierIss)
                             && expirationInstant.isAfter(Instant.now())) {
-                        log.info("M2MTokenServiceImpl -- verifyM2MToken -- IS VALID ?: {}", true);
+                        log.info("VerifyToken -- IS VALID ?: {}", true);
                         return Mono.empty();
                     } else {
                         return Mono.error(new JWTVerificationException("Token is invalid"));
