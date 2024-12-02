@@ -39,7 +39,7 @@ public class VerifierServiceImpl implements VerifierService {
     private final WebClient oauth2VerifierWebClient;
 
     // Cache to store JWKs and avoid multiple endpoint calls
-    private volatile JWKSet cachedJWKSet;
+    private JWKSet cachedJWKSet;
     private final Object jwkLock = new Object();
 
     @Override
@@ -58,26 +58,21 @@ public class VerifierServiceImpl implements VerifierService {
                 .flatMap(jwkSet -> {
                     try {
                         SignedJWT signedJWT = SignedJWT.parse(accessToken);
-
-                        // Validate the issuer and expiration time
                         JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
 
-                        String issuer = claims.getIssuer();
-
-                        if (!verifierConfig.getVerifierExternalDomain().equals(issuer)) {
+                        // Validate the issuer
+                        if (!verifierConfig.getVerifierExternalDomain().equals(claims.getIssuer())) {
                             return Mono.error(new JWTVerificationException("Invalid issuer"));
                         }
 
-                        Date expiration = claims.getExpirationTime();
-                        if (expiration == null || expiration.toInstant().isBefore(Instant.now())) {
+                        // Validate expiration time
+                        if (claims.getExpirationTime() == null || new Date().after(claims.getExpirationTime())) {
                             return Mono.error(new JWTVerificationException("Token has expired"));
                         }
 
                         // Verify the signature
                         JWSVerifier verifier = getJWSVerifier(signedJWT, jwkSet);
-                        boolean isSignatureValid = signedJWT.verify(verifier);
-
-                        if (!isSignatureValid) {
+                        if (!signedJWT.verify(verifier)) {
                             return Mono.error(new JWTVerificationException("Invalid token signature"));
                         }
 
@@ -89,14 +84,6 @@ public class VerifierServiceImpl implements VerifierService {
                 });
     }
 
-    /**
-     * Creates an appropriate JWSVerifier based on the type of JWK.
-     *
-     * @param signedJWT The signed JWT.
-     * @param jwkSet    The set of JWKs.
-     * @return An appropriate JWSVerifier.
-     * @throws JOSEException If an error occurs while creating the verifier.
-     */
     private JWSVerifier getJWSVerifier(SignedJWT signedJWT, JWKSet jwkSet) throws JOSEException {
         String keyId = signedJWT.getHeader().getKeyID();
         JWK jwk = jwkSet.getKeyByKeyId(keyId);
@@ -104,48 +91,40 @@ public class VerifierServiceImpl implements VerifierService {
             throw new JOSEException("No matching JWK found for Key ID: " + keyId);
         }
 
-        // Determine the key type and create the corresponding verifier
-        if (jwk instanceof RSAKey rsaKey) {
-            return new RSASSAVerifier(rsaKey.toRSAPublicKey());
-        } else if (jwk instanceof ECKey ecKey) {
-            return new ECDSAVerifier(ecKey.toECPublicKey());
-        } else if (jwk instanceof OctetSequenceKey octKey) {
-            // For symmetric keys (HS256, HS384, HS512)
-            return new MACVerifier(octKey.toByteArray());
-        } else {
-            throw new JOSEException("Unsupported JWK type: " + jwk.getKeyType());
-        }
+        // Create the appropriate verifier based on the key type
+        return switch (jwk.getKeyType().toString()) {
+            case "RSA" -> new RSASSAVerifier(((RSAKey) jwk).toRSAPublicKey());
+            case "EC" -> new ECDSAVerifier(((ECKey) jwk).toECPublicKey());
+            case "oct" -> new MACVerifier(((OctetSequenceKey) jwk).toByteArray());
+            default -> throw new JOSEException("Unsupported JWK type: " + jwk.getKeyType());
+        };
     }
 
-    /**
-     * Retrieves the JWK set from the provided URI, using cache for optimization.
-     *
-     * @param jwksUri The URI where the JWK Set is located.
-     * @return A Mono that emits the JWKSet.
-     */
     private Mono<JWKSet> fetchJWKSet(String jwksUri) {
         if (cachedJWKSet != null) {
             return Mono.just(cachedJWKSet);
         }
 
-        synchronized (jwkLock) {
-            if (cachedJWKSet != null) {
-                return Mono.just(cachedJWKSet);
+        return Mono.defer(() -> {
+            synchronized (jwkLock) {
+                if (cachedJWKSet != null) {
+                    return Mono.just(cachedJWKSet);
+                }
+                return oauth2VerifierWebClient.get()
+                        .uri(jwksUri)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .<JWKSet>handle((jwks, sink) -> {
+                            try {
+                                cachedJWKSet = JWKSet.parse(jwks);
+                                sink.next(cachedJWKSet);
+                            } catch (ParseException e) {
+                                sink.error(new JWTVerificationException("Error parsing the JWK Set"));
+                            }
+                        })
+                        .onErrorMap(e -> new JWTVerificationException("Error fetching the JWK Set"));
             }
-            return oauth2VerifierWebClient.get()
-                    .uri(jwksUri)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .<JWKSet>handle((jwks, sink) -> {
-                        try {
-                            cachedJWKSet = JWKSet.parse(jwks);
-                            sink.next(cachedJWKSet);
-                        } catch (ParseException e) {
-                            sink.error(new JWKSetParsingException("Error parsing the JWK Set"));
-                        }
-                    })
-                    .onErrorMap(e -> new JWTVerificationException("Error fetching the JWK Set"));
-        }
+        });
     }
 
     @Override
@@ -156,23 +135,19 @@ public class VerifierServiceImpl implements VerifierService {
                 .uri(wellKnownInfoEndpoint)
                 .retrieve()
                 .bodyToMono(OpenIDProviderMetadata.class)
-                .onErrorResume(e -> Mono.error(new WellKnownInfoFetchException("Error fetching OpenID Provider Metadata", e)));
+                .onErrorMap(e -> new WellKnownInfoFetchException("Error fetching OpenID Provider Metadata", e));
     }
 
     @Override
     public Mono<VerifierOauth2AccessToken> performTokenRequest(String body) {
         return getWellKnownInfo()
-                .flatMap(metadata -> {
-                    String tokenEndpoint = metadata.tokenEndpoint();
-                    return oauth2VerifierWebClient.post()
-                            .uri(tokenEndpoint)
-                            .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
-                            .bodyValue(body)
-                            .retrieve()
-                            .bodyToMono(VerifierOauth2AccessToken.class)
-                            .onErrorMap(e -> new TokenFetchException("Error fetching the token", e));
-                });
+                .flatMap(metadata -> oauth2VerifierWebClient.post()
+                        .uri(metadata.tokenEndpoint())
+                        .header(CONTENT_TYPE, CONTENT_TYPE_URL_ENCODED_FORM)
+                        .bodyValue(body)
+                        .retrieve()
+                        .bodyToMono(VerifierOauth2AccessToken.class)
+                        .onErrorMap(e -> new TokenFetchException("Error fetching the token", e)));
     }
-
 }
 

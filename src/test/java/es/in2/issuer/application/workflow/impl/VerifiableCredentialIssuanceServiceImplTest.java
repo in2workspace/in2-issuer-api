@@ -91,9 +91,10 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String processId = "1234";
         String token = "token";
         String type = "VerifiableCertification";
+        JsonNode jsonNode = mock(JsonNode.class);
 
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
-        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
+        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
@@ -163,7 +164,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
-        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
+        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
@@ -220,7 +221,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         JsonNode jsonNode = objectMapper.readTree(json);
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
-        when(policyAuthorizationService.authorize(token, type)).thenReturn(Mono.empty());
+        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
 
@@ -288,7 +289,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
 
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
         when(trustFrameworkService.validateDidFormat(processId,organizationIdentifierDid)).thenReturn(Mono.just(true));
         when(trustFrameworkService.registerDid(processId,organizationIdentifierDid)).thenReturn(Mono.empty());
 
@@ -363,7 +364,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
 
 
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
 
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
@@ -421,7 +422,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
 
 
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
 
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))

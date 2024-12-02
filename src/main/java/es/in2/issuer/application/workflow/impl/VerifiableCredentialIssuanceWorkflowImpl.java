@@ -52,7 +52,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         }
 
         // Validate user policy before proceeding
-        return policyAuthorizationService.authorize(token, issuanceRequest.schema())
+        return policyAuthorizationService.authorize(token, issuanceRequest.schema(), issuanceRequest.payload())
                 .then(Mono.defer(() -> {
                     if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                         return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
@@ -197,7 +197,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private Mono<Void> processDecodedCredential(String processId, String decodedCredential) {
         log.info("ProcessID: {} Decoded Credential: {}", processId, decodedCredential);
 
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
+        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential);
 
         String signerOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().signer().organizationIdentifier();
         if (signerOrgIdentifier == null || signerOrgIdentifier.isBlank()) {

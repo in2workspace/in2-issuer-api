@@ -59,5 +59,6 @@ public class Constants {
     public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
     public static final long MSB = 0x80L;
     public static final long MSBALL = 0xFFFFFF80L;
+    public static final String IN2_ORGANIZATION_IDENTIFIER = "VATES-B60645900";
 
 }

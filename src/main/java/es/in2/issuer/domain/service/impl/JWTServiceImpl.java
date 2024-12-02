@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static es.in2.issuer.domain.util.Constants.DID_KEY;
-import static es.in2.issuer.domain.util.Constants.VC;
 
 @Slf4j
 @Service
@@ -94,13 +93,6 @@ public class JWTServiceImpl implements JWTService {
                 .flatMap(publicKeyBytes -> validateJwtSignature(jwsObject.getParsedString(), publicKeyBytes));
     }
 
-    @Override
-    public Mono<JsonNode> parseJwtVCAsJsonNode(String jwt) {
-        return Mono.fromCallable(() -> {
-            SignedJWT parsedJwt = SignedJWT.parse(jwt);
-            return objectMapper.readTree(parsedJwt.getPayload().toJSONObject().get(VC).toString());
-        });
-    }
 
     public String extractEncodedPublicKey(String kid) {
         String prefix = DID_KEY;
@@ -190,7 +182,7 @@ public class JWTServiceImpl implements JWTService {
 
     @Override
     public String getClaimFromPayload(Payload payload, String claimName) {
-        String claimValue = (String) payload.toJSONObject().get(claimName);
+        String claimValue = payload.toJSONObject().get(claimName).toString();
         if (claimValue == null || claimValue.trim().isEmpty()) {
             throw new JWTClaimMissingException(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName));
         }
