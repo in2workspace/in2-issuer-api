@@ -114,10 +114,7 @@ auth-server:
     nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
 
 verifier:
-  did-key:
-  external-domain:
-  paths:
-    well-known-path:
+  external-domain: "https://verifier.dome-marketplace-sbx.org"
 
 issuer-identity:
   credential-subject-did-key:
@@ -125,8 +122,8 @@ issuer-identity:
   crypto:
     private-key:
   client-assertion:
-    expiration:
-    expiration-unit-time:
+    expiration: "2"
+    expiration-unit-time: "MINUTES"
 
 
 default-signer:

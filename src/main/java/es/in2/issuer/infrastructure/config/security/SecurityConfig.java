@@ -10,6 +10,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
+import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
@@ -30,6 +31,8 @@ public class SecurityConfig {
 
     private final AppConfig appConfig;
     private final CustomAuthenticationManager customAuthenticationManager;
+    private final ReactiveJwtDecoder internalJwtDecoder;
+
 
     @Bean
     public AuthenticationWebFilter customAuthenticationWebFilter() {
@@ -74,7 +77,12 @@ public class SecurityConfig {
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+                .oauth2ResourceServer(oauth2ResourceServer ->
+                        oauth2ResourceServer
+                                .jwt(jwtSpec -> jwtSpec
+                                        .jwtDecoder(internalJwtDecoder))
+
+                );
         return http.build();
     }
 

@@ -15,15 +15,8 @@ public class VerifierConfig {
         this.verifierProperties = verifierProperties;
     }
 
-    public String getDidKey() {
-        return configAdapter.getConfiguration(verifierProperties.didKey());
-    }
-
     public String getVerifierExternalDomain() {
         return configAdapter.getConfiguration(verifierProperties.externalDomain());
     }
 
-    public String getVerifierWellKnownPath() {
-        return configAdapter.getConfiguration(verifierProperties.paths().wellKnownPath());
-    }
 }

@@ -88,15 +88,15 @@ public class CustomAuthenticationManager implements ReactiveAuthenticationManage
                 throw new BadCredentialsException("Token JWT inválido");
             }
 
-            // Decodificar y parsear los encabezados
+            // Decode and parse headers
             String headerJson = new String(Base64.getUrlDecoder().decode(parts[0]), StandardCharsets.UTF_8);
             Map<String, Object> headers = objectMapper.readValue(headerJson, Map.class);
 
-            // Decodificar y parsear el payload
+            // Decode and parse the payload
             String payloadJson = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
             Map<String, Object> claims = objectMapper.readValue(payloadJson, Map.class);
 
-            // Extraer tiempos de emisión y expiración si están presentes
+            // Extract issuedAt and expiresAt times if present
             Instant issuedAt = claims.containsKey("iat") ? Instant.ofEpochSecond(((Number) claims.get("iat")).longValue()) : Instant.now();
             Instant expiresAt = claims.containsKey("exp") ? Instant.ofEpochSecond(((Number) claims.get("exp")).longValue()) : Instant.now().plusSeconds(3600);
 

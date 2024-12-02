@@ -1,9 +1,5 @@
 package es.in2.issuer.domain.service;
 
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.exception.JWTVerificationException;
 import es.in2.issuer.domain.model.dto.OpenIDProviderMetadata;
 import es.in2.issuer.domain.service.impl.VerifierServiceImpl;
 import es.in2.issuer.infrastructure.config.VerifierConfig;
@@ -33,58 +29,10 @@ import static org.mockito.Mockito.*;
 class VerifierServiceImplTest {
 
     @Mock
-    private JWTService jwtService;
-
-    @Mock
     private VerifierConfig verifierConfig;
 
     @InjectMocks
     private VerifierServiceImpl verifierService;
-
-
-    @Test
-    void testVerifyToken_validToken() {
-
-        String jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaXNzIjoiaXNzdWVyIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ZfZD0XwVq6wUi6csEKQ2tXKxguoaDMWrapvOf04h890";
-        SignedJWT signedToken = mock(SignedJWT.class);
-        Payload payload = mock(Payload.class);
-
-        when(verifierConfig.getDidKey()).thenReturn("issuer");
-
-        when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
-        when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
-        when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
-        when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
-        when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
-
-        Mono<Void> result = verifierService.verifyToken(jwtToken);
-
-        StepVerifier.create(result)
-                .verifyComplete();
-    }
-
-
-    @Test
-    void testVerifyM2MToken_validToken_but_issuer_did_key_not_equal_verifier_did_key() {
-
-        String jwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaXNzIjoiaXNzdWVyIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ZfZD0XwVq6wUi6csEKQ2tXKxguoaDMWrapvOf04h890";
-        SignedJWT signedToken = mock(SignedJWT.class);
-        Payload payload = mock(Payload.class);
-
-        when(verifierConfig.getDidKey()).thenReturn("verifier-did-key-not-equal-issuer");
-
-        when(jwtService.parseJWT(jwtToken)).thenReturn(signedToken);
-        when(jwtService.getPayloadFromSignedJWT(signedToken)).thenReturn(payload);
-        when(jwtService.getClaimFromPayload(payload,"iss")).thenReturn("issuer");
-        when(jwtService.getExpirationFromToken(jwtToken)).thenReturn(32496025441L);
-        when(jwtService.validateJwtSignatureReactive(any(JWSObject.class))).thenReturn(Mono.just(true));
-
-        Mono<Void> result = verifierService.verifyToken(jwtToken);
-
-        StepVerifier.create(result)
-                .expectError(JWTVerificationException.class)
-                .verify();
-    }
 
     @Test
     void getWellKnownInfo_shouldReturnOpenIDProviderMetadata() {
@@ -94,7 +42,6 @@ class VerifierServiceImplTest {
         String wellKnownInfoEndpoint = verifierExternalDomain + verifierWellKnownPath;
 
         when(verifierConfig.getVerifierExternalDomain()).thenReturn(verifierExternalDomain);
-        when(verifierConfig.getVerifierWellKnownPath()).thenReturn(verifierWellKnownPath);
 
         OpenIDProviderMetadata metadata = OpenIDProviderMetadata.builder()
                 .issuer("https://verifier.example.com")
@@ -120,7 +67,7 @@ class VerifierServiceImplTest {
                 .build();
 
         // Inject the WebClient into the service
-        verifierService = new VerifierServiceImpl(verifierConfig, jwtService, webClient);
+        verifierService = new VerifierServiceImpl(verifierConfig, webClient);
 
         // Act
         Mono<OpenIDProviderMetadata> result = verifierService.getWellKnownInfo();
@@ -132,7 +79,6 @@ class VerifierServiceImplTest {
 
         // Verify interactions
         verify(verifierConfig).getVerifierExternalDomain();
-        verify(verifierConfig).getVerifierWellKnownPath();
         verifyNoMoreInteractions(verifierConfig);
 
         // Capture the request made
@@ -147,5 +93,6 @@ class VerifierServiceImplTest {
         // Verify that a GET request was made
         assertEquals(HttpMethod.GET, capturedRequest.method());
     }
+
 
 }
