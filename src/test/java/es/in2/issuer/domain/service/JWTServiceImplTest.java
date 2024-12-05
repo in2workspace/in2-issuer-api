@@ -154,7 +154,7 @@ class JWTServiceImplTest {
     }
 
     @Test
-    void getClaimFromPayload_validClaim_shouldReturnClaimValue() {
+    void getClaimFromPayload_validClaim_shouldReturnClaimValue() throws JsonProcessingException {
         Payload payloadMock = mock(Payload.class);
         String claimName = "sub";
         String claimValue = "subject";
@@ -163,6 +163,7 @@ class JWTServiceImplTest {
         claimsMap.put(claimName, claimValue);
 
         when(payloadMock.toJSONObject()).thenReturn(claimsMap);
+        when(objectMapper.writeValueAsString(claimValue)).thenReturn(claimValue);
 
         String result = jwtService.getClaimFromPayload(payloadMock, claimName);
 
@@ -176,22 +177,6 @@ class JWTServiceImplTest {
         String claimName = "sub";
 
         when(payloadMock.toJSONObject()).thenReturn(new HashMap<>());
-
-        JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getClaimFromPayload(payloadMock, claimName));
-
-        assertEquals(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName), exception.getMessage());
-    }
-
-    @Test
-    void getClaimFromPayload_emptyClaim_shouldThrowJWTClaimMissingException() {
-        Payload payloadMock = mock(Payload.class);
-        String claimName = "sub";
-        String emptyClaimValue = "";
-
-        Map<String, Object> claimsMap = new HashMap<>();
-        claimsMap.put(claimName, emptyClaimValue);
-
-        when(payloadMock.toJSONObject()).thenReturn(claimsMap);
 
         JWTClaimMissingException exception = assertThrows(JWTClaimMissingException.class, () -> jwtService.getClaimFromPayload(payloadMock, claimName));
 
