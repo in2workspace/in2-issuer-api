@@ -84,20 +84,20 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                 .flatMap(procedureId -> {
-                    log.info("Procedure ID obtained: " + procedureId);
+                    log.info("Procedure ID obtained: {}", procedureId);
                     return credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                             .flatMap(credentialType -> {
-                                log.info("Credential Type obtained: " + credentialType);
+                                log.info("Credential Type obtained: {}", credentialType);
                                 return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                                         .flatMap(credential -> {
-                                            log.info("Decoded Credential obtained: " + credential);
+                                            log.info("Decoded Credential obtained: {}", credential);
                                             return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, credential, subjectDid)
                                                     .flatMap(bindCredential -> {
-                                                        log.info("Bind Credential obtained: " + bindCredential);
+                                                        log.info("Bind Credential obtained: {}", bindCredential);
                                                         return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
                                                                 .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
                                                                 .flatMap(transactionId -> {
-                                                                    log.info("Transaction ID obtained: " + transactionId);
+                                                                    log.info("Transaction ID obtained: {}", transactionId);
                                                                     return buildCredentialResponseBasedOnOperationMode(operationMode, bindCredential, transactionId, authServerNonce, token);
                                                                 });
                                                     });
@@ -116,7 +116,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                 // Convert LEARCredentialEmployee back to string
                 String bindLearCredentialJson = objectMapper.writeValueAsString(learCredential);
 
-                log.info("LEAR Credential JSON: " + bindLearCredentialJson);
+                log.info("LEAR Credential JSON: {}", bindLearCredentialJson);
                 return Mono.just(VerifiableCredentialResponse.builder()
                         .credential(bindLearCredentialJson)
                         .transactionId(transactionId)

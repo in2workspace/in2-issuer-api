@@ -8,7 +8,6 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jose.jwk.*;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.exception.JWKSetParsingException;
 import es.in2.issuer.domain.exception.JWTVerificationException;
 import es.in2.issuer.domain.exception.TokenFetchException;
 import es.in2.issuer.domain.exception.WellKnownInfoFetchException;
@@ -23,7 +22,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
-import java.time.Instant;
 import java.util.Date;
 
 import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE;

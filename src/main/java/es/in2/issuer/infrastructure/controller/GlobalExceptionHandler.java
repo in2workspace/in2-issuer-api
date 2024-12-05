@@ -276,10 +276,10 @@ public class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
     }
 
-    @ExceptionHandler(TrustServiceProviderForCertificationsException.class)
+    @ExceptionHandler(InsufficientPermissionException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleTrustServiceProviderForCertificationsException(Exception ex) {
-        String description = "Trust Service Provider for Certifications is not authorized";
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleInsufficientPermissionException(Exception ex) {
+        String description = "The client who made the issuance request do not have the required permissions";
 
         if (ex.getMessage() != null) {
             log.error(ex.getMessage());
@@ -287,7 +287,7 @@ public class GlobalExceptionHandler {
         }
 
         CredentialErrorResponse errorResponse = new CredentialErrorResponse(
-                CredentialResponseErrorCodes.TRUST_SERVICE_PROVIDER_CERTIFICATIONS_NOT_AUTHORIZED,
+                CredentialResponseErrorCodes.INSUFFICIENT_PERMISSION,
                 description);
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));

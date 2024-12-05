@@ -15,8 +15,7 @@ public class CredentialResponseErrorCodes {
     public static final String OPERATION_NOT_SUPPORTED = "operation_not_supported";
     public static final String RESPONSE_URI_ERROR = "response_uri_error";
     public static final String FORMAT_IS_NOT_SUPPORTED = "format_is_not_supported";
-    public static final String TRUST_SERVICE_PROVIDER_CERTIFICATIONS_NOT_AUTHORIZED = "tspc_not_authorized";
-
+    public static final String INSUFFICIENT_PERMISSION = "insufficient_permission";
     private CredentialResponseErrorCodes() {
         throw new IllegalStateException("Utility class");
     }

@@ -43,7 +43,6 @@ sonar {
         property "sonar.coverage.exclusions",
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/config/security/SecurityConfig.java, " +
-                        "src/main/java/es/in2/issuer/infrastructure/config/security/service/impl/PolicyAuthorizationServiceImpl.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java"
     }
 }

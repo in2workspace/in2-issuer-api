@@ -432,15 +432,15 @@ class GlobalExceptionHandlerTest {
     @Test
     void handleTrustServiceProviderForCertificationsException_withMessage() {
         String errorMessage = "Error message for testing";
-        TrustServiceProviderForCertificationsException trustServiceProviderForCertificationsException = new TrustServiceProviderForCertificationsException(errorMessage);
+        InsufficientPermissionException insufficientPermissionException = new InsufficientPermissionException(errorMessage);
 
-        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleTrustServiceProviderForCertificationsException(trustServiceProviderForCertificationsException);
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleInsufficientPermissionException(insufficientPermissionException);
 
         StepVerifier.create(responseEntityMono)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
-                    assertEquals(CredentialResponseErrorCodes.TRUST_SERVICE_PROVIDER_CERTIFICATIONS_NOT_AUTHORIZED, responseEntity.getBody().error());
+                    assertEquals(CredentialResponseErrorCodes.INSUFFICIENT_PERMISSION, responseEntity.getBody().error());
                     assertEquals(errorMessage, responseEntity.getBody().description());
                 })
                 .verifyComplete();

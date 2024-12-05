@@ -1,8 +1,11 @@
 package es.in2.issuer.infrastructure.config.security.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
+import es.in2.issuer.domain.exception.InsufficientPermissionException;
+import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
@@ -10,7 +13,7 @@ import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.VerifierConfig;
 import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AuthorizationServiceException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -19,6 +22,7 @@ import java.util.List;
 import static es.in2.issuer.domain.util.Constants.*;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationService {
 
@@ -33,41 +37,42 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> {
                     String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
-                    String credentialType = checkIfCredentialTypeIsAllowedToIssue(vcClaim);
-                    if (!LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)) {
-                        return Mono.error(new AuthorizationServiceException("Unauthorized: Credential type not allowed."));
-                    }
-                    LEARCredentialEmployee learCredential = mapVcToLearCredentialEmployee(vcClaim);
-                    return switch (schema) {
-                        case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, signedJWT, payload);
-                        case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential, signedJWT);
-                        default -> Mono.error(new AuthorizationServiceException("Unsupported schema: " + schema));
-                    };
-                })
-                .onErrorResume(e -> Mono.error(new AuthorizationServiceException("Authorization failed: " + e.getMessage(), e)));
+                    return checkIfCredentialTypeIsAllowedToIssue(vcClaim).flatMap(credentialType -> {
+                        if (!LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)) {
+                            return Mono.error(new InsufficientPermissionException("Unauthorized: Credential type not allowed."));
+                        }
+                        LEARCredentialEmployee learCredential = mapVcToLearCredentialEmployee(vcClaim);
+                        return switch (schema) {
+                            case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, signedJWT, payload);
+                            case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential, signedJWT);
+                            default -> Mono.error(new InsufficientPermissionException("Unauthorized: Unsupported schema"));
+                        };
+                    });
+                });
     }
 
-    private String checkIfCredentialTypeIsAllowedToIssue(String vcClaim) {
-        try {
-            JsonNode vcNode = objectMapper.readTree(vcClaim).get("type");
-            if (vcNode == null) {
-                throw new AuthorizationServiceException("The 'type' field is missing in the 'vc' claim.");
-            }
-            if (vcNode.isTextual() && LEAR_CREDENTIAL_EMPLOYEE.equals(vcNode.asText())) {
-                return vcNode.asText();
-            }
-            if (vcNode.isArray()) {
-                for (JsonNode type : vcNode) {
-                    if (LEAR_CREDENTIAL_EMPLOYEE.equals(type.asText())) {
-                        return type.asText();
+    private Mono<String> checkIfCredentialTypeIsAllowedToIssue(String vcClaim) {
+        return Mono.fromCallable(() -> objectMapper.readTree(vcClaim))
+                .flatMap(vcJsonNode -> {
+                    JsonNode vcNode = vcJsonNode.get("type");
+                    if (vcNode == null) {
+                        return Mono.error(new InsufficientPermissionException("The credential type is missing, the credential is invalid."));
                     }
-                }
-            }
-            throw new AuthorizationServiceException("Unauthorized: Credential type 'LEARCredentialEmployee' is required.");
-        } catch (Exception e) {
-            throw new AuthorizationServiceException("Error validating credential type: " + e.getMessage(), e);
-        }
+                    if (vcNode.isTextual() && LEAR_CREDENTIAL_EMPLOYEE.equals(vcNode.asText())) {
+                        return Mono.just(vcNode.asText());
+                    }
+                    if (vcNode.isArray()) {
+                        for (JsonNode type : vcNode) {
+                            if (LEAR_CREDENTIAL_EMPLOYEE.equals(type.asText())) {
+                                return Mono.just(type.asText());
+                            }
+                        }
+                    }
+                    return Mono.error(new InsufficientPermissionException("Unauthorized: Credential type 'LEARCredentialEmployee' is required."));
+                })
+                .onErrorMap(JsonProcessingException.class, e -> new ParseErrorException("Error extracting credential type"));
     }
+
 
     private LEARCredentialEmployee mapVcToLearCredentialEmployee(String vcClaim) {
         return credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
@@ -77,14 +82,14 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         if (isSignerIssuancePolicyValid(learCredential, signedJWT) || isMandatorIssuancePolicyValid(learCredential, payload)) {
             return Mono.empty();
         }
-        return Mono.error(new AuthorizationServiceException("Unauthorized: LEARCredentialEmployee does not meet any issuance policies."));
+        return Mono.error(new InsufficientPermissionException("Unauthorized: LEARCredentialEmployee does not meet any issuance policies."));
     }
 
     private Mono<Void> authorizeVerifiableCertification(LEARCredentialEmployee learCredential, SignedJWT signedJWT) {
         if (isVerifiableCertificationPolicyValid(learCredential, signedJWT)) {
             return Mono.empty();
         }
-        return Mono.error(new AuthorizationServiceException("Unauthorized: VerifiableCertification does not meet the issuance policy."));
+        return Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy."));
     }
 
     private boolean isSignerIssuancePolicyValid(LEARCredentialEmployee learCredential, SignedJWT signedJWT) {

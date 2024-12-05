@@ -182,11 +182,15 @@ public class JWTServiceImpl implements JWTService {
 
     @Override
     public String getClaimFromPayload(Payload payload, String claimName) {
-        String claimValue = payload.toJSONObject().get(claimName).toString();
-        if (claimValue == null || claimValue.trim().isEmpty()) {
+        Object claimValue = payload.toJSONObject().get(claimName);
+        if (claimValue == null) {
             throw new JWTClaimMissingException(String.format("The '%s' claim is missing or empty in the JWT payload.", claimName));
         }
-        return claimValue;
+        try {
+            return objectMapper.writeValueAsString(claimValue);
+        } catch (JsonProcessingException e) {
+            throw new JWTClaimMissingException(String.format("Failed to serialize '%s' claim to JSON: %s", claimName, e.getMessage()));
+        }
     }
 
     @Override
