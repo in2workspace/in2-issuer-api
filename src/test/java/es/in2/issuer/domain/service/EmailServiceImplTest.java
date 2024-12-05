@@ -30,7 +30,7 @@ class EmailServiceImplTest {
     private EmailServiceImpl emailService;
 
     @Test
-    void testSendPin() throws Exception {
+    void testSendPin(){
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("pin-email"), any(Context.class))).thenReturn("htmlContent");
@@ -44,7 +44,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendTransactionCodeForCredentialOffer() throws Exception {
+    void testSendTransactionCodeForCredentialOffer(){
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("transaction-code-email"), any(Context.class))).thenReturn("htmlContent");
@@ -58,7 +58,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendPendingCredentialNotification() throws Exception {
+    void testSendPendingCredentialNotification(){
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-pending-notification"), any(Context.class))).thenReturn("htmlContent");
@@ -72,7 +72,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendCredentialSignedNotification() throws Exception {
+    void testSendCredentialSignedNotification(){
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-signed-notification"), any(Context.class))).thenReturn("htmlContent");
@@ -83,5 +83,30 @@ class EmailServiceImplTest {
                 .verifyComplete();
 
         verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendResponseUriFailed_sendsEmailSuccessfully(){
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("response-uri-failed"), any(Context.class))).thenReturn("htmlContent");
+
+        Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId");
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendResponseUriFailed_handlesException(){
+        when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server error"));
+
+        Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId");
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
     }
 }

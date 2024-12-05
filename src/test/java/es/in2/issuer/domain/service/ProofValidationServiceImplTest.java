@@ -6,7 +6,6 @@ import es.in2.issuer.domain.model.dto.NonceValidationResponse;
 import es.in2.issuer.domain.service.impl.ProofValidationServiceImpl;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,9 +28,6 @@ import static org.mockito.Mockito.when;
 class ProofValidationServiceImplTest {
 
     @Mock
-    private CacheStore<String> cacheStore;
-
-    @Mock
     private AuthServerConfig authServerConfig;
 
     @Mock
@@ -40,6 +36,9 @@ class ProofValidationServiceImplTest {
     @Mock
     private ObjectMapper objectMapper;
 
+    @Mock
+    private JWTService jwtService;
+
     @InjectMocks
     private ProofValidationServiceImpl service;
 
@@ -47,6 +46,7 @@ class ProofValidationServiceImplTest {
     void isProofValid_valid() throws JsonProcessingException {
         String validProof = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlbURadmk2UFdMbjRLRjY2NlJzZ3ZTSnR5R1B4V05GQW8xenZNSmliTGFCSHYjekRuYWVtRFp2aTZQV0xuNEtGNjY2UnNndlNKdHlHUHhXTkZBbzF6dk1KaWJMYUJIdiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbURadmk2UFdMbjRLRjY2NlJzZ3ZTSnR5R1B4V05GQW8xenZNSmliTGFCSHYiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjMzMjE3NjMwOTgzLCJpYXQiOjE3MTMxNjY5ODMsIm5vbmNlIjoiLVNReklWbWxRTUNWd2xRak53SnRRUT09In0.hgLg04YCmEMa30JQYTZSz3vEGxTfBNYdx3A3wSNrtuJcb9p-96MtPCmLTpIFBU_CLTI4Wm4_lc-rbRMitIiOxA";
         String token = "token";
+        when(jwtService.validateJwtSignatureReactive(any())).thenReturn(Mono.just(true));
         when(authServerConfig.getAuthServerNonceValidationPath()).thenReturn("nonce-validation-endpoint");
         // Ensure the JSON is valid and corresponds to a Grant object
         String jsonString = "{\"is_nonce_valid\":\"true\"}";
@@ -76,6 +76,7 @@ class ProofValidationServiceImplTest {
     void isProofValid_notValid() throws JsonProcessingException {
         String notValidProof = "eyJraWQiOiJkaWQ6a2V5OnpEbmFlbURadmk2UFdMbjRLRjY2NlJzZ3ZTSnR5R1B4V05GQW8xenZNSmliTGFCSHYjekRuYWVtRFp2aTZQV0xuNEtGNjY2UnNndlNKdHlHUHhXTkZBbzF6dk1KaWJMYUJIdiIsInR5cCI6Im9wZW5pZDR2Y2ktcHJvb2Yrand0IiwiYWxnIjoiRVMyNTYifQ.eyJpc3MiOiJkaWQ6a2V5OnpEbmFlbURadmk2UFdMbjRLRjY2NlJzZ3ZTSnR5R1B4V05GQW8xenZNSmliTGFCSHYiLCJhdWQiOiJodHRwOi8vbG9jYWxob3N0OjgwNzEiLCJleHAiOjMzMjE3NjMwOTgzLCJpYXQiOjE3MTMxNjY5ODMsIm5vbmNlIjoiLVNReklWbWxRTUNWd2xRak53SnRRUT09In0.hgLg04YCmEMa30JQYTZSz3vEGxTfBNYdx3A3wSNrtuJcb9p-96MtPCmLTpIFBU_CLTI4Wm4_lc-rbRMitIiOxA";
         String token = "token";
+        when(jwtService.validateJwtSignatureReactive(any())).thenReturn(Mono.just(true));
         when(authServerConfig.getAuthServerNonceValidationPath()).thenReturn("nonce-validation-endpoint");
         // Ensure the JSON is valid and corresponds to a Grant object
         String jsonString = "{\"is_nonce_valid\":\"false\"}";

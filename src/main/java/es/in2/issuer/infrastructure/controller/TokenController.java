@@ -1,22 +1,16 @@
 package es.in2.issuer.infrastructure.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
-import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.resources.ConnectionProvider;
 
-import java.net.URI;
-import java.time.Duration;
-import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -27,8 +21,8 @@ import java.util.Objects;
 @Slf4j
 @RestController
 @RequestMapping("/token")
+@RequiredArgsConstructor
 public class TokenController {
-
     @PostMapping
     public Mono<Object> handleData(ServerWebExchange exchange) {
         Mono<MultiValueMap<String, String>> formDataMono = exchange.getFormData();
