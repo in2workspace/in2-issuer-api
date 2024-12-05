@@ -75,8 +75,8 @@ class CustomAuthenticationManagerTest {
         Map<String, Object> headerMap = realObjectMapper.readValue(headerJson, Map.class);
         Map<String, Object> payloadMap = realObjectMapper.readValue(payloadJson, Map.class);
 
-        when(objectMapper.readValue(eq(headerJson), eq(Map.class))).thenReturn(headerMap);
-        when(objectMapper.readValue(eq(payloadJson), eq(Map.class))).thenReturn(payloadMap);
+        when(objectMapper.readValue(headerJson, Map.class)).thenReturn(headerMap);
+        when(objectMapper.readValue(payloadJson, Map.class)).thenReturn(payloadMap);
 
         Authentication authentication = new TestingAuthenticationToken(null, token);
 
@@ -85,7 +85,7 @@ class CustomAuthenticationManagerTest {
 
         // Assert
         StepVerifier.create(result)
-                .expectNextMatches(auth -> auth instanceof JwtAuthenticationToken)
+                .expectNextMatches(JwtAuthenticationToken.class::isInstance)
                 .verifyComplete();
 
         verify(verifierService).verifyToken(token);
@@ -117,7 +117,7 @@ class CustomAuthenticationManagerTest {
 
         // Assert
         StepVerifier.create(result)
-                .expectNextMatches(auth -> auth instanceof JwtAuthenticationToken)
+                .expectNextMatches(JwtAuthenticationToken.class::isInstance)
                 .verifyComplete();
 
         verify(internalJwtDecoder).decode(token);

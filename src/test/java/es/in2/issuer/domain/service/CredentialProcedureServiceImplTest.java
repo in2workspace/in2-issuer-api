@@ -179,7 +179,7 @@ class CredentialProcedureServiceImplTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof RuntimeException)
+                .expectErrorMatches(RuntimeException.class::isInstance)
                 .verify();
     }
 
@@ -478,7 +478,7 @@ class CredentialProcedureServiceImplTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof JsonParseException)
+                .expectErrorMatches(JsonParseException.class::isInstance)
                 .verify();
     }
 
@@ -650,7 +650,7 @@ class CredentialProcedureServiceImplTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof CredentialTypeUnsupportedException)
+                .expectErrorMatches(CredentialTypeUnsupportedException.class::isInstance)
                 .verify();
     }
 
@@ -682,7 +682,7 @@ class CredentialProcedureServiceImplTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof RuntimeException)
+                .expectErrorMatches(RuntimeException.class::isInstance)
                 .verify();
     }
 }

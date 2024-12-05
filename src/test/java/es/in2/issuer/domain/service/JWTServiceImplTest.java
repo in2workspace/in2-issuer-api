@@ -100,7 +100,7 @@ class JWTServiceImplTest {
         Mono<Boolean> result = jwtService.validateJwtSignatureReactive(jwsObjectMock);
 
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException)
+                .expectErrorMatches(IllegalArgumentException.class::isInstance)
                 .verify();
     }
 
@@ -114,7 +114,7 @@ class JWTServiceImplTest {
         Mono<Boolean> result = jwtService.validateJwtSignatureReactive(jwsObjectMock);
 
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof IllegalArgumentException)
+                .expectErrorMatches(IllegalArgumentException.class::isInstance)
                 .verify();
     }
 
