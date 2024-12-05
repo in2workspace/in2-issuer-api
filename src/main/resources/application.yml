@@ -130,10 +130,7 @@ default-signer:
   serial-number: "IDCEU-99999999P"
 
 verifier:
-  did-key: "did:key:zDnaekiwkWcXnHaW6au3BpmfWfrtVTJZrA3EHgLvcbm6EZnup"
-  external-domain: "https://verifier.dome-marketplace-lcl.org"
-  paths:
-    well-known-path: "/.well-known/openid-configuration"
+  external-domain: "http://localhost:9000"
 
 issuer-identity:
   credential-subject-did-key: "did:key:zDnaezLhSFWRZ1zrYQRwLxV8nDWmb2REHoUf7N3qvna1TFina"

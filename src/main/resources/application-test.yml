@@ -126,12 +126,12 @@ issuer-identity:
     expiration-unit-time: "MINUTES"
 
 default-signer:
-  common-name:
-  country:
-  email:
-  organization-identifier:
-  organization:
-  serial-number:
+  common-name: "ZEUS OLIMPOS"
+  country: "EU"
+  email: "domesupport@in2.es"
+  organization-identifier: "VATEU-B99999999"
+  organization: "IN2"
+  serial-number: "IDCEU-99999999P"
 
 remote-signature:
   external-domain: "http://localhost:8082"
