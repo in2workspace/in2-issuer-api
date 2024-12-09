@@ -45,7 +45,7 @@ class NotificationServiceImplTest {
     void testSendNotification_WithWithdrawnStatus() {
         String transactionCode = "transactionCode";
         when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
-                .thenReturn(Mono.just(CredentialStatus.WITHDRAWN.toString()));
+                .thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
         when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
