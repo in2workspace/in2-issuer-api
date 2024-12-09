@@ -126,12 +126,12 @@ issuer-identity:
     expiration-unit-time: "MINUTES"
 
 default-signer:
-  common-name: "56565656P Jesus Ruiz"
-  country: "ES"
-  email: "jesus.ruiz@in2.es"
-  organization-identifier: "VATES-Q0000000J"
-  organization: "DOME Credential Issuer"
-  serial-number: "IDCES-56565656P"
+  common-name:
+  country:
+  email:
+  organization-identifier:
+  organization:
+  serial-number:
 
 remote-signature:
   external-domain: "http://localhost:8082"

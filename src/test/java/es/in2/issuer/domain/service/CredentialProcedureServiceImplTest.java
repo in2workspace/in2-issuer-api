@@ -57,7 +57,7 @@ class CredentialProcedureServiceImplTest {
         CredentialProcedure savedCredentialProcedure = CredentialProcedure.builder()
                 .procedureId(UUID.fromString(expectedProcedureId))
                 .credentialId(UUID.fromString(credentialId))
-                .credentialStatus(CredentialStatus.WITHDRAWN)
+                .credentialStatus(CredentialStatus.DRAFT)
                 .credentialDecoded(credentialDecoded)
                 .organizationIdentifier(organizationIdentifier)
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
@@ -193,7 +193,7 @@ class CredentialProcedureServiceImplTest {
         CredentialProcedure existingCredentialProcedure = new CredentialProcedure();
         existingCredentialProcedure.setProcedureId(UUID.fromString(procedureId));
         existingCredentialProcedure.setCredentialDecoded("{\"vc\":{\"type\":[\"OldCredentialType\"]}}");
-        existingCredentialProcedure.setCredentialStatus(CredentialStatus.WITHDRAWN);
+        existingCredentialProcedure.setCredentialStatus(CredentialStatus.DRAFT);
         existingCredentialProcedure.setCredentialFormat("old_format");
         existingCredentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
 
@@ -567,7 +567,7 @@ class CredentialProcedureServiceImplTest {
         CredentialProcedure credentialProcedure2 = new CredentialProcedure();
         credentialProcedure2.setProcedureId(procedureId2);
         credentialProcedure2.setCredentialDecoded(credentialDecoded2);
-        credentialProcedure2.setCredentialStatus(CredentialStatus.WITHDRAWN);
+        credentialProcedure2.setCredentialStatus(CredentialStatus.DRAFT);
         credentialProcedure2.setOrganizationIdentifier(organizationIdentifier);
         credentialProcedure2.setUpdatedAt(updated2);
 
@@ -599,7 +599,7 @@ class CredentialProcedureServiceImplTest {
                             credentialProcedureList.get(0).credentialProcedure().updated().equals(updated1) &&
                             credentialProcedureList.get(1).credentialProcedure().procedureId().equals(procedureId2) &&
                             credentialProcedureList.get(1).credentialProcedure().fullName().equals("ProductName") &&
-                            credentialProcedureList.get(1).credentialProcedure().status().equals(CredentialStatus.WITHDRAWN.name()) &&
+                            credentialProcedureList.get(1).credentialProcedure().status().equals(CredentialStatus.DRAFT.name()) &&
                             credentialProcedureList.get(1).credentialProcedure().updated().equals(updated2);
                 })
                 .verifyComplete();
@@ -627,7 +627,7 @@ class CredentialProcedureServiceImplTest {
         CredentialProcedure credentialProcedure2 = new CredentialProcedure();
         credentialProcedure2.setProcedureId(procedureId2);
         credentialProcedure2.setCredentialDecoded(credentialDecoded2);
-        credentialProcedure2.setCredentialStatus(CredentialStatus.WITHDRAWN);
+        credentialProcedure2.setCredentialStatus(CredentialStatus.DRAFT);
         credentialProcedure2.setOrganizationIdentifier(organizationIdentifier);
         credentialProcedure2.setUpdatedAt(updated2);
 

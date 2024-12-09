@@ -38,7 +38,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
                 .credentialId(UUID.fromString(credentialProcedureCreationRequest.credentialId()))
-                .credentialStatus(CredentialStatus.WITHDRAWN)
+                .credentialStatus(CredentialStatus.DRAFT)
                 .credentialDecoded(credentialProcedureCreationRequest.credentialDecoded())
                 .organizationIdentifier(credentialProcedureCreationRequest.organizationIdentifier())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))

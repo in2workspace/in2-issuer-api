@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.model.enums.CredentialStatus.PEND_DOWNLOAD;
-import static es.in2.issuer.domain.model.enums.CredentialStatus.WITHDRAWN;
+import static es.in2.issuer.domain.model.enums.CredentialStatus.DRAFT;
 
 @Slf4j
 @Service
@@ -29,7 +29,7 @@ public class NotificationServiceImpl implements NotificationService {
                 .flatMap(status -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
                         .flatMap(email -> credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId)
                                 .flatMap(firstName -> {
-                                    if (status.equals(WITHDRAWN.toString())) {
+                                    if (status.equals(DRAFT.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
                                                 .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
                                                         email,
