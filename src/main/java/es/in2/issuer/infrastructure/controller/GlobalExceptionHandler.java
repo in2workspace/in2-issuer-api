@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 
+import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -88,11 +89,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidTokenException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleInvalidToken(Exception ex) {
-        log.error(ex.getMessage());
+        String description = "Credential Request contains the wrong Access Token or the Access Token is missing";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
 
         CredentialErrorResponse errorResponse = new CredentialErrorResponse(
                 CredentialResponseErrorCodes.INVALID_TOKEN,
-                "Credential Request contains the wrong Access Token or the Access Token is missing");
+                description
+                );
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
     }
@@ -210,5 +217,79 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<Void>> handleNonceValidationException(NonceValidationException ex) {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    @ExceptionHandler(OperationNotSupportedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleOperationNotSupportedException(Exception ex) {
+        String description = "The given operation is not supported";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
+
+    @ExceptionHandler(JWTVerificationException.class)
+    public Mono<ResponseEntity<Void>> handleJWTVerificationException(JWTVerificationException ex) {
+        log.error(ex.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+    }
+
+    @ExceptionHandler(ResponseUriException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleResponseUriException(Exception ex) {
+        String description = "Request to response uri failed";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.RESPONSE_URI_ERROR,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+    }
+
+    @ExceptionHandler(FormatUnsupportedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleFormatUnsupportedException(Exception ex) {
+        String description = "Format is not supported";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
+
+    @ExceptionHandler(InsufficientPermissionException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleInsufficientPermissionException(Exception ex) {
+        String description = "The client who made the issuance request do not have the required permissions";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.INSUFFICIENT_PERMISSION,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
 }
