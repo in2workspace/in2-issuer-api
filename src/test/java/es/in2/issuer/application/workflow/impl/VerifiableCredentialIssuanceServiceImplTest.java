@@ -51,6 +51,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
     @Mock
     private DeferredCredentialMetadataService deferredCredentialMetadataService;
+    @Mock
+    private IssuerApiClientTokenService issuerApiClientTokenService;
 
     @Mock
     private CredentialSignerWorkflow credentialSignerWorkflow;
@@ -223,7 +225,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
-        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+token, procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+"internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);

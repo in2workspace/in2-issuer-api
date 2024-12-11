@@ -40,6 +40,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final PolicyAuthorizationService policyAuthorizationService;
     private final TrustFrameworkService trustFrameworkService;
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
+    private final IssuerApiClientTokenService issuerApiClientTokenService;
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
         // Check if the format is not "json_vc_jwt"
@@ -63,7 +64,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                             return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
                         }
                         return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
-                                .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
+                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                                    .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
+                                )
                                 .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token)
                                                 .onErrorResume(ResponseUriException.class, ex -> {
                                                     log.error("Error while sending VC to response_uri", ex);
