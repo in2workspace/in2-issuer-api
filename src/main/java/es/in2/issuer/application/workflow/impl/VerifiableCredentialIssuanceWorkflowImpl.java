@@ -66,8 +66,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                     .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
-                                )
-                                .flatMap(encodedVc -> sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token)
+                                        // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
+                                        .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                        .then(sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token)
                                                 .onErrorResume(ResponseUriException.class, ex -> {
                                                     log.error("Error while sending VC to response_uri", ex);
                                                     return emailService.sendResponseUriFailed(
@@ -75,7 +76,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                     issuanceRequest.payload().get("credentialSubject").get("product").get("productId").asText())
                                                             .then();
                                                 })
-                                        );
+                                        )
+                                ));
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(type));
                 }));
