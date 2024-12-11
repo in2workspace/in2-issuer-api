@@ -42,7 +42,7 @@ class NotificationServiceImplTest {
     }
 
     @Test
-    void testSendNotification_WithWithdrawnStatus() {
+    void testSendNotification_DraftStatus() {
         String transactionCode = "transactionCode";
         when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
                 .thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
