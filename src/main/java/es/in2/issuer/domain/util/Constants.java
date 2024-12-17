@@ -17,9 +17,18 @@ public class Constants {
     public static final String PRE_AUTHORIZATION_CODE = "pre-authorization_code";
     public static final String AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
+    public static final String VC = "vc";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
+    public static final String MANDATOR = "mandator";
+    public static final String SIGNER = "signer";
+    public static final String ORGANIZATION = "organization";
+    public static final String FIRST_NAME = "first_name";
+    public static final String LAST_NAME = "last_name";
+    public static final String EMAIL = "email";
+    public static final String EMAIL_ADDRESS = "emailAddress";
+
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
     public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
@@ -42,4 +51,7 @@ public class Constants {
     public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
+
+    // ERROR MESSAGES
+    public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
 }

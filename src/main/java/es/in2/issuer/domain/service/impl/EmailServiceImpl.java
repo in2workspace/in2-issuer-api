@@ -42,9 +42,7 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String firstName, String walletUrl) {
-        firstName = firstName.replace("\"", "");
-        final String finalName = firstName;
+    public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String knowledgebaseUrl, String user, String organization) {
 
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
@@ -55,9 +53,10 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("link", link);
-            context.setVariable("name", finalName);
-            context.setVariable("walletUrl", walletUrl);
-            String htmlContent = templateEngine.process("transaction-code-email", context);
+            context.setVariable("user", user);
+            context.setVariable("organization", organization);
+            context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+            String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
 
             javaMailSender.send(mimeMessage);
