@@ -142,3 +142,6 @@ remote-signature:
 
 trust-framework:
   url:
+
+knowledge-base:
+  upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"

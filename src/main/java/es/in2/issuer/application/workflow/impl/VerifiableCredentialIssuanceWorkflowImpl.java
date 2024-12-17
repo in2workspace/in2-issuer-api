@@ -13,6 +13,7 @@ import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationS
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -68,15 +69,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                     .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
                                         // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
                                         .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                        .then(sendVcToResponseUri(issuanceRequest.responseUri(), encodedVc, token)
-                                                .onErrorResume(ResponseUriException.class, ex -> {
-                                                    log.error("Error while sending VC to response_uri", ex);
-                                                    return emailService.sendResponseUriFailed(
-                                                                    "domesupport@in2.es",
-                                                                    issuanceRequest.payload().get("credentialSubject").get("product").get("productId").asText())
-                                                            .then();
-                                                })
-                                        )
+                                        .then(sendVcToResponseUri(issuanceRequest, encodedVc, token))
                                 ));
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(type));
@@ -90,28 +83,52 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     }
 
-    private Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String token) {
+    private Mono<Void> sendVcToResponseUri(IssuanceRequest issuanceRequest, String encodedVc, String token) {
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        log.info("Sending to response_uri: {} the VC: {} with the received token: {}", responseUri, encodedVc, token);
+        log.info("Sending to response_uri: {} the VC: {} with the received token: {}", issuanceRequest.responseUri(), encodedVc, token);
+
+        // Extract the product ID from the payload
+        String productId = issuanceRequest.payload()
+                .get("credentialSubject")
+                .get("product")
+                .get("productId")
+                .asText();
+        // Extract the company email from the payload
+        String companyEmail = issuanceRequest.payload()
+                .get("credentialSubject")
+                .get("company")
+                .get("email")
+                .asText();
 
         return webClient.commonWebClient()
                 .patch()
-                .uri(responseUri)
+                .uri(issuanceRequest.responseUri())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
                 .bodyValue(responseUriRequest)
                 .exchangeToMono(response -> {
                     if (response.statusCode().is2xxSuccessful()) {
+                        if (HttpStatus.ACCEPTED.equals(response.statusCode())) {
+                            log.info("Received 202 from response_uri. Extracting HTML and sending specific mail for missing documents");
+                            // Retrieve the HTML body from the response
+                            return response.bodyToMono(String.class)
+                                    .flatMap(htmlResponseBody -> emailService.sendResponseUriAcceptedWithHtml(companyEmail, productId, htmlResponseBody))
+                                    .then();
+                        }
                         return Mono.empty();
                     } else {
-                        return Mono.error(new ResponseUriException("Error while sending VC to response URI, error: " + response.statusCode()));
+                        log.error("Non-2xx status code received: {}. Sending failure email...", response.statusCode());
+                        return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
+                                .then();
                     }
                 })
-                .onErrorMap(WebClientRequestException.class, ex ->
-                    new ResponseUriException("Network error while sending VC to response URI")
-                ).then();
+                .onErrorResume(WebClientRequestException.class, ex -> {
+                    log.error("Network error while sending VC to response_uri", ex);
+                    return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
+                            .then();
+                });
     }
 
     @Override

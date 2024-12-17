@@ -150,5 +150,8 @@ remote-signature:
 wallet:
   url: "https://wallet.dome-marketplace-lcl.org"
 
+knowledge-base:
+  upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
+
 trust-framework:
   url: "http://localhost:8080"
