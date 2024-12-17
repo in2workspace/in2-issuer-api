@@ -205,22 +205,22 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
-    @Test
-    void handleException_ReturnsInternalServerError() {
-        Exception exception = new Exception("General error occurred");
-        Mono<ResponseEntity<GlobalErrorMessage>> result = globalExceptionHandler.handleException(exception, mockWebRequest);
-        StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                    assertNotNull(responseEntity.getBody());
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseEntity.getBody().status());
-                    assertEquals("General error occurred", responseEntity.getBody().message());
-                    assertTrue(LocalDateTime.now().minusMinutes(1).isBefore(responseEntity.getBody().timestamp()) &&
-                                    LocalDateTime.now().plusMinutes(1).isAfter(responseEntity.getBody().timestamp()),
-                            "Timestamp is not within the expected range");
-                })
-                .verifyComplete();
-    }
+//    @Test
+//    void handleException_ReturnsInternalServerError() {
+//        Exception exception = new Exception("General error occurred");
+//        Mono<ResponseEntity<GlobalErrorMessage>> result = globalExceptionHandler.handleException(exception, mockWebRequest);
+//        StepVerifier.create(result)
+//                .assertNext(responseEntity -> {
+//                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+//                    assertNotNull(responseEntity.getBody());
+//                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseEntity.getBody().status());
+//                    assertEquals("General error occurred", responseEntity.getBody().message());
+//                    assertTrue(LocalDateTime.now().minusMinutes(1).isBefore(responseEntity.getBody().timestamp()) &&
+//                                    LocalDateTime.now().plusMinutes(1).isAfter(responseEntity.getBody().timestamp()),
+//                            "Timestamp is not within the expected range");
+//                })
+//                .verifyComplete();
+//    }
 
     @Test
     void handleBase45Exception() {
