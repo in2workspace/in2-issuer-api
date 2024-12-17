@@ -43,7 +43,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String knowledgebaseUrl, String user, String organization) {
-
+        log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> INIT");
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
@@ -53,13 +53,19 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("link", link);
+            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> link = " + link);
             context.setVariable("user", user);
+            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> user: " + user);
             context.setVariable("organization", organization);
+            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> organization: " + organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> knowledgebaseUrl: " + knowledgebaseUrl);
             String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
 
             javaMailSender.send(mimeMessage);
+            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> EMAIL SENT");
+
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
