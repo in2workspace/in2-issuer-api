@@ -2,9 +2,7 @@ package es.in2.issuer.infrastructure.config;
 
 import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
-import es.in2.issuer.infrastructure.config.properties.ApiProperties;
-import es.in2.issuer.infrastructure.config.properties.IssuerUiProperties;
-import es.in2.issuer.infrastructure.config.properties.WalletProperties;
+import es.in2.issuer.infrastructure.config.properties.*;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -13,14 +11,17 @@ public class AppConfig {
     private final ConfigAdapter configAdapter;
     private final ApiProperties apiProperties;
     private final IssuerUiProperties issuerUiProperties;
-
     private final WalletProperties walletProperties;
+    private final IssuerIdentityProperties issuerIdentityProperties;
+    private final KnowledgeBaseProperties knowledgeBaseProperties;
 
-    public AppConfig(ConfigAdapterFactory configAdapterFactory, ApiProperties apiProperties, IssuerUiProperties issuerUiProperties, WalletProperties walletProperties) {
+    public AppConfig(ConfigAdapterFactory configAdapterFactory, ApiProperties apiProperties, IssuerUiProperties issuerUiProperties, WalletProperties walletProperties, IssuerIdentityProperties issuerIdentityProperties, KnowledgeBaseProperties knowledgeBaseProperties) {
         this.configAdapter = configAdapterFactory.getAdapter();
         this.apiProperties = apiProperties;
         this.issuerUiProperties = issuerUiProperties;
         this.walletProperties = walletProperties;
+        this.issuerIdentityProperties = issuerIdentityProperties;
+        this.knowledgeBaseProperties = knowledgeBaseProperties;
     }
 
     public String getIssuerApiExternalDomain() {
@@ -35,6 +36,10 @@ public class AppConfig {
         return configAdapter.getConfiguration(walletProperties.url());
     }
 
+    public String getKnowledgeBaseUploadCertificationGuideUrl() {
+        return configAdapter.getConfiguration(knowledgeBaseProperties.uploadCertificationGuideUrl());
+    }
+
     public String getApiConfigSource() {
         return configAdapter.getConfiguration(apiProperties.configSource());
     }
@@ -45,6 +50,26 @@ public class AppConfig {
 
     public long getCacheLifetimeForVerifiableCredential() {
         return apiProperties.cacheLifetime().verifiableCredential();
+    }
+
+    public String getCredentialSubjectDidKey() {
+        return issuerIdentityProperties.credentialSubjectDidKey();
+    }
+
+    public String getJwtCredential() {
+        return issuerIdentityProperties.jwtCredential();
+    }
+
+    public String getCryptoPrivateKey() {
+        return issuerIdentityProperties.crypto().privateKey();
+    }
+
+    public String getClientAssertionExpiration() {
+        return issuerIdentityProperties.clientAssertion().expiration();
+    }
+
+    public String getClientAssertionExpirationUnitTime() {
+        return issuerIdentityProperties.clientAssertion().expirationUnitTime();
     }
 
 }

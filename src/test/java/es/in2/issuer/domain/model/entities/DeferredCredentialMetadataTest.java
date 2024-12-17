@@ -46,7 +46,7 @@ class DeferredCredentialMetadataTest {
         String authServerNonce = "authServerNonce";
         String transactionId = "transactionId";
         UUID procedureId = UUID.randomUUID();
-        String vc = "vc";
+        String vc = "jwtCredential";
         String vcFormat = "vcFormat";
 
         deferredCredentialMetadata.setId(uuid);

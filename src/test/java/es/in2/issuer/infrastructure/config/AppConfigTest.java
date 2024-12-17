@@ -2,9 +2,7 @@ package es.in2.issuer.infrastructure.config;
 
 import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
-import es.in2.issuer.infrastructure.config.properties.ApiProperties;
-import es.in2.issuer.infrastructure.config.properties.IssuerUiProperties;
-import es.in2.issuer.infrastructure.config.properties.WalletProperties;
+import es.in2.issuer.infrastructure.config.properties.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,13 +30,19 @@ class AppConfigTest {
 
     @Mock
     private WalletProperties walletProperties;
+    @Mock
+    private KnowledgeBaseProperties knowledgeBaseProperties;
+
+    @Mock
+    private IssuerIdentityProperties issuerIdentityProperties;
+
 
     private AppConfig appConfig;
 
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties,walletProperties);
+        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties,walletProperties, issuerIdentityProperties, knowledgeBaseProperties);
     }
 
     @Test
@@ -55,6 +59,32 @@ class AppConfigTest {
         assertEquals(expectedDomain, actualDomain);
     }
 
+    @Test
+    void testGetWalletUrl() {
+        // Arrange
+        String expectedUrl = "https://wallet.example.com";
+        when(walletProperties.url()).thenReturn("wallet.url");
+        when(configAdapter.getConfiguration("wallet.url")).thenReturn(expectedUrl);
+
+        // Act
+        String actualUrl = appConfig.getWalletUrl();
+
+        // Assert
+        assertEquals(expectedUrl, actualUrl);
+    }
+    @Test
+    void testGetKnowledgeBaseUploadCertificationGuideUrl() {
+        // Arrange
+        String expectedUrl = "https://knowledge.example.com";
+        when(knowledgeBaseProperties.uploadCertificationGuideUrl()).thenReturn("knowledge.base.url");
+        when(configAdapter.getConfiguration("knowledge.base.url")).thenReturn(expectedUrl);
+
+        // Act
+        String actualUrl = appConfig.getKnowledgeBaseUploadCertificationGuideUrl();
+
+        // Assert
+        assertEquals(expectedUrl, actualUrl);
+    }
     @Test
     void testGetIssuerUiExternalDomain() {
         // Arrange
