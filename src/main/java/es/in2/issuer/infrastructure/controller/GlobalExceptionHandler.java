@@ -144,21 +144,21 @@ public class GlobalExceptionHandler {
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
 
-//    @ExceptionHandler(Exception.class)
-//    public Mono<ResponseEntity<GlobalErrorMessage>> handleException(Exception ex, WebRequest request) {
-//        String message = ex.getMessage() != null ? ex.getMessage() : CredentialResponseErrorCodes.DEFAULT_ERROR;
-//        log.error(message, ex);
-//
-//        GlobalErrorMessage customErrorResponse = new GlobalErrorMessage(
-//                LocalDateTime.now(),
-//                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-//                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-//                message,
-//                request.getDescription(false)
-//        );
-//
-//        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(customErrorResponse));
-//    }
+    @ExceptionHandler(Exception.class)
+    public Mono<ResponseEntity<GlobalErrorMessage>> handleException(Exception ex, WebRequest request) {
+        String message = ex.getMessage() != null ? ex.getMessage() : CredentialResponseErrorCodes.DEFAULT_ERROR;
+        log.error(message, ex);
+
+        GlobalErrorMessage customErrorResponse = new GlobalErrorMessage(
+                LocalDateTime.now(),
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                message,
+                request.getDescription(false)
+        );
+
+        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(customErrorResponse));
+    }
 
     @ExceptionHandler(Base45Exception.class)
     public Mono<ResponseEntity<Void>> handleBase45Exception(Base45Exception ex) {
