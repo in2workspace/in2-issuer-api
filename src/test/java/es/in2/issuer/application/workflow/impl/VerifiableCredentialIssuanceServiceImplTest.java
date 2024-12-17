@@ -167,7 +167,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String transactionCode = "4321";
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getWalletUrl()).thenReturn(walletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
@@ -224,7 +224,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest)).thenReturn(Mono.just(procedureId));
+        when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest, token)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+"internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));

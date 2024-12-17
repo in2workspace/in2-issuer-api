@@ -19,12 +19,12 @@ public class CredentialFactory {
     public final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     public final VerifiableCertificationFactory verifiableCertificationFactory;
 
-    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, String credentialType, JsonNode credential){
+    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, String credentialType, JsonNode credential, String token) {
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(credential)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
         } else if (credentialType.equals(VERIFIABLE_CERTIFICATION)) {
-            return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential)
+            return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential, token)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));

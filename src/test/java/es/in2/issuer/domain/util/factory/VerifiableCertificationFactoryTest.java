@@ -2,9 +2,13 @@ package es.in2.issuer.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.Payload;
+import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,7 +21,9 @@ import reactor.test.StepVerifier;
 import java.util.List;
 import java.util.UUID;
 
+import static es.in2.issuer.domain.util.Constants.DID_ELSI;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class VerifiableCertificationFactoryTest {
@@ -26,6 +32,10 @@ class VerifiableCertificationFactoryTest {
 
     @Mock
     private DefaultSignerConfig defaultSignerConfig;
+    @Mock
+    private JWTService jwtService;
+    @Mock
+    private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
 
     @InjectMocks
     private VerifiableCertificationFactory verifiableCertificationFactory;
@@ -45,18 +55,13 @@ class VerifiableCertificationFactoryTest {
 
     @Test
     void testMapAndBuildVerifiableCertification() throws Exception {
+        String token = "valid-token";
         // Given: A mocked JsonNode input representing the VerifiableCertification
         String credentialJson = """
                 {
                   "@context": ["https://www.w3.org/2018/credentials/v1"],
                   "id": "urn:uuid:%s",
                   "type": ["VerifiableCertification"],
-                  "issuer": {
-                    "commonName": "Issuer Common Name",
-                    "country": "Issuer Country",
-                    "id": "Issuer ID",
-                    "organization": "Issuer Organization"
-                  },
                   "credentialSubject": {
                     "company": {
                       "address": "1234 Example St.",
@@ -68,6 +73,7 @@ class VerifiableCertificationFactoryTest {
                     },
                     "compliance": [{
                       "id": "compliance-id",
+                      "hash": "1234",
                       "scope": "compliance-scope",
                       "standard": "compliance-standard"
                     }],
@@ -78,15 +84,7 @@ class VerifiableCertificationFactoryTest {
                     }
                   },
                   "validFrom": "2023-09-07T00:00:00Z",
-                  "validUntil": "2024-09-07T00:00:00Z",
-                  "signer": {
-                    "commonName": "Signer Name",
-                    "country": "Signer Country",
-                    "emailAddress": "signer@example.com",
-                    "organization": "Signer Organization",
-                    "organizationIdentifier": "SignerOrgIdentifier",
-                    "serialNumber": "SignerSerialNumber"
-                  }
+                  "validUntil": "2024-09-07T00:00:00Z"
                 }
                 """.formatted(UUID.randomUUID().toString());
 
@@ -126,21 +124,44 @@ class VerifiableCertificationFactoryTest {
                 .validFrom("2023-09-07T00:00:00Z")
                 .validUntil("2024-09-07T00:00:00Z")
                 .signer(VerifiableCertification.Signer.builder()
-                        .commonName("Signer Name")
-                        .country("Signer Country")
-                        .emailAddress("signer@example.com")
-                        .organization("Signer Organization")
-                        .organizationIdentifier("SignerOrgIdentifier")
-                        .serialNumber("SignerSerialNumber")
+                        .commonName(defaultSignerConfig.getCommonName())
+                        .country(defaultSignerConfig.getCountry())
+                        .emailAddress(defaultSignerConfig.getEmail())
+                        .organization(defaultSignerConfig.getOrganization())
+                        .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
+                        .serialNumber(defaultSignerConfig.getSerialNumber())
+                        .build())
+                .issuer(VerifiableCertification.Issuer.builder()
+                        .commonName(defaultSignerConfig.getCommonName())
+                        .country(defaultSignerConfig.getCountry())
+                        .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
+                        .organization(defaultSignerConfig.getOrganization())
+                        .build())
+                .atester(VerifiableCertification.Atester.builder()
+                        .firstName("John")
+                        .lastName("Doe")
+                        .country("Country")
+                        .id("did:key:1234")
+                        .organization("Organization")
+                        .organizationIdentifier("VATES-1234")
                         .build())
                 .build();
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Payload jwtPayload = mock(Payload.class);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn("vcJson");
+        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 
         when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
 
         when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
 
         // When: Calling mapAndBuildVerifiableCertification
-        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode);
+        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
 
         // Then: Verify the result
         StepVerifier.create(resultMono)
@@ -148,5 +169,29 @@ class VerifiableCertificationFactoryTest {
                         credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
                         credentialProcedureCreationRequest.credentialDecoded() != null)
                 .verifyComplete();
+    }
+
+    // Auxiliary methods to create LEARCredentialEmployee objects
+    private LEARCredentialEmployee getLEARCredentialEmployee() {
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                .organizationIdentifier("VATES-1234")
+                .organization("Organization")
+                .country("Country")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                .id("did:key:1234")
+                .firstName("John")
+                .lastName("Doe")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+                .mandator(mandator)
+                .mandatee(mandatee)
+                .build();
+        LEARCredentialEmployee.CredentialSubject credentialSubject = LEARCredentialEmployee.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
+        return LEARCredentialEmployee.builder()
+                .credentialSubject(credentialSubject)
+                .build();
     }
 }

@@ -17,9 +17,11 @@ public record VerifiableCertification(
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,
         @NotNull
         @JsonProperty("validFrom") String validFrom,
-
+        @NotNull
+        @JsonProperty("atester") Atester atester,
         @NotNull
         @JsonProperty("validUntil") String validUntil,
+        @NotNull
         @JsonProperty("signer") Signer signer
 ) {
     @Builder
@@ -30,6 +32,15 @@ public record VerifiableCertification(
             @JsonProperty("organization") String organization
     ) {
     }
+    @Builder
+    public record Atester(
+            @JsonProperty("firstName") String firstName,
+            @JsonProperty("lastName") String lastName,
+            @JsonProperty("country") String country,
+            @JsonProperty("id") String id,
+            @JsonProperty("organization") String organization,
+            @JsonProperty("organizationIdentifier") String organizationIdentifier
+    ){}
     @Builder
     public record CredentialSubject(
             @JsonProperty("company") Company company,
@@ -48,6 +59,7 @@ public record VerifiableCertification(
         @Builder
         public record Compliance(
                 @JsonProperty("id") String id,
+                @JsonProperty("hash") String hash,
                 @JsonProperty("scope") String scope,
                 @JsonProperty("standard") String standard
         ) {}

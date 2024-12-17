@@ -34,8 +34,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialSignerWorkflow credentialSignerWorkflow;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, IssuanceRequest issuanceRequest) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload())
+    public Mono<String> generateVc(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(procedureId -> deferredCredentialMetadataService.createDeferredCredentialMetadata(
                         procedureId,
@@ -44,8 +44,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload())
+    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
                 .flatMap(credentialProcedureService::createCredentialProcedure);
     }
 

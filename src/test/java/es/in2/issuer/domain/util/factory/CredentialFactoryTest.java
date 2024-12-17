@@ -34,7 +34,7 @@ class CredentialFactoryTest {
                 .thenReturn(Mono.just(credentialProcedureCreationRequest));
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode, "token"))
                 .expectNext(credentialProcedureCreationRequest)
                 .verifyComplete();
 
@@ -49,7 +49,7 @@ class CredentialFactoryTest {
         JsonNode jsonNode = mock(JsonNode.class);
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode, "token"))
                 .expectError(CredentialTypeUnsupportedException.class)
                 .verify();
 
