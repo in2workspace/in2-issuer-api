@@ -39,28 +39,33 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
         return deferredCredentialMetadataService.validateTransactionCode(transactionCode)
                 .then(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
-                .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                        .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
-                                .flatMap(preAuthCodeResponse ->
-                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode, preAuthCodeResponse.grant().preAuthorizedCode())
-                                                .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
-                                                        .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                                        .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                        .flatMap(credentialOfferUri -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                                                                .flatMap(email -> emailService.sendPin(email, "Pin Code", preAuthCodeResponse.pin()))
-                                                                .thenReturn(credentialOfferUri))
+                .flatMap(procedureId ->
+                        credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
+                                .flatMap(credentialType ->
+                                        getPreAuthorizationCodeFromIam()
+                                                .flatMap(preAuthCodeResponse ->
+                                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
+                                                                        transactionCode, preAuthCodeResponse.grant().preAuthorizedCode()
+                                                                )
+                                                                .then(
+                                                                        credentialOfferService.buildCustomCredentialOffer(
+                                                                                        credentialType, preAuthCodeResponse.grant()
+                                                                                )
+                                                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
+                                                                                .flatMap(credentialOfferService::createCredentialOfferUri)
+                                                                )
                                                 )
                                 )
-                        )
                 );
     }
+
 
     @Override
     public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
         return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce);
     }
 
-    private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
+    public Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
         String preAuthCodeUri = authServerConfig.getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 

@@ -125,9 +125,6 @@ class CredentialOfferIssuanceWorkflowImplTest {
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOffer)).thenReturn(Mono.just(nonce));
 
         when(credentialOfferService.createCredentialOfferUri(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
-
-        when(emailService.sendPin(mail,"Pin Code", preAuthCodeResponse.pin())).thenReturn(Mono.empty());
 
         StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionCode))
                 .expectNext(credentialOfferUri)
