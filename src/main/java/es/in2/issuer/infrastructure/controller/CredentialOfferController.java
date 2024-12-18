@@ -4,6 +4,8 @@ import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
+import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +34,8 @@ import static es.in2.issuer.domain.util.Constants.ENGLISH;
 public class CredentialOfferController {
 
     private final CredentialOfferIssuanceWorkflow credentialOfferIssuanceWorkflow;
+    private final CredentialProcedureService credentialProcedureService;
+    private final EmailService emailService;
 
     @Operation(
             summary = "Creates a credential offer",
@@ -98,6 +102,16 @@ public class CredentialOfferController {
         log.info("Getting Credential Offer...");
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
-        return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id);
+        return credentialOfferIssuanceWorkflow.getCustomCredentialOffer(id)
+                .flatMap(credentialOffer ->
+                        credentialOfferIssuanceWorkflow.getPreAuthorizationCodeFromIam()
+                                .flatMap(preAuthCodeResponse ->
+                                        credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(id)
+                                                .flatMap(email ->
+                                                        emailService.sendPin(email, "Pin Code", preAuthCodeResponse.grant().preAuthorizedCode())
+                                                                .thenReturn(credentialOffer)
+                                                )
+                                )
+                );
     }
 }

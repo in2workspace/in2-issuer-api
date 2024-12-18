@@ -60,7 +60,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
         return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce);
     }
 
-    private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
+    public Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
         String preAuthCodeUri = authServerConfig.getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
