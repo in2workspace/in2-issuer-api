@@ -23,6 +23,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+import static es.in2.issuer.domain.util.Constants.*;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -51,7 +53,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode typeNode = credential.get("vc").get("type");
+                        JsonNode typeNode = credential.get(VC).get("type");
                         if (typeNode != null && typeNode.isArray()) {
                             String credentialType = null;
                             for (JsonNode type : typeNode) {
@@ -102,7 +104,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("email").asText());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(EMAIL).asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
@@ -116,11 +118,24 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
 
+                });
+    }
+
+    @Override
+    public Mono<String> getMandateeCompleteNameFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText() + " " + credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(LAST_NAME).asText());
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
                 });
     }
 
@@ -130,7 +145,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        return Mono.just(credential.get("vc").get("credentialSubject").get("mandate").get("signer").get("emailAddress").asText());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(SIGNER).get(EMAIL_ADDRESS).asText());
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());
                     }
@@ -156,8 +171,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
                                 .build());
                     } catch (JsonProcessingException e) {
-                        log.warn("Error parsing credential", e);
-                        return Mono.error(new JsonParseException(null, "Error parsing credential"));
+                        log.warn(ERROR_PARSING_CREDENTIAL, e);
+                        return Mono.error(new JsonParseException(null, ERROR_PARSING_CREDENTIAL));
                     }
                 })
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
@@ -171,6 +186,19 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     credentialProcedure.setCredentialStatus(CredentialStatus.PEND_DOWNLOAD);
                     return credentialProcedureRepository.save(credentialProcedure)
                             .then(Mono.just(credentialProcedure.getProcedureId().toString()));
+                });
+    }
+
+    @Override
+    public Mono<String> getMandatorOrganizationFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
                 });
     }
 
@@ -191,9 +219,9 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        String subjectFullName = credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText()
+                        String subjectFullName = credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText()
                                 + " "
-                                + credential.get("vc").get("credentialSubject").get("mandate").get("mandatee").get("last_name").asText();
+                                + credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(LAST_NAME).asText();
                         return Mono.just(ProcedureBasicInfo.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
                                 .fullName(subjectFullName)
@@ -202,7 +230,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 .build());
                     } catch (JsonProcessingException e) {
                         log.warn("Error processing json", e);
-                        return Mono.error(new JsonParseException(null, "Error parsing credential"));
+                        return Mono.error(new JsonParseException(null, ERROR_PARSING_CREDENTIAL));
                     }
                 })
                 .map(procedureBasicInfo -> CredentialProcedures.CredentialProcedure.builder()

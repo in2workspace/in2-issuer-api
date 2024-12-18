@@ -4,9 +4,9 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
-@ConfigurationProperties(prefix = "wallet")
+@ConfigurationProperties(prefix = "knowledgebase")
 @Validated
-public record WalletProperties(
+public record KnowledgebaseProperties(
         @NotNull String url
 ) {
 }

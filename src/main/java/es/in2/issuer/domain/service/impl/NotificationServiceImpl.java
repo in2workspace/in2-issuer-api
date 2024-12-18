@@ -27,19 +27,23 @@ public class NotificationServiceImpl implements NotificationService {
     public Mono<Void> sendNotification(String processId, String procedureId) {
         return credentialProcedureService.getCredentialStatusByProcedureId(procedureId)
                 .flatMap(status -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                        .flatMap(email -> credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId)
-                                .flatMap(firstName -> {
+                        .flatMap(email -> credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId)
+                                .zipWith(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
+                                .flatMap(tuple  -> {
+                                    String completeName = tuple.getT1();
+                                    String organization = tuple.getT2();
                                     if (status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
                                                 .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
                                                         email,
                                                         "Credential Offer",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
-                                                        firstName,
-                                                        appConfig.getWalletUrl()
+                                                        appConfig.getKnowledgebaseUrl(),
+                                                        completeName,
+                                                        organization
                                                 ));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
-                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
                                     } else {
                                         return Mono.empty();
                                     }

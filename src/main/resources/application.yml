@@ -127,8 +127,8 @@ remote-signature:
   paths:
     sign-path: "/signature/sign"
 
-wallet:
-  url: "https://wallet.dome-marketplace-lcl.org"
-
 trust-framework:
   url: "http://localhost:8080"
+
+knowledgebase:
+  url: "http://knowledgebase.com"
