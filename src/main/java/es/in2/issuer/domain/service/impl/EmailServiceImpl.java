@@ -65,7 +65,6 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("user", user);
             context.setVariable("organization", organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
-            context.setVariable("qrImage", getEncodedImageIntoBase64());
 
             String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
@@ -114,29 +113,5 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(mimeMessage);
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
-    }
-
-    private String getEncodedImageIntoBase64() {
-        File file = new File("static/img/qr-wallet.png");
-        FileInputStream imageFile = null;
-        String encodedImage = null;
-
-        try {
-            imageFile = new FileInputStream(file);
-            byte[] imageData = new byte[(int) file.length()];
-            encodedImage = Base64.getEncoder().encodeToString(imageData);
-
-        } catch (IOException e) {
-            log.error("Error while reading image from file", e);
-        } finally {
-            try {
-                if (imageFile != null) {
-                    imageFile.close();
-                }
-            } catch (IOException e) {
-                log.error("Error while closing image file", e);
-            }
-        }
-        return encodedImage;
     }
 }
