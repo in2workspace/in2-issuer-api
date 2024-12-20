@@ -4,6 +4,8 @@ import es.in2.issuer.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -11,6 +13,12 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Base64;
 
 import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
@@ -52,19 +60,17 @@ public class EmailServiceImpl implements EmailService {
             helper.setSubject(subject);
 
             Context context = new Context();
+
             context.setVariable("link", link);
-            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> link = " + link);
             context.setVariable("user", user);
-            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> user: " + user);
             context.setVariable("organization", organization);
-            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> organization: " + organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
-            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> knowledgebaseUrl: " + knowledgebaseUrl);
+            context.setVariable("qrImage", getEncodedImageIntoBase64());
+
             String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
 
             javaMailSender.send(mimeMessage);
-            log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> EMAIL SENT");
 
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
@@ -79,7 +85,6 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            // Crear el contexto sin variables adicionales
             Context context = new Context();
             String htmlContent = templateEngine.process("credential-pending-notification", context);
             helper.setText(htmlContent, true);
@@ -109,5 +114,29 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(mimeMessage);
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    private String getEncodedImageIntoBase64() {
+        File file = new File("static/img/qr-wallet.png");
+        FileInputStream imageFile = null;
+        String encodedImage = null;
+
+        try {
+            imageFile = new FileInputStream(file);
+            byte[] imageData = new byte[(int) file.length()];
+            encodedImage = Base64.getEncoder().encodeToString(imageData);
+
+        } catch (IOException e) {
+            log.error("Error while reading image from file", e);
+        } finally {
+            try {
+                if (imageFile != null) {
+                    imageFile.close();
+                }
+            } catch (IOException e) {
+                log.error("Error while closing image file", e);
+            }
+        }
+        return encodedImage;
     }
 }
