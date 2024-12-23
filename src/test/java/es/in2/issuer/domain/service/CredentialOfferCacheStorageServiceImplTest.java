@@ -1,7 +1,7 @@
 package es.in2.issuer.domain.service;
 
 import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
@@ -21,35 +21,35 @@ import static org.mockito.Mockito.*;
 class CredentialOfferCacheStorageServiceImplTest {
 
     @Mock
-    private CacheStore<CustomCredentialOffer> cacheStore;
+    private CacheStore<CredentialOfferData> cacheStore;
 
     @InjectMocks
     private CredentialOfferCacheStorageServiceImpl service;
 
     @Test
     void testSaveCustomCredentialOffer() {
-        CustomCredentialOffer offer = CustomCredentialOffer.builder().build(); // You should populate it as necessary
+        CredentialOfferData credentialOfferData = CredentialOfferData.builder().build(); // You should populate it as necessary
         String expectedNonce = "testNonce";
 
-        when(cacheStore.add(any(String.class), eq(offer))).thenReturn(Mono.just(expectedNonce));
+        when(cacheStore.add(any(String.class), eq(credentialOfferData))).thenReturn(Mono.just(expectedNonce));
 
-        StepVerifier.create(service.saveCustomCredentialOffer(offer))
+        StepVerifier.create(service.saveCustomCredentialOffer(credentialOfferData))
                 .expectNext(expectedNonce)
                 .verifyComplete();
 
-        verify(cacheStore, times(1)).add(any(String.class), eq(offer));
+        verify(cacheStore, times(1)).add(any(String.class), eq(credentialOfferData));
     }
 
     @Test
     void testGetCustomCredentialOffer() {
         String nonce = "testNonce";
-        CustomCredentialOffer offer = CustomCredentialOffer.builder().build(); // Populate this object as necessary
+        CredentialOfferData credentialOfferData = CredentialOfferData.builder().build(); // You should populate it as necessary
 
-        when(cacheStore.get(nonce)).thenReturn(Mono.just(offer));
+        when(cacheStore.get(nonce)).thenReturn(Mono.just(credentialOfferData));
         when(cacheStore.delete(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
-                .expectNextMatches(retrievedOffer -> retrievedOffer.equals(offer))
+                .expectNextMatches(retrievedOffer -> retrievedOffer.equals(credentialOfferData))
                 .verifyComplete();
 
         verify(cacheStore, times(1)).delete(nonce);
