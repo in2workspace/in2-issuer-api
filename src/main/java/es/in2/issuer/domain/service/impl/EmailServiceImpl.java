@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.glxn.qrgen.javase.QRCode;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -54,14 +55,17 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            String qrImageBase64 = generateQRCodeImageBase64();
+            //String qrImageBase64 = generateQRCodeImageBase64();
+
+            FileSystemResource image = new FileSystemResource(new File("src/main/resources/static/images/qr.png"));
+            helper.addInline("qrWalletImage", image);
 
             Context context = new Context();
             context.setVariable("link", link);
             context.setVariable("user", user);
             context.setVariable("organization", organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
-            context.setVariable("qrImage", "data:image/png;base64," + qrImageBase64);
+            //context.setVariable("qrImage", "data:image/png;base64," + qrImageBase64);
 
             log.info("Context set");
             log.info("Process Template Engine");
