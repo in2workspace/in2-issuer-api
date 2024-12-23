@@ -4,7 +4,6 @@ import es.in2.issuer.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.glxn.qrgen.javase.QRCode;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -15,7 +14,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
-import java.util.Base64;
 
 import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
@@ -55,8 +53,6 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            //String qrImageBase64 = generateQRCodeImageBase64();
-
             FileSystemResource image = new FileSystemResource(new File("src/main/resources/static/images/qr.png"));
 
             Context context = new Context();
@@ -64,7 +60,6 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("user", user);
             context.setVariable("organization", organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
-            //context.setVariable("qrImage", "data:image/png;base64," + qrImageBase64);
 
             log.info("Context set");
             log.info("Process Template Engine");
@@ -116,12 +111,5 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(mimeMessage);
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
-    }
-
-    private String generateQRCodeImageBase64() {
-        ByteArrayOutputStream stream = QRCode.from("https://wallet.dome-marketplace.org/").withSize(250,250).stream();
-        byte[] imageBytes = stream.toByteArray();
-        log.info("QR Bytes generated");
-        return Base64.getEncoder().encodeToString(imageBytes);
     }
 }

@@ -126,9 +126,6 @@ dependencies {
     // Resilience
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 
-    // QR GENERATOR
-    implementation 'com.github.kenglxn.QRGen:javase:3.0.0'
-
     // Unit Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
