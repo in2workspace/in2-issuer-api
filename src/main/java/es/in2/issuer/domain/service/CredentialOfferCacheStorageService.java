@@ -1,12 +1,12 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import reactor.core.publisher.Mono;
 
 public interface CredentialOfferCacheStorageService {
 
-    Mono<String> saveCustomCredentialOffer(CustomCredentialOffer customCredentialOffer);
+    Mono<String> saveCustomCredentialOffer(CredentialOfferData credentialOfferData);
 
-    Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce);
+    Mono<CredentialOfferData> getCustomCredentialOffer(String nonce);
 
 }

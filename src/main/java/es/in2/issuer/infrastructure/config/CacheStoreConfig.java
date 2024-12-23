@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class CacheStoreConfig {
     }
 
     @Bean
-    public CacheStore<CustomCredentialOffer> cacheStoreForCredentialOffer() {
+    public CacheStore<CredentialOfferData> cacheStoreForCredentialOffer() {
         return new CacheStore<>(appConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
     }
 

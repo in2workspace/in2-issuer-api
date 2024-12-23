@@ -2,6 +2,7 @@ package es.in2.issuer.application.workflow.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.model.dto.PreAuthCodeResponse;
@@ -20,9 +21,6 @@ import org.springframework.web.reactive.function.client.ExchangeFunction;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
-
-import java.util.List;
-import java.util.Map;
 
 import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE;
 import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
@@ -65,8 +63,17 @@ class CredentialOfferIssuanceWorkflowImplTest {
     @Test
     void testGetCredentialOffer() {
         String id = "dummyId";
+        String email = "example@example.com";
+        String pin = "1234";
         CustomCredentialOffer credentialOffer = CustomCredentialOffer.builder().build();
-        when(credentialOfferCacheStorageService.getCustomCredentialOffer(id)).thenReturn(Mono.just(credentialOffer));
+        CredentialOfferData credentialOfferData = CredentialOfferData.builder()
+                .credentialOffer(credentialOffer)
+                .pin(pin)
+                .employeeEmail(email)
+                .build();
+
+        when(credentialOfferCacheStorageService.getCustomCredentialOffer(id)).thenReturn(Mono.just(credentialOfferData));
+        when(emailService.sendPin(credentialOfferData.employeeEmail(),"Pin Code", credentialOfferData.pin())).thenReturn(Mono.empty());
 
         Mono<CustomCredentialOffer> result = credentialOfferIssuanceService.getCustomCredentialOffer(id);
         assertEquals(credentialOffer, result.block());
@@ -92,11 +99,13 @@ class CredentialOfferIssuanceWorkflowImplTest {
                         .build()
                 )
                 .build();
-        CustomCredentialOffer credentialOffer = CustomCredentialOffer.builder()
-                .credentialConfigurationIds(List.of(credentialType))
-                .credentialIssuer("https://issuer.com")
-                .grants(Map.of( "pre-authorized_code",preAuthCodeResponse.grant()))
+
+        CredentialOfferData credentialOfferData = CredentialOfferData.builder()
+                .credentialOffer(CustomCredentialOffer.builder().build())
+                .pin("1234")
+                .employeeEmail(mail)
                 .build();
+
 
         when(deferredCredentialMetadataService.validateTransactionCode(transactionCode)).thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just(procedureId));
@@ -121,13 +130,12 @@ class CredentialOfferIssuanceWorkflowImplTest {
         when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
-        when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant())).thenReturn(Mono.just(credentialOffer));
-        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOffer)).thenReturn(Mono.just(nonce));
+        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
+        when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant(), mail, preAuthCodeResponse.pin())).thenReturn(Mono.just(credentialOfferData));
+
+        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
 
         when(credentialOfferService.createCredentialOfferUri(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
-
-        when(emailService.sendPin(mail,"Pin Code", preAuthCodeResponse.pin())).thenReturn(Mono.empty());
 
         StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionCode))
                 .expectNext(credentialOfferUri)
