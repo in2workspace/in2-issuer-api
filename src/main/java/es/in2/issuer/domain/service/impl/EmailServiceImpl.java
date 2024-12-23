@@ -51,7 +51,6 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Mono<Void> sendTransactionCodeForCredentialOffer(String to, String subject, String link, String knowledgebaseUrl, String user, String organization) {
-        log.info("EmailServiceImpl --> sendTransactionCodeForCredentialOffer() --> INIT");
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
@@ -65,6 +64,11 @@ public class EmailServiceImpl implements EmailService {
             context.setVariable("user", user);
             context.setVariable("organization", organization);
             context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+
+            // Load static image resource
+            ClassPathResource qrCodeImage = new ClassPathResource("static/img/qr-wallet.png");
+            String contentId = "qrCodeImage";
+            helper.addInline(contentId, qrCodeImage);
 
             String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
