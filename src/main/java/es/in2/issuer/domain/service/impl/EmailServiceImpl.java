@@ -58,7 +58,6 @@ public class EmailServiceImpl implements EmailService {
             //String qrImageBase64 = generateQRCodeImageBase64();
 
             FileSystemResource image = new FileSystemResource(new File("src/main/resources/static/images/qr.png"));
-            helper.addInline("qrWalletImage", image);
 
             Context context = new Context();
             context.setVariable("link", link);
@@ -72,6 +71,7 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent = templateEngine.process("activate-credential-email", context);
             helper.setText(htmlContent, true);
 
+            helper.addInline("qrWalletImage", image);
             javaMailSender.send(mimeMessage);
 
             return null;
