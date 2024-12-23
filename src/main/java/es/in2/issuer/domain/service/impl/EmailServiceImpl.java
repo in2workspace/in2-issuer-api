@@ -65,13 +65,7 @@ public class EmailServiceImpl implements EmailService {
                 log.info("Attempting to load image: {}", imageResourceName);
                 InputStream imageStream = imgResource.getInputStream();
                 byte[] imageBytes = StreamUtils.copyToByteArray(imageStream);
-                log.info("Successfully loaded image: {}", imageResourceName);
-
-                String imageContentType = Files.probeContentType(imgResource.getFile().toPath());
-                if (imageContentType == null) {
-                    imageContentType = MimeTypeUtils.IMAGE_PNG_VALUE;
-                    log.warn("Could not determine content type for image, using default: {}", imageContentType);
-                }
+                log.info("Successfully loaded image: {}", imageBytes);
 
                 Context context = new Context();
 
@@ -85,7 +79,7 @@ public class EmailServiceImpl implements EmailService {
                 final InputStreamSource imageSource = new ByteArrayResource(imageBytes);
                 if (imageResourceName != null) {
                     log.info("Adding inline image to email with name: {}", imageResourceName);
-                    helper.addInline(imageResourceName, imageSource, imageContentType);
+                    helper.addInline(imageResourceName, imageSource, MimeTypeUtils.IMAGE_PNG_VALUE);
                 }
                 log.info("Process Template Engine");
 
