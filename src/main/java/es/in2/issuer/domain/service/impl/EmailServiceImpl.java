@@ -18,7 +18,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
-import java.nio.file.Files;
 
 import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
@@ -79,7 +78,7 @@ public class EmailServiceImpl implements EmailService {
                 final InputStreamSource imageSource = new ByteArrayResource(imageBytes);
                 if (imageResourceName != null) {
                     log.info("Adding inline image to email with name: {}", imageResourceName);
-                    helper.addInline(imageResourceName, imageSource, MimeTypeUtils.IMAGE_PNG_VALUE);
+                    helper.addInline("file:"+ imageResourceName, imageSource, MimeTypeUtils.IMAGE_PNG_VALUE);
                 }
                 log.info("Process Template Engine");
 
