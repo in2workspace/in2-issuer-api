@@ -36,16 +36,18 @@ class CredentialOfferServiceImplTest {
     void testBuildCustomCredentialOffer() {
         String credentialType = "type1";
         String preAuthCode = "code123";
+        String email = "example@exmple.com";
+        String pin = "1234";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
         when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
-        StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant))
+        StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant, email, pin))
                 .expectNextMatches(offer ->
-                        offer.credentialIssuer().equals("https://example.com") &&
-                                offer.credentials().size() == 1 &&
-                                offer.credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_EMPLOYEE)) &&
-                                offer.grants().containsKey(GRANT_TYPE) &&
-                                offer.grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&
-                                offer.grants().get(GRANT_TYPE).txCode().length() == 4
+                        offer.credentialOffer().credentialIssuer().equals("https://example.com") &&
+                                offer.credentialOffer().credentials().size() == 1 &&
+                                offer.credentialOffer().credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_EMPLOYEE)) &&
+                                offer.credentialOffer().grants().containsKey(GRANT_TYPE) &&
+                                offer.credentialOffer().grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&
+                                offer.credentialOffer().grants().get(GRANT_TYPE).txCode().length() == 4
                 )
                 .verifyComplete();
     }

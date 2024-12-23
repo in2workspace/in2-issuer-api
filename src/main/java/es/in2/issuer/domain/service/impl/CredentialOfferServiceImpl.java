@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.Grant;
 import es.in2.issuer.domain.service.CredentialOfferService;
@@ -27,17 +28,24 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final AppConfig appConfig;
 
     @Override
-    public Mono<CustomCredentialOffer> buildCustomCredentialOffer(String credentialType, Grant grant) {
-        return Mono.just(CustomCredentialOffer.builder()
-                .credentialIssuer(appConfig.getIssuerApiExternalDomain())
-                .credentials(List.of(CustomCredentialOffer.Credential.builder()
-                        .format(JWT_VC_JSON)
-                        .types(List.of(credentialType))
-                        .build()
-                ))
-                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
-                .grants(Map.of(GRANT_TYPE, grant))
-                .build());
+    public Mono<CredentialOfferData> buildCustomCredentialOffer(String credentialType, Grant grant, String employeeEmail, String pin) {
+        return Mono.just(
+
+                CredentialOfferData.builder()
+                        .credentialOffer(CustomCredentialOffer.builder()
+                                        .credentialIssuer(appConfig.getIssuerApiExternalDomain())
+                                        .credentials(List.of(CustomCredentialOffer.Credential.builder()
+                                                .format(JWT_VC_JSON)
+                                                .types(List.of(credentialType))
+                                                .build()
+                                        ))
+                                        .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
+                                        .grants(Map.of(GRANT_TYPE, grant))
+                                .build()
+                        )
+                        .employeeEmail(employeeEmail)
+                        .pin(pin)
+                        .build());
     }
 
     @Override

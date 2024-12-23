@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
@@ -16,15 +17,15 @@ import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 @RequiredArgsConstructor
 public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCacheStorageService {
 
-    private final CacheStore<CustomCredentialOffer> cacheStore;
+    private final CacheStore<CredentialOfferData> cacheStore;
 
     @Override
-    public Mono<String> saveCustomCredentialOffer(CustomCredentialOffer customCredentialOffer) {
-        return generateCustomNonce().flatMap(nonce -> cacheStore.add(nonce, customCredentialOffer));
+    public Mono<String> saveCustomCredentialOffer(CredentialOfferData credentialOfferData) {
+        return generateCustomNonce().flatMap(nonce -> cacheStore.add(nonce, credentialOfferData));
     }
 
     @Override
-    public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
+    public Mono<CredentialOfferData> getCustomCredentialOffer(String nonce) {
         return cacheStore.get(nonce)
                 .doOnSuccess(customCredentialOffer -> {
                     if (customCredentialOffer != null) {
