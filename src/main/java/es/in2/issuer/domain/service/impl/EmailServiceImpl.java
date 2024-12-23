@@ -4,20 +4,17 @@ import es.in2.issuer.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.InputStreamSource;
+import net.glxn.qrgen.javase.QRCode;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MimeTypeUtils;
-import org.springframework.util.StreamUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
+import java.util.Base64;
 
 import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
@@ -57,39 +54,21 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            try {
-                ClassPathResource imgResource = new ClassPathResource("static/img/qr-wallet.png");
-                String imageResourceName = imgResource.getFilename();
+            String qrImageBase64 = generateQRCodeImageBase64();
 
-                log.info("Attempting to load image: {}", imageResourceName);
-                InputStream imageStream = imgResource.getInputStream();
-                byte[] imageBytes = StreamUtils.copyToByteArray(imageStream);
-                log.info("Successfully loaded image: {}", imageBytes);
+            Context context = new Context();
+            context.setVariable("link", link);
+            context.setVariable("user", user);
+            context.setVariable("organization", organization);
+            context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+            context.setVariable("qrImage", "data:image/png;base64," + qrImageBase64);
 
-                Context context = new Context();
+            log.info("Context set");
+            log.info("Process Template Engine");
+            String htmlContent = templateEngine.process("activate-credential-email", context);
+            helper.setText(htmlContent, true);
 
-                context.setVariable("link", link);
-                context.setVariable("user", user);
-                context.setVariable("organization", organization);
-                context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
-                context.setVariable("imageResourceName", imageResourceName);
-
-                log.info("Context set");
-                final InputStreamSource imageSource = new ByteArrayResource(imageBytes);
-                if (imageResourceName != null) {
-                    log.info("Adding inline image to email with name: {}", imageResourceName);
-                    helper.addInline("file:"+ imageResourceName, imageSource, MimeTypeUtils.IMAGE_PNG_VALUE);
-                }
-                log.info("Process Template Engine");
-
-                String htmlContent = templateEngine.process("activate-credential-email", context);
-                helper.setText(htmlContent, true);
-
-                javaMailSender.send(mimeMessage);
-            } catch (IOException e) {
-                log.error("Error loading image or processing email: {}", e.getMessage(), e);
-                throw new RuntimeException("Error processing email", e);
-            }
+            javaMailSender.send(mimeMessage);
 
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
@@ -133,5 +112,12 @@ public class EmailServiceImpl implements EmailService {
             javaMailSender.send(mimeMessage);
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    private String generateQRCodeImageBase64() {
+        ByteArrayOutputStream stream = QRCode.from("https://wallet.dome-marketplace.org/").withSize(250,250).stream();
+        byte[] imageBytes = stream.toByteArray();
+        log.info("QR Bytes generated");
+        return Base64.getEncoder().encodeToString(imageBytes);
     }
 }
