@@ -4,17 +4,14 @@ import es.in2.issuer.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.http.MediaType;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.MimeTypeUtils;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.util.StreamUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
@@ -22,8 +19,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.util.Base64;
-import java.util.Objects;
 
 import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
@@ -68,7 +63,8 @@ public class EmailServiceImpl implements EmailService {
                 String imageResourceName = imgResource.getFilename();
 
                 log.info("Attempting to load image: {}", imageResourceName);
-                byte[] imageBytes = Files.readAllBytes(imgResource.getFile().toPath());
+                InputStream imageStream = imgResource.getInputStream();
+                byte[] imageBytes = StreamUtils.copyToByteArray(imageStream);
                 log.info("Successfully loaded image: {}", imageResourceName);
 
                 String imageContentType = Files.probeContentType(imgResource.getFile().toPath());
