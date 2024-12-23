@@ -81,11 +81,13 @@ public class EmailServiceImpl implements EmailService {
                 context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
                 context.setVariable("imageResourceName", imageResourceName);
 
+                log.info("Context set");
                 final InputStreamSource imageSource = new ByteArrayResource(imageBytes);
                 if (imageResourceName != null) {
                     log.info("Adding inline image to email with name: {}", imageResourceName);
                     helper.addInline(imageResourceName, imageSource, imageContentType);
                 }
+                log.info("Process Template Engine");
 
                 String htmlContent = templateEngine.process("activate-credential-email", context);
                 helper.setText(htmlContent, true);
