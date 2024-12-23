@@ -2,7 +2,6 @@ package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
