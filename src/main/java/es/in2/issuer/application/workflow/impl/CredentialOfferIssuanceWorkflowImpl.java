@@ -49,6 +49,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                 .flatMap(this::buildCredentialOfferUriInternal);
     }
 
+    // Add logs to debug the process
     private Mono<CredentialOfferUriResponse> buildCredentialOfferUriInternal(String transactionCode) {
         return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                 .flatMap(procedureId ->
