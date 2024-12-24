@@ -4,10 +4,15 @@ import es.in2.issuer.domain.service.EmailService;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
+import org.springframework.util.StreamUtils;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
@@ -53,21 +58,39 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            FileSystemResource image = new FileSystemResource(new File("src/main/resources/static/images/qr.png"));
+            try {
+                ClassPathResource imgResource = new ClassPathResource("static/images/qr-wallet.png");
+                String imageResourceName = imgResource.getFilename();
 
-            Context context = new Context();
-            context.setVariable("link", link);
-            context.setVariable("user", user);
-            context.setVariable("organization", organization);
-            context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+                log.info("Attempting to load image: {}", imageResourceName);
+                InputStream imageStream = imgResource.getInputStream();
+                byte[] imageBytes = StreamUtils.copyToByteArray(imageStream);
+                log.info("Successfully loaded image: {}", imageBytes);
 
-            log.info("Context set");
-            log.info("Process Template Engine");
-            String htmlContent = templateEngine.process("activate-credential-email", context);
-            helper.setText(htmlContent, true);
+                Context context = new Context();
+                context.setVariable("link", link);
+                context.setVariable("user", user);
+                context.setVariable("organization", organization);
+                context.setVariable("knowledgebaseUrl", knowledgebaseUrl);
+                context.setVariable("imageResourceName", "cid:" + imageResourceName);
 
-            helper.addInline("qrWalletImage", image);
-            javaMailSender.send(mimeMessage);
+                log.info("Context set");
+                log.info("Process Template Engine");
+
+                String htmlContent = templateEngine.process("activate-credential-email", context);
+                helper.setText(htmlContent, true);
+
+                final InputStreamSource imageSource = new ByteArrayResource(imageBytes);
+                if (imageResourceName != null) {
+                    log.info("Adding inline image to email with name: {}", imageResourceName);
+                    helper.addInline(imageResourceName, imageSource, MimeTypeUtils.IMAGE_PNG_VALUE);
+                }
+
+                javaMailSender.send(mimeMessage);
+            } catch (IOException e) {
+                log.error("Error loading image or processing email: {}", e.getMessage(), e);
+                throw new RuntimeException("Error processing email", e);
+            }
 
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
