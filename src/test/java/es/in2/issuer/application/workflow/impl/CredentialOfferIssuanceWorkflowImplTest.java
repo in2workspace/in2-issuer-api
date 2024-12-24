@@ -3,6 +3,7 @@ package es.in2.issuer.application.workflow.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
@@ -127,6 +128,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
         when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
+        when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId)).thenReturn(Mono.just("WITHDRAWN"));
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
         when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant(), mail, preAuthCodeResponse.pin())).thenReturn(Mono.just(credentialOfferData));
 
@@ -174,6 +176,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
 
         when(deferredCredentialMetadataService.validateCTransactionCode(subTransactionCode)).thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode)).thenReturn(Mono.just(procedureId));
+        when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId)).thenReturn(Mono.just("DRAFT"));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId)).thenReturn(Mono.just(credentialType));
 
         when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
