@@ -192,4 +192,9 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
+    @ExceptionHandler(CredentialAlreadyIssuedException.class)
+    public Mono<ResponseEntity<Void>> handleCredentialAlreadyIssuedException(CredentialAlreadyIssuedException ex) {
+        log.error(ex.getMessage());
+        return Mono.just(new ResponseEntity<>(HttpStatus.CONFLICT));
+    }
 }
