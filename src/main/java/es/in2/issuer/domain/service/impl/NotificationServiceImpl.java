@@ -36,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
                                                 .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
                                                         email,
-                                                        "Credential Offer",
+                                                        "Activate your new credential",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
                                                         appConfig.getKnowledgebaseUrl(),
                                                         completeName,

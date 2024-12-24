@@ -56,7 +56,7 @@ class NotificationServiceImplTest {
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
         when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgebaseUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer",
+        when(emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential",
                 issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,knowledgebaseUrl, user,organization))
                 .thenReturn(Mono.empty());
 

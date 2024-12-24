@@ -118,7 +118,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
         when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgebaseUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "https://knwoledgebase.com", "Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Activate your new credential",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "https://knwoledgebase.com", "Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest))
                 .verifyComplete();
