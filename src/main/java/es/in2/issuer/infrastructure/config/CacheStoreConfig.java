@@ -24,6 +24,10 @@ public class CacheStoreConfig {
     public CacheStore<String> cacheStoreForTransactionCode() {
         return new CacheStore<>(72, TimeUnit.HOURS);
     }
+    @Bean
+    public CacheStore<String> cacheStoreForCTransactionCode() {
+        return new CacheStore<>(10, TimeUnit.MINUTES);
+    }
 
     @Bean
     public CacheStore<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {

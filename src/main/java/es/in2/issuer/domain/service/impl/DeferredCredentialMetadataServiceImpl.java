@@ -20,10 +20,18 @@ import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
 public class DeferredCredentialMetadataServiceImpl implements DeferredCredentialMetadataService {
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
     private final CacheStore<String> cacheStoreForTransactionCode;
+    private final CacheStore<String> cacheStoreForCTransactionCode;
 
     @Override
     public Mono<Void> validateTransactionCode(String transactionCode) {
         return cacheStoreForTransactionCode.get(transactionCode).flatMap(cacheStoreForTransactionCode::delete);
+    }
+
+    @Override
+    public Mono<String> validateCTransactionCode(String cTransactionCode) {
+        return cacheStoreForCTransactionCode.get(cTransactionCode)
+                .flatMap(transactionCode -> cacheStoreForCTransactionCode.delete(cTransactionCode)
+                        .then(Mono.just(transactionCode)));
     }
 
     @Override
@@ -53,6 +61,12 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then(Mono.just(transactionCode));
                 });
+    }
+
+    @Override
+    public Mono<String> updateCacheStoreForCTransactionCode(String transactionCode) {
+        return generateCustomNonce()
+                .flatMap(cTransactionCode -> cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode));
     }
 
     @Override
