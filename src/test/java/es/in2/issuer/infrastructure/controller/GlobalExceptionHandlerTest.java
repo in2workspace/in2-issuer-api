@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
-import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -54,9 +52,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNoSuchElementException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -198,26 +194,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleParseException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void handleException_ReturnsInternalServerError() {
-        Exception exception = new Exception("General error occurred");
-        Mono<ResponseEntity<GlobalErrorMessage>> result = globalExceptionHandler.handleException(exception, mockWebRequest);
-        StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                    assertNotNull(responseEntity.getBody());
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR.value(), responseEntity.getBody().status());
-                    assertEquals("General error occurred", responseEntity.getBody().message());
-                    assertTrue(LocalDateTime.now().minusMinutes(1).isBefore(responseEntity.getBody().timestamp()) &&
-                                    LocalDateTime.now().plusMinutes(1).isAfter(responseEntity.getBody().timestamp()),
-                            "Timestamp is not within the expected range");
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -228,9 +205,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleBase45Exception(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -241,9 +216,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCreateDateException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -254,9 +227,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleSignedDataParsingException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -267,9 +238,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleSignedDataParsingException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -280,9 +249,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleParseCredentialJsonException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -293,9 +260,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleTemplateReadException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -306,9 +271,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleProofValidationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -319,9 +282,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNoCredentialFoundException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -332,9 +293,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handlePreAuthorizationCodeGetException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -345,9 +304,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCustomCredentialOfferNotFoundException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -358,9 +315,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNonceValidationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 

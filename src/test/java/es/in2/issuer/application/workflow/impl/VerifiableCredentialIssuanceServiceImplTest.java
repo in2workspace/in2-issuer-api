@@ -113,12 +113,12 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).build();
         String transactionCode = "4321";
         String issuerUIExternalDomain = "https://issuer-ui.com";
-        String walletUrl = "https://wallet.com";
+        String knowledgebaseUrl = "https://knwoledgebase.com";
 
         when(verifiableCredentialService.generateVc(processId,type, issuanceRequest)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUIExternalDomain);
-        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Credential Offer",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "Jhon",walletUrl)).thenReturn(Mono.empty());
+        when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgebaseUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Activate your new credential",issuerUIExternalDomain + "/credential-offer?transaction_code=" + transactionCode, "https://knwoledgebase.com", "Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest))
                 .verifyComplete();

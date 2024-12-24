@@ -30,7 +30,7 @@ class EmailServiceImplTest {
     private EmailServiceImpl emailService;
 
     @Test
-    void testSendPin() throws Exception {
+    void testSendPin() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("pin-email"), any(Context.class))).thenReturn("htmlContent");
@@ -44,12 +44,12 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendTransactionCodeForCredentialOffer() throws Exception {
+    void testSendTransactionCodeForCredentialOffer() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-        when(templateEngine.process(eq("transaction-code-email"), any(Context.class))).thenReturn("htmlContent");
+        when(templateEngine.process(eq("activate-credential-email"), any(Context.class))).thenReturn("htmlContent");
 
-        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "\"John\"","walletUrl");
+        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "knowledgebaseUrl","user","organization");
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -58,7 +58,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendPendingCredentialNotification() throws Exception {
+    void testSendPendingCredentialNotification() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-pending-notification"), any(Context.class))).thenReturn("htmlContent");
@@ -72,7 +72,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendCredentialSignedNotification() throws Exception {
+    void testSendCredentialSignedNotification() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-signed-notification"), any(Context.class))).thenReturn("htmlContent");

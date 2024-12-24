@@ -38,9 +38,10 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest) {
         return verifiableCredentialService.generateVc(processId, type, issuanceRequest)
                 .flatMap(transactionCode -> {
-                    String email = issuanceRequest.payload().get("mandatee").get("email").asText();
-                    String firstName = issuanceRequest.payload().get("mandatee").get("first_name").asText();
-                    return emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, firstName, appConfig.getWalletUrl());
+                    String email = issuanceRequest.payload().get(MANDATEE).get(EMAIL).asText();
+                    String user = issuanceRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + issuanceRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
+                    String organization = issuanceRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
+                    return emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, appConfig.getKnowledgebaseUrl(), user, organization);
                 });
     }
 
