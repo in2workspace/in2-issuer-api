@@ -49,7 +49,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     @Override
-    public Mono<String> createCredentialOfferUri(String nonce) {
+    public Mono<String> createCredentialOfferUriResponse(String nonce) {
         String url = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain() + CREDENTIAL_OFFER + "/" + nonce);
         String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
         return Mono.just(OPENID_CREDENTIAL_OFFER + encodedUrl);

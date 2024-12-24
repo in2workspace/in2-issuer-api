@@ -2,10 +2,7 @@ package es.in2.issuer.application.workflow.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.domain.model.dto.Grant;
-import es.in2.issuer.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
@@ -135,11 +132,82 @@ class CredentialOfferIssuanceWorkflowImplTest {
 
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
 
-        when(credentialOfferService.createCredentialOfferUri(nonce)).thenReturn(Mono.just(credentialOfferUri));
+        when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)).thenReturn(Mono.just("cTransactionCode"));
 
         StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionCode))
-                .expectNext(credentialOfferUri)
+                .expectNext(CredentialOfferUriResponse.builder()
+                        .credentialOfferUri(credentialOfferUri)
+                        .cTransactionCode("cTransactionCode")
+                        .build())
                 .verifyComplete();
     }
 
+    @Test
+    void testBuildNewCredentialOfferUri() throws JsonProcessingException {
+        String processId = "1234";
+        String subTransactionCode = "9876";
+        String originalTransactionCode = "4321";
+        String procedureId = "uuid1234";
+        String credentialType = "VerifiableCredential";
+        String accessToken = "ey1234";
+        String nonce = "nonce";
+        String credentialOfferUri = "https://example.com/1234";
+        String mail = "user@gmail.com";
+
+        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
+                .grant(Grant.builder()
+                        .preAuthorizedCode("1234")
+                        .txCode(Grant.TxCode.builder()
+                                .length(4)
+                                .build())
+                        .build()
+                )
+                .build();
+
+        CredentialOfferData credentialOfferData = CredentialOfferData.builder()
+                .credentialOffer(CustomCredentialOffer.builder().build())
+                .pin("1234")
+                .employeeEmail(mail)
+                .build();
+
+
+        when(deferredCredentialMetadataService.validateCTransactionCode(subTransactionCode)).thenReturn(Mono.just(originalTransactionCode));
+        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode)).thenReturn(Mono.just(procedureId));
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId)).thenReturn(Mono.just(credentialType));
+
+        when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
+        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(accessToken));
+
+        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
+
+        // Create a mock ClientResponse for a successful response
+        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
+                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
+                .body("PreAuthorizedCode")
+                .build();
+
+        // Stub the exchange function to return the mock ClientResponse
+        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
+        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
+        when(webClientConfig.commonWebClient()).thenReturn(webClient);
+
+        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
+        when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(originalTransactionCode,preAuthCodeResponse.grant().preAuthorizedCode()))
+                .thenReturn(Mono.empty());
+        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
+        when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant(), mail, preAuthCodeResponse.pin())).thenReturn(Mono.just(credentialOfferData));
+
+        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
+
+        when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(originalTransactionCode)).thenReturn(Mono.just("cTransactionCode"));
+
+        StepVerifier.create(credentialOfferIssuanceService.buildNewCredentialOfferUri(processId,subTransactionCode))
+                .expectNext(CredentialOfferUriResponse.builder()
+                        .credentialOfferUri(credentialOfferUri)
+                        .cTransactionCode("cTransactionCode")
+                        .build())
+                .verifyComplete();
+    }
 }
