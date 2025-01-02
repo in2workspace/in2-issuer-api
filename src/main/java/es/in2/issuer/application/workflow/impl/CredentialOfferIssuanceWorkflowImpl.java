@@ -64,8 +64,10 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                     }
 
                                     if (credentialStatus == CredentialStatus.DRAFT || credentialStatus == CredentialStatus.WITHDRAWN) {
+                                        log.debug("The credential has not been issued yet");
                                         return Mono.just(procedureId);
                                     } else {
+                                        log.debug("The credential has already been issued");
                                         return Mono.error(new CredentialAlreadyIssuedException("The credential has already been issued"));
                                     }
                                 })
