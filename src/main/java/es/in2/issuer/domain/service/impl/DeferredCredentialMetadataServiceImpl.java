@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
@@ -84,10 +85,16 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
 
     @Override
     public Mono<String> getProcedureIdByTransactionCode(String transactionCode) {
-        log.debug("Getting procedureId by transactionCode: " + transactionCode);
+        log.debug("Getting procedureId by transactionCode: {}", transactionCode);
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
-                .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getProcedureId().toString()));
+                .flatMap(deferredCredentialMetadata -> {
+                    String procedureId = deferredCredentialMetadata.getProcedureId().toString();
+                    log.debug("Found procedureId: {} for transactionCode: {}", procedureId, transactionCode);
+                    return Mono.just(procedureId);
+                })
+                .switchIfEmpty(Mono.error(new CredentialAlreadyIssuedException("The credential has already been issued")));
     }
+
 
     @Override
     public Mono<String> getProcedureIdByAuthServerNonce(String authServerNonce) {

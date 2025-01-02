@@ -2,13 +2,11 @@ package es.in2.issuer.application.workflow.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
-import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.PreAuthCodeResponse;
-import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
@@ -53,58 +51,37 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private Mono<CredentialOfferUriResponse> buildCredentialOfferUriInternal(String transactionCode) {
         return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                 .flatMap(procedureId ->
-                        // Validate if the credential has already been issued
-                        credentialProcedureService.getCredentialStatusByProcedureId(procedureId)
-                                .flatMap(credentialStatusString -> {
-                                    CredentialStatus credentialStatus;
-                                    try {
-                                        credentialStatus = CredentialStatus.valueOf(credentialStatusString);
-                                        log.debug("Credential status: {}", credentialStatus);
-                                    } catch (IllegalArgumentException | NullPointerException e) {
-                                        return Mono.error(new IllegalStateException("Non valid status: " + credentialStatusString));
-                                    }
-
-                                    if (credentialStatus == CredentialStatus.DRAFT || credentialStatus == CredentialStatus.WITHDRAWN) {
-                                        log.debug("The credential has not been issued yet");
-                                        return Mono.just(procedureId);
-                                    } else {
-                                        log.debug("The credential has already been issued");
-                                        return Mono.error(new CredentialAlreadyIssuedException("The credential has already been issued"));
-                                    }
-                                })
-                                .flatMap(validProcedureId ->
-                                        credentialProcedureService.getCredentialTypeByProcedureId(validProcedureId)
-                                                .flatMap(credentialType ->
-                                                        getPreAuthorizationCodeFromIam()
-                                                                .flatMap(preAuthCodeResponse ->
-                                                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
-                                                                                        transactionCode,
-                                                                                        preAuthCodeResponse.grant().preAuthorizedCode()
-                                                                                )
-                                                                                .then(
-                                                                                        credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(validProcedureId)
-                                                                                )
-                                                                                .flatMap(email ->
-                                                                                        credentialOfferService.buildCustomCredentialOffer(
-                                                                                                        credentialType,
-                                                                                                        preAuthCodeResponse.grant(),
-                                                                                                        email,
-                                                                                                        preAuthCodeResponse.pin()
-                                                                                                )
-                                                                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                                                                                .flatMap(credentialOfferService::createCredentialOfferUriResponse)
-                                                                                )
+                        credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
+                                .flatMap(credentialType ->
+                                        getPreAuthorizationCodeFromIam()
+                                                .flatMap(preAuthCodeResponse ->
+                                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
+                                                                        transactionCode,
+                                                                        preAuthCodeResponse.grant().preAuthorizedCode()
                                                                 )
-                                                                .flatMap(credentialOfferUri ->
-                                                                        deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)
-                                                                                .flatMap(cTransactionCode ->
-                                                                                        Mono.just(
-                                                                                                CredentialOfferUriResponse.builder()
-                                                                                                        .credentialOfferUri(credentialOfferUri)
-                                                                                                        .cTransactionCode(cTransactionCode)
-                                                                                                        .build()
-                                                                                        )
+                                                                .then(
+                                                                        credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                                )
+                                                                .flatMap(email ->
+                                                                        credentialOfferService.buildCustomCredentialOffer(
+                                                                                        credentialType,
+                                                                                        preAuthCodeResponse.grant(),
+                                                                                        email,
+                                                                                        preAuthCodeResponse.pin()
                                                                                 )
+                                                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
+                                                                                .flatMap(credentialOfferService::createCredentialOfferUriResponse)
+                                                                )
+                                                )
+                                                .flatMap(credentialOfferUri ->
+                                                        deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)
+                                                                .flatMap(cTransactionCode ->
+                                                                        Mono.just(
+                                                                                CredentialOfferUriResponse.builder()
+                                                                                        .credentialOfferUri(credentialOfferUri)
+                                                                                        .cTransactionCode(cTransactionCode)
+                                                                                        .build()
+                                                                        )
                                                                 )
                                                 )
                                 )
@@ -128,27 +105,27 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
         return issuerApiClientTokenService.getClientToken()
                 .flatMap(
                         token ->
-                            webClient.commonWebClient()
-                            .get()
-                            .uri(url)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                            .exchangeToMono(response -> {
-                                if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
-                                    return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
-                                } else {
-                                    log.info("Pre Authorization code response: {}", response);
-                                    return response.bodyToMono(String.class);
-                                }
-                            })
-                            // Parsing response
-                            .flatMap(response -> {
-                                try {
-                                    return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
-                                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                                    return Mono.error(new ParseErrorException("Error parsing JSON response"));
-                                }
-                            })
+                                webClient.commonWebClient()
+                                        .get()
+                                        .uri(url)
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+                                        .exchangeToMono(response -> {
+                                            if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                                                return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
+                                            } else {
+                                                log.info("Pre Authorization code response: {}", response);
+                                                return response.bodyToMono(String.class);
+                                            }
+                                        })
+                                        // Parsing response
+                                        .flatMap(response -> {
+                                            try {
+                                                return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
+                                            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                                return Mono.error(new ParseErrorException("Error parsing JSON response"));
+                                            }
+                                        })
                 );
     }
 
