@@ -24,11 +24,13 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
 
     @Override
     public Mono<Void> validateTransactionCode(String transactionCode) {
+        log.debug("Validating transactionCode: " + transactionCode);
         return cacheStoreForTransactionCode.get(transactionCode).flatMap(cacheStoreForTransactionCode::delete);
     }
 
     @Override
     public Mono<String> validateCTransactionCode(String cTransactionCode) {
+        log.debug("Validating cTransactionCode: " + cTransactionCode);
         return cacheStoreForCTransactionCode.get(cTransactionCode)
                 .flatMap(transactionCode -> cacheStoreForCTransactionCode.delete(cTransactionCode)
                         .then(Mono.just(transactionCode)));
@@ -82,6 +84,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
 
     @Override
     public Mono<String> getProcedureIdByTransactionCode(String transactionCode) {
+        log.debug("Getting procedureId by transactionCode: " + transactionCode);
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
                 .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getProcedureId().toString()));
     }

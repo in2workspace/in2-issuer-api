@@ -59,6 +59,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                     CredentialStatus credentialStatus;
                                     try {
                                         credentialStatus = CredentialStatus.valueOf(credentialStatusString);
+                                        log.debug("Credential status: {}", credentialStatus);
                                     } catch (IllegalArgumentException | NullPointerException e) {
                                         return Mono.error(new IllegalStateException("Non valid status: " + credentialStatusString));
                                     }
