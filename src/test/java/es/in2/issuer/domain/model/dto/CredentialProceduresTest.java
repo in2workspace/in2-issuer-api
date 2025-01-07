@@ -16,6 +16,7 @@ class CredentialProceduresTest {
         ProcedureBasicInfo procedureBasicInfo = new ProcedureBasicInfo(
                 UUID.randomUUID(),
                 "John Doe",
+                "LEAR_CREDENTIAL_EMPLOYEE",
                 "In Progress",
                 Timestamp.valueOf("2023-01-01 12:00:00")
         );
@@ -35,6 +36,7 @@ class CredentialProceduresTest {
         ProcedureBasicInfo procedureBasicInfo = new ProcedureBasicInfo(
                 UUID.randomUUID(),
                 "Jane Doe",
+                "LEAR_CREDENTIAL_EMPLOYEE",
                 "Completed",
                 Timestamp.valueOf("2024-01-01 12:00:00")
         );
@@ -56,6 +58,7 @@ class CredentialProceduresTest {
         ProcedureBasicInfo procedureBasicInfo = new ProcedureBasicInfo(
                 UUID.randomUUID(),
                 "John Doe",
+                "LEAR_CREDENTIAL_EMPLOYEE",
                 "In Progress",
                 Timestamp.valueOf("2023-01-01 12:00:00")
         );

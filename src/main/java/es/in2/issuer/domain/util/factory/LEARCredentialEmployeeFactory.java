@@ -7,6 +7,7 @@ import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
+import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -186,6 +187,10 @@ public class LEARCredentialEmployeeFactory {
                                         .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
                                         .organizationIdentifier(organizationId)
                                         .credentialDecoded(decodedCredential)
+                                        .credentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE)
+                                        .subject(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandatee().firstName() +
+                                                " " +
+                                                learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
                                         .build()
                         )
                 );

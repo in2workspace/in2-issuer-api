@@ -3,12 +3,12 @@ package es.in2.issuer.domain.service;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.CredentialProcedures;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
+import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.impl.CredentialProcedureServiceImpl;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.Test;
@@ -47,11 +47,15 @@ class CredentialProcedureServiceImplTest {
         String organizationIdentifier = "org-123";
         String credentialDecoded = "{\"vc\":{\"type\":[\"VerifiableCredential\"]}}";
         String expectedProcedureId = UUID.randomUUID().toString();
+        String expectedCredentialType = "LEAR_CREDENTIAL_EMPLOYEE";
+        String expectedSubject = "TestSubject";
 
         CredentialProcedureCreationRequest request = CredentialProcedureCreationRequest.builder()
                 .credentialId(credentialId)
                 .organizationIdentifier(organizationIdentifier)
                 .credentialDecoded(credentialDecoded)
+                .subject(expectedSubject)
+                .credentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE)
                 .build();
 
         CredentialProcedure savedCredentialProcedure = CredentialProcedure.builder()
@@ -60,6 +64,8 @@ class CredentialProcedureServiceImplTest {
                 .credentialStatus(CredentialStatus.DRAFT)
                 .credentialDecoded(credentialDecoded)
                 .organizationIdentifier(organizationIdentifier)
+                .credentialType(expectedCredentialType)
+                .subject(expectedSubject)
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
 
@@ -563,6 +569,8 @@ class CredentialProcedureServiceImplTest {
         credentialProcedure1.setCredentialStatus(CredentialStatus.ISSUED);
         credentialProcedure1.setOrganizationIdentifier(organizationIdentifier);
         credentialProcedure1.setUpdatedAt(updated1);
+        credentialProcedure1.setCredentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE.toString());
+        credentialProcedure1.setSubject("John Doe");
 
         CredentialProcedure credentialProcedure2 = new CredentialProcedure();
         credentialProcedure2.setProcedureId(procedureId2);
@@ -570,6 +578,9 @@ class CredentialProcedureServiceImplTest {
         credentialProcedure2.setCredentialStatus(CredentialStatus.DRAFT);
         credentialProcedure2.setOrganizationIdentifier(organizationIdentifier);
         credentialProcedure2.setUpdatedAt(updated2);
+        credentialProcedure2.setCredentialType(CredentialType.VERIFIABLE_CERTIFICATION.toString());
+        credentialProcedure2.setSubject("ProductName");
+
 
         List<CredentialProcedure> procedures = List.of(credentialProcedure1, credentialProcedure2);
 
@@ -594,64 +605,17 @@ class CredentialProcedureServiceImplTest {
                     List<CredentialProcedures.CredentialProcedure> credentialProcedureList = credentialProcedures.credentialProcedures();
                     return credentialProcedureList.size() == 2 &&
                             credentialProcedureList.get(0).credentialProcedure().procedureId().equals(procedureId1) &&
-                            credentialProcedureList.get(0).credentialProcedure().fullName().equals("John Doe") &&
+                            credentialProcedureList.get(0).credentialProcedure().subject().equals("John Doe") &&
                             credentialProcedureList.get(0).credentialProcedure().status().equals(CredentialStatus.ISSUED.name()) &&
                             credentialProcedureList.get(0).credentialProcedure().updated().equals(updated1) &&
+                            credentialProcedureList.get(0).credentialProcedure().credentialType().equals(CredentialType.LEAR_CREDENTIAL_EMPLOYEE.name()) &&
                             credentialProcedureList.get(1).credentialProcedure().procedureId().equals(procedureId2) &&
-                            credentialProcedureList.get(1).credentialProcedure().fullName().equals("ProductName") &&
+                            credentialProcedureList.get(1).credentialProcedure().subject().equals("ProductName") &&
                             credentialProcedureList.get(1).credentialProcedure().status().equals(CredentialStatus.DRAFT.name()) &&
+                            credentialProcedureList.get(1).credentialProcedure().credentialType().equals(CredentialType.VERIFIABLE_CERTIFICATION.name()) &&
                             credentialProcedureList.get(1).credentialProcedure().updated().equals(updated2);
                 })
                 .verifyComplete();
-    }
-
-    @Test
-    void getAllProceduresBasicInfoByOrganizationId_shouldReturnUnsupportedTypeException() throws Exception {
-        // Given
-        String organizationIdentifier = "org-123";
-        String credentialDecoded1 = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-        String credentialDecoded2 = "{\"vc\":{\"type\":[\"NotSupportedType\",\"VerifiableCredential\"],\"credentialSubject\":{\"product\":{\"productName\":\"ProductName\", \"last_name\":\"Smith\"}}}}";
-
-        UUID procedureId1 = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
-        UUID procedureId2 = UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8");
-        Timestamp updated1 = Timestamp.from(Instant.now());
-        Timestamp updated2 = Timestamp.from(Instant.now().minusSeconds(3600));
-
-        CredentialProcedure credentialProcedure1 = new CredentialProcedure();
-        credentialProcedure1.setProcedureId(procedureId1);
-        credentialProcedure1.setCredentialDecoded(credentialDecoded1);
-        credentialProcedure1.setCredentialStatus(CredentialStatus.ISSUED);
-        credentialProcedure1.setOrganizationIdentifier(organizationIdentifier);
-        credentialProcedure1.setUpdatedAt(updated1);
-
-        CredentialProcedure credentialProcedure2 = new CredentialProcedure();
-        credentialProcedure2.setProcedureId(procedureId2);
-        credentialProcedure2.setCredentialDecoded(credentialDecoded2);
-        credentialProcedure2.setCredentialStatus(CredentialStatus.DRAFT);
-        credentialProcedure2.setOrganizationIdentifier(organizationIdentifier);
-        credentialProcedure2.setUpdatedAt(updated2);
-
-        List<CredentialProcedure> procedures = List.of(credentialProcedure1, credentialProcedure2);
-
-        JsonNode credentialNode1 = new ObjectMapper().readTree(credentialDecoded1);
-        JsonNode credentialNode2 = new ObjectMapper().readTree(credentialDecoded2);
-
-        // When
-        when(credentialProcedureRepository.findAllByOrganizationIdentifier(any(String.class)))
-                .thenReturn(Flux.fromIterable(procedures));
-        when(objectMapper.readTree(credentialDecoded1)).thenReturn(credentialNode1);
-        when(objectMapper.readTree(credentialDecoded2)).thenReturn(credentialNode2);
-
-        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure1));
-        when(credentialProcedureRepository.findById(UUID.fromString("bc4ea3b1-a90d-4303-976f-62342092bac8"))).thenReturn(Mono.just(credentialProcedure2));
-
-        // Execute
-        Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
-
-        // Then
-        StepVerifier.create(result)
-                .expectErrorMatches(CredentialTypeUnsupportedException.class::isInstance)
-                .verify();
     }
 
     @Test

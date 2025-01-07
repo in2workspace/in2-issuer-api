@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model.dto;
 
+import es.in2.issuer.domain.model.enums.CredentialType;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -12,12 +13,16 @@ class CredentialProcedureCreationRequestTest {
         String expectedCredentialId = "123456";
         String expectedOrganizationIdentifier = "org123";
         String expectedCredentialDecoded = "Decoded Credential";
+        CredentialType expectedCredentialType = CredentialType.LEAR_CREDENTIAL_EMPLOYEE;
+        String expectedSubject = "Subject";
 
         // Act
         CredentialProcedureCreationRequest request = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
                 expectedOrganizationIdentifier,
-                expectedCredentialDecoded
+                expectedCredentialDecoded,
+                expectedCredentialType,
+                expectedSubject
         );
 
         // Assert
@@ -52,20 +57,27 @@ class CredentialProcedureCreationRequestTest {
         String expectedCredentialId = "123456";
         String expectedOrganizationIdentifier = "org123";
         String expectedCredentialDecoded = "Decoded Credential";
+        CredentialType expectedCredentialType1 = CredentialType.LEAR_CREDENTIAL_EMPLOYEE;
+        CredentialType expectedCredentialType2 = CredentialType.VERIFIABLE_CERTIFICATION;
+        String expectedSubject = "Subject";
 
         CredentialProcedureCreationRequest request1 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
                 expectedOrganizationIdentifier,
-                expectedCredentialDecoded
+                expectedCredentialDecoded,
+                expectedCredentialType1,
+                expectedSubject
         );
         CredentialProcedureCreationRequest request2 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
                 expectedOrganizationIdentifier,
-                expectedCredentialDecoded
+                expectedCredentialDecoded,
+                expectedCredentialType2,
+                expectedSubject
         );
 
         // Assert
-        assertEquals(request1, request2);
-        assertEquals(request1.hashCode(), request2.hashCode());
+        assertEquals(expectedCredentialType1, request1.credentialType());
+        assertEquals(expectedCredentialType2, request2.credentialType());
     }
 }

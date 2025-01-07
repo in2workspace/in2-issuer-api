@@ -84,7 +84,10 @@ class CredentialProcedureTest {
                 ", credentialEncoded=" + credentialProcedure.getCredentialEncoded() +
                 ", credentialStatus=" + credentialProcedure.getCredentialStatus() +
                 ", organizationIdentifier=" + credentialProcedure.getOrganizationIdentifier() +
-                ", updatedAt=" + credentialProcedure.getUpdatedAt() + ")";
+                ", updatedAt=" + credentialProcedure.getUpdatedAt() +
+                ", subject=" + credentialProcedure.getSubject() +
+                ", credentialType=" + credentialProcedure.getCredentialType() +
+                ")";
         assertEquals(expected, credentialProcedure.toString());
     }
 }

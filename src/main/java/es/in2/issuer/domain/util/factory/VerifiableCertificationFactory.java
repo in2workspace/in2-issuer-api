@@ -9,6 +9,7 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import lombok.RequiredArgsConstructor;
@@ -140,6 +141,8 @@ public class VerifiableCertificationFactory {
                 .credentialId(verifiableCertificationJwtPayload.credential().id())
                 .organizationIdentifier(organizationId)
                 .credentialDecoded(decodedCredential)
+                .credentialType(CredentialType.VERIFIABLE_CERTIFICATION)
+                .subject(verifiableCertificationJwtPayload.credential().credentialSubject().product().productName())
                 .build()
         );
     }
