@@ -42,6 +42,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .organizationIdentifier(credentialProcedureCreationRequest.organizationIdentifier())
                 .credentialType(credentialProcedureCreationRequest.credentialType().toString())
                 .subject(credentialProcedureCreationRequest.subject())
+                .validUntil(credentialProcedureCreationRequest.validUntil())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
         return credentialProcedureRepository.save(credentialProcedure)
@@ -83,6 +84,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     credentialProcedure.setCredentialStatus(CredentialStatus.ISSUED);
                     credentialProcedure.setCredentialFormat(format);
                     credentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
+
                     return credentialProcedureRepository.save(credentialProcedure)
                             .doOnSuccess(result -> log.info("Updated credential"))
                             .then();

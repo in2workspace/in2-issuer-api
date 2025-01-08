@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -143,7 +145,12 @@ public class VerifiableCertificationFactory {
                 .credentialDecoded(decodedCredential)
                 .credentialType(CredentialType.VERIFIABLE_CERTIFICATION)
                 .subject(verifiableCertificationJwtPayload.credential().credentialSubject().product().productName())
+                .validUntil(parseEpochSecondIntoTimestamp(verifiableCertificationJwtPayload.expirationTime()))
                 .build()
         );
+    }
+
+    private Timestamp parseEpochSecondIntoTimestamp(Long unixEpochSeconds) {
+        return Timestamp.from(Instant.ofEpochSecond(unixEpochSeconds));
     }
 }

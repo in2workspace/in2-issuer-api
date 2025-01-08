@@ -49,6 +49,7 @@ class CredentialProcedureServiceImplTest {
         String expectedProcedureId = UUID.randomUUID().toString();
         String expectedCredentialType = "LEAR_CREDENTIAL_EMPLOYEE";
         String expectedSubject = "TestSubject";
+        Timestamp expectedValidUntil = new Timestamp(Instant.now().toEpochMilli() + 1000);
 
         CredentialProcedureCreationRequest request = CredentialProcedureCreationRequest.builder()
                 .credentialId(credentialId)
@@ -56,6 +57,7 @@ class CredentialProcedureServiceImplTest {
                 .credentialDecoded(credentialDecoded)
                 .subject(expectedSubject)
                 .credentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE)
+                .validUntil(expectedValidUntil)
                 .build();
 
         CredentialProcedure savedCredentialProcedure = CredentialProcedure.builder()
@@ -67,6 +69,7 @@ class CredentialProcedureServiceImplTest {
                 .credentialType(expectedCredentialType)
                 .subject(expectedSubject)
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
+                .validUntil(expectedValidUntil)
                 .build();
 
         // When

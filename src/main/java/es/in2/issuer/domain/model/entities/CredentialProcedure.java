@@ -49,4 +49,7 @@ public class CredentialProcedure {
 
     @Column("credential_type")
     private String credentialType;
+
+    @Column("valid_until")
+    private Timestamp validUntil;
 }

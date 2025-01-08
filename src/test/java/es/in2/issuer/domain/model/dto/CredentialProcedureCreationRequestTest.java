@@ -3,6 +3,8 @@ package es.in2.issuer.domain.model.dto;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import org.junit.jupiter.api.Test;
 
+import java.sql.Timestamp;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class CredentialProcedureCreationRequestTest {
@@ -15,6 +17,7 @@ class CredentialProcedureCreationRequestTest {
         String expectedCredentialDecoded = "Decoded Credential";
         CredentialType expectedCredentialType = CredentialType.LEAR_CREDENTIAL_EMPLOYEE;
         String expectedSubject = "Subject";
+        Timestamp expectedValidUntil = new Timestamp(System.currentTimeMillis());
 
         // Act
         CredentialProcedureCreationRequest request = new CredentialProcedureCreationRequest(
@@ -22,7 +25,8 @@ class CredentialProcedureCreationRequestTest {
                 expectedOrganizationIdentifier,
                 expectedCredentialDecoded,
                 expectedCredentialType,
-                expectedSubject
+                expectedSubject,
+                expectedValidUntil
         );
 
         // Assert
@@ -60,20 +64,23 @@ class CredentialProcedureCreationRequestTest {
         CredentialType expectedCredentialType1 = CredentialType.LEAR_CREDENTIAL_EMPLOYEE;
         CredentialType expectedCredentialType2 = CredentialType.VERIFIABLE_CERTIFICATION;
         String expectedSubject = "Subject";
+        Timestamp expectedValidUntil = new Timestamp(System.currentTimeMillis());
 
         CredentialProcedureCreationRequest request1 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
                 expectedOrganizationIdentifier,
                 expectedCredentialDecoded,
                 expectedCredentialType1,
-                expectedSubject
+                expectedSubject,
+                expectedValidUntil
         );
         CredentialProcedureCreationRequest request2 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
                 expectedOrganizationIdentifier,
                 expectedCredentialDecoded,
                 expectedCredentialType2,
-                expectedSubject
+                expectedSubject,
+                expectedValidUntil
         );
 
         // Assert
