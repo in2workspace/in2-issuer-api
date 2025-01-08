@@ -29,8 +29,6 @@ class AppConfigTest {
     private IssuerUiProperties issuerUiProperties;
 
     @Mock
-    private WalletProperties walletProperties;
-    @Mock
     private KnowledgeBaseProperties knowledgeBaseProperties;
 
     @Mock
@@ -42,7 +40,7 @@ class AppConfigTest {
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties,walletProperties, issuerIdentityProperties, knowledgeBaseProperties);
+        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties, issuerIdentityProperties, knowledgeBaseProperties);
     }
 
     @Test
@@ -59,19 +57,6 @@ class AppConfigTest {
         assertEquals(expectedDomain, actualDomain);
     }
 
-    @Test
-    void testGetWalletUrl() {
-        // Arrange
-        String expectedUrl = "https://wallet.example.com";
-        when(walletProperties.url()).thenReturn("wallet.url");
-        when(configAdapter.getConfiguration("wallet.url")).thenReturn(expectedUrl);
-
-        // Act
-        String actualUrl = appConfig.getWalletUrl();
-
-        // Assert
-        assertEquals(expectedUrl, actualUrl);
-    }
     @Test
     void testGetKnowledgeBaseUploadCertificationGuideUrl() {
         // Arrange

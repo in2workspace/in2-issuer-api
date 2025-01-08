@@ -147,11 +147,8 @@ remote-signature:
   paths:
     sign-path: "/signature/sign"
 
-wallet:
-  url: "https://wallet.dome-marketplace-lcl.org"
-
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
-
+  url: "http://knowledgebase.com"
 trust-framework:
   url: "http://localhost:8080"

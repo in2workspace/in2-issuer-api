@@ -346,6 +346,39 @@ class CredentialProcedureServiceImplTest {
     }
 
     @Test
+    void getMandateeCompleteNameFromDecodedCredentialByProcedureId_shouldReturnMandateeCompleteName() throws Exception {
+        // Given
+        String procedureId = UUID.randomUUID().toString();
+        String expectedFirstName = "John";
+        String expectedLastName = "Doe";
+        String expectedCompleteName = "John Doe";
+
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{" +
+                "\"first_name\":\"" + expectedFirstName + "\"," +
+                "\"last_name\":\"" + expectedLastName + "\"" +
+                "}}}}}";
+        CredentialProcedure credentialProcedure = new CredentialProcedure();
+        credentialProcedure.setProcedureId(UUID.fromString(procedureId));
+        credentialProcedure.setCredentialDecoded(credentialDecoded);
+
+        JsonNode credentialNode = new ObjectMapper().readTree(credentialDecoded);
+
+        // When
+        when(credentialProcedureRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(objectMapper.readTree(credentialDecoded))
+                .thenReturn(credentialNode);
+
+        // Execute
+        Mono<String> result = credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId);
+
+        // Then
+        StepVerifier.create(result)
+                .expectNext(expectedCompleteName)
+                .verifyComplete();
+    }
+
+    @Test
     void getSignerEmailFromDecodedCredentialByProcedureId_shouldReturnMandatorEmail() throws Exception {
         // Given
         String procedureId = UUID.randomUUID().toString();
@@ -523,6 +556,34 @@ class CredentialProcedureServiceImplTest {
     }
 
     @Test
+    void getMandatorOrganizationFromDecodedCredentialByProcedureId_shouldReturnMandatorOrganization() throws Exception {
+        // Given
+        String procedureId = UUID.randomUUID().toString();
+        String expectedOrganization = "organization";
+        String credentialDecoded = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organization\":\"" + expectedOrganization + "\"}}}}}";
+
+        CredentialProcedure credentialProcedure = new CredentialProcedure();
+        credentialProcedure.setProcedureId(UUID.fromString(procedureId));
+        credentialProcedure.setCredentialDecoded(credentialDecoded);
+
+        JsonNode credentialNode = new ObjectMapper().readTree(credentialDecoded);
+
+        // When
+        when(credentialProcedureRepository.findById(any(UUID.class)))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(objectMapper.readTree(credentialDecoded))
+                .thenReturn(credentialNode);
+
+        // Execute
+        Mono<String> result = credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId);
+
+        // Then
+        StepVerifier.create(result)
+                .expectNext(expectedOrganization)
+                .verifyComplete();
+    }
+
+    @Test
     void updateCredentialProcedureCredentialStatusToValidByProcedureId_shouldUpdateStatusToValid() {
         // Given
         String procedureId = UUID.randomUUID().toString();
@@ -646,7 +707,7 @@ class CredentialProcedureServiceImplTest {
 
         // Then
         StepVerifier.create(result)
-                .expectErrorMatches(RuntimeException.class::isInstance)
+                .expectErrorMatches(JsonParseException.class::isInstance)
                 .verify();
     }
 }

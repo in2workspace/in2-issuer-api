@@ -11,15 +11,13 @@ public class AppConfig {
     private final ConfigAdapter configAdapter;
     private final ApiProperties apiProperties;
     private final IssuerUiProperties issuerUiProperties;
-    private final WalletProperties walletProperties;
     private final IssuerIdentityProperties issuerIdentityProperties;
     private final KnowledgeBaseProperties knowledgeBaseProperties;
 
-    public AppConfig(ConfigAdapterFactory configAdapterFactory, ApiProperties apiProperties, IssuerUiProperties issuerUiProperties, WalletProperties walletProperties, IssuerIdentityProperties issuerIdentityProperties, KnowledgeBaseProperties knowledgeBaseProperties) {
+    public AppConfig(ConfigAdapterFactory configAdapterFactory, ApiProperties apiProperties, IssuerUiProperties issuerUiProperties, IssuerIdentityProperties issuerIdentityProperties, KnowledgeBaseProperties knowledgeBaseProperties) {
         this.configAdapter = configAdapterFactory.getAdapter();
         this.apiProperties = apiProperties;
         this.issuerUiProperties = issuerUiProperties;
-        this.walletProperties = walletProperties;
         this.issuerIdentityProperties = issuerIdentityProperties;
         this.knowledgeBaseProperties = knowledgeBaseProperties;
     }
@@ -32,8 +30,8 @@ public class AppConfig {
         return configAdapter.getConfiguration(issuerUiProperties.externalDomain());
     }
 
-    public String getWalletUrl() {
-        return configAdapter.getConfiguration(walletProperties.url());
+    public String getKnowledgebaseUrl() {
+        return configAdapter.getConfiguration(knowledgebaseProperties.url());
     }
 
     public String getKnowledgeBaseUploadCertificationGuideUrl() {

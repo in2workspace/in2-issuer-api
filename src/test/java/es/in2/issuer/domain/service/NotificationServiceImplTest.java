@@ -21,8 +21,9 @@ class NotificationServiceImplTest {
     private final String processId = "processId";
     private final String procedureId = "procedureId";
     private final String email = "test@example.com";
-    private final String firstName = "John";
-    private final String walletUrl = "walletUrl";
+    private final String user = "Jhon";
+    private final String knowledgebaseUrl = "http://knowledgebaseUrl.com";
+    private final String organization = "organization";
     private final String issuerUiExternalDomain = "http://example.com";
 
     @Mock
@@ -48,13 +49,15 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
-                .thenReturn(Mono.just(firstName));
+        when(credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(user));
+        when(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(organization));
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
-        when(appConfig.getWalletUrl()).thenReturn(walletUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer(email, "Credential Offer",
-                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, firstName,walletUrl))
+        when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgebaseUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential",
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,knowledgebaseUrl, user,organization))
                 .thenReturn(Mono.empty());
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
@@ -62,7 +65,7 @@ class NotificationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -71,9 +74,11 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(CredentialStatus.PEND_DOWNLOAD.toString()));
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
-                .thenReturn(Mono.just(firstName));
-        when(emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName))
+        when(credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(user));
+        when(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(organization));
+        when(emailService.sendCredentialSignedNotification(email, "Credential Ready", user))
                 .thenReturn(Mono.empty());
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
@@ -90,15 +95,17 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just("UNHANDLED_STATUS"));
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(email));
-        when(credentialProcedureService.getMandateeFirstNameFromDecodedCredentialByProcedureId(procedureId))
-                .thenReturn(Mono.just(firstName));
+        when(credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(user));
+        when(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(organization));
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
 
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, never()).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(emailService, never()).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(emailService, never()).sendCredentialSignedNotification(anyString(), anyString(), anyString());
     }
 }

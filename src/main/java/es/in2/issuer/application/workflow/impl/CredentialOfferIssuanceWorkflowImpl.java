@@ -16,8 +16,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-
 import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 
 @Slf4j
@@ -43,21 +41,21 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                         .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
                                 .flatMap(preAuthCodeResponse ->
                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode, preAuthCodeResponse.grant().preAuthorizedCode())
-                                                .then(credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant())
+                                                .then(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+                                                .flatMap(email -> credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant(),email,preAuthCodeResponse.pin())
                                                         .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                                        .flatMap(credentialOfferService::createCredentialOfferUri)
-                                                        .flatMap(credentialOfferUri -> credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
-                                                                .flatMap(email -> emailService.sendPin(email, "Pin Code", preAuthCodeResponse.pin()))
-                                                                .thenReturn(credentialOfferUri))
+                                                        .flatMap(credentialOfferService::createCredentialOfferUri))
                                                 )
                                 )
-                        )
                 );
     }
 
     @Override
     public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
-        return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce);
+        return credentialOfferCacheStorageService.getCustomCredentialOffer(nonce)
+                .flatMap(credentialOfferData -> emailService.sendPin(credentialOfferData.employeeEmail(), "Pin Code", credentialOfferData.pin())
+                        .then(Mono.just(credentialOfferData.credentialOffer()))
+                );
     }
 
     private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {

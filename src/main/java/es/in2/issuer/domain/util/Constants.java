@@ -32,6 +32,7 @@ public class Constants {
     public static final String SIGNER = "signer";
     public static final String PRODUCT = "product";
     public static final String PRODUCT_NAME = "productName";
+    public static final String MANDATOR = "mandator";
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
     public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
@@ -51,7 +52,6 @@ public class Constants {
     public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
     public static final String CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded";
     public static final String DID_ELSI = "did:elsi:";
-    public static final String DID_KEY = "did:key:";
     public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
@@ -61,4 +61,6 @@ public class Constants {
     public static final long MSBALL = 0xFFFFFF80L;
     public static final String IN2_ORGANIZATION_IDENTIFIER = "VATES-B60645900";
 
+    // ERROR MESSAGES
+    public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
 }

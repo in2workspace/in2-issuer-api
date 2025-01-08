@@ -30,7 +30,7 @@ class EmailServiceImplTest {
     private EmailServiceImpl emailService;
 
     @Test
-    void testSendPin(){
+    void testSendPin() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("pin-email"), any(Context.class))).thenReturn("htmlContent");
@@ -44,12 +44,12 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendTransactionCodeForCredentialOffer(){
+    void testSendTransactionCodeForCredentialOffer() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
-        when(templateEngine.process(eq("transaction-code-email"), any(Context.class))).thenReturn("htmlContent");
+        when(templateEngine.process(eq("activate-credential-email"), any(Context.class))).thenReturn("htmlContent");
 
-        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "\"John\"","walletUrl");
+        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "knowledgebaseUrl","user","organization");
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -58,7 +58,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendPendingCredentialNotification(){
+    void testSendPendingCredentialNotification() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-pending-notification"), any(Context.class))).thenReturn("htmlContent");
@@ -72,7 +72,7 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendCredentialSignedNotification(){
+    void testSendCredentialSignedNotification() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-signed-notification"), any(Context.class))).thenReturn("htmlContent");

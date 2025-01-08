@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - List credentials in order from newest to oldest.
 
+## [v1.1.3](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.3)
+### Changed
+- Change the Credential Offer email template
+
+## [v1.1.2](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.2)
+### Changed
+- Change the order of the received email from the pin during the issuance of a credential.
+
 ## [v1.1.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.1)
 ### Fixed
 - Fixed LEARCredentialEmployee data model. Implement W3C DATA model v2.0 (validFrom, validUntil). 

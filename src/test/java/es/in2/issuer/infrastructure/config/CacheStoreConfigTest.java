@@ -1,6 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +51,7 @@ class CacheStoreConfigTest {
         long cacheLifetime = 60;
         when(appConfig.getCacheLifetimeForCredentialOffer()).thenReturn(cacheLifetime);
 
-        CacheStore<CustomCredentialOffer> customCredentialOfferCacheStore = cacheStoreConfig.cacheStoreForCredentialOffer();
+        CacheStore<CredentialOfferData> customCredentialOfferCacheStore = cacheStoreConfig.cacheStoreForCredentialOffer();
         assertNotNull(customCredentialOfferCacheStore);
     }
 }

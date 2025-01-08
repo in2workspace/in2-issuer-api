@@ -2,7 +2,6 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
-import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -10,12 +9,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 @Slf4j
@@ -142,22 +139,6 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<Void>> handleParseException(ParseException ex) {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-    }
-
-    @ExceptionHandler(Exception.class)
-    public Mono<ResponseEntity<GlobalErrorMessage>> handleException(Exception ex, WebRequest request) {
-        String message = ex.getMessage() != null ? ex.getMessage() : CredentialResponseErrorCodes.DEFAULT_ERROR;
-        log.error(message, ex);
-
-        GlobalErrorMessage customErrorResponse = new GlobalErrorMessage(
-                LocalDateTime.now(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                message,
-                request.getDescription(false)
-        );
-
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(customErrorResponse));
     }
 
     @ExceptionHandler(Base45Exception.class)

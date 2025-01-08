@@ -160,8 +160,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
                                 .build());
                     } catch (JsonProcessingException e) {
-                        log.warn("Error parsing credential", e);
-                        return Mono.error(new JsonParseException(null, "Error parsing credential"));
+                        log.warn(ERROR_PARSING_CREDENTIAL, e);
+                        return Mono.error(new JsonParseException(null, ERROR_PARSING_CREDENTIAL));
                     }
                 })
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));
@@ -175,6 +175,19 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     credentialProcedure.setCredentialStatus(CredentialStatus.PEND_DOWNLOAD);
                     return credentialProcedureRepository.save(credentialProcedure)
                             .then(Mono.just(credentialProcedure.getProcedureId().toString()));
+                });
+    }
+
+    @Override
+    public Mono<String> getMandatorOrganizationFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
                 });
     }
 
