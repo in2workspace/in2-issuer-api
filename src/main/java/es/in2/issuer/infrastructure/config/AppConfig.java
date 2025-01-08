@@ -31,7 +31,7 @@ public class AppConfig {
     }
 
     public String getKnowledgebaseUrl() {
-        return configAdapter.getConfiguration(knowledgebaseProperties.url());
+        return configAdapter.getConfiguration(knowledgeBaseProperties.url());
     }
 
     public String getKnowledgeBaseUploadCertificationGuideUrl() {

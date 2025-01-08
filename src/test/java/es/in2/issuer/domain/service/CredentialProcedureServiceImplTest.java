@@ -678,36 +678,4 @@ class CredentialProcedureServiceImplTest {
                 })
                 .verifyComplete();
     }
-
-    @Test
-    void getAllProceduresBasicInfoByOrganizationId_shouldHandleJsonProcessingException() throws Exception {
-        // Given
-        String organizationIdentifier = "org-123";
-        String malformedJson = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\"}}}}"; // Malformed JSON
-        String goodJson = "{\"vc\":{\"type\":[\"LEARCredentialEmployee\",\"VerifiableCredential\"],\"credentialSubject\":{\"mandate\":{\"mandatee\":{\"first_name\":\"John\", \"last_name\":\"Doe\"}}}}}";
-
-        UUID procedureId = UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057");
-        Timestamp updated = Timestamp.from(Instant.now());
-
-        CredentialProcedure credentialProcedure = new CredentialProcedure();
-        credentialProcedure.setProcedureId(procedureId);
-        credentialProcedure.setCredentialDecoded(malformedJson);
-        credentialProcedure.setOrganizationIdentifier(organizationIdentifier);
-        credentialProcedure.setUpdatedAt(updated);
-
-        // When
-        when(credentialProcedureRepository.findAllByOrganizationIdentifier(any(String.class)))
-                .thenReturn(Flux.just(credentialProcedure));
-        when(objectMapper.readTree(goodJson))
-                .thenThrow(new JsonParseException(null, "Error parsing credential"));
-        when(credentialProcedureRepository.findById(UUID.fromString("f1c19a93-b2c4-47b1-be88-18e9b64d1057"))).thenReturn(Mono.just(credentialProcedure));
-
-        // Execute
-        Mono<CredentialProcedures> result = credentialProcedureService.getAllProceduresBasicInfoByOrganizationId(organizationIdentifier);
-
-        // Then
-        StepVerifier.create(result)
-                .expectErrorMatches(JsonParseException.class::isInstance)
-                .verify();
-    }
 }

@@ -147,8 +147,9 @@ remote-signature:
   paths:
     sign-path: "/signature/sign"
 
+
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
-  url: "http://knowledgebase.com"
+  url: "https://knowledgebase.dome-marketplace-prd.org"
 trust-framework:
   url: "http://localhost:8080"

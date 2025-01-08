@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "knowledge-base")
 @Validated
 public record KnowledgeBaseProperties(
+        @NotNull String url,
         @NotNull String uploadCertificationGuideUrl
 ) {
 }

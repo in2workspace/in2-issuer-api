@@ -129,6 +129,19 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
+    public Mono<String> getMandateeCompleteNameFromDecodedCredentialByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText() + " " + credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(LAST_NAME).asText());
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
+                });
+    }
+
+    @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
@@ -209,7 +222,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                         .flatMap(credentialType -> Mono.just(ProcedureBasicInfo.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
                                 .subject(credentialProcedure.getSubject())
-                                .credentialType(credentialProcedure.getCredentialType().toString())
+                                .credentialType(credentialProcedure.getCredentialType())
                                 .status(String.valueOf(credentialProcedure.getCredentialStatus()))
                                 .updated(credentialProcedure.getUpdatedAt())
                                 .build())))
