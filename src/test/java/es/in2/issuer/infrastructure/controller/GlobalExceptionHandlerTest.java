@@ -117,7 +117,7 @@ class GlobalExceptionHandlerTest {
                     assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.INVALID_TOKEN, responseEntity.getBody().error());
-                    assertEquals("Credential Request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
+                    assertEquals("The request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
                 })
                 .verifyComplete();
     }
