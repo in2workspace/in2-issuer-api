@@ -10,8 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.domain.model.enums.CredentialStatus.PEND_DOWNLOAD;
-import static es.in2.issuer.domain.model.enums.CredentialStatus.WITHDRAWN;
+import static es.in2.issuer.domain.model.enums.CredentialStatus.*;
 
 @Slf4j
 @Service
@@ -32,7 +31,8 @@ public class NotificationServiceImpl implements NotificationService {
                                 .flatMap(tuple  -> {
                                     String completeName = tuple.getT1();
                                     String organization = tuple.getT2();
-                                    if (status.equals(WITHDRAWN.toString())) {
+                                    // TODO we need to remove the withdraw status from the condition since the v1.2.0 version is deprecated but in order to support retro compatibility issues we will keep it for now.
+                                    if (status.equals(DRAFT.toString()) || status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
                                                 .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
                                                         email,

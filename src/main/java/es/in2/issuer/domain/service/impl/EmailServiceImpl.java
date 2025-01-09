@@ -123,4 +123,40 @@ public class EmailServiceImpl implements EmailService {
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
+
+    @Override
+    public Mono<Void> sendResponseUriFailed(String to, String productId, String guideUrl) {
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
+            helper.setFrom(FROM_EMAIL);
+            helper.setTo(to);
+            helper.setSubject("Certification Submission to Marketplace Unsuccessful");
+
+            Context context = new Context();
+            context.setVariable("productId", productId);
+            context.setVariable("guideUrl", guideUrl);
+            String htmlContent = templateEngine.process("response-uri-failed", context);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
+
+    @Override
+    public Mono<Void> sendResponseUriAcceptedWithHtml(String to, String productId, String htmlContent) {
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
+            helper.setFrom(FROM_EMAIL);
+            helper.setTo(to);
+            helper.setSubject("Missing Documents for Certification: " + productId);
+
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
 }

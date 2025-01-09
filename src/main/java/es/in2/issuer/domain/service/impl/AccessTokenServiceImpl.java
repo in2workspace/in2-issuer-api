@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidTokenException;
 import es.in2.issuer.domain.service.AccessTokenService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -14,10 +15,13 @@ import reactor.core.publisher.Mono;
 
 import java.text.ParseException;
 
-import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
+import static es.in2.issuer.domain.util.Constants.*;
+
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AccessTokenServiceImpl implements AccessTokenService {
+
     @Override
     public Mono<String> getCleanBearerToken(String authorizationHeader) {
         return Mono.just(authorizationHeader)
