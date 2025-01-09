@@ -7,12 +7,14 @@ import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
+import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -31,7 +33,7 @@ public class LEARCredentialEmployeeFactory {
     private final AccessTokenService accessTokenService;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) throws InvalidCredentialFormatException {
-        LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployee(learCredential);
+        LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployeeJwtPayload(learCredential);
         return bindMandateeIdToLearCredentialEmployee(baseLearCredentialEmployee, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
@@ -46,7 +48,7 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    public LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
+    public LEARCredentialEmployeeJwtPayload mapStringToLEARCredentialEmployeeJwtPayload(String learCredential) throws InvalidCredentialFormatException {
         try {
             log.info(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class);
@@ -55,6 +57,18 @@ public class LEARCredentialEmployeeFactory {
             throw new InvalidCredentialFormatException("Error parsing LEARCredentialEmployeeJwtPayload");
         }
     }
+
+    public LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential) throws InvalidCredentialFormatException {
+        try {
+            log.info(objectMapper.readValue(learCredential, LEARCredentialEmployee.class).toString());
+            return objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing LEARCredentialEmployee", e);
+            throw new InvalidCredentialFormatException("Error parsing LEARCredentialEmployee");
+        }
+    }
+
+
 
     private LEARCredentialEmployee.CredentialSubject mapJsonNodeToCredentialSubject(JsonNode jsonNode) {
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class);
@@ -174,9 +188,17 @@ public class LEARCredentialEmployeeFactory {
                                         .credentialId(learCredentialEmployeeJwtPayload.learCredentialEmployee().id())
                                         .organizationIdentifier(organizationId)
                                         .credentialDecoded(decodedCredential)
+                                        .credentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE)
+                                        .subject(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandatee().firstName() +
+                                                " " +
+                                                learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
+                                        .validUntil(parseEpochSecondIntoTimestamp(learCredentialEmployeeJwtPayload.expirationTime()))
                                         .build()
                         )
                 );
+    }
+    private Timestamp parseEpochSecondIntoTimestamp(Long unixEpochSeconds) {
+        return Timestamp.from(Instant.ofEpochSecond(unixEpochSeconds));
     }
 
 }

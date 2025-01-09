@@ -80,6 +80,7 @@ class VerifiableCredentialServiceImplTest {
     @Test
     void generateVc_Success() throws Exception {
         // Arrange: Create a sample JsonNode for LEARCredentialRequest
+        String token = "token";
         JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
         IssuanceRequest issuanceRequest = IssuanceRequest.builder()
                 .payload(credentialJsonNode)
@@ -92,7 +93,7 @@ class VerifiableCredentialServiceImplTest {
                 .credentialDecoded("decoded-credential")
                 .build();
         String vcType = "vc-type-789";
-        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode))
+        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode,token))
                 .thenReturn(Mono.just(mockCreationRequest));
 
         // Mock the behavior of credentialProcedureService
@@ -106,7 +107,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(metadataId));
 
         // Act: Call the generateVc method
-        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, issuanceRequest);
+        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, issuanceRequest, token);
 
         // Assert: Verify the result
         StepVerifier.create(result)
@@ -115,7 +116,7 @@ class VerifiableCredentialServiceImplTest {
 
         // Verify that all the interactions occurred as expected
         verify(credentialFactory, times(1))
-                .mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode);
+                .mapCredentialIntoACredentialProcedureRequest(processId, vcType, credentialJsonNode, token);
 
         verify(credentialProcedureService, times(1))
                 .createCredentialProcedure(mockCreationRequest);

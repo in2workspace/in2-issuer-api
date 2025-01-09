@@ -39,7 +39,7 @@ class CredentialManagementControllerTest {
         String organizationId = "testOrganizationId";
         ProcedureBasicInfo procedureBasicInfo = ProcedureBasicInfo.builder()
                 .procedureId(UUID.randomUUID())
-                .fullName("testFullName")
+                .subject("testFullName")
                 .status("testStatus")
                 .updated(new Timestamp(System.currentTimeMillis()))
                 .build();

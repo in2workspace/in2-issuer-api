@@ -11,6 +11,7 @@ import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
@@ -116,7 +117,7 @@ class GlobalExceptionHandlerTest {
                     assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
                     assertNotNull(responseEntity.getBody());
                     assertEquals(CredentialResponseErrorCodes.INVALID_TOKEN, responseEntity.getBody().error());
-                    assertEquals("Credential Request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
+                    assertEquals("The request contains the wrong Access Token or the Access Token is missing", responseEntity.getBody().description());
                 })
                 .verifyComplete();
     }
@@ -316,6 +317,87 @@ class GlobalExceptionHandlerTest {
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
+                .verifyComplete();
+    }
+
+    @Test
+    void handleOperationNotSupportedException_withMessage() {
+        String errorMessage = "Error message for testing";
+        OperationNotSupportedException operationNotSupportedException = new OperationNotSupportedException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleOperationNotSupportedException(operationNotSupportedException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleJWTVerificationException() {
+        JWTVerificationException exception = new JWTVerificationException("message");
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleJWTVerificationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleResponseUriException_withMessage() {
+        String errorMessage = "Error message for testing";
+        ResponseUriException responseUriException = new ResponseUriException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleResponseUriException(responseUriException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.RESPONSE_URI_ERROR, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleFormatUnsupportedException_withMessage() {
+        String errorMessage = "Error message for testing";
+        FormatUnsupportedException formatUnsupportedException = new FormatUnsupportedException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleFormatUnsupportedException(formatUnsupportedException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleTrustServiceProviderForCertificationsException_withMessage() {
+        String errorMessage = "Error message for testing";
+        InsufficientPermissionException insufficientPermissionException = new InsufficientPermissionException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> responseEntityMono = globalExceptionHandler.handleInsufficientPermissionException(insufficientPermissionException);
+
+        StepVerifier.create(responseEntityMono)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.FORBIDDEN, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.INSUFFICIENT_PERMISSION, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
                 .verifyComplete();
     }
 

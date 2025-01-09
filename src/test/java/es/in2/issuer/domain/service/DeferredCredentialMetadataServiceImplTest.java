@@ -186,7 +186,7 @@ class DeferredCredentialMetadataServiceImplTest {
     @Test
     void testUpdateVcByProcedureId_Success() {
         // Arrange
-        String vc = "vc";
+        String vc = "jwtCredential";
         String procedureId = UUID.randomUUID().toString();
         DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
         when(deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))).thenReturn(Mono.just(deferredCredentialMetadata));
@@ -206,7 +206,7 @@ class DeferredCredentialMetadataServiceImplTest {
         // Arrange
         String transactionId = UUID.randomUUID().toString();
         DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
-        deferredCredentialMetadata.setVc("vc");
+        deferredCredentialMetadata.setVc("jwtCredential");
         deferredCredentialMetadata.setId(UUID.randomUUID());
         deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
         when(deferredCredentialMetadataRepository.findByTransactionId(transactionId)).thenReturn(Mono.just(deferredCredentialMetadata));

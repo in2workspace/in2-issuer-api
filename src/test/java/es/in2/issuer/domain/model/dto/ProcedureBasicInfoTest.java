@@ -13,46 +13,52 @@ class ProcedureBasicInfoTest {
     void testConstructorAndGetters() {
         // Arrange
         UUID uuid = UUID.randomUUID();
-        String expectedFullName = "John Doe";
+        String expectedSubject = "John Doe";
         String expectedStatus = "In Progress";
+        String expectedCredentialType = "LEAR_CREDENTIAL_EMPLOYEE";
         Timestamp timestamp = Timestamp.valueOf("2023-01-01 12:00:00");
 
         // Act
         ProcedureBasicInfo procedureBasicInfo = new ProcedureBasicInfo(
                 uuid,
-                expectedFullName,
+                expectedSubject,
+                expectedCredentialType,
                 expectedStatus,
                 timestamp
         );
 
         // Assert
         assertEquals(uuid, procedureBasicInfo.procedureId());
-        assertEquals(expectedFullName, procedureBasicInfo.fullName());
+        assertEquals(expectedSubject, procedureBasicInfo.subject());
         assertEquals(expectedStatus, procedureBasicInfo.status());
         assertEquals(timestamp, procedureBasicInfo.updated());
+        assertEquals(expectedCredentialType, procedureBasicInfo.credentialType());
     }
 
     @Test
     void testSetters() {
         // Arrange
         UUID uuid = UUID.randomUUID();
-        String newFullName = "Jane Doe";
+        String newSubject = "Jane Doe";
         String newStatus = "Completed";
         Timestamp timestamp = Timestamp.valueOf("2024-01-01 12:00:00");
+        String newCredentialType = "VERIFIABLE_CERTIFICATION";
 
         // Act
         ProcedureBasicInfo procedureBasicInfo = ProcedureBasicInfo.builder()
                 .procedureId(uuid)
-                .fullName(newFullName)
+                .subject(newSubject)
                 .status(newStatus)
                 .updated(timestamp)
+                .credentialType(newCredentialType)
                 .build();
 
         // Assert
         assertEquals(uuid, procedureBasicInfo.procedureId());
-        assertEquals(newFullName, procedureBasicInfo.fullName());
+        assertEquals(newSubject, procedureBasicInfo.subject());
         assertEquals(newStatus, procedureBasicInfo.status());
         assertEquals(timestamp, procedureBasicInfo.updated());
+        assertEquals(newCredentialType, procedureBasicInfo.credentialType());
     }
 
     @Test
@@ -62,16 +68,19 @@ class ProcedureBasicInfoTest {
         String expectedFullName = "John Doe";
         String expectedStatus = "In Progress";
         Timestamp timestamp = Timestamp.valueOf("2023-01-01 12:00:00");
+        String expectedCredentialType = "LEAR_CREDENTIAL_EMPLOYEE";
 
         ProcedureBasicInfo procedureBasicInfo1 = new ProcedureBasicInfo(
                 uuid,
                 expectedFullName,
+                expectedCredentialType,
                 expectedStatus,
                 timestamp
         );
         ProcedureBasicInfo procedureBasicInfo2 = new ProcedureBasicInfo(
                 uuid,
                 expectedFullName,
+                expectedCredentialType,
                 expectedStatus,
                 timestamp
         );

@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'es.in2'
-version = '1.1.3'
+version = '1.2.0'
 
 java {
     sourceCompatibility = '17'
@@ -42,6 +42,8 @@ sonar {
         property "sonar.host.url", "https://sonarcloud.io"
         property "sonar.coverage.exclusions",
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/config/security/SecurityConfig.java, " +
+                        "src/main/java/es/in2/issuer/domain/service/impl/VerifierServiceImpl.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java"
     }
 }
@@ -108,6 +110,10 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+    // Crypto
+    implementation 'org.bitcoinj:bitcoinj-core:0.17-alpha5'
+
 
     // AZURE
     implementation('com.azure.spring:spring-cloud-azure-starter-appconfiguration:5.7.0')

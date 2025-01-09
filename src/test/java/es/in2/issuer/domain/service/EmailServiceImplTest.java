@@ -84,4 +84,29 @@ class EmailServiceImplTest {
 
         verify(javaMailSender).send(mimeMessage);
     }
+
+    @Test
+    void sendResponseUriFailed_sendsEmailSuccessfully(){
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("response-uri-failed"), any(Context.class))).thenReturn("htmlContent");
+
+        Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId", "guideUrl");
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendResponseUriFailed_handlesException(){
+        when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server error"));
+
+        Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId", "guideUrl");
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+    }
 }
