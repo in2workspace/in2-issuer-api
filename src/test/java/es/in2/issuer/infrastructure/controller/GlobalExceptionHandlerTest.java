@@ -401,4 +401,15 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleCredentialAlreadyIssuedException() {
+        CredentialAlreadyIssuedException exception = new CredentialAlreadyIssuedException(null);
+
+        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCredentialAlreadyIssuedException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> assertEquals(HttpStatus.CONFLICT, responseEntity.getStatusCode()))
+                .verifyComplete();
+    }
+
 }

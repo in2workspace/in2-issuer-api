@@ -53,9 +53,9 @@ class CredentialOfferServiceImplTest {
     }
 
     @Test
-    void testCreateCredentialOfferUri() {
+    void testCreateCredentialOfferUriResponse() {
         String nonce = "abc123";
-        Mono<String> result = credentialOfferService.createCredentialOfferUri(nonce);
+        Mono<String> result = credentialOfferService.createCredentialOfferUriResponse(nonce);
         StepVerifier.create(result)
                 .expectNext("openid-credential-offer://?credential_offer_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Fcredential-offer%2Fabc123")
                 .verifyComplete();

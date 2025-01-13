@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.impl.DeferredCredentialMetadataServiceImpl;
 import es.in2.issuer.domain.util.Utils;
@@ -126,6 +127,17 @@ class DeferredCredentialMetadataServiceImplTest {
                 .verifyComplete();
 
         // Assert
+        verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
+    }
+    @Test
+    void getProcedureIdByTransactionCode_whenTransactionCodeDoesNotExist_throwsCredentialAlreadyIssuedException() {
+        String transactionCode = "transaction-code";
+        when(deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)).thenReturn(Mono.empty());
+
+        StepVerifier.create(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
+                .expectError(CredentialAlreadyIssuedException.class)
+                .verify();
+
         verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
     }
 

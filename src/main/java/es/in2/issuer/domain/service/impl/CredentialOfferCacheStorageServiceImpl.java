@@ -26,13 +26,15 @@ public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCa
     @Override
     public Mono<CredentialOfferData> getCustomCredentialOffer(String nonce) {
         return cacheStore.get(nonce)
-                .doOnSuccess(customCredentialOffer -> {
-                    if (customCredentialOffer != null) {
-                        log.debug("CustomCredentialOffer found for nonce: {}", nonce);
-                        cacheStore.delete(nonce);
-                    }
-                })
-                .switchIfEmpty(Mono.error(new CustomCredentialOfferNotFoundException("CustomCredentialOffer not found for nonce: " + nonce)));
+                .switchIfEmpty(Mono.error(
+                        new CustomCredentialOfferNotFoundException(
+                                "CustomCredentialOffer not found for nonce: " + nonce))
+                )
+                .doOnNext(customCredentialOffer ->
+                        log.debug("CustomCredentialOffer found for nonce: {}", nonce)
+                )
+                .flatMap(customCredentialOffer ->
+                        cacheStore.delete(nonce).thenReturn(customCredentialOffer)
+                );
     }
-
 }
