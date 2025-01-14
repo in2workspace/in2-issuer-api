@@ -7,29 +7,19 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import static es.in2.issuer.domain.util.Constants.*;
-
 import java.time.Instant;
-
 
 @Service
 @EnableScheduling
 public class CredentialExpirationSchedulerImpl implements CredentialExpirationScheduler {
 
     private final CredentialProcedureRepository credentialProcedureRepository;
-    private final ObjectMapper objectMapper;
 
-    public CredentialExpirationSchedulerImpl(CredentialProcedureRepository credentialProcedureRepository, ObjectMapper objectMapper) {
+    public CredentialExpirationSchedulerImpl(CredentialProcedureRepository credentialProcedureRepository) {
         this.credentialProcedureRepository = credentialProcedureRepository;
-        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -45,20 +35,13 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     }
 
     private boolean isExpired(CredentialProcedure credentialProcedure) {
-        try {
-            JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-            JsonNode validUntilNode = credential.get(VC).get("validUntil");
-
-            if (validUntilNode != null && validUntilNode.isTextual()) {
-                Instant validUntil = Instant.parse(validUntilNode.asText());
-                return validUntil.isBefore(Instant.now());
-            } else {
-                return false;
-            }
-
-        } catch (JsonProcessingException e) {
+        if (credentialProcedure.getValidUntil() == null) {
             return false;
         }
+
+        Instant validUntil = credentialProcedure.getValidUntil().toInstant();
+
+        return validUntil.isBefore(Instant.now());
     }
 
     Mono<CredentialProcedure> expireCredential(CredentialProcedure credentialProcedure) {
