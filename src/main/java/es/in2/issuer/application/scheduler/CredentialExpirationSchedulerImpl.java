@@ -3,6 +3,7 @@ package es.in2.issuer.application.scheduler;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import reactor.core.scheduler.Schedulers;
 import java.time.Instant;
 
 @Service
+@Slf4j
 @EnableScheduling
 public class CredentialExpirationSchedulerImpl implements CredentialExpirationScheduler {
 
@@ -25,7 +27,7 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     @Override
     @Scheduled(cron = "0 0 1 * * ?") //Cada día a la 1:00 AM
     public void checkAndExpireCredentials() {
-        System.out.println("Scheduled Task - Ejecutando checkAndExpireCredentials a: " + Instant.now());
+        log.info("Scheduled Task - Ejecutando checkAndExpireCredentials a: {}", Instant.now());
 
         credentialProcedureRepository.findAll()
                 .filter(this::isExpired)
@@ -40,12 +42,14 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
         }
 
         Instant validUntil = credentialProcedure.getValidUntil().toInstant();
-
         return validUntil.isBefore(Instant.now());
     }
 
     Mono<CredentialProcedure> expireCredential(CredentialProcedure credentialProcedure) {
         credentialProcedure.setCredentialStatus(CredentialStatus.EXPIRED);
+        log.info("Expirando credencial con ID: {} - Nuevo estado: {}",
+                credentialProcedure.getCredentialId(),
+                credentialProcedure.getCredentialStatus());
         return credentialProcedureRepository.save(credentialProcedure);
     }
 }
