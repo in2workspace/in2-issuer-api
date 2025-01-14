@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.exception.PreAuthorizationCodeGetException;
+import es.in2.issuer.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.PreAuthCodeResponse;
 import es.in2.issuer.domain.service.*;
@@ -34,21 +35,59 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private final IssuerApiClientTokenService issuerApiClientTokenService;
 
     @Override
-    public Mono<String> buildCredentialOfferUri(String processId, String transactionCode) {
+    public Mono<CredentialOfferUriResponse> buildCredentialOfferUri(String processId, String transactionCode) {
         return deferredCredentialMetadataService.validateTransactionCode(transactionCode)
-                .then(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
-                .flatMap(procedureId -> credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                        .flatMap(credentialType -> getPreAuthorizationCodeFromIam()
-                                .flatMap(preAuthCodeResponse ->
-                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode, preAuthCodeResponse.grant().preAuthorizedCode())
-                                                .then(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
-                                                .flatMap(email -> credentialOfferService.buildCustomCredentialOffer(credentialType, preAuthCodeResponse.grant(),email,preAuthCodeResponse.pin())
-                                                        .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
-                                                        .flatMap(credentialOfferService::createCredentialOfferUri))
+                .then(Mono.just(transactionCode))
+                .flatMap(this::buildCredentialOfferUriInternal);
+    }
+
+    @Override
+    public Mono<CredentialOfferUriResponse> buildNewCredentialOfferUri(String processId, String cTransactionCode) {
+        return deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode)
+                .flatMap(this::buildCredentialOfferUriInternal);
+    }
+
+    // Add logs to debug the process
+    private Mono<CredentialOfferUriResponse> buildCredentialOfferUriInternal(String transactionCode) {
+        return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
+                .flatMap(procedureId ->
+                        credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
+                                .flatMap(credentialType ->
+                                        getPreAuthorizationCodeFromIam()
+                                                .flatMap(preAuthCodeResponse ->
+                                                        deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
+                                                                        transactionCode,
+                                                                        preAuthCodeResponse.grant().preAuthorizedCode()
+                                                                )
+                                                                .then(
+                                                                        credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
+                                                                )
+                                                                .flatMap(email ->
+                                                                        credentialOfferService.buildCustomCredentialOffer(
+                                                                                        credentialType,
+                                                                                        preAuthCodeResponse.grant(),
+                                                                                        email,
+                                                                                        preAuthCodeResponse.pin()
+                                                                                )
+                                                                                .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
+                                                                                .flatMap(credentialOfferService::createCredentialOfferUriResponse)
+                                                                )
+                                                )
+                                                .flatMap(credentialOfferUri ->
+                                                        deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)
+                                                                .flatMap(cTransactionCode ->
+                                                                        Mono.just(
+                                                                                CredentialOfferUriResponse.builder()
+                                                                                        .credentialOfferUri(credentialOfferUri)
+                                                                                        .cTransactionCode(cTransactionCode)
+                                                                                        .build()
+                                                                        )
+                                                                )
                                                 )
                                 )
                 );
     }
+
 
     @Override
     public Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce) {
@@ -66,27 +105,27 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
         return issuerApiClientTokenService.getClientToken()
                 .flatMap(
                         token ->
-                            webClient.commonWebClient()
-                            .get()
-                            .uri(url)
-                            .accept(MediaType.APPLICATION_JSON)
-                            .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                            .exchangeToMono(response -> {
-                                if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
-                                    return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
-                                } else {
-                                    log.info("Pre Authorization code response: {}", response);
-                                    return response.bodyToMono(String.class);
-                                }
-                            })
-                            // Parsing response
-                            .flatMap(response -> {
-                                try {
-                                    return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
-                                } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-                                    return Mono.error(new ParseErrorException("Error parsing JSON response"));
-                                }
-                            })
+                                webClient.commonWebClient()
+                                        .get()
+                                        .uri(url)
+                                        .accept(MediaType.APPLICATION_JSON)
+                                        .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
+                                        .exchangeToMono(response -> {
+                                            if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                                                return Mono.error(new PreAuthorizationCodeGetException("There was an error during pre-authorization code retrieval, error: " + response));
+                                            } else {
+                                                log.info("Pre Authorization code response: {}", response);
+                                                return response.bodyToMono(String.class);
+                                            }
+                                        })
+                                        // Parsing response
+                                        .flatMap(response -> {
+                                            try {
+                                                return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
+                                            } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+                                                return Mono.error(new ParseErrorException("Error parsing JSON response"));
+                                            }
+                                        })
                 );
     }
 

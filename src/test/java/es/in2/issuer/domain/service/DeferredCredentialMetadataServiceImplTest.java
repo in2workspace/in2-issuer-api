@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.impl.DeferredCredentialMetadataServiceImpl;
 import es.in2.issuer.domain.util.Utils;
@@ -128,6 +129,17 @@ class DeferredCredentialMetadataServiceImplTest {
         // Assert
         verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
     }
+    @Test
+    void getProcedureIdByTransactionCode_whenTransactionCodeDoesNotExist_throwsCredentialAlreadyIssuedException() {
+        String transactionCode = "transaction-code";
+        when(deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)).thenReturn(Mono.empty());
+
+        StepVerifier.create(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
+                .expectError(CredentialAlreadyIssuedException.class)
+                .verify();
+
+        verify(deferredCredentialMetadataRepository, times(1)).findByTransactionCode(transactionCode);
+    }
 
     @Test
     void testGetProcedureIdByAuthServerNonce_Success() {
@@ -186,7 +198,7 @@ class DeferredCredentialMetadataServiceImplTest {
     @Test
     void testUpdateVcByProcedureId_Success() {
         // Arrange
-        String vc = "vc";
+        String vc = "jwtCredential";
         String procedureId = UUID.randomUUID().toString();
         DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
         when(deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))).thenReturn(Mono.just(deferredCredentialMetadata));
@@ -206,7 +218,7 @@ class DeferredCredentialMetadataServiceImplTest {
         // Arrange
         String transactionId = UUID.randomUUID().toString();
         DeferredCredentialMetadata deferredCredentialMetadata = new DeferredCredentialMetadata();
-        deferredCredentialMetadata.setVc("vc");
+        deferredCredentialMetadata.setVc("jwtCredential");
         deferredCredentialMetadata.setId(UUID.randomUUID());
         deferredCredentialMetadata.setProcedureId(UUID.randomUUID());
         when(deferredCredentialMetadataRepository.findByTransactionId(transactionId)).thenReturn(Mono.just(deferredCredentialMetadata));

@@ -37,9 +37,12 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
                 .credentialId(UUID.fromString(credentialProcedureCreationRequest.credentialId()))
-                .credentialStatus(CredentialStatus.WITHDRAWN)
+                .credentialStatus(CredentialStatus.DRAFT)
                 .credentialDecoded(credentialProcedureCreationRequest.credentialDecoded())
                 .organizationIdentifier(credentialProcedureCreationRequest.organizationIdentifier())
+                .credentialType(credentialProcedureCreationRequest.credentialType().toString())
+                .subject(credentialProcedureCreationRequest.subject())
+                .validUntil(credentialProcedureCreationRequest.validUntil())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
                 .build();
         return credentialProcedureRepository.save(credentialProcedure)
@@ -53,11 +56,11 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode typeNode = credential.get(VC).get("type");
+                        JsonNode typeNode = credential.get(VC).get(TYPE);
                         if (typeNode != null && typeNode.isArray()) {
                             String credentialType = null;
                             for (JsonNode type : typeNode) {
-                                if (!type.asText().equals("VerifiableCredential") && !type.asText().equals("VerifiableAttestation")) {
+                                if (!type.asText().equals(VERIFIABLE_CREDENTIAL) && !type.asText().equals(VERIFIABLE_ATTESTATION)) {
                                     credentialType = type.asText();
                                     break;
                                 }
@@ -81,6 +84,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     credentialProcedure.setCredentialStatus(CredentialStatus.ISSUED);
                     credentialProcedure.setCredentialFormat(format);
                     credentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
+
                     return credentialProcedureRepository.save(credentialProcedure)
                             .doOnSuccess(result -> log.info("Updated credential"))
                             .then();
@@ -95,6 +99,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<String> getCredentialStatusByProcedureId(String procedureId) {
+        log.debug("Getting credential status for procedureId: {}", procedureId);
         return credentialProcedureRepository.findCredentialStatusByProcedureId(UUID.fromString(procedureId));
     }
 
@@ -216,23 +221,14 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     @Override
     public Mono<CredentialProcedures> getAllProceduresBasicInfoByOrganizationId(String organizationIdentifier) {
         return credentialProcedureRepository.findAllByOrganizationIdentifier(organizationIdentifier)
-                .flatMap(credentialProcedure -> {
-                    try {
-                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        String subjectFullName = credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText()
-                                + " "
-                                + credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(LAST_NAME).asText();
-                        return Mono.just(ProcedureBasicInfo.builder()
+                .flatMap(credentialProcedure -> getCredentialTypeByProcedureId(String.valueOf(credentialProcedure.getProcedureId()))
+                        .flatMap(credentialType -> Mono.just(ProcedureBasicInfo.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
-                                .fullName(subjectFullName)
+                                .subject(credentialProcedure.getSubject())
+                                .credentialType(credentialProcedure.getCredentialType())
                                 .status(String.valueOf(credentialProcedure.getCredentialStatus()))
                                 .updated(credentialProcedure.getUpdatedAt())
-                                .build());
-                    } catch (JsonProcessingException e) {
-                        log.warn("Error processing json", e);
-                        return Mono.error(new JsonParseException(null, ERROR_PARSING_CREDENTIAL));
-                    }
-                })
+                                .build())))
                 .map(procedureBasicInfo -> CredentialProcedures.CredentialProcedure.builder()
                         .credentialProcedure(procedureBasicInfo)
                         .build())

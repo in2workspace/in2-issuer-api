@@ -20,6 +20,7 @@ class CredentialProcedureTest {
         CredentialStatus credentialStatus = CredentialStatus.VALID;
         String organizationIdentifier = "testOrganizationIdentifier";
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp validUntil = new Timestamp(System.currentTimeMillis() + 1000);
 
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
                 .procedureId(procedureId)
@@ -30,6 +31,7 @@ class CredentialProcedureTest {
                 .credentialStatus(credentialStatus)
                 .organizationIdentifier(organizationIdentifier)
                 .updatedAt(timestamp)
+                .validUntil(validUntil)
                 .build();
 
         assertEquals(procedureId, credentialProcedure.getProcedureId());
@@ -40,6 +42,7 @@ class CredentialProcedureTest {
         assertEquals(credentialStatus, credentialProcedure.getCredentialStatus());
         assertEquals(organizationIdentifier, credentialProcedure.getOrganizationIdentifier());
         assertEquals(timestamp, credentialProcedure.getUpdatedAt());
+        assertEquals(validUntil, credentialProcedure.getValidUntil());
     }
 
     @Test
@@ -53,6 +56,7 @@ class CredentialProcedureTest {
         CredentialStatus credentialStatus = CredentialStatus.VALID;
         String organizationIdentifier = "orgId";
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        Timestamp validUntil = new Timestamp(System.currentTimeMillis() + 1000);
 
         credentialProcedure.setProcedureId(procedureId);
         credentialProcedure.setCredentialId(credentialId);
@@ -62,6 +66,7 @@ class CredentialProcedureTest {
         credentialProcedure.setCredentialStatus(credentialStatus);
         credentialProcedure.setOrganizationIdentifier(organizationIdentifier);
         credentialProcedure.setUpdatedAt(timestamp);
+        credentialProcedure.setValidUntil(validUntil);
 
         assertEquals(procedureId, credentialProcedure.getProcedureId());
         assertEquals(credentialId, credentialProcedure.getCredentialId());
@@ -71,6 +76,7 @@ class CredentialProcedureTest {
         assertEquals(credentialStatus, credentialProcedure.getCredentialStatus());
         assertEquals(organizationIdentifier, credentialProcedure.getOrganizationIdentifier());
         assertEquals(timestamp, credentialProcedure.getUpdatedAt());
+        assertEquals(validUntil, credentialProcedure.getValidUntil());
     }
 
     @Test
@@ -84,7 +90,11 @@ class CredentialProcedureTest {
                 ", credentialEncoded=" + credentialProcedure.getCredentialEncoded() +
                 ", credentialStatus=" + credentialProcedure.getCredentialStatus() +
                 ", organizationIdentifier=" + credentialProcedure.getOrganizationIdentifier() +
-                ", updatedAt=" + credentialProcedure.getUpdatedAt() + ")";
+                ", updatedAt=" + credentialProcedure.getUpdatedAt() +
+                ", subject=" + credentialProcedure.getSubject() +
+                ", credentialType=" + credentialProcedure.getCredentialType() +
+                ", validUntil=" + credentialProcedure.getValidUntil() +
+                ")";
         assertEquals(expected, credentialProcedure.toString());
     }
 }

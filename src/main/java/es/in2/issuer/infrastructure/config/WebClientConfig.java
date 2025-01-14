@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -10,7 +11,9 @@ import reactor.netty.resources.ConnectionProvider;
 import java.time.Duration;
 
 @Configuration
+@RequiredArgsConstructor
 public class WebClientConfig {
+    private final VerifierConfig verifierConfig;
 
     private static final ConnectionProvider connectionProvider = ConnectionProvider.builder("custom")
             .maxConnections(500)
@@ -24,6 +27,16 @@ public class WebClientConfig {
         return WebClient.builder()
                 .clientConnector(new ReactorClientHttpConnector(
                         HttpClient.create(connectionProvider).followRedirect(false))
+                )
+                .build();
+    }
+
+    @Bean
+    public WebClient oauth2VerifierWebClient() {
+        return WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.create(connectionProvider)
+                        .baseUrl(verifierConfig.getVerifierExternalDomain())
+                        .followRedirect(false))
                 )
                 .build();
     }

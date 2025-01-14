@@ -106,12 +106,33 @@ auth-server:
   realm: CredentialIssuer
   paths:
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
-    jwt-decoder-path: "/realms/EAAProvider/protocol/openid-connect/certs"
-    jwt-decoder-local-path: "/realms/EAAProvider"
-    jwt-validator: "http://localhost:8088/realms/EAAProvider"
-    pre-authorized-code-path: "/realms/EAAProvider/verifiable-credential/${issuer-did}/credential-offer"
-    token-path: "/realms/EAAProvider/verifiable-credential/${issuer-did}/token"
-    nonce-validation-path: "/realms/CredentialIssuer/verifiable-credential/${issuer-did}/nonce-valid"
+    jwt-decoder-path: "/realms/${auth-server.realm}/protocol/openid-connect/certs"
+    jwt-decoder-local-path: "/realms/${auth-server.realm}"
+    jwt-validator-path: "/realms/${auth-server.realm}"
+    pre-authorized-code-path: "/realms/${auth-server.realm}/verifiable-credential/${auth-server.paths.issuer-did}/credential-offer"
+    token-path: "/realms/${auth-server.realm}/protocol/openid-connect/token"
+    nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
+
+verifier:
+  external-domain: "https://verifier.dome-marketplace-sbx.org"
+
+issuer-identity:
+  credential-subject-did-key:
+  jwt-credential:
+  crypto:
+    private-key:
+  client-assertion:
+    expiration: "2"
+    expiration-unit-time: "MINUTES"
+
+
+default-signer:
+  common-name:
+  country:
+  email:
+  organization-identifier:
+  organization:
+  serial-number:
 
 remote-signature:
   external-domain: "http://localhost:8082"
@@ -121,3 +142,7 @@ remote-signature:
 
 trust-framework:
   url:
+
+knowledge-base:
+  upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
+  url: "https://knowledgebase.dome-marketplace-prd.org"

@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
+import es.in2.issuer.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.domain.model.dto.Grant;
 import org.junit.jupiter.api.Test;
@@ -36,14 +37,40 @@ class CredentialOfferControllerTest {
         //Arrange
         String transactionCode = "testTransactionCode";
         String credentialOfferUri = "https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j";
-        when(credentialOfferIssuanceWorkflow.buildCredentialOfferUri(anyString(), eq(transactionCode))).thenReturn(Mono.just(credentialOfferUri));
+        String cTransactionCode = "testCTransactionCode";
+        CredentialOfferUriResponse credentialOfferUriResponse = CredentialOfferUriResponse.builder()
+                .cTransactionCode(cTransactionCode)
+                .credentialOfferUri(credentialOfferUri)
+                .build();
+        when(credentialOfferIssuanceWorkflow.buildCredentialOfferUri(anyString(), eq(transactionCode))).thenReturn(Mono.just(credentialOfferUriResponse));
 
         //Act
-        Mono<String> result = credentialOfferController.getCredentialOfferByTransactionCode(transactionCode);
+        Mono<CredentialOfferUriResponse> result = credentialOfferController.getCredentialOfferByTransactionCode(transactionCode);
 
         //Assert
         StepVerifier.create(result)
-                .assertNext(uri -> assertEquals(credentialOfferUri, uri))
+                .assertNext(credentialOfferUriResponse1 -> assertEquals(credentialOfferUriResponse, credentialOfferUriResponse1))
+                .verifyComplete();
+    }
+
+    @Test
+    void getNewCredentialOfferByTransactionCode() {
+        //Arrange
+        String transactionCode = "testTransactionCode";
+        String credentialOfferUri = "https://www.goodair.com/credential-offer?credential_offer_uri=https://www.goodair.com/credential-offer/5j349k3e3n23j";
+        String cTransactionCode = "testCTransactionCode";
+        CredentialOfferUriResponse credentialOfferUriResponse = CredentialOfferUriResponse.builder()
+                .cTransactionCode(cTransactionCode)
+                .credentialOfferUri(credentialOfferUri)
+                .build();
+        when(credentialOfferIssuanceWorkflow.buildNewCredentialOfferUri(anyString(), eq(transactionCode))).thenReturn(Mono.just(credentialOfferUriResponse));
+
+        //Act
+        Mono<CredentialOfferUriResponse> result = credentialOfferController.getCredentialOfferByCTransactionCode(transactionCode);
+
+        //Assert
+        StepVerifier.create(result)
+                .assertNext(credentialOfferUriResponse1 -> assertEquals(credentialOfferUriResponse, credentialOfferUriResponse1))
                 .verifyComplete();
     }
 

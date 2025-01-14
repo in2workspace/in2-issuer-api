@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.2.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.4)
+### Added
+- Add support for requesting a fresh QR code if the previous one has expired or was an error during the proccess of
+
+## [v1.2.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.0)
+### Added
+- Validation of authentication for issuance against the verifier.
+- Verifiable Certifications issuance and sending to response_uri.
+### Changed
+- List credentials in order from newest to oldest.
+
 ## [v1.1.3](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.1.3)
 ### Changed
 - Change the Credential Offer email template

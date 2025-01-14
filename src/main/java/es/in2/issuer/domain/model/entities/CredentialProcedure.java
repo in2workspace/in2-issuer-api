@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model.entities;
 
+import brave.internal.Nullable;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import lombok.*;
 import org.springframework.data.annotation.Id;
@@ -41,4 +42,14 @@ public class CredentialProcedure {
 
     @Column("updated_at")
     private Timestamp updatedAt;
+
+    @Column("subject")
+    @Nullable
+    private String subject;
+
+    @Column("credential_type")
+    private String credentialType;
+
+    @Column("valid_until")
+    private Timestamp validUntil;
 }
