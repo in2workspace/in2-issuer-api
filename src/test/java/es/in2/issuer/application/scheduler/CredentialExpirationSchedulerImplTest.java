@@ -5,6 +5,8 @@ import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -52,16 +54,22 @@ class CredentialExpirationSchedulerImplTest {
                 .thenAnswer(invocation -> {
                     CredentialProcedure updatedCredential = invocation.getArgument(0);
                     System.out.println("Credencial expirada guardada: ID=" + updatedCredential.getCredentialId() +
-                            ", Nuevo Estado=" + updatedCredential.getCredentialStatus());
+                            ", Nuevo Estado=" + updatedCredential.getCredentialStatus() +
+                            ", updatedAt=" + updatedCredential.getUpdatedAt());
                     return Mono.just(updatedCredential);
                 });
 
         scheduler.checkAndExpireCredentials();
 
-        verify(credentialProcedureRepository, atLeastOnce()).save(argThat(updatedCredential ->
-                updatedCredential.getCredentialStatus() == CredentialStatus.EXPIRED));
+        verify(credentialProcedureRepository, atLeastOnce()).save(argThat(updatedCredential -> {
+            boolean statusCorrect = updatedCredential.getCredentialStatus() == CredentialStatus.EXPIRED;
+            boolean updatedAtNotNull = updatedCredential.getUpdatedAt() != null;
+            boolean updatedAtRecent = updatedCredential.getUpdatedAt().toInstant().isAfter(Instant.now().minusSeconds(10));
 
-        System.out.println("Test completado correctamente.");
+            return statusCorrect && updatedAtNotNull && updatedAtRecent;
+        }));
+
+        System.out.println("Test completado correctamente. Se ha actualizado `updatedAt`.");
     }
 
     @Test
@@ -82,16 +90,19 @@ class CredentialExpirationSchedulerImplTest {
                 .thenAnswer(invocation -> {
                     CredentialProcedure updatedCredential = invocation.getArgument(0);
                     System.out.println("No debería haberse guardado: ID=" + updatedCredential.getCredentialId() +
-                            ", Estado=" + updatedCredential.getCredentialStatus());
+                            ", Estado=" + updatedCredential.getCredentialStatus() +
+                            ", updatedAt=" + updatedCredential.getUpdatedAt());
                     return Mono.just(updatedCredential);
                 });
 
         scheduler.checkAndExpireCredentials();
 
         verify(credentialProcedureRepository, never()).save(any(CredentialProcedure.class));
-        assert credential.getCredentialStatus() == CredentialStatus.VALID :
-                "ERROR: La credencial ha cambiado de estado incorrectamente.";
 
-        System.out.println("Test completado correctamente, la credencial sigue siendo válida.");
+        assertEquals(CredentialStatus.VALID, credential.getCredentialStatus(),
+                "ERROR: La credencial ha cambiado de estado incorrectamente.");
+        assertNull(credential.getUpdatedAt(), "ERROR: updatedAt debería seguir siendo null.");
+
+        System.out.println("Test completado correctamente, la credencial sigue siendo válida y `updatedAt` no cambió.");
     }
 }

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.sql.Timestamp;
 import java.time.Instant;
 
 @Service
@@ -25,7 +26,7 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     }
 
     @Override
-    @Scheduled(cron = "0 0 1 * * ?") //Cada día a la 1:00 AM
+    @Scheduled(cron = "0 */10 * * * ?")//Cada día a la 1:00 AM
     public void checkAndExpireCredentials() {
         log.info("Scheduled Task - Ejecutando checkAndExpireCredentials a: {}", Instant.now());
 
@@ -47,6 +48,7 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
 
     Mono<CredentialProcedure> expireCredential(CredentialProcedure credentialProcedure) {
         credentialProcedure.setCredentialStatus(CredentialStatus.EXPIRED);
+        credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
         log.info("Expirando credencial con ID: {} - Nuevo estado: {}",
                 credentialProcedure.getCredentialId(),
                 credentialProcedure.getCredentialStatus());
