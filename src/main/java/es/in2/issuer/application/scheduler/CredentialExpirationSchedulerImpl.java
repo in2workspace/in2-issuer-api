@@ -26,7 +26,7 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     }
 
     @Override
-    @Scheduled(cron = "0 0 1 * * ?")//Cada día a la 1:00 AM
+    @Scheduled(cron = "0 0 1 * * ?") //Cada día a la 1:00 AM
     public void checkAndExpireCredentials() {
         log.info("Scheduled Task - Ejecutando checkAndExpireCredentials a: {}", Instant.now());
 
