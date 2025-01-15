@@ -47,11 +47,14 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     }
 
     Mono<CredentialProcedure> expireCredential(CredentialProcedure credentialProcedure) {
-        credentialProcedure.setCredentialStatus(CredentialStatus.EXPIRED);
-        credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
-        log.info("Expirando credencial con ID: {} - Nuevo estado: {}",
-                credentialProcedure.getCredentialId(),
-                credentialProcedure.getCredentialStatus());
-        return credentialProcedureRepository.save(credentialProcedure);
+        if(credentialProcedure.getCredentialStatus() != CredentialStatus.EXPIRED) {
+            credentialProcedure.setCredentialStatus(CredentialStatus.EXPIRED);
+            credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+            log.info("Expirando credencial con ID: {} - Nuevo estado: {}",
+                    credentialProcedure.getCredentialId(),
+                    credentialProcedure.getCredentialStatus());
+            return credentialProcedureRepository.save(credentialProcedure);
+        }
+        return Mono.empty();
     }
 }
