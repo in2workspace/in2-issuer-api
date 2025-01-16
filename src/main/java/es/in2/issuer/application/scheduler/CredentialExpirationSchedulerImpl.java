@@ -24,24 +24,21 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
-    @Scheduled(cron = "0 0 1 * * ?") //Every day at 1:00 AM
-    public void checkAndExpireCredentials() {
+    @Scheduled(cron = "0 */10 * * * ?") //Every day at 1:00 AM
+    public Mono<Void> checkAndExpireCredentials() {
         log.info("Scheduled Task - Executing checkAndExpireCredentials at: {}", Instant.now());
 
-        credentialProcedureRepository.findAll()
-                .filter(this::isExpired)
-                .flatMap(this::expireCredential)
-                .publishOn(Schedulers.boundedElastic())
-                .subscribe();
+        return credentialProcedureRepository.findAll()
+                .flatMap(credential -> isExpired(credential)
+                        .filter(Boolean::booleanValue)
+                        .flatMap(expired -> expireCredential(credential)))
+                .then();
     }
 
-    private boolean isExpired(CredentialProcedure credentialProcedure) {
-        if (credentialProcedure.getValidUntil() == null) {
-            return false;
-        }
-
-        Instant validUntil = credentialProcedure.getValidUntil().toInstant();
-        return validUntil.isBefore(Instant.now());
+    private Mono<Boolean> isExpired(CredentialProcedure credentialProcedure) {
+        return Mono.justOrEmpty(credentialProcedure.getValidUntil())
+                .map(validUntil -> validUntil.toInstant().isBefore(Instant.now()))
+                .defaultIfEmpty(false);
     }
 
     Mono<CredentialProcedure> expireCredential(CredentialProcedure credentialProcedure) {

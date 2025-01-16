@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -44,14 +45,12 @@ class CredentialExpirationSchedulerImplTest {
         credential.setValidUntil(Timestamp.from(Instant.now().minusSeconds(60)));
 
         when(credentialProcedureRepository.findAll()).thenReturn(Flux.just(credential));
-
         when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
-                .thenAnswer(invocation -> {
-                    CredentialProcedure updatedCredential = invocation.getArgument(0);
-                    return Mono.just(updatedCredential);
-                });
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
-        scheduler.checkAndExpireCredentials();
+        StepVerifier.create(scheduler.checkAndExpireCredentials())
+                .expectSubscription()
+                .verifyComplete();
 
         verify(credentialProcedureRepository, atLeastOnce()).save(argThat(updatedCredential -> {
             boolean statusCorrect = updatedCredential.getCredentialStatus() == CredentialStatus.EXPIRED;
@@ -70,14 +69,12 @@ class CredentialExpirationSchedulerImplTest {
         credential.setValidUntil(Timestamp.from(Instant.now().plusSeconds(60)));
 
         when(credentialProcedureRepository.findAll()).thenReturn(Flux.just(credential));
-
         when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
-                .thenAnswer(invocation -> {
-                    CredentialProcedure updatedCredential = invocation.getArgument(0);
-                    return Mono.just(updatedCredential);
-                });
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
-        scheduler.checkAndExpireCredentials();
+        StepVerifier.create(scheduler.checkAndExpireCredentials())
+                .expectSubscription()
+                .verifyComplete();
 
         verify(credentialProcedureRepository, never()).save(any(CredentialProcedure.class));
 
