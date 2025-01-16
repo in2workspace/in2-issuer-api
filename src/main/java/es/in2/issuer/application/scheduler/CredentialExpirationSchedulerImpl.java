@@ -24,7 +24,7 @@ public class CredentialExpirationSchedulerImpl implements CredentialExpirationSc
     private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
-    @Scheduled(cron = "0 */10 * * * ?") //Every day at 1:00 AM
+    @Scheduled(cron = "0 0 1 * * ?") //Every day at 1:00 AM
     public Mono<Void> checkAndExpireCredentials() {
         log.info("Scheduled Task - Executing checkAndExpireCredentials at: {}", Instant.now());
 
