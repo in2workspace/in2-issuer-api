@@ -34,28 +34,14 @@ class RemoteSignatureConfigTest {
     }
 
     @Test
-    void testGetRemoteSignatureExternalDomain() {
+    void testGetRemoteSignatureDomain() {
         // Arrange
         String expectedDomain = "https://signature.example.com";
-        when(remoteSignatureProperties.externalDomain()).thenReturn("remote.signature.external.domain");
+        when(remoteSignatureProperties.domain()).thenReturn("remote.signature.external.domain");
         when(configAdapter.getConfiguration("remote.signature.external.domain")).thenReturn(expectedDomain);
 
         // Act
-        String actualDomain = remoteSignatureConfig.getRemoteSignatureExternalDomain();
-
-        // Assert
-        assertEquals(expectedDomain, actualDomain);
-    }
-
-    @Test
-    void testGetRemoteSignatureInternalDomain() {
-        // Arrange
-        String expectedDomain = "https://internal.signature.example.com";
-        when(remoteSignatureProperties.internalDomain()).thenReturn("remote.signature.internal.domain");
-        when(configAdapter.getConfiguration("remote.signature.internal.domain")).thenReturn(expectedDomain);
-
-        // Act
-        String actualDomain = remoteSignatureConfig.getRemoteSignatureInternalDomain();
+        String actualDomain = remoteSignatureConfig.getRemoteSignatureDomain();
 
         // Assert
         assertEquals(expectedDomain, actualDomain);

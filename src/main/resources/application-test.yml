@@ -134,8 +134,7 @@ default-signer:
   serial-number:
 
 remote-signature:
-  external-domain: "http://localhost:8082"
-  internal-domain: "http://remote-signature:8080"
+  domain: "http://localhost:8082"
   paths:
     sign-path: "/signature/sign"
 

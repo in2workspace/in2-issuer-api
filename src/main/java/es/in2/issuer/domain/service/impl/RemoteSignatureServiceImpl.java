@@ -53,20 +53,19 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
-        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureExternalDomain() + "/api/v1"
-                + remoteSignatureConfig.getRemoteSignatureSignPath();
-        String signatureRequestJSON;
-        try {
-            signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
-        } catch (JsonProcessingException e) {
-            return Mono.error(e);
-        }
-        List<Map.Entry<String, String>> headers = new ArrayList<>();
-        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
-        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-        // todo: refactorizar: debe implementarse la llamada aquí y no en el Utils
-        return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON);
-
+            String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
+                    + remoteSignatureConfig.getRemoteSignatureSignPath();
+            String signatureRequestJSON;
+            try {
+                signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
+            } catch (JsonProcessingException e) {
+                return Mono.error(e);
+            }
+            List<Map.Entry<String, String>> headers = new ArrayList<>();
+            headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
+            headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+            // todo: refactorizar: debe implementarse la llamada aquí y no en el Utils
+            return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON);
     }
 
     private SignedData toSignedData(String signedSignatureResponse) throws SignedDataParsingException {

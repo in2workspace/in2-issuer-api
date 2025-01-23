@@ -21,9 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialSignerWorkflowImplTest {
+    private static final Logger logger = LoggerFactory.getLogger(CredentialSignerWorkflowImplTest.class);
     @Mock
     private RemoteSignatureService remoteSignatureService;
 
@@ -42,6 +45,8 @@ class CredentialSignerWorkflowImplTest {
         String token = "dummyToken";
         String signedCredential = "signedJWTData";
         String procedureId = "procedureId";
+
+        logger.info("Este es un log de prueba en JUnit");
 
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));

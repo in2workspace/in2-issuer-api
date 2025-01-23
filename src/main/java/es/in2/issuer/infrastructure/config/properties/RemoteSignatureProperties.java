@@ -10,15 +10,13 @@ import java.util.Optional;
 @ConfigurationProperties(prefix = "remote-signature")
 @Validated
 public record RemoteSignatureProperties(
-        @NotNull String externalDomain,
-        @NotNull String internalDomain,
+        @NotNull String domain,
         @NotNull Paths paths
 ) {
 
     @ConstructorBinding
-    public RemoteSignatureProperties(String externalDomain, String internalDomain, Paths paths) {
-        this.externalDomain = externalDomain;
-        this.internalDomain = internalDomain;
+    public RemoteSignatureProperties(String domain, Paths paths) {
+        this.domain = domain;
         this.paths = Optional.ofNullable(paths).orElse(new Paths(""));
     }
 
