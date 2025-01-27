@@ -51,9 +51,9 @@ class RemoteSignatureServiceImplTest {
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
         signatureRequest = new SignatureRequest(signatureConfiguration1, "data");
         token = "dummyToken";
-        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
-        signatureRemoteServerEndpoint = "http://remote-signature.com/api/v1/sign";
+        signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
     }
 
     @Test
