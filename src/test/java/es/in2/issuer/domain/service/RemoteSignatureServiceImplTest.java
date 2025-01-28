@@ -18,10 +18,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.List;
 import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,13 +40,26 @@ class RemoteSignatureServiceImplTest {
     @InjectMocks
     private RemoteSignatureServiceImpl remoteSignatureService;
 
+    @Mock
+    private HashGeneratorService hashGeneratorService;
+
     private SignatureRequest signatureRequest;
     private String token;
     private String signatureRemoteServerEndpoint;
     private SignatureType signatureType;
 
+    private final String clientId = "SECRETO";
+    private final String clientSecret = "SECRETO";
+    private final String credentialID = "SECRETO";
+    private final String credentialPassword = "SECRETO";
+
     @BeforeEach
     void setUp() {
+
+    }
+
+    @Test
+    void testSignSuccessDSS() throws JsonProcessingException {
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -54,10 +68,7 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
         signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
-    }
 
-    @Test
-    void testSignSuccess() throws JsonProcessingException {
         String signatureRequestJSON = "{\"request\":\"data\"}";
         String signedResponse = "{\"signed\":\"data\"}";
         String data = "data";
@@ -77,6 +88,14 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignJsonProcessingException() throws JsonProcessingException {
+        signatureType = SignatureType.COSE;
+        Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
+        SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
+        signatureRequest = new SignatureRequest(signatureConfiguration1, "data");
+        token = "dummyToken";
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
+        when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
+
         when(objectMapper.writeValueAsString(signatureRequest)).thenThrow(new JsonProcessingException("error") {
         });
 
@@ -87,4 +106,40 @@ class RemoteSignatureServiceImplTest {
                 .verify();
     }
 
+    @Test
+    void testGetSignedDocumentExternal() throws JsonProcessingException {
+        signatureType = SignatureType.JADES;
+        Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
+        SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
+        signatureRequest = new SignatureRequest(signatureConfiguration1, "data");
+        String accessTokenResponse = "{\"access_token\": \"mock-access-token\"}";
+        String signedDocumentResponse = "{\"signedDocument\": \"mock-signed-document\"}";
+        String hashAlgo = "2.16.840.1.101.3.4.2.1";
+
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://api.external.com");
+
+        doReturn(Mono.just(accessTokenResponse))
+                .when(httpUtils)
+                .postRequest(eq("https://api.external.com/oauth2/token"), any(List.class), anyString());
+
+        doReturn(Mono.just(signedDocumentResponse))
+                .when(httpUtils)
+                .postRequest(eq("https://api.external.com/csc/v2/signatures/signDoc"), any(List.class), anyString());
+
+        when(objectMapper.writeValueAsString(any())).thenReturn("mock-json");
+
+        when(objectMapper.readValue(eq(accessTokenResponse), eq(Map.class)))
+                .thenReturn(Map.of("access_token", "mock-access-token"));
+
+        when(hashGeneratorService.generateHash(eq(signatureRequest.data()), eq(hashAlgo))).thenReturn("mock-hash");
+
+        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+
+        StepVerifier.create(result)
+                .expectNextMatches(response -> {
+                    System.out.println("Signed Document Response: " + response);
+                    return response.equals(signedDocumentResponse);
+                })
+                .verifyComplete();
+    }
 }
