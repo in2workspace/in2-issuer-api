@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config.security;
 
-import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -15,11 +14,6 @@ import org.springframework.security.oauth2.server.resource.web.server.authentica
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.reactive.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
-
-import java.util.List;
 
 import static es.in2.issuer.domain.util.EndpointsConstants.*;
 
@@ -29,9 +23,10 @@ import static es.in2.issuer.domain.util.EndpointsConstants.*;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final AppConfig appConfig;
     private final CustomAuthenticationManager customAuthenticationManager;
     private final ReactiveJwtDecoder internalJwtDecoder;
+    private final DefaultCORSConfig defaultCORSConfig;
+    private final ExternalServicesCORSConfig externalServicesCORSConfig;
 
 
     @Bean
@@ -49,11 +44,20 @@ public class SecurityConfig {
     // Security configuration for specific endpoints
     @Bean
     @Order(1)
-    public SecurityWebFilterChain issuancesFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain externalServicesFilterChain(ServerHttpSecurity http) {
         http
+                .cors(cors -> externalServicesCORSConfig.externalCorsConfigurationSource())
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**"))
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.POST, "/vci/v1/issuances").authenticated()
+                        .pathMatchers(HttpMethod.GET,getSwaggerPaths()).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
+                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
@@ -63,17 +67,10 @@ public class SecurityConfig {
     // General security configuration for other endpoints
     @Bean
     @Order(2)
-    public SecurityWebFilterChain springSecurityFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
         http
+                .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(getSwaggerPaths()).permitAll()
-                        .pathMatchers(PUBLIC_HEALTH).permitAll()
-                        .pathMatchers(PUBLIC_CREDENTIAL_OFFER).permitAll()
-                        .pathMatchers(PUBLIC_DISCOVERY_ISSUER).permitAll()
-                        .pathMatchers(PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
-                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -84,38 +81,6 @@ public class SecurityConfig {
 
                 );
         return http.build();
-    }
-
-    // CORS configuration to allow requests from specified origins
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration corsConfig = new CorsConfiguration();
-        // Allow specified origins
-        corsConfig.setAllowedOrigins(List.of(
-                appConfig.getIssuerUiExternalDomain(),
-                "http://localhost:4200",
-                "http://localhost:8080"
-        ));
-        // Allow specified HTTP methods
-        corsConfig.setAllowedMethods(List.of(
-                HttpMethod.GET.name(),
-                HttpMethod.HEAD.name(),
-                HttpMethod.POST.name(),
-                HttpMethod.PUT.name(),
-                HttpMethod.DELETE.name(),
-                HttpMethod.OPTIONS.name()
-        ));
-        // Set max age for preflight requests
-        corsConfig.setMaxAge(1800L);
-        // Allow all headers
-        corsConfig.addAllowedHeader("*");
-        corsConfig.addExposedHeader("*");
-        // Allow credentials (cookies, authorization headers, etc.)
-        corsConfig.setAllowCredentials(true);
-        // Apply the configuration to all paths
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfig);
-        return source;
     }
 
     // Helper method to get Swagger-related paths for permitting access

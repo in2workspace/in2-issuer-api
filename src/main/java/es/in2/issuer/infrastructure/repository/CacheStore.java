@@ -13,8 +13,12 @@ import java.util.concurrent.TimeUnit;
 public class CacheStore<T> {
 
     private final Cache<String, T> cache;
+    private final long expiryDuration;
+    private final TimeUnit timeUnit;
 
     public CacheStore(long expiryDuration, TimeUnit timeUnit) {
+        this.expiryDuration = expiryDuration;
+        this.timeUnit = timeUnit;
         this.cache = CacheBuilder.newBuilder()
                 .expireAfterWrite(expiryDuration, timeUnit)
                 .concurrencyLevel(Runtime.getRuntime().availableProcessors())
@@ -42,6 +46,21 @@ public class CacheStore<T> {
             }
             return null;  // Return null to indicate that nothing was added
         }).filter(Objects::nonNull);  // Only emit if the result is non-null
+    }
+
+    /**
+     * Obtains the cache expiry duration in seconds.
+     *
+     * @return the cache expiry duration in seconds
+     */
+    public Mono<Integer> getCacheExpiryInSeconds() {
+        return Mono.fromSupplier(() -> {
+            long seconds = timeUnit.toSeconds(expiryDuration);
+            if (seconds > Integer.MAX_VALUE) {
+                throw new IllegalStateException("Expiry duration exceeds maximum integer value.");
+            }
+            return (int) seconds;
+        });
     }
 
 }

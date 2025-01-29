@@ -103,6 +103,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        CTransactionCodeDetails cTransactionCodeDetails = CTransactionCodeDetails.builder()
+                .cTransactionCodeExpiresIn(1000)
+                .cTransactionCode("cTransactionCode")
+                .build();
+
 
         when(deferredCredentialMetadataService.validateTransactionCode(transactionCode)).thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just(procedureId));
@@ -133,12 +138,13 @@ class CredentialOfferIssuanceWorkflowImplTest {
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
 
         when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)).thenReturn(Mono.just("cTransactionCode"));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)).thenReturn(Mono.just(cTransactionCodeDetails));
 
         StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionCode))
                 .expectNext(CredentialOfferUriResponse.builder()
                         .credentialOfferUri(credentialOfferUri)
-                        .cTransactionCode("cTransactionCode")
+                        .cTransactionCode(cTransactionCodeDetails.cTransactionCode())
+                        .cTransactionCodeExpiresIn(cTransactionCodeDetails.cTransactionCodeExpiresIn())
                         .build())
                 .verifyComplete();
     }
@@ -171,6 +177,10 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        CTransactionCodeDetails cTransactionCodeDetails = CTransactionCodeDetails.builder()
+                .cTransactionCodeExpiresIn(1000)
+                .cTransactionCode("cTransactionCode")
+                .build();
 
         when(deferredCredentialMetadataService.validateCTransactionCode(subTransactionCode)).thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode)).thenReturn(Mono.just(procedureId));
@@ -201,12 +211,13 @@ class CredentialOfferIssuanceWorkflowImplTest {
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
 
         when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(originalTransactionCode)).thenReturn(Mono.just("cTransactionCode"));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(originalTransactionCode)).thenReturn(Mono.just(cTransactionCodeDetails));
 
         StepVerifier.create(credentialOfferIssuanceService.buildNewCredentialOfferUri(processId,subTransactionCode))
                 .expectNext(CredentialOfferUriResponse.builder()
                         .credentialOfferUri(credentialOfferUri)
-                        .cTransactionCode("cTransactionCode")
+                        .cTransactionCode(cTransactionCodeDetails.cTransactionCode())
+                        .cTransactionCodeExpiresIn(cTransactionCodeDetails.cTransactionCodeExpiresIn())
                         .build())
                 .verifyComplete();
     }

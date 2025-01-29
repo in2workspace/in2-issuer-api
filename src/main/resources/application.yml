@@ -153,3 +153,7 @@ knowledge-base:
   url: "https://knowledgebase.dome-marketplace-prd.org"
 trust-framework:
   url: "http://localhost:8080"
+
+cors:
+  default-allowed-origins: "http://localhost:4201"
+  external-allowed-origins: "http://localhost:4201, http://localhost:4200"
