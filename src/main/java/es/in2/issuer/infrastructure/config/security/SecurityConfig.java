@@ -81,9 +81,7 @@ public class SecurityConfig {
                                 .jwt(jwtSpec -> jwtSpec
                                         .jwtDecoder(internalJwtDecoder))
 
-                )
-                // Disable form-based login
-                .formLogin(ServerHttpSecurity.FormLoginSpec::disable);
+                );
         return http.build();
     }
 

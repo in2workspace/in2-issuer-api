@@ -27,8 +27,8 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
-    org.springframework.security: INFO
-    es.in2.issuer: INFO
+    org.springframework.security: DEBUG
+    es.in2.issuer: DEBUG
 
 # Spring Management Configuration - Actuator
 management:
@@ -105,9 +105,9 @@ azure:
 
 auth-server:
   provider: keycloak
-  external-domain: "http://localhost:8081"
-  internal-domain: "http://localhost:8081"
-  realm: CredentialIssuer
+  external-domain: "http://localhost:7002"
+  internal-domain: "http://localhost:7002"
+  realm: wallet
   paths:
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
     jwt-decoder-path: "/realms/${auth-server.realm}/protocol/openid-connect/certs"
