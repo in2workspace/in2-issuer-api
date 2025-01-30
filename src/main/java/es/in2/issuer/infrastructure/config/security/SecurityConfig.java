@@ -36,7 +36,7 @@ public class SecurityConfig {
         authenticationWebFilter.setRequiresAuthenticationMatcher(
                 ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**")
         );
-//         Configure the Bearer token authentication converter
+        // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
 
