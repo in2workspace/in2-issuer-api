@@ -36,29 +36,46 @@ public class SecurityConfig {
         authenticationWebFilter.setRequiresAuthenticationMatcher(
                 ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**")
         );
-        // Configure the Bearer token authentication converter
+//         Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
 
         return authenticationWebFilter;
     }
 
-    // Security configuration for specific endpoints
+    //Security configuration for specific endpoints
     @Bean
     @Order(1)
     public SecurityWebFilterChain externalServicesFilterChain(ServerHttpSecurity http) {
         http
-                .cors(cors -> externalServicesCORSConfig.externalCorsConfigurationSource())
+                .securityMatcher(
+                        ServerWebExchangeMatchers.pathMatchers(
+                                // Public endpoints
+                                SWAGGER_UI,
+                                SWAGGER_RESOURCES,
+                                SWAGGER_API_DOCS,
+                                SWAGGER_SPRING_UI,
+                                SWAGGER_WEBJARS,
+                                PUBLIC_HEALTH,
+                                PUBLIC_CREDENTIAL_OFFER,
+                                PUBLIC_DISCOVERY_ISSUER,
+                                "/api/v1/deferred-credentials",
+                                "/token",
+                                // protected endpoints
+                                "/vci/v1/issuances/**"
+                        )
+                )
+                .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                                .pathMatchers(HttpMethod.POST, "/vci/v1/issuances/**").authenticated()
-                                .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
-                                .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
-                                .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
-                                .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
-                                .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
-                                .pathMatchers(HttpMethod.POST, "/token").permitAll()
-                                .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
-                                .pathMatchers(HttpMethod.GET,  "/api/v1/deferred-credentials").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/vci/v1/issuances/**").authenticated()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
+                        .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
+                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
+                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
+                        .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
+                        .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
+                        .anyExchange().denyAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
@@ -66,11 +83,13 @@ public class SecurityConfig {
         return http.build();
     }
 
+
     // General security configuration for other endpoints
     @Bean
     @Order(2)
     public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
         http
+                .securityMatcher(ServerWebExchangeMatchers.anyExchange())
                 .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
