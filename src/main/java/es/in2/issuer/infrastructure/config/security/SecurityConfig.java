@@ -32,8 +32,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationWebFilter customAuthenticationWebFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
-        authenticationWebFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.anyExchange());
-
+        // Set the path for which the filter will be applied
+        authenticationWebFilter.setRequiresAuthenticationMatcher(
+                ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**")
+        );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
@@ -47,20 +49,20 @@ public class SecurityConfig {
     public SecurityWebFilterChain externalServicesFilterChain(ServerHttpSecurity http) {
         http
                 .cors(cors -> externalServicesCORSConfig.externalCorsConfigurationSource())
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**"))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(HttpMethod.POST, "/vci/v1/issuances").authenticated()
-                        .pathMatchers(HttpMethod.GET,getSwaggerPaths()).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
-                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
+                                .pathMatchers(HttpMethod.POST, "/vci/v1/issuances/**").authenticated()
+                                .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
+                                .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
+                                .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
+                                .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
+                                .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_AUTH_SERVER).permitAll()
+                                .pathMatchers(HttpMethod.POST, "/token").permitAll()
+                                .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
+                                .pathMatchers(HttpMethod.GET,  "/api/v1/deferred-credentials").permitAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+
         return http.build();
     }
 
