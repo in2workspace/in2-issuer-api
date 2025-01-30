@@ -3,7 +3,6 @@ package es.in2.issuer.domain.service;
 import es.in2.issuer.domain.model.dto.CTransactionCodeDetails;
 import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
 
 public interface DeferredCredentialMetadataService {
     Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri);
