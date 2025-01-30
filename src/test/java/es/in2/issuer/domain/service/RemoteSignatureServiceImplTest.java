@@ -18,6 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
@@ -110,10 +112,14 @@ class RemoteSignatureServiceImplTest {
     void testGetSignedDocumentExternal() throws JsonProcessingException {
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
-        SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
-        signatureRequest = new SignatureRequest(signatureConfiguration1, "data");
+        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
+        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+
         String accessTokenResponse = "{\"access_token\": \"mock-access-token\"}";
-        String signedDocumentResponse = "{\"signedDocument\": \"mock-signed-document\"}";
+        String base64SignedDocument = Base64.getEncoder().encodeToString("mock-signed-document".getBytes(StandardCharsets.UTF_8));
+        String signedDocumentResponse = "{ \"DocumentWithSignature\": [\"" + base64SignedDocument + "\"] }";
+        String processedResponse = "{ \"type\": \"JADES\", \"data\": \"mock-signed-document\" }";
+
         String hashAlgo = "2.16.840.1.101.3.4.2.1";
 
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://api.external.com");
@@ -133,13 +139,16 @@ class RemoteSignatureServiceImplTest {
 
         when(hashGeneratorService.generateHash(eq(signatureRequest.data()), eq(hashAlgo))).thenReturn("mock-hash");
 
+        when(objectMapper.readValue(eq(signedDocumentResponse), eq(Map.class)))
+                .thenReturn(Map.of("DocumentWithSignature", List.of(base64SignedDocument)));
+
+        when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
+
         Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
 
         StepVerifier.create(result)
-                .expectNextMatches(response -> {
-                    System.out.println("Signed Document Response: " + response);
-                    return response.equals(signedDocumentResponse);
-                })
+                .expectNext(processedResponse)
                 .verifyComplete();
     }
+
 }

@@ -1,6 +1,8 @@
 package es.in2.issuer.domain.service.impl;
 import es.in2.issuer.domain.service.HashGeneratorService;
 import org.springframework.stereotype.Service;
+
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
 
@@ -18,7 +20,7 @@ public class HashGeneratorServiceImpl implements  HashGeneratorService {
     @Override
     public String generateSHA256(String unsignedDocument) {
         try {
-            byte[] documentBytes = unsignedDocument.getBytes();
+            byte[] documentBytes = unsignedDocument.getBytes(StandardCharsets.UTF_8);
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(documentBytes);
             return Base64.getEncoder().encodeToString(hashBytes);
