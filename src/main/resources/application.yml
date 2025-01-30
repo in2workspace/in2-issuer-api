@@ -27,8 +27,8 @@ logging:
   pattern:
     level: "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]"
   level:
-    org.springframework.security: DEBUG
-    es.in2.issuer: DEBUG
+    org.springframework.security: INFO
+    es.in2.issuer: INFO
 
 # Spring Management Configuration - Actuator
 management:
