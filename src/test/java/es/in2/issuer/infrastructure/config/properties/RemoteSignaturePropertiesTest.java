@@ -8,10 +8,9 @@ class RemoteSignaturePropertiesTest {
     @Test
     void testRemoteSignatureProperties() {
         RemoteSignatureProperties.Paths paths = new RemoteSignatureProperties.Paths("signPath");
-        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties("externalDomain", "internalDomain", paths);
+        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties("domain", paths);
 
-        assertEquals("externalDomain", remoteSignatureProperties.externalDomain());
-        assertEquals("internalDomain", remoteSignatureProperties.internalDomain());
+        assertEquals("domain", remoteSignatureProperties.domain());
         assertEquals(paths, remoteSignatureProperties.paths());
     }
 }

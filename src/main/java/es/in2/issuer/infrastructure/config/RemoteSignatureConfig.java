@@ -16,12 +16,8 @@ public class RemoteSignatureConfig {
         this.remoteSignatureProperties = remoteSignatureProperties;
     }
 
-    public String getRemoteSignatureExternalDomain() {
-        return configAdapter.getConfiguration(remoteSignatureProperties.externalDomain());
-    }
-
-    public String getRemoteSignatureInternalDomain() {
-        return configAdapter.getConfiguration(remoteSignatureProperties.internalDomain());
+    public String getRemoteSignatureDomain() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.domain());
     }
 
     public String getRemoteSignatureSignPath() {
