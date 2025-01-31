@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.exception.HashGenerationException;
 import es.in2.issuer.domain.service.impl.HashGeneratorServiceImpl;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +31,7 @@ public class HashGeneratorServiceImplTest {
     }
 
     @Test
-    void testGenerateSHA256_Success() {
+    void testGenerateSHA256_Success() throws HashGenerationException {
         String generatedHash = hashGeneratorService.generateSHA256(testDocument);
         Assertions.assertNotNull(generatedHash);
         Assertions.assertEquals(generatedHash, expectedSHA256Base64);
@@ -38,13 +39,15 @@ public class HashGeneratorServiceImplTest {
 
     @Test
     void testGenerateSHA256_EmptyInput() {
-        String generatedHash = hashGeneratorService.generateSHA256("");
-        Assertions.assertNotNull(generatedHash);
-        assertFalse(generatedHash.isEmpty());
+        Exception exception = assertThrows(HashGenerationException.class, () -> {
+            hashGeneratorService.generateSHA256("");
+        });
+
+        Assertions.assertEquals("The document cannot be null or empty", exception.getMessage());
     }
 
     @Test
-    void testGenerateHash_ValidAlgorithm() {
+    void testGenerateHash_ValidAlgorithm() throws HashGenerationException {
         String generatedHash = hashGeneratorService.generateHash(testDocument, "2.16.840.1.101.3.4.2.1");
 
         Assertions.assertNotNull(generatedHash);
@@ -53,8 +56,8 @@ public class HashGeneratorServiceImplTest {
 
     @Test
     void testGenerateHash_InvalidAlgorithm() {
-        Exception exception = assertThrows(RuntimeException.class, () -> {
-            hashGeneratorService.generateHash(testDocument, "1.3.6.1.4.1.11129.2.4.2");
+        Exception exception = assertThrows(HashGenerationException.class, () -> {
+            hashGeneratorService.generateHash("testDocument", "1.3.6.1.4.1.11129.2.4.2");
         });
 
         Assertions.assertEquals("Error generating hash: algorithm not supported", exception.getMessage());

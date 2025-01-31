@@ -2,7 +2,7 @@ package es.in2.issuer.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.exception.SignedDataParsingException;
+import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.service.RemoteSignatureService;
@@ -88,8 +88,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String hashAlgorithmOID, String type) {
-        String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
-        String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
+        //String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
+        //String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
+        String clientId = "client_23295a2234b5";
+        String clientSecret = "EPUkGDsCAKnWN8pnuOwQn2DG12LrQ5BE";
         String grantType = "client_credentials";
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
@@ -117,13 +119,14 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                         Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
                         return (String) responseMap.get("access_token");
                     } catch (JsonProcessingException e) {
-                        throw new RuntimeException("Error parsing access token response", e);
+                        throw new AccessTokenException("Error parsing access token response", e);
                     }
                 }));
     }
 
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
-        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+        String credentialID = "0959E4F67C148EC63557EF9CA66F9B21F0AA";
+        //String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
         String signatureQualifier = "eu_eidas_qes";
         String signatureFormat = "J";
@@ -167,7 +170,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 String documentsWithSignatureDecoded = new String(Base64.getDecoder().decode(documentsWithSignature), StandardCharsets.UTF_8);
 
                 if (documentsWithSignature == null || documentsWithSignature.isEmpty()) {
-                    throw new RuntimeException("No signature found in the response");
+                    throw new SignatureProcessingException("No signature found in the response");
                 }
 
                 return objectMapper.writeValueAsString(Map.of(
@@ -176,14 +179,16 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 ));
 
             } catch (JsonProcessingException e) {
-                throw new RuntimeException("Error parsing signature response", e);
+                throw new SignatureProcessingException("Error parsing signature response", e);
             }
         });
     }
 
     private String buildAuthorizationDetails(String unsignedCredential, String hashAlgorithmOID, String type) {
-        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
-        String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
+        String credentialID = "0959E4F67C148EC63557EF9CA66F9B21F0AA";
+        String credentialPassword = "D70795026";
+        //String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+        //String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
             authorizationDetails.put("type", type);
@@ -201,7 +206,11 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
             return objectMapper.writeValueAsString(List.of(authorizationDetails));
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Error building authorization details", e);
+            System.err.println("Error building authorization details: " + e.getMessage());
+            return "{}";
+        } catch (HashGenerationException e) {
+            System.err.println("Error generating hash in authorization details: " + e.getMessage());
+            return "{}";
         }
     }
 

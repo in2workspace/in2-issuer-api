@@ -9,21 +9,24 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest
 class RemoteSignatureServiceImplIntegrationTest {
 
-    @Mock
+    @Autowired
     private RemoteSignatureServiceImpl remoteSignatureService;
 
-    @Mock
+    @Autowired
     private ObjectMapper objectMapper;
 
     @Test
     void testRealGetSignedDocumentExternal() {
+        // Definir JSON de prueba
         String jsonContent = "{\"sign\": \"signtest1234\"}";
         SignatureType signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
@@ -31,22 +34,20 @@ class RemoteSignatureServiceImplIntegrationTest {
         SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, jsonContent);
 
         try {
-            Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+            // Llamada al servicio con logs adicionales para depuración
+            Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest)
+                    .doOnSubscribe(subscription -> System.out.println("🔹 Request sent: " + jsonContent))
+                    .doOnSuccess(response -> System.out.println("✅ Response received: " + response))
+                    .doOnError(error -> {
+                        System.err.println("❌ Error in the workflow: " + error.getMessage());
+                        error.printStackTrace();
+                    });
 
-            result.doOnSuccess(response -> {
-                try {
-                    Map<String, Object> responseMap = objectMapper.readValue(response, Map.class);
-                    System.out.println("Processed response: " + responseMap);
-                } catch (Exception e) {
-                    System.err.println("Error processing response: " + e.getMessage());
-                }
-            }).doOnError(error -> {
-                System.err.println("Error in the workflow: " + error.getMessage());
-                error.printStackTrace();
-            }).block();
+            // Bloquear para esperar la respuesta
+            result.block();
 
         } catch (Exception e) {
-            System.err.println("Error executing workflow: " + e.getMessage());
+            System.err.println("🚨 Error executing workflow: " + e.getMessage());
             e.printStackTrace();
         }
     }

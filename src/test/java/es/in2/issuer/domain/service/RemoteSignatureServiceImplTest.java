@@ -2,6 +2,7 @@ package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.HashGenerationException;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
@@ -109,7 +110,7 @@ class RemoteSignatureServiceImplTest {
     }
 
     @Test
-    void testGetSignedDocumentExternal() throws JsonProcessingException {
+    void testGetSignedDocumentExternal() throws JsonProcessingException, HashGenerationException {
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
