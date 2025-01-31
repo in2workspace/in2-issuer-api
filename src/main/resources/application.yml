@@ -13,13 +13,13 @@ spring:
     url: "jdbc:postgresql://localhost:5434/issuer"
     locations: classpath:db/migration
   mail:
-    host:
-    port:
+    host: localhost
+    port: 1025
     username:
     password:
     properties.mail.smtp:
-      auth:
-      starttls.enable:
+      auth: false
+      starttls.enable: false
       ssl.trust:
 
 # Spring Logging Configuration
@@ -142,7 +142,11 @@ issuer-identity:
     expiration-unit-time: "MINUTES"
 
 remote-signature:
-  domain: "http://localhost:8082"
+  client-id:
+  client-secret:
+  credential-id:
+  credential-password:
+  domain: "https://dts-component-rdss-csc.pre-api.digitelts.com"
   paths:
     sign-path: "/signature/sign"
 

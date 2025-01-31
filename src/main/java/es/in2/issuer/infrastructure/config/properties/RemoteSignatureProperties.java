@@ -11,13 +11,21 @@ import java.util.Optional;
 @Validated
 public record RemoteSignatureProperties(
         @NotNull String domain,
-        @NotNull Paths paths
+        @NotNull Paths paths,
+        String clientId,
+        String clientSecret,
+        String credentialId,
+        String credentialPassword
 ) {
 
     @ConstructorBinding
-    public RemoteSignatureProperties(String domain, Paths paths) {
+    public RemoteSignatureProperties(String domain, Paths paths, String clientId, String clientSecret, String credentialId, String credentialPassword) {
         this.domain = domain;
         this.paths = Optional.ofNullable(paths).orElse(new Paths(""));
+        this.clientId = clientId;
+        this.clientSecret = clientSecret;
+        this.credentialId = credentialId;
+        this.credentialPassword = credentialPassword;
     }
 
     @Validated
