@@ -8,9 +8,13 @@ class RemoteSignaturePropertiesTest {
     @Test
     void testRemoteSignatureProperties() {
         RemoteSignatureProperties.Paths paths = new RemoteSignatureProperties.Paths("signPath");
-        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties("domain", paths);
+        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties("domain", paths, "clientId", "clientSecret", "credentialId", "credentialPassword");
 
         assertEquals("domain", remoteSignatureProperties.domain());
         assertEquals(paths, remoteSignatureProperties.paths());
+        assertEquals("clientId", remoteSignatureProperties.clientId());
+        assertEquals("clientSecret", remoteSignatureProperties.clientSecret());
+        assertEquals("credentialId", remoteSignatureProperties.credentialId());
+        assertEquals("credentialPassword", remoteSignatureProperties.credentialPassword());
     }
 }

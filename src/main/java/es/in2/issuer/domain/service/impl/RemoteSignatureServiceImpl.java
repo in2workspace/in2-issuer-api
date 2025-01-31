@@ -33,10 +33,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
 
-    private final String credentialID = "SECRET";
-    private final String credentialPassword = "SECRET";
-    private final String clientId = "SECRET";
-    private final String clientSecret = "SECRET";
+    private final String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+    private final String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
+    private final String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
+    private final String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
 
 
     @Override
