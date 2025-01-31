@@ -6,19 +6,20 @@ import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class RemoteSignatureServiceImplIntegrationTest {
 
-    @Autowired
+    @Mock
     private RemoteSignatureServiceImpl remoteSignatureService;
 
-    @Autowired
+    @Mock
     private ObjectMapper objectMapper;
 
     @Test
