@@ -34,7 +34,7 @@ public class SecurityConfig {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
         // Set the path for which the filter will be applied
         authenticationWebFilter.setRequiresAuthenticationMatcher(
-                ServerWebExchangeMatchers.pathMatchers("/vci/v1/issuances/**")
+                ServerWebExchangeMatchers.pathMatchers(ISSUANCE)
         );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
@@ -59,22 +59,22 @@ public class SecurityConfig {
                                 PUBLIC_HEALTH,
                                 PUBLIC_CREDENTIAL_OFFER,
                                 PUBLIC_DISCOVERY_ISSUER,
-                                "/api/v1/deferred-credentials",
-                                "/token",
+                                DEFERRED_CREDENTIALS,
+                                TOKEN,
                                 // protected endpoints
-                                "/vci/v1/issuances/**"
+                                ISSUANCE
                         )
                 )
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(HttpMethod.POST, "/vci/v1/issuances/**").authenticated()
+                        .pathMatchers(HttpMethod.POST, ISSUANCE).authenticated()
                         .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
                         .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
                         .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
                         .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
-                        .pathMatchers(HttpMethod.POST, "/token").permitAll()
-                        .pathMatchers(HttpMethod.GET, "/api/v1/deferred-credentials").permitAll()
-                        .pathMatchers(HttpMethod.POST, "/api/v1/deferred-credentials").permitAll()
+                        .pathMatchers(HttpMethod.POST, TOKEN).permitAll()
+                        .pathMatchers(HttpMethod.GET, DEFERRED_CREDENTIALS).permitAll()
+                        .pathMatchers(HttpMethod.POST, DEFERRED_CREDENTIALS).permitAll()
                         .anyExchange().denyAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
