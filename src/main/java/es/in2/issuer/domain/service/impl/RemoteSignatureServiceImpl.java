@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.SignedDataParsingException;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
-import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.HashGeneratorService;
 import es.in2.issuer.domain.util.HttpUtils;
@@ -32,11 +31,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HttpUtils httpUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
-
-    private final String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
-    private final String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
-    private final String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
-    private final String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
 
 
     @Override
@@ -71,6 +65,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
                 + remoteSignatureConfig.getRemoteSignatureSignPath();
         String signatureRequestJSON;
+
         try {
             signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
         } catch (JsonProcessingException e) {
@@ -93,6 +88,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String hashAlgorithmOID, String type) {
+        String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
+        String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
         String grantType = "client_credentials";
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
@@ -126,6 +123,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
+        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
         String signatureQualifier = "eu_eidas_qes";
         String signatureFormat = "J";
@@ -184,6 +182,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private String buildAuthorizationDetails(String unsignedCredential, String hashAlgorithmOID, String type) {
+        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+        String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
             authorizationDetails.put("type", type);
