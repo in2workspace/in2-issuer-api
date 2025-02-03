@@ -82,6 +82,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String hashAlgorithmOID = "2.16.840.1.101.3.4.2.1";
         String type = "credential";
 
+        log.info("Requesting access token - External signature service");
+
         return requestAccessToken(signatureRequest, hashAlgorithmOID, type)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
@@ -118,6 +120,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                         if (!responseMap.containsKey("access_token")) {
                             throw new AccessTokenException("Access token missing in response");
                         }
+                        log.info("External Access token response: {}", responseMap.get("access_token"));
                         return (String) responseMap.get("access_token");
                     } catch (JsonProcessingException e) {
                         throw new AccessTokenException("Error parsing access token response", e);
@@ -163,6 +166,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     public Mono<String> processSignatureResponse(SignatureRequest signatureRequest, String responseJson) {
+        log.info("Processing signature response: {}", responseJson);
         return Mono.fromCallable(() -> {
             try {
                 Map<String, List<String>> responseMap = objectMapper.readValue(responseJson, Map.class);
