@@ -35,6 +35,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
+        log.info("Signing signature...");
         return getSignedSignature(signatureRequest, token)
                 .flatMap(response -> {
                     try {
@@ -65,6 +66,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
                 + remoteSignatureConfig.getRemoteSignatureSignPath();
         String signatureRequestJSON;
+
+        log.info("Requesting signature to DSS service");
 
         try {
             signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
