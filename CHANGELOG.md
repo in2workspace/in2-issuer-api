@@ -6,7 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.3.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.3.0)
 ### Added
-- Added support to sign the credential with an external service.
+- Added support to sign the credential with an external service following CSC.
+
+## [v1.2.3](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.3)
+### Added
+- Add cors configuration for externals clients on the issuance endpoint.
+
+### Changed
+- Change email template styles, improve compatibility accross different email providers (e.g., Gmail)
 
 ## [v1.2.2](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.2)
 ### Added

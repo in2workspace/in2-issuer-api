@@ -8,6 +8,8 @@ public record CredentialOfferUriResponse(
         @JsonProperty("credential_offer_uri")
         String credentialOfferUri,
         @JsonProperty("c_transaction_code")
-        String cTransactionCode
+        String cTransactionCode,
+        @JsonProperty("c_transaction_code_expires_in")
+        int cTransactionCodeExpiresIn
 ) {
 }

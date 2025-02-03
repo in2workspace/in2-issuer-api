@@ -9,7 +9,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -33,6 +37,8 @@ class AppConfigTest {
 
     @Mock
     private IssuerIdentityProperties issuerIdentityProperties;
+    @Mock
+    private CorsProperties corsProperties;
 
 
     private AppConfig appConfig;
@@ -40,7 +46,7 @@ class AppConfigTest {
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties, issuerIdentityProperties, knowledgeBaseProperties);
+        appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties, issuerIdentityProperties, knowledgeBaseProperties, corsProperties);
     }
 
     @Test
@@ -126,5 +132,43 @@ class AppConfigTest {
 
         // Assert
         assertEquals(expectedLifetime, actualLifetime);
+    }
+
+    @Test
+    void getExternalCorsAllowedOrigins_returnsConfiguredOrigins() {
+        List<String> expectedOrigins = List.of("https://example.com", "https://another.com");
+        when(corsProperties.externalAllowedOrigins()).thenReturn(expectedOrigins);
+
+        List<String> actualOrigins = appConfig.getExternalCorsAllowedOrigins();
+
+        assertEquals(expectedOrigins, actualOrigins);
+    }
+
+    @Test
+    void getDefaultCorsAllowedOrigins_returnsConfiguredOrigins() {
+        List<String> expectedOrigins = List.of("https://default.com", "https://default2.com");
+        when(corsProperties.defaultAllowedOrigins()).thenReturn(expectedOrigins);
+
+        List<String> actualOrigins = appConfig.getDefaultCorsAllowedOrigins();
+
+        assertEquals(expectedOrigins, actualOrigins);
+    }
+
+    @Test
+    void getExternalCorsAllowedOrigins_whenNoOriginsConfigured_returnsEmptyList() {
+        when(corsProperties.externalAllowedOrigins()).thenReturn(Collections.emptyList());
+
+        List<String> actualOrigins = appConfig.getExternalCorsAllowedOrigins();
+
+        assertTrue(actualOrigins.isEmpty());
+    }
+
+    @Test
+    void getDefaultCorsAllowedOrigins_whenNoOriginsConfigured_returnsEmptyList() {
+        when(corsProperties.defaultAllowedOrigins()).thenReturn(Collections.emptyList());
+
+        List<String> actualOrigins = appConfig.getDefaultCorsAllowedOrigins();
+
+        assertTrue(actualOrigins.isEmpty());
     }
 }

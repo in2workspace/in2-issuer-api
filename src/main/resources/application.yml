@@ -105,9 +105,9 @@ azure:
 
 auth-server:
   provider: keycloak
-  external-domain: "http://localhost:8081"
-  internal-domain: "http://localhost:8081"
-  realm: CredentialIssuer
+  external-domain: "http://localhost:7002"
+  internal-domain: "http://localhost:7002"
+  realm: wallet
   paths:
     issuer-did: "did:key:z6MkqmaCT2JqdUtLeKah7tEVfNXtDXtQyj4yxEgV11Y5CqUa"
     jwt-decoder-path: "/realms/${auth-server.realm}/protocol/openid-connect/certs"
@@ -156,3 +156,7 @@ knowledge-base:
   url: "https://knowledgebase.dome-marketplace-prd.org"
 trust-framework:
   url: "http://localhost:8080"
+
+cors:
+  default-allowed-origins: "http://localhost:4201"
+  external-allowed-origins: "http://localhost:4201, http://localhost:4200"
