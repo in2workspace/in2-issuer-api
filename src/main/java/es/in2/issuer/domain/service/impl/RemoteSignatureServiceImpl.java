@@ -115,6 +115,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 .flatMap(responseJson -> Mono.fromCallable(() -> {
                     try {
                         Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
+                        if (!responseMap.containsKey("access_token")) {
+                            throw new AccessTokenException("Access token missing in response");
+                        }
                         return (String) responseMap.get("access_token");
                     } catch (JsonProcessingException e) {
                         throw new AccessTokenException("Error parsing access token response", e);
@@ -159,16 +162,18 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, requestBodySignature);
     }
 
-    private Mono<String> processSignatureResponse(SignatureRequest signatureRequest, String responseJson) {
+    public Mono<String> processSignatureResponse(SignatureRequest signatureRequest, String responseJson) {
         return Mono.fromCallable(() -> {
             try {
                 Map<String, List<String>> responseMap = objectMapper.readValue(responseJson, Map.class);
-                String documentsWithSignature = responseMap.get("DocumentWithSignature").get(0);
-                String documentsWithSignatureDecoded = new String(Base64.getDecoder().decode(documentsWithSignature), StandardCharsets.UTF_8);
+                List<String> documentsWithSignatureList = responseMap.get("DocumentWithSignature");
 
-                if (documentsWithSignature == null || documentsWithSignature.isEmpty()) {
+                if (documentsWithSignatureList == null || documentsWithSignatureList.isEmpty()) {
                     throw new SignatureProcessingException("No signature found in the response");
                 }
+
+                String documentsWithSignature = documentsWithSignatureList.get(0);
+                String documentsWithSignatureDecoded = new String(Base64.getDecoder().decode(documentsWithSignature), StandardCharsets.UTF_8);
 
                 return objectMapper.writeValueAsString(Map.of(
                         "type", signatureRequest.configuration().type().name(),

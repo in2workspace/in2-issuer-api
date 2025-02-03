@@ -2,7 +2,9 @@ package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.AccessTokenException;
 import es.in2.issuer.domain.exception.HashGenerationException;
+import es.in2.issuer.domain.exception.SignatureProcessingException;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
@@ -141,5 +143,49 @@ class RemoteSignatureServiceImplTest {
                 .expectNext(processedResponse)
                 .verifyComplete();
     }
+
+    @Test
+    void testRequestAccessTokenAccessTokenException() throws JsonProcessingException {
+        signatureType = SignatureType.JADES;
+        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, Map.of());
+        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+
+        String invalidAccessTokenResponse = "{ \"invalid_key\": \"no_token_here\" }";
+
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://api.external.com");
+
+        doReturn(Mono.just(invalidAccessTokenResponse))
+                .when(httpUtils)
+                .postRequest(eq("https://api.external.com/oauth2/token"), any(List.class), anyString());
+
+        when(objectMapper.readValue(invalidAccessTokenResponse, Map.class))
+                .thenReturn(Map.of("invalid_key", "no_token_here"));
+
+        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+
+        StepVerifier.create(result)
+                .expectError(AccessTokenException.class)
+                .verify();
+    }
+
+    @Test
+    void testProcessSignatureResponseSignatureProcessingException() throws JsonProcessingException {
+        signatureType = SignatureType.JADES;
+        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, Map.of());
+        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+
+        String malformedSignatureResponse = "{ \"DocumentWithSignature\": [] }";
+
+        when(objectMapper.readValue(malformedSignatureResponse, Map.class))
+                .thenReturn(Map.of("DocumentWithSignature", List.of()));
+
+        Mono<String> result = remoteSignatureService.processSignatureResponse(signatureRequest, malformedSignatureResponse);
+
+        StepVerifier.create(result)
+                .expectError(SignatureProcessingException.class)
+                .verify();
+    }
+
+
 
 }
