@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
-import es.in2.issuer.domain.model.dto.CTransactionCodeDetails;
 import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
@@ -68,16 +67,9 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
-    public Mono<CTransactionCodeDetails> updateCacheStoreForCTransactionCode(String transactionCode) {
+    public Mono<String> updateCacheStoreForCTransactionCode(String transactionCode) {
         return generateCustomNonce()
-                .flatMap(cTransactionCode -> cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode)
-                        .then(cacheStoreForCTransactionCode.getCacheExpiryInSeconds()
-                                .map(expiry -> CTransactionCodeDetails.builder()
-                                        .cTransactionCode(cTransactionCode)
-                                        .cTransactionCodeExpiresIn(expiry)
-                                        .build())
-                        )
-                );
+                .flatMap(cTransactionCode -> cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode));
     }
 
     @Override

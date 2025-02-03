@@ -1,12 +1,11 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.dto.CTransactionCodeDetails;
 import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import reactor.core.publisher.Mono;
 
 public interface DeferredCredentialMetadataService {
     Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri);
-    Mono<CTransactionCodeDetails> updateCacheStoreForCTransactionCode(String transactionCode);
+    Mono<String> updateCacheStoreForCTransactionCode(String transactionCode);
     Mono<String> validateCTransactionCode(String cTransactionCode);
     Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId);
     Mono<String> getProcedureIdByTransactionCode(String transactionCode);

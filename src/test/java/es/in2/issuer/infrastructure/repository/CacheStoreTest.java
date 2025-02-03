@@ -93,23 +93,4 @@ class CacheStoreTest {
 
         verify(cache).getIfPresent(key);
     }
-
-    @Test
-    void testGetCacheExpiryInSeconds_NormalCase() {
-        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
-                .expectSubscription()
-                .expectNext(60) // 1 MINUTE => 60 seconds
-                .verifyComplete();
-    }
-
-    @Test
-    void testGetCacheExpiryInSeconds_ExceedMaxInteger() {
-        ReflectionTestUtils.setField(cacheStore, "expiryDuration", Long.MAX_VALUE);
-        ReflectionTestUtils.setField(cacheStore, "timeUnit", TimeUnit.SECONDS);
-
-        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
-                .expectSubscription()
-                .expectError(IllegalStateException.class)
-                .verify();
-    }
 }

@@ -5,8 +5,6 @@ import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.infrastructure.config.properties.*;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 @Configuration
 public class AppConfig {
 
@@ -15,22 +13,13 @@ public class AppConfig {
     private final IssuerUiProperties issuerUiProperties;
     private final IssuerIdentityProperties issuerIdentityProperties;
     private final KnowledgeBaseProperties knowledgeBaseProperties;
-    private final CorsProperties corsProperties;
 
-    public AppConfig(
-                        ConfigAdapterFactory configAdapterFactory,
-                        ApiProperties apiProperties,
-                        IssuerUiProperties issuerUiProperties,
-                        IssuerIdentityProperties issuerIdentityProperties,
-                        KnowledgeBaseProperties knowledgeBaseProperties,
-                        CorsProperties corsProperties
-    ) {
+    public AppConfig(ConfigAdapterFactory configAdapterFactory, ApiProperties apiProperties, IssuerUiProperties issuerUiProperties, IssuerIdentityProperties issuerIdentityProperties, KnowledgeBaseProperties knowledgeBaseProperties) {
         this.configAdapter = configAdapterFactory.getAdapter();
         this.apiProperties = apiProperties;
         this.issuerUiProperties = issuerUiProperties;
         this.issuerIdentityProperties = issuerIdentityProperties;
         this.knowledgeBaseProperties = knowledgeBaseProperties;
-        this.corsProperties = corsProperties;
     }
 
     public String getIssuerApiExternalDomain() {
@@ -79,13 +68,6 @@ public class AppConfig {
 
     public String getClientAssertionExpirationUnitTime() {
         return issuerIdentityProperties.clientAssertion().expirationUnitTime();
-    }
-
-    public List<String> getExternalCorsAllowedOrigins() {
-        return corsProperties.externalAllowedOrigins();
-    }
-    public List<String> getDefaultCorsAllowedOrigins() {
-        return corsProperties.defaultAllowedOrigins();
     }
 
 }
