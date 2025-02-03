@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @ExtendWith(MockitoExtension.class)
-public class HashGeneratorServiceImplTest {
+class HashGeneratorServiceImplTest {
     @InjectMocks
     private HashGeneratorServiceImpl hashGeneratorService;
 

@@ -88,10 +88,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String hashAlgorithmOID, String type) {
-        //String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
-        //String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
-        String clientId = "client_23295a2234b5";
-        String clientSecret = "EPUkGDsCAKnWN8pnuOwQn2DG12LrQ5BE";
+        String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
+        String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
         String grantType = "client_credentials";
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
@@ -125,8 +123,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
-        String credentialID = "0959E4F67C148EC63557EF9CA66F9B21F0AA";
-        //String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
         String signatureQualifier = "eu_eidas_qes";
         String signatureFormat = "J";
@@ -185,10 +182,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private String buildAuthorizationDetails(String unsignedCredential, String hashAlgorithmOID, String type) {
-        String credentialID = "0959E4F67C148EC63557EF9CA66F9B21F0AA";
-        String credentialPassword = "D70795026";
-        //String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
-        //String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
+        String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
+        String credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
             authorizationDetails.put("type", type);
@@ -206,11 +201,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
             return objectMapper.writeValueAsString(List.of(authorizationDetails));
         } catch (JsonProcessingException e) {
-            System.err.println("Error building authorization details: " + e.getMessage());
-            return "{}";
+            return Mono.error(e).toString();
         } catch (HashGenerationException e) {
-            System.err.println("Error generating hash in authorization details: " + e.getMessage());
-            return "{}";
+            return Mono.error(e).toString();
         }
     }
 

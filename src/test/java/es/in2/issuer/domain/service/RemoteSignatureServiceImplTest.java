@@ -51,16 +51,6 @@ class RemoteSignatureServiceImplTest {
     private String signatureRemoteServerEndpoint;
     private SignatureType signatureType;
 
-    private final String clientId = "SECRETO";
-    private final String clientSecret = "SECRETO";
-    private final String credentialID = "SECRETO";
-    private final String credentialPassword = "SECRETO";
-
-    @BeforeEach
-    void setUp() {
-
-    }
-
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
         signatureType = SignatureType.COSE;
@@ -135,12 +125,12 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.writeValueAsString(any())).thenReturn("mock-json");
 
-        when(objectMapper.readValue(eq(accessTokenResponse), eq(Map.class)))
+        when(objectMapper.readValue(accessTokenResponse, Map.class))
                 .thenReturn(Map.of("access_token", "mock-access-token"));
 
-        when(hashGeneratorService.generateHash(eq(signatureRequest.data()), eq(hashAlgo))).thenReturn("mock-hash");
+        when(hashGeneratorService.generateHash(signatureRequest.data(), hashAlgo)).thenReturn("mock-hash");
 
-        when(objectMapper.readValue(eq(signedDocumentResponse), eq(Map.class)))
+        when(objectMapper.readValue(signedDocumentResponse, Map.class))
                 .thenReturn(Map.of("DocumentWithSignature", List.of(base64SignedDocument)));
 
         when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
