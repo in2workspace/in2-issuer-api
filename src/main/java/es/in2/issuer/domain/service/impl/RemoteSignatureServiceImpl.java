@@ -206,7 +206,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
             return objectMapper.writeValueAsString(List.of(authorizationDetails));
         } catch (JsonProcessingException | HashGenerationException e) {
-            throw new RuntimeException("Error generating authorization details", e);
+            throw new AuthorizationDetailsException("Error generating authorization details", e);
         }
     }
 
