@@ -7,9 +7,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,6 +47,20 @@ class HashGeneratorServiceImplTest {
         });
 
         Assertions.assertEquals("The document cannot be null or empty", exception.getMessage());
+    }
+
+    @Test
+    void testGenerateSHA256_NoSuchAlgorithmException() {
+        try (MockedStatic<MessageDigest> mockedDigest = Mockito.mockStatic(MessageDigest.class)) {
+            mockedDigest.when(() -> MessageDigest.getInstance("SHA-256"))
+                    .thenThrow(new NoSuchAlgorithmException("SHA-256 algorithm not available"));
+
+            Exception exception = Assertions.assertThrows(HashGenerationException.class, () -> {
+                hashGeneratorService.generateSHA256(testDocument);
+            });
+
+            Assertions.assertEquals("SHA-256 algorithm not supported", exception.getMessage());
+        }
     }
 
     @Test
