@@ -205,10 +205,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             authorizationDetails.put("hashAlgorithmOID", hashAlgorithmOID);
 
             return objectMapper.writeValueAsString(List.of(authorizationDetails));
-        } catch (JsonProcessingException e) {
-            return Mono.error(e).toString();
-        } catch (HashGenerationException e) {
-            return Mono.error(e).toString();
+        } catch (JsonProcessingException | HashGenerationException e) {
+            throw new RuntimeException("Error generating authorization details", e);
         }
     }
 
