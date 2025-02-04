@@ -327,7 +327,7 @@ class DeferredCredentialMetadataServiceImplTest {
     }
 
     @Test
-    void updatecacheStore_whenNonceGeneratedAndAddedToCache_returnsCTransactionCodeDetails() {
+    void updatecacheStore_whenNonceGeneratedAndAddedToCache_returnsMapWithCTransactionCodeDetails() {
         String transactionCode = "transaction-code";
         String cTransactionCode = "c-transaction-code";
         int expiry = 3600;
@@ -338,12 +338,16 @@ class DeferredCredentialMetadataServiceImplTest {
             when(cacheStore.getCacheExpiryInSeconds()).thenReturn(Mono.just(expiry));
 
             StepVerifier.create(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode))
-                    .expectNextMatches(details -> details.cTransactionCode().equals(cTransactionCode) && details.cTransactionCodeExpiresIn() == expiry)
+                    .expectNextMatches(map ->
+                            cTransactionCode.equals(map.get("cTransactionCode")) &&
+                                    expiry == (int) map.get("cTransactionCodeExpiresIn")
+                    )
                     .verifyComplete();
         }
 
         verify(cacheStore, times(1)).add(cTransactionCode, transactionCode);
         verify(cacheStore, times(1)).getCacheExpiryInSeconds();
     }
+
 
 }

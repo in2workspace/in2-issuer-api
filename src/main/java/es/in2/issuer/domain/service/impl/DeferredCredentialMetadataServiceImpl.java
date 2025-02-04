@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
-import es.in2.issuer.domain.model.dto.CTransactionCodeDetails;
 import es.in2.issuer.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
@@ -12,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Utils.generateCustomNonce;
@@ -68,17 +68,20 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
-    public Mono<CTransactionCodeDetails> updateCacheStoreForCTransactionCode(String transactionCode) {
+    public Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode) {
         return generateCustomNonce()
-                .flatMap(cTransactionCode -> cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode)
-                        .then(cacheStoreForCTransactionCode.getCacheExpiryInSeconds()
-                                .map(expiry -> CTransactionCodeDetails.builder()
-                                        .cTransactionCode(cTransactionCode)
-                                        .cTransactionCodeExpiresIn(expiry)
-                                        .build())
-                        )
+                .flatMap(cTransactionCode ->
+                        cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode)
+                                .then(
+                                        cacheStoreForCTransactionCode.getCacheExpiryInSeconds()
+                                                .map(expiry -> Map.of(
+                                                        "cTransactionCode", cTransactionCode,
+                                                        "cTransactionCodeExpiresIn", expiry
+                                                ))
+                                )
                 );
     }
+
 
     @Override
     public Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId) {
