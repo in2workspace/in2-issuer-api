@@ -21,8 +21,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -53,7 +51,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
-        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureExternalDomain() + "/api/v1"
+        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
                 + remoteSignatureConfig.getRemoteSignatureSignPath();
         String signatureRequestJSON;
         try {

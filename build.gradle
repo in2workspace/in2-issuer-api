@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'es.in2'
-version = '1.2.2'
+version = '1.2.3'
 
 java {
     sourceCompatibility = '17'
@@ -44,6 +44,8 @@ sonar {
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/config/security/SecurityConfig.java, " +
                         "src/main/java/es/in2/issuer/domain/service/impl/VerifierServiceImpl.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/config/security/DefaultCORSConfig.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/config/security/ExternalServicesCORSConfig.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java"
     }
 }

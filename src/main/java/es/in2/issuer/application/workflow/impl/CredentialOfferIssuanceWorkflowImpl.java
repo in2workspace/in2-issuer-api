@@ -75,13 +75,12 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                 )
                                                 .flatMap(credentialOfferUri ->
                                                         deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)
-                                                                .flatMap(cTransactionCode ->
-                                                                        Mono.just(
+                                                                .map(cTransactionCodeMap ->
                                                                                 CredentialOfferUriResponse.builder()
                                                                                         .credentialOfferUri(credentialOfferUri)
-                                                                                        .cTransactionCode(cTransactionCode)
+                                                                                        .cTransactionCode(cTransactionCodeMap.get("cTransactionCode").toString())
+                                                                                        .cTransactionCodeExpiresIn(Integer.parseInt(cTransactionCodeMap.get("cTransactionCodeExpiresIn").toString()))
                                                                                         .build()
-                                                                        )
                                                                 )
                                                 )
                                 )

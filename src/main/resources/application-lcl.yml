@@ -135,8 +135,7 @@ default-signer:
   serial-number:
 
 remote-signature:
-  external-domain: "http://localhost:8082"
-  internal-domain: "http://remote-signature:8080"
+  domain: "http://localhost:8082"
   paths:
     sign-path: "/signature/sign"
 
@@ -146,3 +145,7 @@ trust-framework:
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
   url: "https://knowledgebase.dome-marketplace-prd.org"
+
+cors:
+  default-allowed-origins: "https://issuer.dome-marketplace-lcl.org"
+  external-allowed-origins: ""

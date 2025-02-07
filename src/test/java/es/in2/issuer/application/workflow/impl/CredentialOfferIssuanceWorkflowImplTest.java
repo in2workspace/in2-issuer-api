@@ -19,6 +19,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE;
 import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -93,8 +96,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                         .txCode(Grant.TxCode.builder()
                                 .length(4)
                                 .build())
-                        .build()
-                )
+                        .build())
                 .build();
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
@@ -103,45 +105,62 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        String cTransactionCode = "cTransactionCode";
+        int expiry = 1000;
+        Map<String, Object> cTransactionCodeMap = new HashMap<>();
+        cTransactionCodeMap.put("cTransactionCode", cTransactionCode);
+        cTransactionCodeMap.put("cTransactionCodeExpiresIn", expiry);
 
-        when(deferredCredentialMetadataService.validateTransactionCode(transactionCode)).thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)).thenReturn(Mono.just(procedureId));
-        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId)).thenReturn(Mono.just(credentialType));
+        when(deferredCredentialMetadataService.validateTransactionCode(transactionCode))
+                .thenReturn(Mono.empty());
+        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
+                .thenReturn(Mono.just(procedureId));
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialType));
 
         when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(accessToken));
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-
-        // Create a mock ClientResponse for a successful response
         ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
                 .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                 .body("PreAuthorizedCode")
                 .build();
-
-        // Stub the exchange function to return the mock ClientResponse
         when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
-        when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(transactionCode,preAuthCodeResponse.grant().preAuthorizedCode()))
+        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
+                .thenReturn(preAuthCodeResponse);
+        when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
+                transactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
-        when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant(), mail, preAuthCodeResponse.pin())).thenReturn(Mono.just(credentialOfferData));
+        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(mail));
+        when(credentialOfferService.buildCustomCredentialOffer(
+                credentialType,
+                preAuthCodeResponse.grant(),
+                mail,
+                preAuthCodeResponse.pin()))
+                .thenReturn(Mono.just(credentialOfferData));
+        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData))
+                .thenReturn(Mono.just(nonce));
+        when(credentialOfferService.createCredentialOfferUriResponse(nonce))
+                .thenReturn(Mono.just(credentialOfferUri));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode))
+                .thenReturn(Mono.just(cTransactionCodeMap));
 
-        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
+        CredentialOfferUriResponse expectedResponse = CredentialOfferUriResponse.builder()
+                .credentialOfferUri(credentialOfferUri)
+                .cTransactionCode(cTransactionCode)
+                .cTransactionCodeExpiresIn(expiry)
+                .build();
 
-        when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode)).thenReturn(Mono.just("cTransactionCode"));
-
-        StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId,transactionCode))
-                .expectNext(CredentialOfferUriResponse.builder()
-                        .credentialOfferUri(credentialOfferUri)
-                        .cTransactionCode("cTransactionCode")
-                        .build())
+        StepVerifier.create(credentialOfferIssuanceService.buildCredentialOfferUri(processId, transactionCode))
+                .expectNext(expectedResponse)
                 .verifyComplete();
     }
+
 
     @Test
     void testBuildNewCredentialOfferUri() throws JsonProcessingException {
@@ -161,8 +180,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                         .txCode(Grant.TxCode.builder()
                                 .length(4)
                                 .build())
-                        .build()
-                )
+                        .build())
                 .build();
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
@@ -171,43 +189,62 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        // Se simula el Map con los detalles de cTransactionCode
+        String cTransactionCode = "cTransactionCode";
+        int expiry = 1000;
+        Map<String, Object> cTransactionCodeMap = new HashMap<>();
+        cTransactionCodeMap.put("cTransactionCode", cTransactionCode);
+        cTransactionCodeMap.put("cTransactionCodeExpiresIn", expiry);
 
-        when(deferredCredentialMetadataService.validateCTransactionCode(subTransactionCode)).thenReturn(Mono.just(originalTransactionCode));
-        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode)).thenReturn(Mono.just(procedureId));
-        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId)).thenReturn(Mono.just(credentialType));
+        // Stubbing
+        when(deferredCredentialMetadataService.validateCTransactionCode(subTransactionCode))
+                .thenReturn(Mono.just(originalTransactionCode));
+        when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode))
+                .thenReturn(Mono.just(procedureId));
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialType));
 
         when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(accessToken));
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-
-        // Create a mock ClientResponse for a successful response
         ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
                 .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
                 .body("PreAuthorizedCode")
                 .build();
-
-        // Stub the exchange function to return the mock ClientResponse
         when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class)).thenReturn(preAuthCodeResponse);
-        when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(originalTransactionCode,preAuthCodeResponse.grant().preAuthorizedCode()))
+        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
+                .thenReturn(preAuthCodeResponse);
+        when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
+                originalTransactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
-        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(mail));
-        when(credentialOfferService.buildCustomCredentialOffer(credentialType,preAuthCodeResponse.grant(), mail, preAuthCodeResponse.pin())).thenReturn(Mono.just(credentialOfferData));
+        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(mail));
+        when(credentialOfferService.buildCustomCredentialOffer(
+                credentialType,
+                preAuthCodeResponse.grant(),
+                mail,
+                preAuthCodeResponse.pin()))
+                .thenReturn(Mono.just(credentialOfferData));
+        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData))
+                .thenReturn(Mono.just(nonce));
+        when(credentialOfferService.createCredentialOfferUriResponse(nonce))
+                .thenReturn(Mono.just(credentialOfferUri));
+        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(originalTransactionCode))
+                .thenReturn(Mono.just(cTransactionCodeMap));
 
-        when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData)).thenReturn(Mono.just(nonce));
+        CredentialOfferUriResponse expectedResponse = CredentialOfferUriResponse.builder()
+                .credentialOfferUri(credentialOfferUri)
+                .cTransactionCode(cTransactionCode)
+                .cTransactionCodeExpiresIn(expiry)
+                .build();
 
-        when(credentialOfferService.createCredentialOfferUriResponse(nonce)).thenReturn(Mono.just(credentialOfferUri));
-        when(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(originalTransactionCode)).thenReturn(Mono.just("cTransactionCode"));
-
-        StepVerifier.create(credentialOfferIssuanceService.buildNewCredentialOfferUri(processId,subTransactionCode))
-                .expectNext(CredentialOfferUriResponse.builder()
-                        .credentialOfferUri(credentialOfferUri)
-                        .cTransactionCode("cTransactionCode")
-                        .build())
+        StepVerifier.create(credentialOfferIssuanceService.buildNewCredentialOfferUri(processId, subTransactionCode))
+                .expectNext(expectedResponse)
                 .verifyComplete();
     }
+
 }
