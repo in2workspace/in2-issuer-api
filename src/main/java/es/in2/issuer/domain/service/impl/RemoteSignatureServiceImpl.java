@@ -3,6 +3,7 @@ package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.*;
+import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.service.RemoteSignatureService;
@@ -55,13 +56,11 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
-        if (Objects.equals(remoteSignatureConfig.getRemoteSignatureExternalService(), "true")) {
-            return getSignedDocumentDSS(signatureRequest, token);
-        } else if(Objects.equals(remoteSignatureConfig.getRemoteSignatureExternalService(), "false")) {
-            return getSignedDocumentExternal(signatureRequest);
-        } else {
-            return Mono.error(new RemoteSignatureException("Remote signature service not available"));
-        }
+        return switch (remoteSignatureConfig.getRemoteSignatureExternalService()) {
+            case "true" -> getSignedDocumentDSS(signatureRequest, token);
+            case "false" -> getSignedDocumentExternal(signatureRequest);
+            default -> Mono.error(new RemoteSignatureException("Remote signature service not available"));
+        };
     }
 
     private Mono<String> getSignedDocumentDSS(SignatureRequest signatureRequest, String token) {
