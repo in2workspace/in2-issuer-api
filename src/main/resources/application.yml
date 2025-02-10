@@ -149,7 +149,7 @@ remote-signature:
   client-secret: "client-secret"
   credential-id: "credential-id"
   credential-password: "credential-password"
-  external-service: false
+  external-service: "false"
 
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
