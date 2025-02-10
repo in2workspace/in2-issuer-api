@@ -86,7 +86,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String hashAlgorithmOID = "2.16.840.1.101.3.4.2.1";
         String type = "credential";
 
-        log.info("Requesting access token - External signature service");
+        log.info("External signature service");
 
         return requestAccessToken(signatureRequest, hashAlgorithmOID, type)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
@@ -99,6 +99,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String grantType = "client_credentials";
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
+
+        log.info("Requesting access token");
+        log.info("ClientId is: {}", clientId);
+        log.info("ClientSecret is: {}", clientSecret);
 
         Map<String, String> requestBodyToAccess = new HashMap<>();
         requestBodyToAccess.put("grant_type", grantType);
