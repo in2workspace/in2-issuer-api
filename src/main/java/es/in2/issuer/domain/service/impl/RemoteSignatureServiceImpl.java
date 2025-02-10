@@ -55,10 +55,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
-        if (remoteSignatureConfig.getRemoteSignatureExternalService().equals("true")) {
+        if (Objects.equals(remoteSignatureConfig.getRemoteSignatureExternalService(), "true")) {
             return getSignedDocumentDSS(signatureRequest, token);
-        } else {
+        } else if(Objects.equals(remoteSignatureConfig.getRemoteSignatureExternalService(), "false")) {
             return getSignedDocumentExternal(signatureRequest);
+        } else {
+            return Mono.error(new RemoteSignatureException("Remote signature service not configured"));
         }
     }
 

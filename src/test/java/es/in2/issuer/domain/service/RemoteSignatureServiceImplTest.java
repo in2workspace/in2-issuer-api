@@ -54,6 +54,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("true");
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -82,6 +83,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignJsonProcessingException() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("true");
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -90,8 +92,9 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
 
-        when(objectMapper.writeValueAsString(signatureRequest)).thenThrow(new JsonProcessingException("error") {
-        });
+        when(objectMapper.writeValueAsString(any(SignatureRequest.class)))
+                .thenThrow(new JsonProcessingException("error") {});
+
 
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token);
 
