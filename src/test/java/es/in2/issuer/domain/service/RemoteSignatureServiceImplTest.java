@@ -54,7 +54,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
-        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("true");
+        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("false");
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -83,7 +83,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignJsonProcessingException() throws JsonProcessingException {
-        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("true");
+        when(remoteSignatureConfig.getRemoteSignatureExternalService()).thenReturn("false");
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
