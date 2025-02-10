@@ -15,17 +15,19 @@ public record RemoteSignatureProperties(
         String clientId,
         String clientSecret,
         String credentialId,
-        String credentialPassword
+        String credentialPassword,
+        @NotNull Boolean externalService
 ) {
 
     @ConstructorBinding
-    public RemoteSignatureProperties(String domain, Paths paths, String clientId, String clientSecret, String credentialId, String credentialPassword) {
+    public RemoteSignatureProperties(String domain, Paths paths, String clientId, String clientSecret, String credentialId, String credentialPassword, Boolean externalService) {
         this.domain = domain;
         this.paths = Optional.ofNullable(paths).orElse(new Paths(""));
         this.clientId = clientId;
         this.clientSecret = clientSecret;
         this.credentialId = credentialId;
         this.credentialPassword = credentialPassword;
+        this.externalService = externalService;
     }
 
     @Validated

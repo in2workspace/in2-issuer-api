@@ -142,14 +142,14 @@ issuer-identity:
     expiration-unit-time: "MINUTES"
 
 remote-signature:
+  domain: "https://dts-component-rdss-csc.pre-api.digitelts.com"
+  paths:
+    sign-path: "/signature/sign"
   client-id: "client-id"
   client-secret: "client-secret"
   credential-id: "credential-id"
   credential-password: "credential-password"
-  domain: "https://dts-component-rdss-csc.pre-api.digitelts.com"
-  paths:
-    sign-path: "/signature/sign"
-
+  external-service: false
 
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
