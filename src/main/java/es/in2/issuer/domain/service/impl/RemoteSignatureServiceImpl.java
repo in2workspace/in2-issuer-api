@@ -31,8 +31,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HttpUtils httpUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
-    private final static String accessTokenName = "access_token";
-
+    private static final String ACCESS_TOKEN_NAME = "access_token";
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
@@ -121,11 +120,11 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 .flatMap(responseJson -> Mono.fromCallable(() -> {
                     try {
                         Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
-                        if (!responseMap.containsKey(accessTokenName)) {
+                        if (!responseMap.containsKey(ACCESS_TOKEN_NAME)) {
                             throw new AccessTokenException("Access token missing in response");
                         }
-                        log.info("External Access token response: {}", responseMap.get(accessTokenName));
-                        return (String) responseMap.get(accessTokenName);
+                        log.info("External Access token response: {}", responseMap.get(ACCESS_TOKEN_NAME));
+                        return (String) responseMap.get(ACCESS_TOKEN_NAME);
                     } catch (JsonProcessingException e) {
                         throw new AccessTokenException("Error parsing access token response", e);
                     }
