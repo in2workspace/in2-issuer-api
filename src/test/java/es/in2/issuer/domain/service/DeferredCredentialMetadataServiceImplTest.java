@@ -284,4 +284,70 @@ class DeferredCredentialMetadataServiceImplTest {
         verify(deferredCredentialMetadataRepository, times(1)).findByProcedureId(procedureId);
     }
 
+    @Test
+    void validateCTransactionCode_whenCTransactionCodeExists_returnsTransactionCode() {
+        String cTransactionCode = "c-transaction-code";
+        String transactionCode = "transaction-code";
+        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
+        when(cacheStore.delete(cTransactionCode)).thenReturn(Mono.empty());
+
+        StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
+                .expectNext(transactionCode)
+                .verifyComplete();
+
+        verify(cacheStore, times(1)).get(cTransactionCode);
+        verify(cacheStore, times(1)).delete(cTransactionCode);
+    }
+
+    @Test
+    void validateCTransactionCode_whenCTransactionCodeDoesNotExist_returnsEmpty() {
+        String cTransactionCode = "c-transaction-code";
+        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.empty());
+
+        StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
+                .verifyComplete();
+
+        verify(cacheStore, times(1)).get(cTransactionCode);
+        verify(cacheStore, never()).delete(cTransactionCode);
+    }
+
+    @Test
+    void validateCTransactionCode_whenDeleteFails_throwsException() {
+        String cTransactionCode = "c-transaction-code";
+        String transactionCode = "transaction-code";
+        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
+        when(cacheStore.delete(cTransactionCode)).thenReturn(Mono.error(new RuntimeException("Delete failed")));
+
+        StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException && throwable.getMessage().equals("Delete failed"))
+                .verify();
+
+        verify(cacheStore, times(1)).get(cTransactionCode);
+        verify(cacheStore, times(1)).delete(cTransactionCode);
+    }
+
+    @Test
+    void updatecacheStore_whenNonceGeneratedAndAddedToCache_returnsMapWithCTransactionCodeDetails() {
+        String transactionCode = "transaction-code";
+        String cTransactionCode = "c-transaction-code";
+        int expiry = 3600;
+
+        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
+            mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(cTransactionCode));
+            when(cacheStore.add(cTransactionCode, transactionCode)).thenReturn(Mono.empty());
+            when(cacheStore.getCacheExpiryInSeconds()).thenReturn(Mono.just(expiry));
+
+            StepVerifier.create(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode))
+                    .expectNextMatches(map ->
+                            cTransactionCode.equals(map.get("cTransactionCode")) &&
+                                    expiry == (int) map.get("cTransactionCodeExpiresIn")
+                    )
+                    .verifyComplete();
+        }
+
+        verify(cacheStore, times(1)).add(cTransactionCode, transactionCode);
+        verify(cacheStore, times(1)).getCacheExpiryInSeconds();
+    }
+
+
 }
