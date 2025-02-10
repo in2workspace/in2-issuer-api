@@ -31,7 +31,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HttpUtils httpUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
-    private final String accessTokenName = "access_token";
+    private final static String accessTokenName = "access_token";
 
 
     @Override
