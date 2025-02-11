@@ -217,6 +217,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     private SignedData toSignedData(String signedSignatureResponse) throws SignedDataParsingException {
         try {
+            log.info("toSignedData: {}", objectMapper.readValue(signedSignatureResponse, SignedData.class));
             return objectMapper.readValue(signedSignatureResponse, SignedData.class);
         } catch (IOException e) {
             log.error("Error: {}", e.getMessage());
