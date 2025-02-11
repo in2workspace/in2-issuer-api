@@ -40,8 +40,8 @@ public class RemoteSignatureConfig {
         return configAdapter.getConfiguration(remoteSignatureProperties.credentialPassword());
     }
 
-    public String getRemoteSignatureExternalService() {
-        return configAdapter.getConfiguration(remoteSignatureProperties.externalService());
+    public String getRemoteSignatureType() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.type());
     }
     
 }
