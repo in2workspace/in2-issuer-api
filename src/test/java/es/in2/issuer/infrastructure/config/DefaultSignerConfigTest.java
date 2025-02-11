@@ -3,7 +3,6 @@ package es.in2.issuer.infrastructure.config;
 import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.infrastructure.config.properties.DefaultSignerProperties;
-import es.in2.issuer.infrastructure.config.properties.RemoteSignatureProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,7 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultSignerConfigTest {
@@ -25,9 +23,6 @@ class DefaultSignerConfigTest {
     private ConfigAdapterFactory configAdapterFactory;
 
     private DefaultSignerConfig defaultSignerConfig;
-
-    @Mock
-    private RemoteSignatureProperties remoteSignatureProperties;
 
     @BeforeEach
     void setUp() {
@@ -47,7 +42,7 @@ class DefaultSignerConfigTest {
         // Mock configAdapter behavior
         lenient().when(configAdapter.getConfiguration(anyString())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        defaultSignerConfig = new DefaultSignerConfig(configAdapterFactory, defaultSignerProperties, remoteSignatureProperties);
+        defaultSignerConfig = new DefaultSignerConfig(configAdapterFactory, defaultSignerProperties);
     }
 
     @Test
@@ -70,7 +65,6 @@ class DefaultSignerConfigTest {
 
     @Test
     void testGetOrganizationIdentifier() {
-        when(configAdapter.getConfiguration(remoteSignatureProperties.type())).thenReturn("server");
         String result = defaultSignerConfig.getOrganizationIdentifier();
         assertEquals("OrgId", result);
     }
