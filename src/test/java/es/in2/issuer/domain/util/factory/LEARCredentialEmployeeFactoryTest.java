@@ -8,6 +8,7 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +31,9 @@ class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private AccessTokenService accessTokenService;
+
+    @Mock
+    private RemoteSignatureConfig remoteSignatureConfig;
 
     @InjectMocks
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
@@ -89,6 +93,7 @@ class LEARCredentialEmployeeFactoryTest {
 
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
         when(mockMandate.mandator()).thenReturn(mockMandator);
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);

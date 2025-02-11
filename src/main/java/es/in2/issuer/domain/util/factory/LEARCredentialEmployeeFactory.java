@@ -9,6 +9,7 @@ import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ public class LEARCredentialEmployeeFactory {
 
     private final ObjectMapper objectMapper;
     private final AccessTokenService accessTokenService;
+    private final RemoteSignatureConfig remoteSignatureConfig;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) throws InvalidCredentialFormatException {
         LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployeeJwtPayload(learCredential);
@@ -92,12 +94,18 @@ public class LEARCredentialEmployeeFactory {
                         .tmfAction(power.tmfAction())
                         .build())
                 .toList();
-
+        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuer;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuer = DID_ELSI + baseLearCredentialEmployee.mandate().signer().organizationIdentifier();
+        } else {
+            issuer = DID_ELSI + "VATES-D70795026";
+        }
         return Mono.just(LEARCredentialEmployee.builder()
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().signer().organizationIdentifier())
+                .issuer(issuer)
                 .validFrom(issuanceDate)
                 .validUntil(expirationDate)
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
@@ -117,6 +125,13 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee) {
+        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuer;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuer = DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier();
+        } else {
+            issuer = DID_ELSI + "VATES-D70795026";
+        }
         return Mono.just(
                 LEARCredentialEmployeeJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
@@ -124,7 +139,7 @@ public class LEARCredentialEmployeeFactory {
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.validUntil()))
                         .issuedAt(parseDateToUnixTime(learCredentialEmployee.validFrom()))
                         .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
-                        .issuer(DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier())
+                        .issuer(issuer)
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );
