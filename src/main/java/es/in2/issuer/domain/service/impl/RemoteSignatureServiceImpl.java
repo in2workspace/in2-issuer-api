@@ -38,6 +38,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         return getSignedSignature(signatureRequest, token)
                 .flatMap(response -> {
                     try {
+                        log.info("Signature received! {}", response);
                         return Mono.just(toSignedData(response));
                     } catch (SignedDataParsingException ex) {
                         return Mono.error(ex);
