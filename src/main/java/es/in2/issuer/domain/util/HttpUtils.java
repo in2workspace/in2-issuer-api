@@ -55,9 +55,6 @@ public class HttpUtils {
         log.debug("********************************************************************************");
         log.debug(">>> METHOD: {}", method);
         log.debug(">>> URI: {}", url);
-        log.debug(">>> HEADERS: {}", headers);
-        log.debug(">>> BODY: {}", requestBody);
-        log.debug("<<< BODY: {}", responseBody);
         log.debug("********************************************************************************");
     }
 
