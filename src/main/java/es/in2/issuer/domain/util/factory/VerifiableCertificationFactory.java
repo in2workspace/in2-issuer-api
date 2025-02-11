@@ -12,6 +12,7 @@ import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,7 @@ public class VerifiableCertificationFactory {
     private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final ObjectMapper objectMapper;
     private final JWTService jwtService;
+    private final RemoteSignatureConfig remoteSignatureConfig;
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
@@ -74,11 +76,18 @@ public class VerifiableCertificationFactory {
                 .serialNumber(defaultSignerConfig.getSerialNumber())
                 .build();
 
+        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuerCred;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuerCred = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
+        } else {
+            issuerCred = DID_ELSI + "VATES-D70795026";
+        }
         // Create the Issuer object using the retrieved UserDetails
         VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
                 .commonName(defaultSignerConfig.getCommonName())
                 .country(defaultSignerConfig.getCountry())
-                .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
+                .id(issuerCred)
                 .organization(defaultSignerConfig.getOrganization())
                 .build();
 
@@ -110,6 +119,13 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
+        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuerCred;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
+        } else {
+            issuerCred = DID_ELSI + "VATES-D70795026";
+        }
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
@@ -117,7 +133,7 @@ public class VerifiableCertificationFactory {
                         .expirationTime(parseDateToUnixTime(credential.validUntil()))
                         .issuedAt(parseDateToUnixTime(credential.validFrom()))
                         .notValidBefore(parseDateToUnixTime(credential.validFrom()))
-                        .issuer(DID_ELSI + credential.signer().organizationIdentifier())
+                        .issuer(issuerCred)
                         .subject(credential.credentialSubject().product().productId())
                         .build()
         );
