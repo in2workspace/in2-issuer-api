@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/vci/v1/issuances")
 @RequiredArgsConstructor
-public class IssuanceController {
+public class PreSubmittedCredentialController {
     private final VerifiableCredentialIssuanceWorkflow verifiableCredentialIssuanceWorkflow;
     private final AccessTokenService accessTokenService;
 
