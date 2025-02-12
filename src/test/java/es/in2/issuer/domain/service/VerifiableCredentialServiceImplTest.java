@@ -82,7 +82,7 @@ class VerifiableCredentialServiceImplTest {
         // Arrange: Create a sample JsonNode for LEARCredentialRequest
         String token = "token";
         JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder()
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
                 .payload(credentialJsonNode)
                 .build();
 
@@ -107,7 +107,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.just(metadataId));
 
         // Act: Call the generateVc method
-        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, issuanceRequest, token);
+        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, preSubmittedCredentialRequest, token);
 
         // Assert: Verify the result
         StepVerifier.create(result)

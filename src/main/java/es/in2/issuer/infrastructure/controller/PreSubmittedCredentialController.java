@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.domain.model.dto.IssuanceRequest;
+import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,9 +40,9 @@ public class PreSubmittedCredentialController {
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> issueCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-            @RequestBody IssuanceRequest issuanceRequest) {
+            @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader).flatMap(
-                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, token));
+                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest, token));
     }
 }
