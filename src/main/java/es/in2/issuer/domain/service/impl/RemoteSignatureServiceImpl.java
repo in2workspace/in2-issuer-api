@@ -38,7 +38,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         return getSignedSignature(signatureRequest, token)
                 .flatMap(response -> {
                     try {
-                        log.info("Signature received! {}", response);
+                        log.info("Signature completed to credential with id: {}", signatureRequest.data());
                         return Mono.just(toSignedData(response));
                     } catch (SignedDataParsingException ex) {
                         return Mono.error(ex);
@@ -217,7 +217,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     private SignedData toSignedData(String signedSignatureResponse) throws SignedDataParsingException {
         try {
-            log.info("toSignedData: {}", objectMapper.readValue(signedSignatureResponse, SignedData.class));
             return objectMapper.readValue(signedSignatureResponse, SignedData.class);
         } catch (IOException e) {
             log.error("Error: {}", e.getMessage());

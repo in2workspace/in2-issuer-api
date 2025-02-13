@@ -119,7 +119,7 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
-        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
         String issuerCred;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
             issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
