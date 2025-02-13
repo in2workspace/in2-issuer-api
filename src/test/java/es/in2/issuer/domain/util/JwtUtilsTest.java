@@ -9,7 +9,7 @@ import static org.mockito.Mockito.*;
 import java.util.Base64;
 
 @ExtendWith(MockitoExtension.class)
-public class JwtUtilsTest {
+class JwtUtilsTest {
 
     private final JwtUtils jwtUtils = new JwtUtils();
 

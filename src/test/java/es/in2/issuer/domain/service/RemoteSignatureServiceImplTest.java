@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.AccessTokenException;
 import es.in2.issuer.domain.exception.HashGenerationException;
@@ -66,6 +67,13 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
         String signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
 
+        JsonNode mockNode = mock(JsonNode.class);
+        JsonNode vcNode = mock(JsonNode.class);
+        when(mockNode.path("vc")).thenReturn(vcNode);
+        when(vcNode.path("id")).thenReturn(mock(JsonNode.class));
+        when(vcNode.path("id").asText()).thenReturn("test-id");
+        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
+
         String signatureRequestJSON = "{\"request\":\"data\"}";
         String signedResponse = "{\"signed\":\"data\"}";
         String data = "data";
@@ -93,6 +101,13 @@ class RemoteSignatureServiceImplTest {
         token = "dummyToken";
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
+
+        JsonNode mockNode = mock(JsonNode.class);
+        JsonNode vcNode = mock(JsonNode.class);
+        when(mockNode.path("vc")).thenReturn(vcNode);
+        when(vcNode.path("id")).thenReturn(mock(JsonNode.class));
+        when(vcNode.path("id").asText()).thenReturn("test-id");
+        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
 
         when(objectMapper.writeValueAsString(any(SignatureRequest.class)))
                 .thenThrow(new JsonProcessingException("error") {});

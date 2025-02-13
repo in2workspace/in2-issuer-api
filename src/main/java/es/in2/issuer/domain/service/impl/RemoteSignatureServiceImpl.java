@@ -37,21 +37,21 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
+        String vcId = "";
+        try{
+            String jsonData = signatureRequest.data();
+            JsonNode rootNode = objectMapper.readTree(jsonData);
+            vcId = rootNode.path("vc").path("id").asText();
+        } catch (JsonProcessingException e) {
+            log.error("Cannot find id on vc: {}", e.getMessage());
+        }
+        String finalVcId = vcId;
         return getSignedSignature(signatureRequest, token)
                 .flatMap(response -> {
                     try {
-                        try{
-                            String jsonData = signatureRequest.data();
-                            ObjectMapper objectMapper = new ObjectMapper();
-                            JsonNode rootNode = objectMapper.readTree(jsonData);
-                            String vcId = rootNode.path("vc").path("id").asText();
-                            log.info("Successfully Signed");
-                            log.info("Credential with id: {}", vcId);
-                            log.info("at time: {}", new Date());
-                        }
-                        catch (JsonProcessingException e){
-                            log.error("Error processing vc: {}", e.getMessage());
-                        }
+                        log.info("Successfully Signed");
+                        log.info("Credential with id: {}", finalVcId);
+                        log.info("at time: {}", new Date());
                         return Mono.just(toSignedData(response));
                     } catch (SignedDataParsingException ex ) {
                         return Mono.error(ex);
