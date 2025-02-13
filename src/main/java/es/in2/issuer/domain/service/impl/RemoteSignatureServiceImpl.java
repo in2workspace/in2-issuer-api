@@ -8,6 +8,7 @@ import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.HashGeneratorService;
 import es.in2.issuer.domain.util.HttpUtils;
+import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     private final ObjectMapper objectMapper;
     private final HttpUtils httpUtils;
+    private final JwtUtils jwtUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
@@ -191,11 +193,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 String documentsWithSignature = documentsWithSignatureList.get(0);
                 String documentsWithSignatureDecoded = new String(Base64.getDecoder().decode(documentsWithSignature), StandardCharsets.UTF_8);
 
-                return objectMapper.writeValueAsString(Map.of(
-                        "type", signatureRequest.configuration().type().name(),
-                        "data", documentsWithSignatureDecoded
-                ));
-
+                String receivedPayloadDecoded = jwtUtils.decodePayload(documentsWithSignatureDecoded);
+                if(receivedPayloadDecoded.equals(signatureRequest.data())){
+                    return objectMapper.writeValueAsString(Map.of(
+                            "type", signatureRequest.configuration().type().name(),
+                            "data", documentsWithSignatureDecoded
+                    ));
+                } else {
+                    throw new SignatureProcessingException("Signed payload received does not match the original data");
+                }
             } catch (JsonProcessingException e) {
                 throw new SignatureProcessingException("Error parsing signature response", e);
             }

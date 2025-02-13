@@ -11,6 +11,7 @@ import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
+import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,8 +27,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class RemoteSignatureServiceImplTest {
@@ -37,6 +37,9 @@ class RemoteSignatureServiceImplTest {
 
     @Mock
     private HttpUtils httpUtils;
+
+    @Mock
+    private JwtUtils jwtUtils;
 
     @Mock
     private RemoteSignatureConfig remoteSignatureConfig;
@@ -49,7 +52,6 @@ class RemoteSignatureServiceImplTest {
 
     private SignatureRequest signatureRequest;
     private String token;
-    private String signatureRemoteServerEndpoint;
     private SignatureType signatureType;
 
     @Test
@@ -62,7 +64,7 @@ class RemoteSignatureServiceImplTest {
         token = "dummyToken";
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
-        signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
+        String signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
 
         String signatureRequestJSON = "{\"request\":\"data\"}";
         String signedResponse = "{\"signed\":\"data\"}";
@@ -111,8 +113,9 @@ class RemoteSignatureServiceImplTest {
         signatureRequest = new SignatureRequest(signatureConfiguration, "data");
 
         String accessTokenResponse = "{\"access_token\": \"mock-access-token\"}";
-        String base64SignedDocument = Base64.getEncoder().encodeToString("mock-signed-document".getBytes(StandardCharsets.UTF_8));
-        String signedDocumentResponse = "{ \"DocumentWithSignature\": [\"" + base64SignedDocument + "\"] }";
+        String firstBase64SignedDocument = Base64.getEncoder().encodeToString("mock-signed-document".getBytes(StandardCharsets.UTF_8));
+        String secondBase64SignedDocument = Base64.getEncoder().encodeToString(firstBase64SignedDocument.getBytes(StandardCharsets.UTF_8));
+        String signedDocumentResponse = "{ \"DocumentWithSignature\": [\"" + firstBase64SignedDocument + "\"] }";
         String processedResponse = "{ \"type\": \"JADES\", \"data\": \"mock-signed-document\" }";
 
         String hashAlgo = "2.16.840.1.101.3.4.2.1";
@@ -135,9 +138,10 @@ class RemoteSignatureServiceImplTest {
         when(hashGeneratorService.generateHash(signatureRequest.data(), hashAlgo)).thenReturn("mock-hash");
 
         when(objectMapper.readValue(signedDocumentResponse, Map.class))
-                .thenReturn(Map.of("DocumentWithSignature", List.of(base64SignedDocument)));
+                .thenReturn(Map.of("DocumentWithSignature", List.of(secondBase64SignedDocument)));
 
         when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
+        when(jwtUtils.decodePayload(firstBase64SignedDocument)).thenReturn("data");
 
         Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
 
@@ -187,6 +191,67 @@ class RemoteSignatureServiceImplTest {
                 .expectError(SignatureProcessingException.class)
                 .verify();
     }
+
+    @Test
+    void testProcessSignatureResponse_ValidPayload() throws Exception {
+        String originalData = "{\"sub\":\"test\",\"vc\":{\"id\":\"test-id\"}}";
+        String firstEncode = "ey.eyJzdWIiOiJ0ZXN0IiwidmMiOnsiaWQiOiJ0ZXN0LWlkIn19.ey";
+        String encodedData = "ZXkuZXlKemRXSWlPaUowWlhOMElpd2lkbU1pT25zaWFXUWlPaUowWlhOMExXbGtJbjE5LmV5";
+
+        SignatureRequest mockRequest = mock(SignatureRequest.class);
+        SignatureConfiguration mockConfig = mock(SignatureConfiguration.class);
+
+        when(mockRequest.data()).thenReturn(originalData);
+        when(mockRequest.configuration()).thenReturn(mockConfig);
+        when(mockConfig.type()).thenReturn(SignatureType.JADES);
+
+        when(jwtUtils.decodePayload(firstEncode)).thenReturn(originalData);
+
+        String responseJson = "{\"DocumentWithSignature\": [\"" + encodedData + "\"]}";
+        when(objectMapper.readValue(eq(responseJson), any(Class.class)))
+                .thenReturn(Map.of("DocumentWithSignature", List.of(encodedData)));
+
+        when(objectMapper.writeValueAsString(any(Map.class)))
+                .thenReturn("{\"type\":\"JADES\",\"data\":\"" + firstEncode + "\"}");
+
+        Mono<String> result = remoteSignatureService.processSignatureResponse(mockRequest, responseJson);
+
+        StepVerifier.create(result)
+                .expectNext("{\"type\":\"JADES\",\"data\":\"" + firstEncode + "\"}")
+                .verifyComplete();
+
+        verify(jwtUtils, times(1)).decodePayload(firstEncode);
+        verify(mockRequest, times(1)).data();
+    }
+
+    @Test
+    void testProcessSignatureResponse_InvalidPayload() throws Exception {
+        String originalData = "{\"sub\":\"test\",\"vc\":{\"id\":\"test-id\"}}";
+        String modifiedData = "{\"sub\":\"hacked\",\"vc\":{\"id\":\"test-id\"}}";
+        String firstEncode = "ey.eyJzdWIiOiJ0ZXN0IiwidmMiOnsiaWQiOiJ0ZXN0LWlkIn19.ey";
+        String encodedData = "ZXkuZXlKemRXSWlPaUowWlhOMElpd2lkbU1pT25zaWFXUWlPaUowWlhOMExXbGtJbjE5LmV5";
+
+        SignatureRequest mockRequest = mock(SignatureRequest.class);
+        when(mockRequest.data()).thenReturn(originalData);
+
+        when(jwtUtils.decodePayload(firstEncode)).thenReturn(modifiedData);
+
+        String responseJson = "{\"DocumentWithSignature\": [\"" + encodedData + "\"]}";
+        when(objectMapper.readValue(eq(responseJson), any(Class.class)))
+                .thenReturn(Map.of("DocumentWithSignature", List.of(encodedData)));
+
+        Mono<String> result = remoteSignatureService.processSignatureResponse(mockRequest, responseJson);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof SignatureProcessingException &&
+                        throwable.getMessage().equals("Signed payload received does not match the original data"))
+                .verify();
+
+        verify(jwtUtils, times(1)).decodePayload(firstEncode);
+        verify(mockRequest, times(1)).data();
+    }
+
+
 
 
 
