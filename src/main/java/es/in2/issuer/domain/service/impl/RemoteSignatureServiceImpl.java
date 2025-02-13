@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service.impl;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
@@ -38,10 +38,18 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         return getSignedSignature(signatureRequest, token)
                 .flatMap(response -> {
                     try {
-                        log.info("Signature completed to credential with id: {}", signatureRequest.data());
+                        String jsonData = signatureRequest.data();
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        JsonNode rootNode = objectMapper.readTree(jsonData);
+                        String vcId = rootNode.path("vc").path("id").asText();
+                        log.info("Successfully Signed");
+                        log.info("Credential with id: {}", vcId);
+                        log.info("at time: {}", new Date());
                         return Mono.just(toSignedData(response));
-                    } catch (SignedDataParsingException ex) {
+                    } catch (SignedDataParsingException ex ) {
                         return Mono.error(ex);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException(e));
                     }
                 })
                 .doOnSuccess(result -> log.info("Signature signed!"))
