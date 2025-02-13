@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
-import es.in2.issuer.domain.model.dto.IssuanceRequest;
+import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
@@ -34,18 +34,18 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialSignerWorkflow credentialSignerWorkflow;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
+    public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, preSubmittedCredentialRequest.payload(), token)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(procedureId -> deferredCredentialMetadataService.createDeferredCredentialMetadata(
                         procedureId,
-                        issuanceRequest.operationMode(),
-                        issuanceRequest.responseUri()));
+                        preSubmittedCredentialRequest.operationMode(),
+                        preSubmittedCredentialRequest.responseUri()));
     }
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
+    public Mono<String> generateVerifiableCertification(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, preSubmittedCredentialRequest.payload(), token)
                 .flatMap(credentialProcedureService::createCredentialProcedure);
     }
 

@@ -10,6 +10,7 @@ import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -36,6 +37,8 @@ class VerifiableCertificationFactoryTest {
     private JWTService jwtService;
     @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+    @Mock
+    private RemoteSignatureConfig remoteSignatureConfig;
 
     @InjectMocks
     private VerifiableCertificationFactory verifiableCertificationFactory;
@@ -56,6 +59,7 @@ class VerifiableCertificationFactoryTest {
     @Test
     void testMapAndBuildVerifiableCertification() throws Exception {
         String token = "valid-token";
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
         // Given: A mocked JsonNode input representing the VerifiableCertification
         String credentialJson = """
                 {
