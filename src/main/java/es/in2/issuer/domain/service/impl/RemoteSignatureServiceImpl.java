@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.HashGeneratorService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -34,9 +36,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
+    private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
-    public Mono<SignedData> sign(SignatureRequest signatureRequest, String token) {
+    public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         String vcId = "";
         try{
             String jsonData = signatureRequest.data();
@@ -46,7 +49,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             log.error("Cannot find id on vc: {}", e.getMessage());
         }
         String finalVcId = vcId;
-        return getSignedSignature(signatureRequest, token)
+        return getSignedSignature(signatureRequest, token, procedureId)
                 .flatMap(response -> {
                     try {
                         log.info("Successfully Signed");
@@ -67,15 +70,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 });
     }
 
-    private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
+    private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token, String procedureId) {
         return switch (remoteSignatureConfig.getRemoteSignatureType()) {
-            case "server" -> getSignedDocumentDSS(signatureRequest, token);
-            case "cloud" -> getSignedDocumentExternal(signatureRequest);
+            case "server" -> getSignedDocumentDSS(signatureRequest, token, procedureId);
+            case "cloud" -> getSignedDocumentExternal(signatureRequest, procedureId);
             default -> Mono.error(new RemoteSignatureException("Remote signature service not available"));
         };
     }
 
-    private Mono<String> getSignedDocumentDSS(SignatureRequest signatureRequest, String token) {
+    private Mono<String> getSignedDocumentDSS(SignatureRequest signatureRequest, String token, String procedureId) {
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
                 + remoteSignatureConfig.getRemoteSignatureSignPath();
         String signatureRequestJSON;
@@ -90,27 +93,30 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         List<Map.Entry<String, String>> headers = new ArrayList<>();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-        // todo: refactorizar: debe implementarse la llamada aquí y no en el Utils
-        return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON);
+        return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON)
+                .onErrorResume(error -> handlePostRequestError(error, procedureId));
     }
 
-    public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest) {
+    public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest, String procedureId) {
         String hashAlgorithmOID = "2.16.840.1.101.3.4.2.1";
         String type = "credential";
 
         log.info("Requesting signature to external service");
 
-        return requestAccessToken(signatureRequest, hashAlgorithmOID, type)
-                .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
+        return requestAccessToken(signatureRequest, hashAlgorithmOID, type, procedureId)
+                .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken, procedureId))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
 
-    private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String hashAlgorithmOID, String type) {
+    private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String hashAlgorithmOID, String type, String procedureId) {
         String clientId = remoteSignatureConfig.getRemoteSignatureClientId();
         String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
         String grantType = "client_credentials";
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
+
+        Mono<CredentialProcedure> procedure = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
+        log.info("Credential Procedure !!!!!!!!!: {}", procedure);
 
         Map<String, String> requestBodyToAccess = new HashMap<>();
         requestBodyToAccess.put("grant_type", grantType);
@@ -130,6 +136,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headersAccess.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
 
         return httpUtils.postRequest(signatureGetAccessTokenEndpoint, headersAccess, requestBodyString)
+                .onErrorResume(error -> handlePostRequestError(error, procedureId))
                 .flatMap(responseJson -> Mono.fromCallable(() -> {
                     try {
                         Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
@@ -143,7 +150,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 }));
     }
 
-    private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
+    private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken, String procedureId) {
         String credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
         String signatureQualifier = "eu_eidas_qes";
@@ -177,7 +184,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
-        return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, requestBodySignature);
+        return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, requestBodySignature)
+                .onErrorResume(error -> handlePostRequestError(error, procedureId));
     }
 
     public Mono<String> processSignatureResponse(SignatureRequest signatureRequest, String responseJson) {
@@ -240,4 +248,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             throw new SignedDataParsingException("Error parsing signed data");
         }
     }
+
+    private Mono<String> handlePostRequestError(Throwable error, String procedureId) {
+        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
+        return Mono.error(new RemoteSignatureException("Error requesting signature"));
+    }
+
 }

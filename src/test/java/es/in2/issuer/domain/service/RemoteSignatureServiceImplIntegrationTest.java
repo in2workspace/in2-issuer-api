@@ -32,7 +32,7 @@ class RemoteSignatureServiceImplIntegrationTest {
         SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, jsonContent);
 
         try {
-            Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+            Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest, "nsfnss");
             String response = result
                     .doOnSuccess(res -> {
                         try {

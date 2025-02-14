@@ -48,7 +48,7 @@ class CredentialSignerWorkflowImplTest {
 
         logger.info("Este es un log de prueba en JUnit");
 
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
@@ -66,7 +66,7 @@ class CredentialSignerWorkflowImplTest {
         String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
         String procedureId = "procedureId";
 
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq("")))
                 .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));

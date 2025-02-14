@@ -18,6 +18,8 @@ class CredentialProcedureCreationRequestTest {
         CredentialType expectedCredentialType = CredentialType.LEAR_CREDENTIAL_EMPLOYEE;
         String expectedSubject = "Subject";
         Timestamp expectedValidUntil = new Timestamp(System.currentTimeMillis());
+        String expectedOperationMode = "S";
+        String expectedSignatureMode = "remote";
 
         // Act
         CredentialProcedureCreationRequest request = new CredentialProcedureCreationRequest(
@@ -26,7 +28,9 @@ class CredentialProcedureCreationRequestTest {
                 expectedCredentialDecoded,
                 expectedCredentialType,
                 expectedSubject,
-                expectedValidUntil
+                expectedValidUntil,
+                expectedOperationMode,
+                expectedSignatureMode
         );
 
         // Assert
@@ -65,6 +69,8 @@ class CredentialProcedureCreationRequestTest {
         CredentialType expectedCredentialType2 = CredentialType.VERIFIABLE_CERTIFICATION;
         String expectedSubject = "Subject";
         Timestamp expectedValidUntil = new Timestamp(System.currentTimeMillis());
+        String expectedOperationMode = "S";
+        String expectedSignatureMode = "remote";
 
         CredentialProcedureCreationRequest request1 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
@@ -72,7 +78,9 @@ class CredentialProcedureCreationRequestTest {
                 expectedCredentialDecoded,
                 expectedCredentialType1,
                 expectedSubject,
-                expectedValidUntil
+                expectedValidUntil,
+                expectedOperationMode,
+                expectedSignatureMode
         );
         CredentialProcedureCreationRequest request2 = new CredentialProcedureCreationRequest(
                 expectedCredentialId,
@@ -80,7 +88,9 @@ class CredentialProcedureCreationRequestTest {
                 expectedCredentialDecoded,
                 expectedCredentialType2,
                 expectedSubject,
-                expectedValidUntil
+                expectedValidUntil,
+                expectedOperationMode,
+                expectedSignatureMode
         );
 
         // Assert

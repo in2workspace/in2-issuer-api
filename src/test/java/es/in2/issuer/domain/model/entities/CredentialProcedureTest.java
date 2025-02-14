@@ -94,6 +94,8 @@ class CredentialProcedureTest {
                 ", subject=" + credentialProcedure.getSubject() +
                 ", credentialType=" + credentialProcedure.getCredentialType() +
                 ", validUntil=" + credentialProcedure.getValidUntil() +
+                ", operationMode=" + credentialProcedure.getOperationMode() +
+                ", signatureMode=" + credentialProcedure.getSignatureMode() +
                 ")";
         assertEquals(expected, credentialProcedure.toString());
     }

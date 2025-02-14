@@ -9,11 +9,13 @@ import es.in2.issuer.domain.exception.SignatureProcessingException;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -50,6 +53,9 @@ class RemoteSignatureServiceImplTest {
 
     @Mock
     private HashGeneratorService hashGeneratorService;
+
+    @Mock
+    private CredentialProcedureRepository credentialProcedureRepository;
 
     private SignatureRequest signatureRequest;
     private String token;
@@ -84,7 +90,7 @@ class RemoteSignatureServiceImplTest {
                 .thenReturn(Mono.just(signedResponse));
         when(objectMapper.readValue(signedResponse, SignedData.class)).thenReturn(signedData);
 
-        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token);
+        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
                 .expectNext(signedData)
@@ -113,7 +119,7 @@ class RemoteSignatureServiceImplTest {
                 .thenThrow(new JsonProcessingException("error") {});
 
 
-        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token);
+        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
                 .expectError(JsonProcessingException.class)
@@ -157,8 +163,9 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
         when(jwtUtils.decodePayload(firstBase64SignedDocument)).thenReturn("data");
+        CredentialProcedure mockCredentialProcedure = mock(CredentialProcedure.class);
 
-        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
                 .expectNext(processedResponse)
@@ -182,7 +189,7 @@ class RemoteSignatureServiceImplTest {
         when(objectMapper.readValue(invalidAccessTokenResponse, Map.class))
                 .thenReturn(Map.of("invalid_key", "no_token_here"));
 
-        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
+        Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
                 .expectError(AccessTokenException.class)

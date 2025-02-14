@@ -40,7 +40,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
         return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                 .flatMap(unsignedCredential -> {
                     log.info("Start get signed credential.");
-                    return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader);
+                    return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
                 })
                 .flatMap(signedCredential -> {
                     log.info("Update Signed Credential");
@@ -56,7 +56,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
         return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials);
     }
 
-    private Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token) {
+    private Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token, String procedureId) {
         return Mono.defer(() -> {
             if (format.equals(JWT_VC)) {
                 log.info(unsignedCredential);
@@ -65,7 +65,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                         new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
                         unsignedCredential
                 );
-                return remoteSignatureService.sign(signatureRequest, token)
+                return remoteSignatureService.sign(signatureRequest, token, procedureId)
                         .publishOn(Schedulers.boundedElastic())
                         .map(SignedData::data);
             } else if (format.equals(CWT_VC)) {
@@ -103,7 +103,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                 new SignatureConfiguration(SignatureType.COSE, Collections.emptyMap()),
                 cborBase64
         );
-        return remoteSignatureService.sign(signatureRequest, token).map(signedData -> Base64.getDecoder().decode(signedData.data()));
+        return remoteSignatureService.sign(signatureRequest, token, "").map(signedData -> Base64.getDecoder().decode(signedData.data()));
     }
 
     /**

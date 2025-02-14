@@ -35,6 +35,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
+        log.info("CredentialProcedureCreationRequest operationMode {}", credentialProcedureCreationRequest.operationMode());
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
                 .credentialId(UUID.fromString(credentialProcedureCreationRequest.credentialId()))
                 .credentialStatus(CredentialStatus.DRAFT)
@@ -44,6 +45,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .subject(credentialProcedureCreationRequest.subject())
                 .validUntil(credentialProcedureCreationRequest.validUntil())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
+                .operationMode("S")
+                .signatureMode("remote")
                 .build();
         return credentialProcedureRepository.save(credentialProcedure)
                 .map(savedCredentialProcedure -> savedCredentialProcedure.getProcedureId().toString())
