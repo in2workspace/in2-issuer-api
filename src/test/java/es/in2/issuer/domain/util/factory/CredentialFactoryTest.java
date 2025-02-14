@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,18 +28,21 @@ class CredentialFactoryTest {
         //Arrange
         String processId = "processId";
         String credentialType = "LEARCredentialEmployee";
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = mock(PreSubmittedCredentialRequest.class);
+        when(preSubmittedCredentialRequest.operationMode()).thenReturn("S");
         JsonNode jsonNode = mock(JsonNode.class);
+        when(preSubmittedCredentialRequest.payload()).thenReturn(jsonNode);
         CredentialProcedureCreationRequest credentialProcedureCreationRequest = mock(CredentialProcedureCreationRequest.class);
 
-        when(learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(jsonNode))
+        when(learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(jsonNode, preSubmittedCredentialRequest.operationMode()))
                 .thenReturn(Mono.just(credentialProcedureCreationRequest));
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode, "token"))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, preSubmittedCredentialRequest, "token"))
                 .expectNext(credentialProcedureCreationRequest)
                 .verifyComplete();
 
-        verify(learCredentialEmployeeFactory).mapAndBuildLEARCredentialEmployee(jsonNode);
+        verify(learCredentialEmployeeFactory).mapAndBuildLEARCredentialEmployee(jsonNode, preSubmittedCredentialRequest.operationMode());
     }
 
     @Test
@@ -46,14 +50,14 @@ class CredentialFactoryTest {
         //Arrange
         String processId = "processId";
         String credentialType = "UNSUPPORTED_CREDENTIAL";
-        JsonNode jsonNode = mock(JsonNode.class);
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = mock(PreSubmittedCredentialRequest.class);
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, jsonNode, "token"))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, preSubmittedCredentialRequest, "token"))
                 .expectError(CredentialTypeUnsupportedException.class)
                 .verify();
 
-        verify(learCredentialEmployeeFactory, never()).mapAndBuildLEARCredentialEmployee(any());
+        verify(learCredentialEmployeeFactory, never()).mapAndBuildLEARCredentialEmployee(any(), any());
     }
 
     @Test

@@ -165,7 +165,7 @@ class VerifiableCertificationFactoryTest {
         when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
 
         // When: Calling mapAndBuildVerifiableCertification
-        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
+        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token, "S");
 
         // Then: Verify the result
         StepVerifier.create(resultMono)
