@@ -56,6 +56,6 @@ public class CredentialProcedure {
     @Column("operation_mode")
     private String operationMode;
 
-    @Column("signatureMode")
+    @Column("signature_mode")
     private String signatureMode;
 }
