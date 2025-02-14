@@ -37,7 +37,7 @@ public class VerifiableCertificationFactory {
     private final JWTService jwtService;
     private final RemoteSignatureConfig remoteSignatureConfig;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token, String operationMode) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
         SignedJWT signedJWT = jwtService.parseJWT(token);
         String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
@@ -48,7 +48,7 @@ public class VerifiableCertificationFactory {
                 .flatMap(verifiableCertificationJwtPayload ->
                         convertVerifiableCertificationInToString(verifiableCertificationJwtPayload)
                                 .flatMap(decodedCredential ->
-                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationJwtPayload)
+                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationJwtPayload, operationMode)
                                 )
                 );
     }
@@ -153,7 +153,7 @@ public class VerifiableCertificationFactory {
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload, String operationMode) {
         String organizationId = defaultSignerConfig.getOrganizationIdentifier();
         return Mono.just(CredentialProcedureCreationRequest.builder()
                 .credentialId(verifiableCertificationJwtPayload.credential().id())
@@ -162,6 +162,7 @@ public class VerifiableCertificationFactory {
                 .credentialType(CredentialType.VERIFIABLE_CERTIFICATION)
                 .subject(verifiableCertificationJwtPayload.credential().credentialSubject().product().productName())
                 .validUntil(parseEpochSecondIntoTimestamp(verifiableCertificationJwtPayload.expirationTime()))
+                .operationMode(operationMode)
                 .build()
         );
     }

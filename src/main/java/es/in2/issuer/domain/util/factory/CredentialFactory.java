@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -19,12 +20,14 @@ public class CredentialFactory {
     public final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     public final VerifiableCertificationFactory verifiableCertificationFactory;
 
-    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, String credentialType, JsonNode credential, String token) {
+    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, String credentialType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+        JsonNode credential = preSubmittedCredentialRequest.payload();
+        String operationMode = preSubmittedCredentialRequest.operationMode();
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-            return learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(credential)
+            return learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(credential, operationMode)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
         } else if (credentialType.equals(VERIFIABLE_CERTIFICATION)) {
-            return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential, token)
+            return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential, token, operationMode)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));

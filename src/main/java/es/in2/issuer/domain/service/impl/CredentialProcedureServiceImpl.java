@@ -45,7 +45,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .subject(credentialProcedureCreationRequest.subject())
                 .validUntil(credentialProcedureCreationRequest.validUntil())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
-                .operationMode("S")
+                .operationMode(credentialProcedureCreationRequest.operationMode())
                 .signatureMode("remote")
                 .build();
         return credentialProcedureRepository.save(credentialProcedure)

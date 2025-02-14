@@ -40,13 +40,13 @@ public class LEARCredentialEmployeeFactory {
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential, String operationMode) {
         LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee = mapJsonNodeToCredentialSubject(learCredential);
 
         return buildFinalLearCredentialEmployee(baseLearCredentialEmployee)
                 .flatMap(this::buildLEARCredentialEmployeeJwtPayload)
                 .flatMap(learCredentialEmployeeJwtPayload -> convertLEARCredentialEmployeeInToString(learCredentialEmployeeJwtPayload)
-                        .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential, learCredentialEmployeeJwtPayload))
+                        .flatMap(decodedCredential -> buildCredentialProcedureCreationRequest(decodedCredential, learCredentialEmployeeJwtPayload, operationMode))
                 );
     }
 
@@ -195,7 +195,7 @@ public class LEARCredentialEmployeeFactory {
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload) {
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload, String operationMode) {
         return accessTokenService.getOrganizationIdFromCurrentSession()
                 .flatMap(organizationId ->
                         Mono.just(
@@ -208,6 +208,7 @@ public class LEARCredentialEmployeeFactory {
                                                 " " +
                                                 learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
                                         .validUntil(parseEpochSecondIntoTimestamp(learCredentialEmployeeJwtPayload.expirationTime()))
+                                        .operationMode(operationMode)
                                         .build()
                         )
                 );
