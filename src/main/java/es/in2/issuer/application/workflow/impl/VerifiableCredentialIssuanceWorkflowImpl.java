@@ -166,7 +166,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                                             .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
                                                                                     )
                                                                             )
-                                                                            .then(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(authServerNonce))
                                                                             .then(Mono.just(credentialResponse));
                                                                 } else {
                                                                     return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));

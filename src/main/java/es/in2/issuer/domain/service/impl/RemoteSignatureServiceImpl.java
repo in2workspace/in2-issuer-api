@@ -7,8 +7,7 @@ import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
-import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.service.HashGeneratorService;
+import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
@@ -40,6 +39,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
     private final CredentialProcedureRepository credentialProcedureRepository;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
     @Override
@@ -65,7 +65,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                         return Mono.error(ex);
                     }
                 })
-                .doOnSuccess(result -> log.info("Signature signed!"))
+                .doOnSuccess(result -> {
+                    deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
+                    log.info("Signature signed!");
+                })
                 .doOnError(throwable -> {
                     if (throwable instanceof SignedDataParsingException) {
                         log.error("Error parsing signed data: {}", throwable.getMessage());
@@ -252,16 +255,25 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> handlePostRequestError(Throwable error, String procedureId) {
-        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+        Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);
+                credentialProcedure.setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
                 return credentialProcedureRepository.save(credentialProcedure)
                         .doOnSuccess(result -> log.info("Updated operationMode to Async"))
                         .then();
             });
+        Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    credentialProcedure.setOperationMode(ASYNC);
+                    return deferredCredentialMetadataRepository.save(credentialProcedure)
+                            .doOnSuccess(result -> log.info("Updated operationMode to Async"))
+                            .then();
+                });
 
-
-        return Mono.error(new RemoteSignatureException("Error requesting signature {}:", error));
+        return updateOperationMode
+                .then(updateDeferredMetadata)
+                .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", error)));
     }
-
 }
+
