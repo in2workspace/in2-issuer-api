@@ -141,6 +141,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
                     .flatMap(isValid -> {
+                        log.info("Proof validation result: {}", isValid);
                         if (Boolean.FALSE.equals(isValid)) {
                             return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
                         } else {
@@ -152,6 +153,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                     .flatMap(operationMode ->
                                             verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
                                                     .flatMap(credentialResponse -> {
+                                                                log.info("Operation mode: {}", operationMode);
+                                                                log.info("Credential response: {}", credentialResponse);
                                                                 if (operationMode.equals(ASYNC)) {
                                                                     return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                                                                             .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)

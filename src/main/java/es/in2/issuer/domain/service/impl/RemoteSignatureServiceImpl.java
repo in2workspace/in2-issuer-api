@@ -115,9 +115,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String scope = "credential";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
 
-        Mono<CredentialProcedure> procedure = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
-        log.info("Credential Procedure !!!!!!!!!: {}", procedure);
-
         Map<String, String> requestBodyToAccess = new HashMap<>();
         requestBodyToAccess.put("grant_type", grantType);
         requestBodyToAccess.put("scope", scope);
@@ -251,7 +248,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     private Mono<String> handlePostRequestError(Throwable error, String procedureId) {
         credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
-        return Mono.error(new RemoteSignatureException("Error requesting signature"));
+        return Mono.error(new RemoteSignatureException("Error requesting signature {}:", error));
     }
 
 }

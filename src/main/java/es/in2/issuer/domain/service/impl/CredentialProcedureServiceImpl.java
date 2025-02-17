@@ -35,7 +35,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<String> createCredentialProcedure(CredentialProcedureCreationRequest credentialProcedureCreationRequest) {
-        log.info("CredentialProcedureCreationRequest operationMode {}", credentialProcedureCreationRequest.operationMode());
         CredentialProcedure credentialProcedure = CredentialProcedure.builder()
                 .credentialId(UUID.fromString(credentialProcedureCreationRequest.credentialId()))
                 .credentialStatus(CredentialStatus.DRAFT)
