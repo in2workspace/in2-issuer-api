@@ -269,7 +269,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId("procedureId")).thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(jti)).thenReturn(Mono.empty());
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 
@@ -347,7 +346,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId("procedureId")).thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(jti)).thenReturn(Mono.empty());
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 
@@ -402,7 +400,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId("procedureId")).thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.deleteDeferredCredentialMetadataByAuthServerNonce(jti)).thenReturn(Mono.empty());
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 

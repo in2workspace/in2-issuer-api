@@ -55,7 +55,7 @@ class RemoteSignatureServiceImplTest {
     private HashGeneratorService hashGeneratorService;
 
     @Mock
-    private CredentialProcedureRepository credentialProcedureRepository;
+    private DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     private SignatureRequest signatureRequest;
     private String token;
