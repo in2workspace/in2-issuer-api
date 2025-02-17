@@ -6,12 +6,14 @@ import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
 import es.in2.issuer.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.service.HashGeneratorService;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
+import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +25,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+import static es.in2.issuer.domain.util.Constants.ASYNC;
 import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 
 @Slf4j
@@ -37,10 +40,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
     private final CredentialProcedureRepository credentialProcedureRepository;
+    private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         String vcId = "";
+        log.info("Signing credential with id: {}",procedureId);
         try{
             String jsonData = signatureRequest.data();
             JsonNode rootNode = objectMapper.readTree(jsonData);
@@ -247,7 +252,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     private Mono<String> handlePostRequestError(Throwable error, String procedureId) {
-        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
+        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+            .flatMap(credentialProcedure -> {
+                credentialProcedure.setOperationMode(ASYNC);
+                return credentialProcedureRepository.save(credentialProcedure)
+                        .doOnSuccess(result -> log.info("Updated operationMode to Async"))
+                        .then();
+            });
+
+
         return Mono.error(new RemoteSignatureException("Error requesting signature {}:", error));
     }
 

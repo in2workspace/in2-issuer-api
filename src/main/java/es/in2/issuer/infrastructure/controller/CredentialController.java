@@ -53,7 +53,6 @@ public class CredentialController {
         return accessTokenService.getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
                 .map(verifiableCredentialResponse -> {
-                    log.info("VerifiableCredentialController - createVerifiableCredential(): " + verifiableCredentialResponse.toString());
                     if (verifiableCredentialResponse.transactionId() != null) {
                         return ResponseEntity.status(HttpStatus.ACCEPTED).body(verifiableCredentialResponse);
                     } else {
