@@ -5,6 +5,7 @@ import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
@@ -161,10 +162,19 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                             );
                                                                 } else if (operationMode.equals(SYNC)) {
                                                                     return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                            .flatMap(id -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
-                                                                                    .then(credentialProcedureService.getDecodedCredentialByProcedureId(id)
-                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
-                                                                                    )
+                                                                            .flatMap(id ->
+                                                                                    credentialProcedureService.getCredentialStatusByProcedureId(id)
+                                                                                            .flatMap(status -> {
+                                                                                                if (!CredentialStatus.PEND_SIGNATURE.toString().equals(status))
+                                                                                                {
+                                                                                                    return credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
+                                                                                                            .then(credentialProcedureService.getDecodedCredentialByProcedureId(id))
+                                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential));
+                                                                                                } else {
+                                                                                                    return credentialProcedureService.getDecodedCredentialByProcedureId(id)
+                                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential));
+                                                                                                }
+                                                                                            })
                                                                             )
                                                                             .then(Mono.just(credentialResponse));
                                                                 } else {
