@@ -165,7 +165,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                             .flatMap(id ->
                                                                                     credentialProcedureService.getCredentialStatusByProcedureId(id)
                                                                                             .flatMap(status -> {
-                                                                                                log.info("Credential status: {}", status);
                                                                                                 if (!CredentialStatus.PEND_SIGNATURE.toString().equals(status))
                                                                                                 {
                                                                                                     return credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
