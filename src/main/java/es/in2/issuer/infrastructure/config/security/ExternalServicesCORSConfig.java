@@ -23,11 +23,11 @@ public class ExternalServicesCORSConfig {
      */
     @Bean
     public UrlBasedCorsConfigurationSource externalCorsConfigurationSource() {
-        for (String origin : appConfig.getDefaultCorsAllowedOrigins()) {
-            System.out.println("external cors: " + origin);
-        }
+//        for (String origin : appConfig.getDefaultCorsAllowedOrigins()) {
+//            System.out.println("external cors: " + origin);
+//        }
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(appConfig.getExternalCorsAllowedOrigins());
+        configuration.setAllowedOrigins(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
