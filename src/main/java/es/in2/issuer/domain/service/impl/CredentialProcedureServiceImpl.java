@@ -175,6 +175,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                         return Mono.just(CredentialDetails.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
                                 .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                .operationMode(credentialProcedure.getOperationMode())
+                                .signatureMode(credentialProcedure.getSignatureMode())
                                 .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
                                 .build());
                     } catch (JsonProcessingException e) {
