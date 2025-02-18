@@ -136,7 +136,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                             .credential(signedCredential)
                                             .build()))
                                     .onErrorResume(RemoteSignatureException.class, error -> {
-                                        log.info("Error in SYNC mode, retrying with new operation mode", error);
+                                        log.info("Error in SYNC mode, retrying with new operation mode");
                                         return credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureIdReceived)
                                                 .flatMap(signerEmail ->
                                                         emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived)

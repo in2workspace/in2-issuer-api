@@ -260,14 +260,14 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 credentialProcedure.setOperationMode(ASYNC);
                 credentialProcedure.setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
                 return credentialProcedureRepository.save(credentialProcedure)
-                        .doOnSuccess(result -> log.info("Updated operationMode to Async"))
+                        .doOnSuccess(result -> log.info("Updated operationMode to Async - Procedure"))
                         .then();
             });
         Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setOperationMode(ASYNC);
                     return deferredCredentialMetadataRepository.save(credentialProcedure)
-                            .doOnSuccess(result -> log.info("Updated operationMode to Async"))
+                            .doOnSuccess(result -> log.info("Updated operationMode to Async - Deferred"))
                             .then();
                 });
 
