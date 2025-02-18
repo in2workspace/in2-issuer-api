@@ -32,25 +32,25 @@ class SignUnsignedCredentialControllerTest {
     }
 
     @Test
-    public void testSignUnsignedCredential_Success() {
+    void testSignUnsignedCredential_Success() {
         String authorizationHeader = "Bearer some-token";
         String procedureId = "procedure-123";
         ProcedureIdRequest procedureIdRequest = new ProcedureIdRequest(procedureId);
 
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(
-                eq(authorizationHeader),
-                eq(procedureId),
-                eq(JWT_VC)
+                authorizationHeader,
+                procedureId,
+                JWT_VC
         )).thenReturn(Mono.empty());
 
-        Mono<Void> response = signUnsignedCredentialController.SignUnsignedCredential(authorizationHeader, procedureIdRequest);
+        Mono<Void> response = signUnsignedCredentialController.signUnsignedCredential(authorizationHeader, procedureIdRequest);
 
         StepVerifier.create(response)
                 .expectComplete()
                 .verify();
 
         verify(credentialSignerWorkflow, times(1))
-                .signAndUpdateCredentialByProcedureId(eq(authorizationHeader), eq(procedureId), eq(JWT_VC));
+                .signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC);
     }
 
     @Test

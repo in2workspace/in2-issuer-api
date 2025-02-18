@@ -15,7 +15,6 @@ import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
-import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -28,7 +27,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -163,7 +161,6 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
         when(jwtUtils.decodePayload(firstBase64SignedDocument)).thenReturn("data");
-        CredentialProcedure mockCredentialProcedure = mock(CredentialProcedure.class);
 
         Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest, "550e8400-e29b-41d4-a716-446655440000");
 

@@ -134,54 +134,38 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId,
-                                                                                   CredentialRequest credentialRequest,
-                                                                                   String token) {
+                                                                                   CredentialRequest credentialRequest,String token) {
         try {
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
 
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
-                    .flatMap(isValid -> {
-                        if (Boolean.FALSE.equals(isValid)) {
-                            return Mono.error(new InvalidOrMissingProofException("Invalid proof"));
-                        } else {
-                            return extractDidFromJwtProof(credentialRequest.proof().jwt());
-                        }
-                    })
+                    .flatMap(isValid -> isValid
+                            ? extractDidFromJwtProof(credentialRequest.proof().jwt())
+                            : Mono.error(new InvalidOrMissingProofException("Invalid proof")))
                     .flatMap(subjectDid ->
                             deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
                                     .flatMap(operationMode ->
-                                            verifiableCredentialService.buildCredentialResponse(processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
-                                                    .flatMap(credentialResponse -> {
-                                                                if (operationMode.equals(ASYNC)) {
-                                                                    return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                            .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
-                                                                            .flatMap(email ->
-                                                                                    emailService.sendPendingCredentialNotification(email, "Pending Credential")
-                                                                                            .then(Mono.just(credentialResponse))
-                                                                            );
-                                                                } else if (operationMode.equals(SYNC)) {
-                                                                    return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                                                                            .flatMap(id ->
-                                                                                    credentialProcedureService.getCredentialStatusByProcedureId(id)
-                                                                                            .flatMap(status -> {
-                                                                                                if (!CredentialStatus.PEND_SIGNATURE.toString().equals(status))
-                                                                                                {
-                                                                                                    return credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
-                                                                                                            .then(credentialProcedureService.getDecodedCredentialByProcedureId(id))
-                                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential));
-                                                                                                } else {
-                                                                                                    return credentialProcedureService.getDecodedCredentialByProcedureId(id)
-                                                                                                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential));
-                                                                                                }
-                                                                                            })
-                                                                            )
-                                                                            .then(Mono.just(credentialResponse));
-                                                                } else {
-                                                                    return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
-                                                                }
-                                                            }
-                                                    )
+                                            verifiableCredentialService.buildCredentialResponse(
+                                                            processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
+                                                    .flatMap(credentialResponse -> switch (operationMode) {
+                                                        case ASYNC -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)
+                                                                .flatMap(email -> emailService.sendPendingCredentialNotification(email, "Pending Credential")
+                                                                        .thenReturn(credentialResponse));
+                                                        case SYNC -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
+                                                                .flatMap(id ->
+                                                                        credentialProcedureService.getCredentialStatusByProcedureId(id)
+                                                                                .flatMap(status -> !CredentialStatus.PEND_SIGNATURE.toString().equals(status)
+                                                                                        ? credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
+                                                                                        .then(credentialProcedureService.getDecodedCredentialByProcedureId(id))
+                                                                                        .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
+                                                                                        : credentialProcedureService.getDecodedCredentialByProcedureId(id)
+                                                                                        .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
+                                                                                ))
+                                                                .thenReturn(credentialResponse);
+                                                        default -> Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
+                                                    })
                                     )
                     );
         } catch (ParseException e) {
@@ -189,6 +173,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             throw new ParseErrorException("Error parsing accessToken");
         }
     }
+
 
     @Override
     public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest) {
