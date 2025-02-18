@@ -107,7 +107,7 @@ public class EmailServiceImpl implements EmailService {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
             helper.setFrom(FROM_EMAIL);
-            helper.setTo(to);
+            helper.setTo("pol.caparros@in2.es");
             helper.setSubject(subject);
 
             Context context = new Context();
