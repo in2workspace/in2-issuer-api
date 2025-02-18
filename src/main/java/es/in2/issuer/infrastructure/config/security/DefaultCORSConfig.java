@@ -20,6 +20,9 @@ public class DefaultCORSConfig {
      */
     @Bean
     public UrlBasedCorsConfigurationSource defaultCorsConfigurationSource() {
+        for (String origin : appConfig.getDefaultCorsAllowedOrigins()) {
+            System.out.println("default cors: " +origin);
+        }
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(appConfig.getDefaultCorsAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));

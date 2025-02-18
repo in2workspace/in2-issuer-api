@@ -23,6 +23,9 @@ public class ExternalServicesCORSConfig {
      */
     @Bean
     public UrlBasedCorsConfigurationSource externalCorsConfigurationSource() {
+        for (String origin : appConfig.getDefaultCorsAllowedOrigins()) {
+            System.out.println("external cors: " + origin);
+        }
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(appConfig.getExternalCorsAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
