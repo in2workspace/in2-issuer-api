@@ -35,7 +35,6 @@ class SignUnsignedCredentialControllerTest {
     void testSignUnsignedCredential_Success() {
         String authorizationHeader = "Bearer some-token";
         String procedureId = "procedure-123";
-        ProcedureIdRequest procedureIdRequest = new ProcedureIdRequest(procedureId);
 
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(
                 authorizationHeader,
@@ -43,7 +42,7 @@ class SignUnsignedCredentialControllerTest {
                 JWT_VC
         )).thenReturn(Mono.empty());
 
-        Mono<Void> response = signUnsignedCredentialController.signUnsignedCredential(authorizationHeader, procedureIdRequest);
+        Mono<Void> response = signUnsignedCredentialController.signUnsignedCredential(authorizationHeader, procedureId);
 
         StepVerifier.create(response)
                 .expectComplete()
@@ -56,13 +55,12 @@ class SignUnsignedCredentialControllerTest {
     @Test
     void shouldReturnUnauthorizedWhenAuthorizationHeaderIsMissing() {
         // GIVEN
-        ProcedureIdRequest procedureIdRequest = new ProcedureIdRequest("procedure-123");
+        String procedureId= "procedure-123";
 
         // WHEN & THEN
         webTestClient.post()
-                .uri("/api/v1/retry-sign-credential")
+                .uri("/api/v1/retry-sign-credential/procedureId")
                 .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(procedureIdRequest)
                 .exchange()
                 .expectStatus().isBadRequest();
 

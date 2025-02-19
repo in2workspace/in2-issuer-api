@@ -395,7 +395,7 @@ class VerifiableCredentialServiceImplTest {
     }
 
     @Test
-    void buildCredentialResponseSync_RemoteSignatureException_Retry() throws Exception {
+    void buildCredentialResponseSync_RemoteSignatureException_Retry() {
         String token = "token";
         String subjectDid = "did:example:123456789";
         String authServerNonce = "auth-server-nonce-789";
