@@ -1,7 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
-import es.in2.issuer.domain.model.dto.ProcedureIdRequest;
+import es.in2.issuer.domain.service.CredentialProcedureService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +20,9 @@ class SignUnsignedCredentialControllerTest {
 
     @Mock
     private CredentialSignerWorkflow credentialSignerWorkflow;
+
+    @Mock
+    private CredentialProcedureService credentialProcedureService;
 
     @InjectMocks
     private SignUnsignedCredentialController signUnsignedCredentialController;
@@ -41,6 +44,8 @@ class SignUnsignedCredentialControllerTest {
                 procedureId,
                 JWT_VC
         )).thenReturn(Mono.empty());
+        when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
+                .thenReturn(Mono.empty());
 
         Mono<Void> response = signUnsignedCredentialController.signUnsignedCredential(authorizationHeader, procedureId);
 
@@ -55,16 +60,18 @@ class SignUnsignedCredentialControllerTest {
     @Test
     void shouldReturnUnauthorizedWhenAuthorizationHeaderIsMissing() {
         // GIVEN
-        String procedureId= "procedure-123";
+        String procedureId = "procedure-123";
 
         // WHEN & THEN
         webTestClient.post()
-                .uri("/api/v1/retry-sign-credential/procedureId")
+                .uri(uriBuilder -> uriBuilder.path("/api/v1/retry-sign-credential/{procedure_id}").build(procedureId))
                 .contentType(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isBadRequest();
 
-        // Verify that the service method was never called
+        // Verify that no interactions happened
         verifyNoInteractions(credentialSignerWorkflow);
+        verifyNoInteractions(credentialProcedureService);
     }
+
 }
