@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.controller;
 
+import es.in2.issuer.domain.service.CredentialProcedureService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -19,13 +20,15 @@ import static es.in2.issuer.domain.util.Constants.JWT_VC;
 public class SignUnsignedCredentialController {
 
     private final CredentialSignerWorkflow credentialSignerWorkflow;
+    private final CredentialProcedureService credentialProcedureService;
 
     @PostMapping(value = "/{procedure_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> signUnsignedCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable String procedure_id) {
-        return credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedure_id, JWT_VC).then();
+        return credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedure_id, JWT_VC)
+                .then(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedure_id))
+                .then();
      }
-
 }
