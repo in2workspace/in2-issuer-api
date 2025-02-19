@@ -134,12 +134,14 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId,
-                                                                                   CredentialRequest credentialRequest,String token) {
+                                                                                   CredentialRequest credentialRequest,
+                                                                                   String token) {
         try {
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
 
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
+                    .map(Boolean::booleanValue)
                     .flatMap(isValid -> isValid
                             ? extractDidFromJwtProof(credentialRequest.proof().jwt())
                             : Mono.error(new InvalidOrMissingProofException("Invalid proof")))
@@ -173,7 +175,6 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             throw new ParseErrorException("Error parsing accessToken");
         }
     }
-
 
     @Override
     public Mono<Void> bindAccessTokenByPreAuthorizedCode(String processId, AuthServerNonceRequest authServerNonceRequest) {

@@ -9,7 +9,6 @@ import es.in2.issuer.domain.exception.SignatureProcessingException;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
-import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;

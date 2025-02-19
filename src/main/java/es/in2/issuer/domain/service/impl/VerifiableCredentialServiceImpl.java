@@ -15,6 +15,7 @@ import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final EmailService emailService;
+    private final AppConfig appConfig;
 
     @Override
     public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
@@ -129,6 +131,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                 return Mono.error(e);
             }
         } else if (operationMode.equals(SYNC)) {
+            String domain = appConfig.getIssuerUiExternalDomain();
             return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                     .flatMap(procedureIdReceived ->
                             credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureIdReceived, JWT_VC)
@@ -139,7 +142,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                         log.info("Error in SYNC mode, retrying with new operation mode");
                                         return credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureIdReceived)
                                                 .flatMap(signerEmail ->
-                                                        emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived)
+                                                        emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived, domain)
                                                                 .then(credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived))
                                                 )
                                                 .flatMap(unsignedCredential -> Mono.just(VerifiableCredentialResponse.builder()

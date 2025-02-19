@@ -3,10 +3,12 @@ package es.in2.issuer.domain.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +18,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
+import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
@@ -40,6 +43,10 @@ class VerifiableCredentialServiceImplTest {
     private CredentialSignerWorkflow credentialSignerWorkflow;
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private AppConfig appConfig;
     @InjectMocks
     private VerifiableCredentialServiceImpl verifiableCredentialServiceImpl;
 
@@ -385,5 +392,67 @@ class VerifiableCredentialServiceImplTest {
 
         verify(deferredCredentialMetadataService, times(1))
                 .updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
+    }
+
+    @Test
+    void buildCredentialResponseSync_RemoteSignatureException_Retry() throws Exception {
+        String token = "token";
+        String subjectDid = "did:example:123456789";
+        String authServerNonce = "auth-server-nonce-789";
+        String format = "json";
+        String credentialType = "LEARCredentialEmployee";
+        String decodedCredential = "decodedCredential";
+        String bindCredential = "bindCredential";
+        String unsignedCredential = "unsignedCredential";
+        String signerEmail = "signer@example.com";
+
+        // --- ASYNC ---
+        when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
+                .thenReturn(Mono.just(procedureId));
+
+        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialType));
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(decodedCredential), Mono.just(unsignedCredential));
+
+        when(credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid))
+                .thenReturn(Mono.just(bindCredential));
+
+        when(credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format))
+                .thenReturn(Mono.empty());
+
+        when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
+                .thenReturn(Mono.just(transactionId));
+
+        // --- SYNC ---
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
+                .thenReturn(Mono.error(new RemoteSignatureException("Simulated error")));
+
+        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(signerEmail));
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn("domain");
+        when(emailService.sendPendingSignatureCredentialNotification(
+                signerEmail,
+                "Failed to sign credential, please activate manual signature.",
+                procedureId,
+                "domain"))
+                .thenReturn(Mono.empty());
+
+        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(
+                processId, subjectDid, authServerNonce, format, token, "S");
+
+        StepVerifier.create(result)
+                .expectNextMatches(response ->
+                        response.credential().equals(unsignedCredential) &&
+                                response.transactionId().equals(transactionId))
+                .verifyComplete();
+
+        verify(credentialSignerWorkflow, times(1))
+                .signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC);
+        verify(credentialProcedureService, times(1))
+                .getSignerEmailFromDecodedCredentialByProcedureId(procedureId);
+        verify(emailService, times(1))
+                .sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureId, "domain");
     }
 }

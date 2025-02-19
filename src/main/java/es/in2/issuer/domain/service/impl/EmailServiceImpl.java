@@ -102,7 +102,7 @@ public class EmailServiceImpl implements EmailService {
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
     @Override
-    public Mono<Void> sendPendingSignatureCredentialNotification(String to, String subject, String id){
+    public Mono<Void> sendPendingSignatureCredentialNotification(String to, String subject, String id, String domain){
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
@@ -112,6 +112,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("id", id);
+            context.setVariable("domain", domain);
             String htmlContent = templateEngine.process("credential-pending-signature-notification", context);
             helper.setText(htmlContent, true);
 
