@@ -141,7 +141,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
 
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
-                    .flatMap(isValid -> isValid
+                    .flatMap(isValid -> Boolean.TRUE.equals(isValid)
                             ? extractDidFromJwtProof(credentialRequest.proof().jwt())
                             : Mono.error(new InvalidOrMissingProofException("Invalid proof")))
                     .flatMap(subjectDid ->
