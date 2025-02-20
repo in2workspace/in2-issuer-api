@@ -249,5 +249,4 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             return Mono.empty();
         }
     }
-
 }
