@@ -323,8 +323,8 @@ class PolicyAuthorizationServiceImplTest {
                         .build())
                 .power(Collections.singletonList(
                         LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
-                                .tmfFunction("ProductOffering")
-                                .tmfAction(List.of("Create", "Update", "Delete"))
+                                .function("ProductOffering")
+                                .action(List.of("Create", "Update", "Delete"))
                                 .build()))
                 .build();
         when(objectMapper.convertValue(payload, LEARCredentialEmployee.CredentialSubject.Mandate.class)).thenReturn(mandateFromPayload);
@@ -374,8 +374,8 @@ class PolicyAuthorizationServiceImplTest {
                         .build())
                 .power(Collections.singletonList(
                         LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
-                                .tmfFunction("OtherFunction")
-                                .tmfAction("SomeAction")
+                                .function("OtherFunction")
+                                .action("SomeAction")
                                 .build()))
                 .build();
         when(objectMapper.convertValue(payload, LEARCredentialEmployee.CredentialSubject.Mandate.class)).thenReturn(mandateFromPayload);
@@ -461,8 +461,8 @@ class PolicyAuthorizationServiceImplTest {
                 .email("john.doe@example.com")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
-                .tmfFunction("Onboarding")
-                .tmfAction("Execute")
+                .function("Onboarding")
+                .action("Execute")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                 .mandator(mandator)
@@ -493,8 +493,8 @@ class PolicyAuthorizationServiceImplTest {
                 .email("john.doe@example.com")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
-                .tmfFunction("Onboarding")
-                .tmfAction("Execute")
+                .function("Onboarding")
+                .action("Execute")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                 .mandator(mandator)
@@ -521,8 +521,8 @@ class PolicyAuthorizationServiceImplTest {
                 .email("jane.doe@example.com")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
-                .tmfFunction("Certification")
-                .tmfAction("Attest")
+                .function("Certification")
+                .action("Attest")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                 .mandator(mandator)
