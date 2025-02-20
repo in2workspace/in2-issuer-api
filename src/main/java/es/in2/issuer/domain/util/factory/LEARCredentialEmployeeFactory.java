@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.DetailedIssuer;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -31,6 +33,7 @@ public class LEARCredentialEmployeeFactory {
 
     private final ObjectMapper objectMapper;
     private final AccessTokenService accessTokenService;
+    private final DefaultSignerConfig defaultSignerConfig;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId) throws InvalidCredentialFormatException {
         LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee = mapStringToLEARCredentialEmployeeJwtPayload(learCredential);
@@ -79,17 +82,17 @@ public class LEARCredentialEmployeeFactory {
 
     private Mono<LEARCredentialEmployee> buildFinalLearCredentialEmployee(LEARCredentialEmployee.CredentialSubject baseLearCredentialEmployee) {
         Instant currentTime = Instant.now();
-        String issuanceDate = currentTime.toString();
-        String expirationDate = currentTime.plus(365, ChronoUnit.DAYS).toString();
+        String validFrom = currentTime.toString();
+        String validUntil = currentTime.plus(365, ChronoUnit.DAYS).toString();
 
         // Creando una lista nueva de powers con nuevos IDs
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = baseLearCredentialEmployee.mandate().power().stream()
                 .map(power -> LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
                         .id(UUID.randomUUID().toString())
-                        .tmfType(power.tmfType())
-                        .tmfDomain(power.tmfDomain())
-                        .tmfFunction(power.tmfFunction())
-                        .tmfAction(power.tmfAction())
+                        .type(power.type())
+                        .domain(power.domain())
+                        .function(power.function())
+                        .action(power.action())
                         .build())
                 .toList();
 
@@ -97,20 +100,29 @@ public class LEARCredentialEmployeeFactory {
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
-                .issuer(DID_ELSI + baseLearCredentialEmployee.mandate().signer().organizationIdentifier())
-                .validFrom(issuanceDate)
-                .validUntil(expirationDate)
+                .description(LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION)
+                .issuer(DetailedIssuer.builder()
+                        .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
+                        .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
+                        .organization(defaultSignerConfig.getOrganization())
+                        .country(defaultSignerConfig.getCountry())
+                        .commonName(defaultSignerConfig.getCommonName())
+                        .emailAddress(defaultSignerConfig.getEmail())
+                        .serialNumber(defaultSignerConfig.getSerialNumber())
+                        .build())
+                .validFrom(validFrom)
+                .validUntil(validUntil)
                 .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
                         .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                                 .id(UUID.randomUUID().toString())
                                 .mandator(baseLearCredentialEmployee.mandate().mandator())
-                                .mandatee(baseLearCredentialEmployee.mandate().mandatee())
-                                .power(populatedPowers)
-                                .signer(baseLearCredentialEmployee.mandate().signer())
-                                .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
-                                        .startDateTime(issuanceDate)
-                                        .endDateTime(expirationDate)
+                                .mandatee(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                                        .firstName(baseLearCredentialEmployee.mandate().mandatee().firstName())
+                                        .lastName(baseLearCredentialEmployee.mandate().mandatee().lastName())
+                                        .email(baseLearCredentialEmployee.mandate().mandatee().email())
+                                        .nationality(baseLearCredentialEmployee.mandate().mandatee().nationality())
                                         .build())
+                                .power(populatedPowers)
                                 .build())
                         .build())
                 .build());
@@ -124,7 +136,7 @@ public class LEARCredentialEmployeeFactory {
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.validUntil()))
                         .issuedAt(parseDateToUnixTime(learCredentialEmployee.validFrom()))
                         .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
-                        .issuer(DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier())
+                        .issuer(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );
@@ -136,13 +148,14 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployeeJwtPayload> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployeeJwtPayload baseLearCredentialEmployee, String mandateeId) {
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee();
         return Mono.just(
                 LEARCredentialEmployeeJwtPayload.builder().learCredentialEmployee(
                                 LEARCredentialEmployee.builder()
                                         .context(baseLearCredentialEmployee.learCredentialEmployee().context())
                                         .id(baseLearCredentialEmployee.learCredentialEmployee().id())
                                         .type(baseLearCredentialEmployee.learCredentialEmployee().type())
-                                        .issuer(baseLearCredentialEmployee.issuer())
+                                        .issuer(baseLearCredentialEmployee.learCredentialEmployee().getIssuer())
                                         .validFrom(baseLearCredentialEmployee.learCredentialEmployee().validFrom())
                                         .validUntil(baseLearCredentialEmployee.learCredentialEmployee().validUntil())
                                         .credentialSubject(LEARCredentialEmployee.CredentialSubject.builder()
@@ -151,14 +164,12 @@ public class LEARCredentialEmployeeFactory {
                                                         .mandator(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandator())
                                                         .mandatee(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
                                                                 .id(mandateeId)
-                                                                .email(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().email())
-                                                                .firstName(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().firstName())
-                                                                .lastName(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
-                                                                .mobilePhone(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().mandatee().mobilePhone())
+                                                                .email(mandatee.email())
+                                                                .firstName(mandatee.firstName())
+                                                                .lastName(mandatee.lastName())
+                                                                .nationality(mandatee.nationality())
                                                                 .build())
                                                         .power(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().power())
-                                                        .signer(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().signer())
-                                                        .lifeSpan(baseLearCredentialEmployee.learCredentialEmployee().credentialSubject().mandate().lifeSpan())
                                                         .build())
                                                 .build())
                                         .build())
