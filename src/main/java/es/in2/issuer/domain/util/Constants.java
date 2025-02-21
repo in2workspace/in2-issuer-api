@@ -54,7 +54,7 @@ public class Constants {
     public static final String CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded";
     public static final String DID_ELSI = "did:elsi:";
     public static final String DID_KEY = "did:key:";
-    public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1");
+    public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
     public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";

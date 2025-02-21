@@ -5,8 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [v1.4.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.0)
-### Added
-- LEARCredentialEmployeeV2 compatibility
+### Changed
+- The issuer now issues only LearCredentialEmployee v2.
 
 ## [v1.2.5](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.5)
 ### Changed
