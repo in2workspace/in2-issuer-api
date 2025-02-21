@@ -28,8 +28,8 @@ public class Constants {
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
     public static final String EMAIL_ADDRESS = "emailAddress";
-    public static final String FIRST_NAME = "first_name";
-    public static final String LAST_NAME = "last_name";
+    public static final String FIRST_NAME = "firstName";
+    public static final String LAST_NAME = "lastName";
     public static final String SIGNER = "signer";
     public static final String PRODUCT = "product";
     public static final String PRODUCT_NAME = "productName";
