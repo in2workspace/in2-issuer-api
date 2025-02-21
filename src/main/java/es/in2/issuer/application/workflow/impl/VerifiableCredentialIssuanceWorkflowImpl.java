@@ -221,30 +221,21 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
         LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential);
 
-        String signerOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().signer().organizationIdentifier();
-        if (signerOrgIdentifier == null || signerOrgIdentifier.isBlank()) {
-            log.error("ProcessID: {} Signer Organization Identifier connot be null or empty", processId);
-            return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
-        }
-
         String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
         if (mandatorOrgIdentifier == null || mandatorOrgIdentifier.isBlank()) {
             log.error("ProcessID: {} Mandator Organization Identifier connot be null or empty", processId);
             return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
         }
 
-        return saveToTrustFramework(processId, signerOrgIdentifier, mandatorOrgIdentifier);
+        return saveToTrustFramework(processId, mandatorOrgIdentifier);
     }
 
-    private Mono<Void> saveToTrustFramework(String processId, String signerOrgIdentifier, String mandatorOrgIdentifier) {
+    private Mono<Void> saveToTrustFramework(String processId, String mandatorOrgIdentifier) {
 
-        String signerDid = DID_ELSI + signerOrgIdentifier;
         String mandatorDid = DID_ELSI + mandatorOrgIdentifier;
 
-        return trustFrameworkService.validateDidFormat(processId, signerDid)
-                .flatMap(isValid -> registerDidIfValid(processId, signerDid, isValid))
-                .then(trustFrameworkService.validateDidFormat(processId, mandatorDid)
-                        .flatMap(isValid -> registerDidIfValid(processId, mandatorDid, isValid)));
+        return trustFrameworkService.validateDidFormat(processId, mandatorDid)
+                .flatMap(isValid -> registerDidIfValid(processId, mandatorDid, isValid));
     }
 
     private Mono<Void> registerDidIfValid(String processId, String did, boolean isValid) {

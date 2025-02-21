@@ -6,9 +6,5 @@ public interface Issuer {
 
     @JsonProperty("id")
     String getId();
-
-    default String getIssuerId() {
-        return getId();
-    }
 }
 
