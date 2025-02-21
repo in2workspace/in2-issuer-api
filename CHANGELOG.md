@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.4.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.0)
 ### Changed
-- Fix a problem with a cors endpoint.
+- The issuer now issues only LearCredentialEmployee v2.
 
 ## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.3)
 ### Changed

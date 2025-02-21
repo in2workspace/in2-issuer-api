@@ -2,6 +2,7 @@ package es.in2.issuer.domain.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 
 import java.util.List;
@@ -13,7 +14,7 @@ public record LEARCredentialEmployee(
         @JsonProperty("type") List<String> type,
         @JsonProperty("description") String description,
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,
-        @JsonProperty("issuer") Issuer issuer,
+        @JsonProperty("issuer") @JsonDeserialize(using = IssuerDeserializer.class) Issuer issuer,
         @JsonProperty("validFrom") String validFrom,
         @JsonProperty("validUntil") String validUntil
 ) implements W3CVerifiableCredential<LEARCredentialEmployee.CredentialSubject> {
