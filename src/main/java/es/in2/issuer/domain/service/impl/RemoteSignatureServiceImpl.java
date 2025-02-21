@@ -121,7 +121,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
         String grantType = "client_credentials";
         String scope = "credential";
-        String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
+        String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token/dummy";
 
         Map<String, String> requestBodyToAccess = new HashMap<>();
         requestBodyToAccess.put("grant_type", grantType);
