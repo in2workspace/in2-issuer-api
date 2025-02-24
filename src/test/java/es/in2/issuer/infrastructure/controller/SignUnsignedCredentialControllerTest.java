@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,9 @@ class SignUnsignedCredentialControllerTest {
     @Mock
     private CredentialProcedureService credentialProcedureService;
 
+    @Mock
+    private CredentialProcedureRepository credentialProcedureRepository;
+
     @InjectMocks
     private SignUnsignedCredentialController signUnsignedCredentialController;
 
@@ -37,7 +41,7 @@ class SignUnsignedCredentialControllerTest {
     @Test
     void testSignUnsignedCredential_Success() {
         String authorizationHeader = "Bearer some-token";
-        String procedureId = "procedure-123";
+        String procedureId = "d290f1ee-6c54-4b01-90e6-d701748f0851";
 
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(
                 authorizationHeader,
@@ -46,7 +50,7 @@ class SignUnsignedCredentialControllerTest {
         )).thenReturn(Mono.empty());
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
                 .thenReturn(Mono.empty());
-
+        when(credentialProcedureRepository.findByProcedureId(any())).thenReturn(Mono.empty());
         Mono<Void> response = signUnsignedCredentialController.signUnsignedCredential(authorizationHeader, procedureId);
 
         StepVerifier.create(response)
@@ -60,7 +64,7 @@ class SignUnsignedCredentialControllerTest {
     @Test
     void shouldReturnUnauthorizedWhenAuthorizationHeaderIsMissing() {
         // GIVEN
-        String procedureId = "procedure-123";
+        String procedureId = "d290f1ee-6c54-4b01-90e6-d701748f0851";
 
         // WHEN & THEN
         webTestClient.post()
