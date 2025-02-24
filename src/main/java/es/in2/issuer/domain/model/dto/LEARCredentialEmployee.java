@@ -1,6 +1,8 @@
 package es.in2.issuer.domain.model.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.Builder;
 
 import java.util.List;
@@ -10,15 +12,56 @@ public record LEARCredentialEmployee(
         @JsonProperty("@context") List<String> context,
         @JsonProperty("id") String id,
         @JsonProperty("type") List<String> type,
+        @JsonProperty("description") String description,
         @JsonProperty("credentialSubject") CredentialSubject credentialSubject,
-        @JsonProperty("issuer") String issuer,
+        @JsonProperty("issuer") @JsonDeserialize(using = IssuerDeserializer.class) Issuer issuer,
         @JsonProperty("validFrom") String validFrom,
         @JsonProperty("validUntil") String validUntil
-) {
+) implements W3CVerifiableCredential<LEARCredentialEmployee.CredentialSubject> {
+
+    @Override
+    public List<String> getContext() {
+        return context;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public List<String> getType() {
+        return type;
+    }
+
+    @Override
+    public String getDescription() {
+        return description;
+    }
+    @Override
+    public Issuer getIssuer() {
+        return issuer;
+    }
+
+    @Override
+    public String getValidFrom() {
+        return validFrom;
+    }
+
+    @Override
+    public String getValidUntil() {
+        return validUntil;
+    }
+
+    @Override
+    public CredentialSubject getCredentialSubject() {
+        return credentialSubject;
+    }
 
     @Builder
-    public record CredentialSubject(@JsonProperty("mandate") Mandate mandate) {
-
+    public record CredentialSubject(
+            @JsonProperty("mandate") Mandate mandate
+    ) {
         @Builder
         public record Mandate(
                 @JsonProperty("id") String id,
@@ -28,23 +71,23 @@ public record LEARCredentialEmployee(
                 @JsonProperty("power") List<Power> power,
                 @JsonProperty("signer") Signer signer
         ) {
-
             @Builder
             public record LifeSpan(
                     @JsonProperty("end_date_time") String endDateTime,
                     @JsonProperty("start_date_time") String startDateTime
-            ) {
-            }
+            ) { }
 
             @Builder
             public record Mandatee(
                     @JsonProperty("id") String id,
                     @JsonProperty("email") String email,
-                    @JsonProperty("first_name") String firstName,
-                    @JsonProperty("last_name") String lastName,
-                    @JsonProperty("mobile_phone") String mobilePhone
-            ) {
-            }
+                    // To keep compatibility with the v1 credential we keep the old name
+                    @JsonProperty("firstName") @JsonAlias("first_name") String firstName,
+                    // To keep compatibility with the v1 credential we keep the old name
+                    @JsonProperty("lastName") @JsonAlias("last_name") String lastName,
+                    @JsonProperty("mobile_phone") String mobilePhone,
+                    @JsonProperty("nationality") String nationality
+            ) { }
 
             @Builder
             public record Mandator(
@@ -54,18 +97,16 @@ public record LEARCredentialEmployee(
                     @JsonProperty("organization") String organization,
                     @JsonProperty("organizationIdentifier") String organizationIdentifier,
                     @JsonProperty("serialNumber") String serialNumber
-            ) {
-            }
+            ) { }
 
             @Builder
             public record Power(
                     @JsonProperty("id") String id,
-                    @JsonProperty("tmf_action") Object tmfAction,
-                    @JsonProperty("tmf_domain") String tmfDomain,
-                    @JsonProperty("tmf_function") String tmfFunction,
-                    @JsonProperty("tmf_type") String tmfType
-            ) {
-            }
+                    @JsonProperty("action") @JsonAlias("tmf_action") Object action,
+                    @JsonProperty("domain") @JsonAlias("tmf_domain") String domain,
+                    @JsonProperty("function") @JsonAlias("tmf_function") String function,
+                    @JsonProperty("type") @JsonAlias("tmf_type") String type
+            ) { }
 
             @Builder
             public record Signer(
@@ -75,9 +116,9 @@ public record LEARCredentialEmployee(
                     @JsonProperty("organization") String organization,
                     @JsonProperty("organizationIdentifier") String organizationIdentifier,
                     @JsonProperty("serialNumber") String serialNumber
-            ) {
-            }
-
+            ) { }
         }
     }
 }
+
+

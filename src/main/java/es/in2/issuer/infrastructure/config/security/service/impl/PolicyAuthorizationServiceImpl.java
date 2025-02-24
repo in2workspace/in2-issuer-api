@@ -119,13 +119,13 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     }
 
     private boolean isCertificationFunction(LEARCredentialEmployee.CredentialSubject.Mandate.Power power) {
-        return "Certification".equals(power.tmfFunction());
+        return "Certification".equals(power.function());
     }
 
     private boolean hasAttestAction(LEARCredentialEmployee.CredentialSubject.Mandate.Power power) {
-        return power.tmfAction() instanceof List<?> actions ?
+        return power.action() instanceof List<?> actions ?
                 actions.stream().anyMatch(action -> "Attest".equals(action.toString())) :
-                "Attest".equals(power.tmfAction().toString());
+                "Attest".equals(power.action().toString());
     }
 
     private boolean isTokenIssuedByInternalAuthServer(SignedJWT signedJWT) {
@@ -142,13 +142,13 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     }
 
     private boolean isOnboardingFunction(LEARCredentialEmployee.CredentialSubject.Mandate.Power power) {
-        return "Onboarding".equals(power.tmfFunction());
+        return "Onboarding".equals(power.function());
     }
 
     private boolean hasExecuteAction(LEARCredentialEmployee.CredentialSubject.Mandate.Power power) {
-        return power.tmfAction() instanceof List<?> actions ?
+        return power.action() instanceof List<?> actions ?
                 actions.stream().anyMatch(action -> "Execute".equals(action.toString())) :
-                "Execute".equals(power.tmfAction().toString());
+                "Execute".equals(power.action().toString());
     }
 
     private boolean isLearCredentialEmployeeMandatorOrganizationIdentifierAllowedSigner(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator) {
@@ -156,6 +156,6 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     }
 
     private boolean payloadPowersOnlyIncludeProductOffering(List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> powers) {
-        return powers.stream().allMatch(power -> "ProductOffering".equals(power.tmfFunction()));
+        return powers.stream().allMatch(power -> "ProductOffering".equals(power.function()));
     }
 }
