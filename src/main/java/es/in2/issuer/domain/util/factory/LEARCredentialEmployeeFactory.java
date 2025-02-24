@@ -155,6 +155,7 @@ public class LEARCredentialEmployeeFactory {
                                         .context(baseLearCredentialEmployee.learCredentialEmployee().context())
                                         .id(baseLearCredentialEmployee.learCredentialEmployee().id())
                                         .type(baseLearCredentialEmployee.learCredentialEmployee().type())
+                                        .description(baseLearCredentialEmployee.learCredentialEmployee().description())
                                         .issuer(baseLearCredentialEmployee.learCredentialEmployee().getIssuer())
                                         .validFrom(baseLearCredentialEmployee.learCredentialEmployee().validFrom())
                                         .validUntil(baseLearCredentialEmployee.learCredentialEmployee().validUntil())
