@@ -7,7 +7,6 @@ import lombok.Builder;
 @Builder
 public record DetailedIssuer(
         @JsonProperty("id") String id,
-        @JsonProperty("name") String name,
         @JsonProperty("organizationIdentifier") String organizationIdentifier,
         @JsonProperty("organization") String organization,
         @JsonProperty("country") String country,

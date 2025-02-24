@@ -117,8 +117,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
                     },
                     "mandatee": {
                         "email": "example@in2.es",
-                        "first_name": "Jhon",
-                        "last_name": "Doe",
+                        "firstName": "Jhon",
+                        "lastName": "Doe",
                         "mobile_phone": "+34666336699"
                     },
                     "mandator": {
@@ -278,17 +278,14 @@ class VerifiableCredentialIssuanceServiceImplTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Signer signer = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
 
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
         when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
         when(credentialSubject.mandate()).thenReturn(mandate);
-        when(mandate.signer()).thenReturn(signer);
         when(mandate.mandator()).thenReturn(mandator);
 
         String organizationIdentifier = "organizationIdentifier";
-        when(signer.organizationIdentifier()).thenReturn(organizationIdentifier);
         when(mandator.organizationIdentifier()).thenReturn(organizationIdentifier);
 
         String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
@@ -357,7 +354,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
                                 .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                                        .signer(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.builder()
+                                        .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
                                                 .organizationIdentifier("")
                                                 .build())
                                         .build()
