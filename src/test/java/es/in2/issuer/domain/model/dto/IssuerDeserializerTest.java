@@ -39,8 +39,7 @@ class IssuerDeserializerTest {
                 "\"country\": \"Country\"," +
                 "\"commonName\": \"Common Name\"," +
                 "\"emailAddress\": \"issuer@example.com\"," +
-                "\"serialNumber\": \"SN123\"," +
-                "\"description\": \"Detailed issuer description\"" +
+                "\"serialNumber\": \"SN123\"" +
                 "}";
         ObjectMapper mapper = getObjectMapperWithIssuerModule();
         Issuer issuer = mapper.readValue(json, Issuer.class);
@@ -54,7 +53,6 @@ class IssuerDeserializerTest {
         assertEquals("Common Name", detailedIssuer.commonName());
         assertEquals("issuer@example.com", detailedIssuer.emailAddress());
         assertEquals("SN123", detailedIssuer.serialNumber());
-        assertEquals("Detailed issuer description", detailedIssuer.description());
     }
 
     @Test
