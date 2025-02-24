@@ -12,8 +12,7 @@ public record DetailedIssuer(
         @JsonProperty("country") String country,
         @JsonProperty("commonName") String commonName,
         @JsonProperty("emailAddress") String emailAddress,
-        @JsonProperty("serialNumber") String serialNumber,
-        @JsonProperty("description") String description
+        @JsonProperty("serialNumber") String serialNumber
 ) implements Issuer {
     @Override
     public String getId() {

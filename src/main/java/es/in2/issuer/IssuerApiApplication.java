@@ -1,5 +1,6 @@
 package es.in2.issuer;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
@@ -17,6 +18,7 @@ public class IssuerApiApplication {
     private static final ObjectMapper OBJECT_MAPPER =
             JsonMapper.builder()
                     .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                    .serializationInclusion(JsonInclude.Include.NON_NULL)
                     .build();
 
     public static void main(String[] args) {
