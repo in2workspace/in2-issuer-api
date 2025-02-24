@@ -37,11 +37,10 @@ public class SignUnsignedCredentialController {
                 .then(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
                 .then(
                         credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
-                                .flatMap(credentialProcedure ->
-                                        Mono.fromRunnable(() ->
-                                                credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()))
-                                        )
-                                )
+                                .flatMap(credentialProcedure -> {
+                                    credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+                                    return credentialProcedureRepository.save(credentialProcedure);
+                                })
                 ).then();
      }
 }
