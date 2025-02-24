@@ -223,7 +223,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
         String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
         if (mandatorOrgIdentifier == null || mandatorOrgIdentifier.isBlank()) {
-            log.error("ProcessID: {} Mandator Organization Identifier connot be null or empty", processId);
+            log.error("ProcessID: {} Mandator Organization Identifier cannot be null or empty", processId);
             return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
         }
 
