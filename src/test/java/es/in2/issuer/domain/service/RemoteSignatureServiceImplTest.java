@@ -302,10 +302,10 @@ class RemoteSignatureServiceImplTest {
 
         Throwable originalError = new RuntimeException("Error original");
 
-        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRequestError", Throwable.class, String.class);
+        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRequestError", Throwable.class, String.class, String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
-        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString());
+        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString(), "Error message");
 
         StepVerifier.create(resultMono)
                 .expectErrorMatches(throwable -> throwable instanceof RemoteSignatureException &&

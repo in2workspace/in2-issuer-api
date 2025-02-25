@@ -101,7 +101,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, signatureRequestJSON)
-                .onErrorResume(error -> handlePostRequestError(error, procedureId));
+                .onErrorResume(error -> handlePostRequestError(error, procedureId, "Error requesting signature to DSS service"));
     }
 
     public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest, String procedureId) {
@@ -140,7 +140,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headersAccess.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
 
         return httpUtils.postRequest(signatureGetAccessTokenEndpoint, headersAccess, requestBodyString)
-                .onErrorResume(error -> handlePostRequestError(error, procedureId))
+                .onErrorResume(error -> handlePostRequestError(error, procedureId, "Error requesting access token"))
                 .flatMap(responseJson -> Mono.fromCallable(() -> {
                     try {
                         Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
@@ -189,7 +189,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
 
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, requestBodySignature)
-                .onErrorResume(error -> handlePostRequestError(error, procedureId));
+                .onErrorResume(error -> handlePostRequestError(error, procedureId, "Authorization successful but error signing"));
     }
 
     public Mono<String> processSignatureResponse(SignatureRequest signatureRequest, String responseJson) {
@@ -253,7 +253,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
-    private Mono<String> handlePostRequestError(Throwable error, String procedureId) {
+    private Mono<String> handlePostRequestError(Throwable error, String procedureId, String errorDetails) {
+        log.info("Error signing credential with id: {}", procedureId);
+        log.info("Error Resume: {}", errorDetails);
+        log.info("Error: {}", error.getMessage());
+        log.info("Time: {}", new Date());
+        log.info("Changing to ASYNC mode");
         Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);
