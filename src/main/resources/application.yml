@@ -149,7 +149,8 @@ remote-signature:
 
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
-  url: "https://knowledgebase.dome-marketplace-prd.org"
+  wallet-url: "https://knowledgebase.dome-marketplace-prd.org"
+
 trust-framework:
   url: "http://localhost:8080"
 
