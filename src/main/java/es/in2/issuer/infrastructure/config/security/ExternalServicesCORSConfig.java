@@ -9,8 +9,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static es.in2.issuer.domain.util.EndpointsConstants.PUBLIC_CREDENTIAL_OFFER;
-import static es.in2.issuer.domain.util.EndpointsConstants.PUBLIC_DISCOVERY_ISSUER;
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
 
 @Configuration
 @RequiredArgsConstructor
@@ -33,9 +32,9 @@ public class ExternalServicesCORSConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration(PUBLIC_CREDENTIAL_OFFER, configuration);
         source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
-        source.registerCorsConfiguration("/api/v1/issuances", configuration);
-        source.registerCorsConfiguration("/api/v1/deferred-credentials", configuration);
-        source.registerCorsConfiguration("/token", configuration);
+        source.registerCorsConfiguration(ISSUANCE, configuration);
+        source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
+        source.registerCorsConfiguration(TOKEN, configuration);
         return source;
     }
 }
