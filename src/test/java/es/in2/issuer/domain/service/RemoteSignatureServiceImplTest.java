@@ -5,15 +5,21 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.AccessTokenException;
 import es.in2.issuer.domain.exception.HashGenerationException;
+import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.exception.SignatureProcessingException;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
+import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
+import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,11 +28,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
+import static es.in2.issuer.domain.util.Constants.ASYNC;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -53,6 +62,12 @@ class RemoteSignatureServiceImplTest {
 
     @Mock
     private DeferredCredentialMetadataService deferredCredentialMetadataService;
+
+    @Mock
+    private CredentialProcedureRepository credentialProcedureRepository;
+
+    @Mock
+    private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
     private SignatureRequest signatureRequest;
     private String token;
@@ -269,8 +284,42 @@ class RemoteSignatureServiceImplTest {
         verify(mockRequest, times(1)).data();
     }
 
+    @Test
+    void testHandlePostRequestError_SuccessfulUpdate() throws Exception {
+        UUID procedureUUID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
+        CredentialProcedure procedure = mock(CredentialProcedure.class);
+        DeferredCredentialMetadata deferredProcedure = mock(DeferredCredentialMetadata.class);
 
+        when(credentialProcedureRepository.findByProcedureId(procedureUUID))
+                .thenReturn(Mono.just(procedure));
+        when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(deferredCredentialMetadataRepository.findByProcedureId(procedureUUID))
+                .thenReturn(Mono.just(deferredProcedure));
+        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
+                .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
 
+        Throwable originalError = new RuntimeException("Error original");
 
+        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRequestError", Throwable.class, String.class);
+        method.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString());
+
+        StepVerifier.create(resultMono)
+                .expectErrorMatches(throwable -> throwable instanceof RemoteSignatureException &&
+                        throwable.getMessage().equals("Signature Failed, changed to ASYNC mode") &&
+                        throwable.getCause() == originalError)
+                .verify();
+
+        verify(credentialProcedureRepository).findByProcedureId(procedureUUID);
+        verify(credentialProcedureRepository).save(procedure);
+        verify(deferredCredentialMetadataRepository).findByProcedureId(procedureUUID);
+        verify(deferredCredentialMetadataRepository).save(deferredProcedure);
+
+        verify(procedure).setOperationMode(ASYNC);
+        verify(procedure).setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
+        verify(deferredProcedure).setOperationMode(ASYNC);
+    }
 }

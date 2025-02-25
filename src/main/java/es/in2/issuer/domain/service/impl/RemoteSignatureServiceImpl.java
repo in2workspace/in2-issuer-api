@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
-import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.HttpUtils;
