@@ -285,7 +285,7 @@ class RemoteSignatureServiceImplTest {
     }
 
     @Test
-    void testHandlePostRequestError_SuccessfulUpdate() throws Exception {
+    void testHandlePostRecoverError_SuccessfulUpdate() throws Exception {
         UUID procedureUUID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
 
         CredentialProcedure procedure = mock(CredentialProcedure.class);
@@ -302,7 +302,7 @@ class RemoteSignatureServiceImplTest {
 
         Throwable originalError = new RuntimeException("Error original");
 
-        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRequestError", Throwable.class, String.class, String.class);
+        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", Throwable.class, String.class, String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
         Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString(), "Error message");
