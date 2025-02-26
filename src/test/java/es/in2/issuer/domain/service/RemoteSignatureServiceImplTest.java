@@ -110,7 +110,7 @@ class RemoteSignatureServiceImplTest {
     }
 
     @Test
-    void testSignJsonProcessingException() throws JsonProcessingException {
+    void testSignRemoteSignatureException() throws JsonProcessingException {
         when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
@@ -126,15 +126,21 @@ class RemoteSignatureServiceImplTest {
         when(vcNode.path("id")).thenReturn(mock(JsonNode.class));
         when(vcNode.path("id").asText()).thenReturn("test-id");
         when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
+        when(credentialProcedureRepository.findByProcedureId(any(UUID.class)))
+                .thenReturn(Mono.just(new CredentialProcedure()));
+        when(deferredCredentialMetadataRepository.findByProcedureId(any(UUID.class)))
+                .thenReturn(Mono.just(new DeferredCredentialMetadata()));
         when(objectMapper.writeValueAsString(any(SignatureRequest.class)))
                 .thenThrow(new JsonProcessingException("error") {});
-
+        when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
+                .thenReturn(Mono.just(new CredentialProcedure()));
+        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
+                .thenReturn(Mono.just(new DeferredCredentialMetadata()));
 
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
-                .expectError(JsonProcessingException.class)
+                .expectError(RemoteSignatureException.class)
                 .verify();
     }
 
@@ -302,10 +308,10 @@ class RemoteSignatureServiceImplTest {
 
         Throwable originalError = new RuntimeException("Error original");
 
-        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", Throwable.class, String.class, String.class);
+        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", Throwable.class, String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
-        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString(), "Error message");
+        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString());
 
         StepVerifier.create(resultMono)
                 .expectErrorMatches(throwable -> throwable instanceof RemoteSignatureException &&
