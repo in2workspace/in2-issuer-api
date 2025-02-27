@@ -22,7 +22,7 @@ class NotificationServiceImplTest {
     private final String procedureId = "procedureId";
     private final String email = "test@example.com";
     private final String user = "Jhon";
-    private final String knowledgebaseUrl = "http://knowledgebaseUrl.com";
+    private final String knowledgebaseWalletUrl = "http://knowledgebaseUrl.com";
     private final String organization = "organization";
     private final String issuerUiExternalDomain = "http://example.com";
 
@@ -55,9 +55,9 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(organization));
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
-        when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgebaseUrl);
+        when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential",
-                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,knowledgebaseUrl, user,organization))
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,knowledgebaseWalletUrl, user,organization))
                 .thenReturn(Mono.empty());
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
