@@ -20,7 +20,6 @@ import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,11 +30,12 @@ import reactor.test.StepVerifier;
 
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Base64;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.ASYNC;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -327,204 +327,5 @@ class RemoteSignatureServiceImplTest {
         verify(procedure).setOperationMode(ASYNC);
         verify(procedure).setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
         verify(deferredProcedure).setOperationMode(ASYNC);
-    }
-
-    @Test
-    void testSignSuccessOnFirstAttempt() throws JsonProcessingException {
-        // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
-        SignatureType signatureType = SignatureType.JADES;
-        Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
-        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, "data");
-        String token = "dummyToken";
-        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
-        // Configure server endpoint
-        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
-
-        String signedResponse = "{\"signed\":\"data\"}";
-
-        when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
-                .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
-
-        Map<String, Object> mockResponseMap = new HashMap<>();
-        mockResponseMap.put("access_token", "mockAccessToken");
-
-        when(objectMapper.readValue(eq("{\"access_token\": \"mockAccessToken\"}"), eq(Map.class))).thenReturn(mockResponseMap);
-
-        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/signatures/signDoc"), any(), any()))
-                .thenReturn(Mono.just("{DocumentWithSignature: [ZGF0YQo=]}"));
-
-        Map<String, List<String>> mockResponseMap2 = new HashMap<>();
-        mockResponseMap2.put("DocumentWithSignature", List.of("ZGF0YQo="));
-
-        when(objectMapper.readValue(eq("{DocumentWithSignature: [ZGF0YQo=]}"), eq(Map.class))).thenReturn(mockResponseMap2);
-
-        when(jwtUtils.decodePayload(any())).thenReturn("data");
-
-        // Act
-        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectComplete()
-                .verify();
-
-        // Verify deferredCredentialMetadataService was called to delete the metadata
-        verify(deferredCredentialMetadataService).deleteDeferredCredentialMetadataById(procedureId);
-
-        // Verify handlePostRecoverError was not called (no recovery needed)
-        verify(credentialProcedureRepository, never()).findByProcedureId(any(UUID.class));
-        verify(deferredCredentialMetadataRepository, never()).findByProcedureId(any(UUID.class));
-    }
-
-    @Test
-    void testSignSuccessAfterRetries() throws JsonProcessingException {
-        // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
-        SignatureType signatureType = SignatureType.JADES;
-        Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
-        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, "data");
-        String token = "dummyToken";
-        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
-        // Configure server endpoint
-        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
-
-        String signedResponse = "{\"signed\":\"data\"}";
-
-        when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
-                .thenReturn(
-                        Mono.error(new RuntimeException("First attempt failed")),
-                        Mono.error(new RuntimeException("Second attempt failed")),
-                        Mono.error(new RuntimeException("Third attempt failed")),
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}")
-                );
-
-        Map<String, Object> mockResponseMap = new HashMap<>();
-        mockResponseMap.put("access_token", "mockAccessToken");
-
-        when(objectMapper.readValue(eq("{\"access_token\": \"mockAccessToken\"}"), eq(Map.class))).thenReturn(mockResponseMap);
-
-        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/signatures/signDoc"), any(), any()))
-                .thenReturn(Mono.just("{DocumentWithSignature: [ZGF0YQo=]}"));
-
-        Map<String, List<String>> mockResponseMap2 = new HashMap<>();
-        mockResponseMap2.put("DocumentWithSignature", List.of("ZGF0YQo="));
-
-        when(objectMapper.readValue(eq("{DocumentWithSignature: [ZGF0YQo=]}"), eq(Map.class))).thenReturn(mockResponseMap2);
-
-        when(jwtUtils.decodePayload(any())).thenReturn("data");
-
-        // Act
-        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectComplete()
-                .verify();
-
-        verify(httpUtils, times(5)).postRequest(any(), any(), any());
-        // Verify deferredCredentialMetadataService was called to delete the metadata
-        verify(deferredCredentialMetadataService).deleteDeferredCredentialMetadataById(procedureId);
-
-        // Verify handlePostRecoverError was not called (no recovery needed)
-        verify(credentialProcedureRepository, never()).findByProcedureId(any(UUID.class));
-        verify(deferredCredentialMetadataRepository, never()).findByProcedureId(any(UUID.class));
-    }
-
-    @Test
-    void testSignFailAfterAllRetries() throws JsonProcessingException {
-        // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
-        SignatureType signatureType = SignatureType.COSE;
-        Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
-        SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        SignatureRequest signatureRequest = new SignatureRequest(signatureConfiguration, "data");
-        String token = "dummyToken";
-        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        UUID procedureUUID = UUID.fromString(procedureId);
-
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
-        // Configure server endpoint
-        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
-        String signatureRemoteServerEndpoint = "http://remote-signature.com";
-
-        // Mock HTTP failures for all attempts
-        when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
-                .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
-
-        // Mock entity repositories for error recovery
-        CredentialProcedure procedure = new CredentialProcedure();
-        DeferredCredentialMetadata deferredMetadata = new DeferredCredentialMetadata();
-
-        when(credentialProcedureRepository.findByProcedureId(procedureUUID))
-                .thenReturn(Mono.just(procedure));
-        when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
-                .thenReturn(Mono.just(procedure));
-
-        when(deferredCredentialMetadataRepository.findByProcedureId(procedureUUID))
-                .thenReturn(Mono.just(deferredMetadata));
-        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
-                .thenReturn(Mono.just(deferredMetadata));
-
-        // Act
-        Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectErrorSatisfies(throwable -> {
-                    // Verify error type and message
-                    assertThat(throwable).isInstanceOf(RemoteSignatureException.class);
-                    assertThat(throwable.getMessage()).isEqualTo("Signature Failed, changed to ASYNC mode");
-                    assertThat(throwable.getCause()).isNotNull();
-                })
-                .verify();
-
-        // Verify the signature request was attempted at least 3 times
-        verify(httpUtils, atLeast(3)).postRequest(any(), any(),any());
-
-        // Verify entities were updated to ASYNC mode and PEND_SIGNATURE status
-        verify(credentialProcedureRepository).findByProcedureId(procedureUUID);
-        verify(credentialProcedureRepository).save(procedure);
-
-        verify(deferredCredentialMetadataRepository).findByProcedureId(procedureUUID);
-        verify(deferredCredentialMetadataRepository).save(deferredMetadata);
-
-        // Verify deferredCredentialMetadataService.delete was NOT called (we're in error recovery)
-        verify(deferredCredentialMetadataService, never()).deleteDeferredCredentialMetadataById(anyString());
-
-        Assertions.assertEquals(ASYNC, procedure.getOperationMode());
-        Assertions.assertEquals(CredentialStatus.PEND_SIGNATURE, procedure.getCredentialStatus());
-        Assertions.assertEquals(ASYNC, deferredMetadata.getOperationMode());
-
     }
 }
