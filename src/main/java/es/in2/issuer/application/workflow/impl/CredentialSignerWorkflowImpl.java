@@ -66,16 +66,13 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                         unsignedCredential
                 );
 
-                log.info("Antes de llamar a remoteSignatureService.sign");
-
                 return remoteSignatureService.sign(signatureRequest, token, procedureId)
-                        .doOnSubscribe(s -> log.info("Suscrito a remoteSignatureService.sign"))
-                        .doOnNext(data -> log.info("Recibidos datos de firma: {}", data))
-                        .doOnError(e -> log.error("Error en sign: {}", e.getMessage(), e))
+                        .doOnSubscribe(s -> {})
+                        .doOnNext(data -> {})
                         .publishOn(Schedulers.boundedElastic())
                         .map(SignedData::data)
-                        .doOnSuccess(result -> log.info("Firma completada con éxito"))
-                        .doOnError(e -> log.error("Error después de map: {}", e.getMessage()));
+                        .doOnSuccess(result -> {})
+                        .doOnError(e -> {});
             } else if (format.equals(CWT_VC)) {
                 log.info(unsignedCredential);
                 return generateCborFromJson(unsignedCredential)

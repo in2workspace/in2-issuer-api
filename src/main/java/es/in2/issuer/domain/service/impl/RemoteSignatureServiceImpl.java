@@ -70,7 +70,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                                 deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
                                 log.info("Credential signed!");
                             })
-                            .doOnError(throwable -> log.error("Error signing credential"));
+                            .doOnError(throwable -> {});
                 })
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                         .maxBackoff(Duration.ofSeconds(5))
