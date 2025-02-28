@@ -43,51 +43,52 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     @Override
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
-        String vcId = "";
-        log.info("Signing credential with id: {}",procedureId);
-        try{
-            String jsonData = signatureRequest.data();
-            JsonNode rootNode = objectMapper.readTree(jsonData);
-            vcId = rootNode.path("vc").path("id").asText();
-        } catch (JsonProcessingException e) {
-            log.error("Cannot find id on vc: {}", e.getMessage());
-        }
-        String finalVcId = vcId;
-        return getSignedSignature(signatureRequest, token, procedureId)
-                .flatMap(response -> {
+        return Mono.defer(() -> {
+                    String vcId = "";
+                    log.info("Signing credential with id: {}", procedureId);
                     try {
-                        log.info("Successfully Signed");
-                        log.info("Credential with id: {}", finalVcId);
-                        log.info("at time: {}", new Date());
-                        return Mono.just(toSignedData(response));
-                    } catch (SignedDataParsingException ex ) {
-                        return Mono.error(ex);
+                        String jsonData = signatureRequest.data();
+                        JsonNode rootNode = objectMapper.readTree(jsonData);
+                        vcId = rootNode.path("vc").path("id").asText();
+                    } catch (JsonProcessingException e) {
+                        log.error("Cannot find id on vc: {}", e.getMessage());
                     }
+                    String finalVcId = vcId;
+
+                    return getSignedSignature(signatureRequest, token, procedureId)
+                            .flatMap(response -> {
+                                try {
+                                    log.info("Successfully Signed");
+                                    log.info("Credential with id: {}", finalVcId);
+                                    log.info("at time: {}", new Date());
+                                    return Mono.just(toSignedData(response));
+                                } catch (SignedDataParsingException ex) {
+                                    return Mono.error(ex);
+                                }
+                            })
+                            .doOnSuccess(result -> {
+                                deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
+                                log.info("Credential signed!");
+                            })
+                            .doOnError(throwable -> log.error("Error signing credential"));
                 })
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                         .maxBackoff(Duration.ofSeconds(5))
                         .jitter(0.5)
                         .doBeforeRetry(retrySignal -> {
                             long attempt = retrySignal.totalRetries() + 1;
-                            log.info("Retrying signature (Attempt #{} of 3)", attempt);
-                            log.info("Retry {} Time: {}", attempt, new Date());
+                            log.info("Retrying entire sign() method (Attempt #{} of 3)", attempt);
                         })
                 )
-                .doOnSuccess(result -> {
-                    deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
-                    log.info("Credential signed!");
-                })
                 .onErrorResume(throwable -> {
-                    log.error("Error signing credential with id: {}", finalVcId);
-                    log.error("Error after 3 retries: {}", throwable.getMessage());
-                    log.error("Time: {}", new Date());
-                    log.info("Changing to ASYNC mode");
+                    log.error("Error after 3 retries, switching to ASYNC mode.");
+                    log.error("Error Time: {}", new Date());
                     return handlePostRecoverError(throwable, procedureId)
-                        .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
+                            .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
                 });
     }
 
-    private Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token, String procedureId) {
+    public Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token, String procedureId) {
         return switch (remoteSignatureConfig.getRemoteSignatureType()) {
             case "server" -> getSignedDocumentDSS(signatureRequest, token, procedureId);
             case "cloud" -> getSignedDocumentExternal(signatureRequest, procedureId);
@@ -197,7 +198,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         List<Map.Entry<String, String>> headers = new ArrayList<>();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
-
         return httpUtils.postRequest(signatureRemoteServerEndpoint, headers, requestBodySignature)
                 .doOnError(error -> log.error("Error sending credential to sign: {}", error.getMessage()));
     }
@@ -211,10 +211,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 if (documentsWithSignatureList == null || documentsWithSignatureList.isEmpty()) {
                     throw new SignatureProcessingException("No signature found in the response");
                 }
-
                 String documentsWithSignature = documentsWithSignatureList.get(0);
                 String documentsWithSignatureDecoded = new String(Base64.getDecoder().decode(documentsWithSignature), StandardCharsets.UTF_8);
-
                 String receivedPayloadDecoded = jwtUtils.decodePayload(documentsWithSignatureDecoded);
                 if(receivedPayloadDecoded.equals(signatureRequest.data())){
                     return objectMapper.writeValueAsString(Map.of(
