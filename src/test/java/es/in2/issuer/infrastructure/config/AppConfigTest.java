@@ -67,8 +67,8 @@ class AppConfigTest {
     void testGetKnowledgeBaseUploadCertificationGuideUrl() {
         // Arrange
         String expectedUrl = "https://knowledge.example.com";
-        when(knowledgeBaseProperties.uploadCertificationGuideUrl()).thenReturn("knowledge.base.url");
-        when(configAdapter.getConfiguration("knowledge.base.url")).thenReturn(expectedUrl);
+        when(knowledgeBaseProperties.uploadCertificationGuideUrl()).thenReturn("knowledge.base.wallet.url");
+        when(configAdapter.getConfiguration("knowledge.base.wallet.url")).thenReturn(expectedUrl);
 
         // Act
         String actualUrl = appConfig.getKnowledgeBaseUploadCertificationGuideUrl();

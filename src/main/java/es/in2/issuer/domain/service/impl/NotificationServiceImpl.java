@@ -38,7 +38,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                         email,
                                                         "Activate your new credential",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
-                                                        appConfig.getKnowledgebaseUrl(),
+                                                        appConfig.getKnowledgebaseWalletUrl(),
                                                         completeName,
                                                         organization
                                                 ));

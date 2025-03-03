@@ -5,6 +5,7 @@ public enum CredentialStatus {
     DRAFT,
     ISSUED,
     PEND_DOWNLOAD,
+    PEND_SIGNATURE,
     VALID,
     REVOKED,
     EXPIRED
