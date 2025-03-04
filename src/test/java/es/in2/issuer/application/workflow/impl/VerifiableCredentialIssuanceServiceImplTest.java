@@ -107,7 +107,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     void completeWithdrawLEARProcessSyncSuccess() throws JsonProcessingException {
         String processId = "1234";
         String type = "LEARCredentialEmployee";
-        String knowledgeBaseUrl = "https://knowledgebase.com";
+        String knowledgebaseWalletUrl = "https://knowledgebase.com";
         String issuerUiExternalDomain = "https://example.com";
         String token = "token";
         String json = """
@@ -170,8 +170,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId,type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
-        when(appConfig.getKnowledgebaseUrl()).thenReturn(knowledgeBaseUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Activate your new credential",issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgeBaseUrl,"Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
+        when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Activate your new credential",issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl,"Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, preSubmittedCredentialRequest, token))
                 .verifyComplete();
     }

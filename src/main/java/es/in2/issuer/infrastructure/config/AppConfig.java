@@ -41,8 +41,8 @@ public class AppConfig {
         return configAdapter.getConfiguration(issuerUiProperties.externalDomain());
     }
 
-    public String getKnowledgebaseUrl() {
-        return configAdapter.getConfiguration(knowledgeBaseProperties.url());
+    public String getKnowledgebaseWalletUrl() {
+        return configAdapter.getConfiguration(knowledgeBaseProperties.walletUrl());
     }
 
     public String getKnowledgeBaseUploadCertificationGuideUrl() {

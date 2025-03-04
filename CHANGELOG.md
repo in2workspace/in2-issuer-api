@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support to sign the credential with an external service.
 - Error handling for the external service.
 
+## [v1.2.5](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.5)
+### Changed
+- Changing environment variable for wallet knowledge redirection to email.
+- Changed email template implementation for better compatibility.
+
 ## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.4)
 ### Changed
 - Fix a problem with a cors endpoint.

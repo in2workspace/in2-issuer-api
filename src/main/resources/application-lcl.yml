@@ -149,7 +149,7 @@ trust-framework:
 
 knowledge-base:
   upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
-  url: "https://knowledgebase.dome-marketplace-prd.org"
+  wallet-url: "https://knowledgebase.dome-marketplace-prd.org/books/dome-digital-wallet-user-guide"
 
 cors:
   default-allowed-origins: "https://issuer.dome-marketplace-lcl.org"
