@@ -5,14 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
-import es.in2.issuer.domain.model.dto.IssuanceRequest;
+import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -32,20 +35,22 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
+    private final EmailService emailService;
+    private final AppConfig appConfig;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
+    public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, preSubmittedCredentialRequest, token)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(procedureId -> deferredCredentialMetadataService.createDeferredCredentialMetadata(
                         procedureId,
-                        issuanceRequest.operationMode(),
-                        issuanceRequest.responseUri()));
+                        preSubmittedCredentialRequest.operationMode(),
+                        preSubmittedCredentialRequest.responseUri()));
     }
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
+    public Mono<String> generateVerifiableCertification(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, preSubmittedCredentialRequest, token)
                 .flatMap(credentialProcedureService::createCredentialProcedure);
     }
 
@@ -126,13 +131,28 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                 return Mono.error(e);
             }
         } else if (operationMode.equals(SYNC)) {
+            String domain = appConfig.getIssuerUiExternalDomain();
             return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
-                    .flatMap(procedureId -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
-                    .flatMap(signedCredential -> Mono.just(VerifiableCredentialResponse.builder()
-                            .credential(signedCredential)
-                            .build())
+                    .flatMap(procedureIdReceived ->
+                            credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureIdReceived, JWT_VC)
+                                    .flatMap(signedCredential -> Mono.just(VerifiableCredentialResponse.builder()
+                                            .credential(signedCredential)
+                                            .build()))
+                                    .onErrorResume(RemoteSignatureException.class, error -> {
+                                        log.info("Error in SYNC mode, retrying with new operation mode");
+                                        return credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureIdReceived)
+                                                .flatMap(signerEmail ->
+                                                        emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived, domain)
+                                                                .then(credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived))
+                                                )
+                                                .flatMap(unsignedCredential -> Mono.just(VerifiableCredentialResponse.builder()
+                                                        .credential(unsignedCredential)
+                                                        .transactionId(transactionId)
+                                                        .build()));
+                                    })
                     );
-        } else {
+        }
+        else {
             return Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
         }
     }

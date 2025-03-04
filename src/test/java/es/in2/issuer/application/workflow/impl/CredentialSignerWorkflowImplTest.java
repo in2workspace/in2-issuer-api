@@ -21,9 +21,12 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialSignerWorkflowImplTest {
+    private static final Logger logger = LoggerFactory.getLogger(CredentialSignerWorkflowImplTest.class);
     @Mock
     private RemoteSignatureService remoteSignatureService;
 
@@ -43,7 +46,9 @@ class CredentialSignerWorkflowImplTest {
         String signedCredential = "signedJWTData";
         String procedureId = "procedureId";
 
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+        logger.info("Este es un log de prueba en JUnit");
+
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
@@ -61,7 +66,7 @@ class CredentialSignerWorkflowImplTest {
         String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
         String procedureId = "procedureId";
 
-        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token)))
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq("")))
                 .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));

@@ -12,7 +12,9 @@ public record CredentialProcedureCreationRequest(
         String credentialDecoded,
         CredentialType credentialType,
         String subject,
-        Timestamp validUntil
+        Timestamp validUntil,
+        String operationMode,
+        String signatureMode
         )
 {
 }

@@ -12,6 +12,7 @@ import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -34,8 +35,9 @@ public class VerifiableCertificationFactory {
     private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final ObjectMapper objectMapper;
     private final JWTService jwtService;
+    private final RemoteSignatureConfig remoteSignatureConfig;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token, String operationMode) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
         SignedJWT signedJWT = jwtService.parseJWT(token);
         String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
@@ -46,7 +48,7 @@ public class VerifiableCertificationFactory {
                 .flatMap(verifiableCertificationJwtPayload ->
                         convertVerifiableCertificationInToString(verifiableCertificationJwtPayload)
                                 .flatMap(decodedCredential ->
-                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationJwtPayload)
+                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationJwtPayload, operationMode)
                                 )
                 );
     }
@@ -74,11 +76,18 @@ public class VerifiableCertificationFactory {
                 .serialNumber(defaultSignerConfig.getSerialNumber())
                 .build();
 
+        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuerCred;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuerCred = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
+        } else {
+            issuerCred = DID_ELSI + "VATES-D70795026";
+        }
         // Create the Issuer object using the retrieved UserDetails
         VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
                 .commonName(defaultSignerConfig.getCommonName())
                 .country(defaultSignerConfig.getCountry())
-                .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
+                .id(issuerCred)
                 .organization(defaultSignerConfig.getOrganization())
                 .build();
 
@@ -110,6 +119,13 @@ public class VerifiableCertificationFactory {
     }
 
     private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
+        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
+        String issuerCred;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
+        } else {
+            issuerCred = DID_ELSI + "VATES-D70795026";
+        }
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
@@ -117,7 +133,7 @@ public class VerifiableCertificationFactory {
                         .expirationTime(parseDateToUnixTime(credential.validUntil()))
                         .issuedAt(parseDateToUnixTime(credential.validFrom()))
                         .notValidBefore(parseDateToUnixTime(credential.validFrom()))
-                        .issuer(DID_ELSI + credential.signer().organizationIdentifier())
+                        .issuer(issuerCred)
                         .subject(credential.credentialSubject().product().productId())
                         .build()
         );
@@ -137,7 +153,7 @@ public class VerifiableCertificationFactory {
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload, String operationMode) {
         String organizationId = defaultSignerConfig.getOrganizationIdentifier();
         return Mono.just(CredentialProcedureCreationRequest.builder()
                 .credentialId(verifiableCertificationJwtPayload.credential().id())
@@ -146,6 +162,7 @@ public class VerifiableCertificationFactory {
                 .credentialType(CredentialType.VERIFIABLE_CERTIFICATION)
                 .subject(verifiableCertificationJwtPayload.credential().credentialSubject().product().productName())
                 .validUntil(parseEpochSecondIntoTimestamp(verifiableCertificationJwtPayload.expirationTime()))
+                .operationMode(operationMode)
                 .build()
         );
     }
