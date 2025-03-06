@@ -125,9 +125,18 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private DetailedIssuer createIssuer() {
+        String issuerId;
+        String issuerIdentifier;
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+            issuerId = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
+            issuerIdentifier = defaultSignerConfig.getOrganizationIdentifier();
+        } else {
+            issuerId = DID_ELSI + "VATES-D70795026";
+            issuerIdentifier = "VATES-D70795026";
+        }
         return DetailedIssuer.builder()
-                .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
-                .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
+                .id(issuerId)
+                .organizationIdentifier(issuerIdentifier)
                 .organization(defaultSignerConfig.getOrganization())
                 .country(defaultSignerConfig.getCountry())
                 .commonName(defaultSignerConfig.getCommonName())
