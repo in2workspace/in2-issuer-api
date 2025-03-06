@@ -169,7 +169,7 @@ public class LEARCredentialEmployeeFactory {
         //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
         String issuer;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
-            issuer = DID_ELSI + learCredentialEmployee.credentialSubject().mandate().signer().organizationIdentifier();
+            issuer = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
         } else {
             issuer = DID_ELSI + "VATES-D70795026";
         }
