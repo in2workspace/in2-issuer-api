@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.AccessTokenException;
 import es.in2.issuer.domain.exception.HashGenerationException;
@@ -71,6 +70,9 @@ class RemoteSignatureServiceImplTest {
     private SignatureRequest signatureRequest;
     private String token;
     private SignatureType signatureType;
+    private final String mockAccessToken = "mockAccessToken";
+    private final String mockCredentialID = "mockCredentialID";
+    private final String mockCredentialListEndpoint = "https://remote-signature.com/csc/v2/credentials/list";
 
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
@@ -83,13 +85,6 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
         String signatureRemoteServerEndpoint = "http://remote-signature-dss.com/api/v1/sign";
-
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(mock(JsonNode.class));
-        when(vcNode.path("id").asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
 
         String signatureRequestJSON = "{\"request\":\"data\"}";
         String signedResponse = "{\"signed\":\"data\"}";
@@ -114,28 +109,13 @@ class RemoteSignatureServiceImplTest {
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
-        signatureRequest = new SignatureRequest(signatureConfiguration1, "data");
+        signatureRequest = new SignatureRequest(signatureConfiguration1, "");
         token = "dummyToken";
+        when(objectMapper.writeValueAsString(any())).thenReturn("");
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature-dss.com");
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
-
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(mock(JsonNode.class));
-        when(vcNode.path("id").asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-        when(credentialProcedureRepository.findByProcedureId(any(UUID.class)))
-                .thenReturn(Mono.just(new CredentialProcedure()));
-        when(deferredCredentialMetadataRepository.findByProcedureId(any(UUID.class)))
-                .thenReturn(Mono.just(new DeferredCredentialMetadata()));
-        when(objectMapper.writeValueAsString(any(SignatureRequest.class)))
-                .thenThrow(new JsonProcessingException("error") {});
-        when(credentialProcedureRepository.save(any(CredentialProcedure.class)))
-                .thenReturn(Mono.just(new CredentialProcedure()));
-        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
-                .thenReturn(Mono.just(new DeferredCredentialMetadata()));
-
+        when(httpUtils.postRequest(eq("http://remote-signature-dss.com/api/v1/sign"), any(), anyString()))
+                .thenReturn(Mono.error(new RemoteSignatureException("Error serializing signature request")));
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
@@ -181,6 +161,7 @@ class RemoteSignatureServiceImplTest {
         when(objectMapper.writeValueAsString(any(Map.class))).thenReturn(processedResponse);
         when(jwtUtils.decodePayload(firstBase64SignedDocument)).thenReturn("data");
 
+        when(jwtUtils.areJsonsEqual(anyString(), anyString())).thenReturn(true);
         Mono<String> result = remoteSignatureService.getSignedDocumentExternal(signatureRequest);
 
         StepVerifier.create(result)
@@ -251,7 +232,7 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.writeValueAsString(any(Map.class)))
                 .thenReturn("{\"type\":\"JADES\",\"data\":\"" + firstEncode + "\"}");
-
+        when(jwtUtils.areJsonsEqual(anyString(), anyString())).thenReturn(true);
         Mono<String> result = remoteSignatureService.processSignatureResponse(mockRequest, responseJson);
 
         StepVerifier.create(result)
@@ -335,24 +316,18 @@ class RemoteSignatureServiceImplTest {
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+        signatureRequest = new SignatureRequest(signatureConfiguration, "\"vc\": {\"id\": \"fa7376e0-fcc1-44c0-a91e-001a1301c06e\"}");
         token = "dummyToken";
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
 
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
         // Configure server endpoint
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
-
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn("id1");
         when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
                 .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
+
+        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/credentials/list"), any(), anyString()))
+                .thenReturn(Mono.just("{\"credentialIDs\": [\"id1\", \"id2\"]}"));
 
         Map<String, Object> mockResponseMap = new HashMap<>();
         mockResponseMap.put("access_token", "mockAccessToken");
@@ -361,13 +336,13 @@ class RemoteSignatureServiceImplTest {
 
         when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/signatures/signDoc"), any(), any()))
                 .thenReturn(Mono.just("{DocumentWithSignature: [ZGF0YQo=]}"));
-
+        when(jwtUtils.areJsonsEqual(anyString(), anyString())).thenReturn(true);
         Map<String, List<String>> mockResponseMap2 = new HashMap<>();
         mockResponseMap2.put("DocumentWithSignature", List.of("ZGF0YQo="));
 
         when(objectMapper.readValue("{DocumentWithSignature: [ZGF0YQo=]}", Map.class)).thenReturn(mockResponseMap2);
 
-        when(jwtUtils.decodePayload(any())).thenReturn("data");
+        when(jwtUtils.decodePayload(any())).thenReturn("\"vc\": {\"id\": \"fa7376e0-fcc1-44c0-a91e-001a1301c06e\"}");
 
         // Act
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
@@ -392,28 +367,25 @@ class RemoteSignatureServiceImplTest {
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+        signatureRequest = new SignatureRequest(signatureConfiguration, "\"vc\": {\"id\": \"fa7376e0-fcc1-44c0-a91e-001a1301c06e\"}");
         token = "dummyToken";
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
 
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
         // Configure server endpoint
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn("id1");
+
+        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/credentials/list"), any(), anyString()))
+                .thenReturn(Mono.just("{\"credentialIDs\": [\"id1\", \"id2\"]}"));
 
         when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
                 .thenReturn(
-                        Mono.error(new RuntimeException("First attempt failed")),
-                        Mono.error(new RuntimeException("Second attempt failed")),
-                        Mono.error(new RuntimeException("Third attempt failed")),
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}")
+                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
+                        Mono.error(new RuntimeException("First attempt failed")), //Sign token fail
+                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
+                        Mono.error(new RuntimeException("Second attempt failed")), //Sign token fail
+                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
+                        Mono.just("{\"access_token\": \"mockAccessToken\"}") //Sign token success
                 );
 
         Map<String, Object> mockResponseMap = new HashMap<>();
@@ -427,9 +399,11 @@ class RemoteSignatureServiceImplTest {
         Map<String, List<String>> mockResponseMap2 = new HashMap<>();
         mockResponseMap2.put("DocumentWithSignature", List.of("ZGF0YQo="));
 
+        when(jwtUtils.areJsonsEqual(anyString(), anyString())).thenReturn(true);
+
         when(objectMapper.readValue("{DocumentWithSignature: [ZGF0YQo=]}", Map.class)).thenReturn(mockResponseMap2);
 
-        when(jwtUtils.decodePayload(any())).thenReturn("data");
+        when(jwtUtils.decodePayload(any())).thenReturn("\"vc\": {\"id\": \"fa7376e0-fcc1-44c0-a91e-001a1301c06e\"}");
 
         // Act
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
@@ -439,7 +413,7 @@ class RemoteSignatureServiceImplTest {
                 .expectComplete()
                 .verify();
 
-        verify(httpUtils, times(5)).postRequest(any(), any(), any());
+        verify(httpUtils, times(6)).postRequest(any(), any(), any());
         // Verify deferredCredentialMetadataService was called to delete the metadata
         verify(deferredCredentialMetadataService).deleteDeferredCredentialMetadataById(procedureId);
 
@@ -452,29 +426,32 @@ class RemoteSignatureServiceImplTest {
     void testSignFailAfterAllRetries() throws JsonProcessingException {
         // Arrange
         when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
-        signatureType = SignatureType.COSE;
+        signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
-        signatureRequest = new SignatureRequest(signatureConfiguration, "data");
+        signatureRequest = new SignatureRequest(signatureConfiguration, "\"vc\": {\"id\": \"fa7376e0-fcc1-44c0-a91e-001a1301c06e\"}");
         token = "dummyToken";
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         UUID procedureUUID = UUID.fromString(procedureId);
 
-        // Mock JSON nodes for VC ID extraction
-        JsonNode mockNode = mock(JsonNode.class);
-        JsonNode vcNode = mock(JsonNode.class);
-        JsonNode idNode = mock(JsonNode.class);
-        when(mockNode.path("vc")).thenReturn(vcNode);
-        when(vcNode.path("id")).thenReturn(idNode);
-        when(idNode.asText()).thenReturn("test-id");
-        when(objectMapper.readTree(anyString())).thenReturn(mockNode);
-
         // Configure server endpoint
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn("id1");
 
-        // Mock HTTP failures for all attempts
+        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/credentials/list"), any(), anyString()))
+                .thenReturn(Mono.just("{\"credentialIDs\": [\"id1\", \"id2\"]}"));
+
         when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
-                .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
+                .thenReturn(
+                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
+                        Mono.error(new RuntimeException("First attempt failed")), //Sign token fail
+                        Mono.error(new RuntimeException("Second attempt failed")), //Sign token fail
+                        Mono.error(new RuntimeException("Third attempt failed")) //Sign token fail
+                );
+        Map<String, Object> mockResponseMap = new HashMap<>();
+        mockResponseMap.put("access_token", "mockAccessToken");
+
+        when(objectMapper.readValue("{\"access_token\": \"mockAccessToken\"}", Map.class)).thenReturn(mockResponseMap);
 
         // Mock entity repositories for error recovery
         CredentialProcedure procedure = new CredentialProcedure();
@@ -503,7 +480,7 @@ class RemoteSignatureServiceImplTest {
                 })
                 .verify();
 
-        // Verify the signature request was attempted at least 3 times
+        // Verify the post request was attempted at least 3 times
         verify(httpUtils, atLeast(3)).postRequest(any(), any(),any());
 
         // Verify entities were updated to ASYNC mode and PEND_SIGNATURE status
@@ -520,5 +497,128 @@ class RemoteSignatureServiceImplTest {
         Assertions.assertEquals(CredentialStatus.PEND_SIGNATURE, procedure.getCredentialStatus());
         Assertions.assertEquals(ASYNC, deferredMetadata.getOperationMode());
 
+    }
+
+    @Test
+    void testValidateCertificate_ValidCertificate() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID.trim());
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        Map<String, List<String>> mockResponse = new HashMap<>();
+        mockResponse.put("credentialIDs", new ArrayList<>(List.of(mockCredentialID)));
+        objectMapper = new ObjectMapper();
+        String responseJson = objectMapper.writeValueAsString(mockResponse);
+
+        when(httpUtils.postRequest(eq("https://remote-signature.com/csc/v2/credentials/list"), any(), any()))
+                .thenReturn(Mono.justOrEmpty(responseJson));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectNext(true)
+                .verifyComplete();
+
+        verify(httpUtils, times(1)).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
+    }
+
+    @Test
+    void testValidateCertificate_InvalidCertificate() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        Map<String, List<String>> mockResponse = Map.of("credentialIDs", List.of("otherCredentialID"));
+        String responseJson = objectMapper.writeValueAsString(mockResponse);
+
+        when(httpUtils.postRequest(eq(mockCredentialListEndpoint), anyList(), anyString()))
+                .thenReturn(Mono.justOrEmpty(responseJson));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+
+        verify(httpUtils, times(1)).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
+    }
+
+    @Test
+    void testValidateCertificate_NullCredentialList() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        Map<String, List<String>> mockResponse = new HashMap<>();
+        mockResponse.put("credentialIDs", null);
+        String responseJson = objectMapper.writeValueAsString(mockResponse);
+
+        when(httpUtils.postRequest(eq(mockCredentialListEndpoint), anyList(), anyString()))
+                .thenReturn(Mono.justOrEmpty(responseJson));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void testValidateCertificate_MissingCredentialIDsKey() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        Map<String, String> mockResponse = Map.of("otherKey", "someValue");
+        String responseJson = objectMapper.writeValueAsString(mockResponse);
+
+        when(httpUtils.postRequest(eq(mockCredentialListEndpoint), anyList(), anyString()))
+                .thenReturn(Mono.justOrEmpty(responseJson));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectNext(false)
+                .verifyComplete();
+    }
+
+    @Test
+    void testValidateCertificate_InvalidJsonResponse() {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        when(httpUtils.postRequest(eq(mockCredentialListEndpoint), anyList(), anyString()))
+                .thenReturn(Mono.justOrEmpty("invalid-json"));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectError(RemoteSignatureException.class)
+                .verify();
+
+        verify(httpUtils, times(1)).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
+    }
+
+    @Test
+    void testValidateCertificate_HttpRequestFailure() {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        when(httpUtils.postRequest(eq(mockCredentialListEndpoint), anyList(), anyString()))
+                .thenReturn(Mono.error(new RuntimeException("HTTP error")));
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+
+        verify(httpUtils, times(1)).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
+    }
+
+    @Test
+    void testValidateCertificate_JsonProcessingException() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+
+        doAnswer(invocation -> {
+            throw new JsonProcessingException("Error processing JSON") {};
+        }).when(httpUtils).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
+
+        Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
+
+        StepVerifier.create(result)
+                .expectError(RemoteSignatureException.class)
+                .verify();
     }
 }
