@@ -9,6 +9,7 @@ import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +35,8 @@ class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private RemoteSignatureConfig remoteSignatureConfig;
+    @Mock
+    private DefaultSignerConfig defaultSignerConfig;
 
     @InjectMocks
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
@@ -61,9 +64,8 @@ class LEARCredentialEmployeeFactoryTest {
         when(mandatee.email()).thenReturn("email");
         when(mandatee.firstName()).thenReturn("firstName");
         when(mandatee.lastName()).thenReturn("lastName");
-        when(mandatee.mobilePhone()).thenReturn("mobilePhone");
+        when(mandatee.nationality()).thenReturn("nationality");
         when(mandate.power()).thenReturn(List.of(LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder().build()));
-        when(mandate.lifeSpan()).thenReturn(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder().build());
         when(learCredentialEmployeeJwtPayload.JwtId()).thenReturn("jwtId");
         when(learCredentialEmployeeJwtPayload.expirationTime()).thenReturn(0L);
         when(learCredentialEmployeeJwtPayload.issuedAt()).thenReturn(0L);
@@ -86,7 +88,6 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mockMandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mockMandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Power mockPower = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Power.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Signer mockSigner = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.class);
 
         List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> mockPowerList = new ArrayList<>();
         mockPowerList.add(mockPower);
@@ -97,9 +98,14 @@ class LEARCredentialEmployeeFactoryTest {
         when(mockMandate.mandator()).thenReturn(mockMandator);
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
-        when(mockMandatee.id()).thenReturn("mandateeId");
-        when(mockMandate.signer()).thenReturn(mockSigner);
-        when(mockMandate.signer().organizationIdentifier()).thenReturn("signerOrgId");
+
+        when(defaultSignerConfig.getOrganizationIdentifier()).thenReturn("orgId");
+        when(defaultSignerConfig.getOrganization()).thenReturn("org");
+        when(defaultSignerConfig.getCountry()).thenReturn("country");
+        when(defaultSignerConfig.getEmail()).thenReturn("email");
+        when(defaultSignerConfig.getSerialNumber()).thenReturn("serialNumber");
+        when(defaultSignerConfig.getCommonName()).thenReturn("commonName");
+
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(json);
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));
 
