@@ -8,6 +8,7 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,6 +32,9 @@ class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private AccessTokenService accessTokenService;
+
+    @Mock
+    private RemoteSignatureConfig remoteSignatureConfig;
     @Mock
     private DefaultSignerConfig defaultSignerConfig;
 
@@ -90,6 +94,7 @@ class LEARCredentialEmployeeFactoryTest {
 
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
         when(mockMandate.mandator()).thenReturn(mockMandator);
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
@@ -105,7 +110,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));
 
         // Act
-        Mono<CredentialProcedureCreationRequest> result = learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(jsonNode);
+        Mono<CredentialProcedureCreationRequest> result = learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(jsonNode, "S");
 
         //Assert
         StepVerifier.create(result)

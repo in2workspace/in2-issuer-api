@@ -6,7 +6,6 @@ import lombok.Builder;
 
 @Builder
 public record SimpleIssuer(@JsonProperty("id") String id) implements Issuer {
-
     @JsonValue
     public String toJson() {
         return id;

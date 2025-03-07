@@ -44,6 +44,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .subject(credentialProcedureCreationRequest.subject())
                 .validUntil(credentialProcedureCreationRequest.validUntil())
                 .updatedAt(new Timestamp(Instant.now().toEpochMilli()))
+                .operationMode(credentialProcedureCreationRequest.operationMode())
+                .signatureMode("remote")
                 .build();
         return credentialProcedureRepository.save(credentialProcedure)
                 .map(savedCredentialProcedure -> savedCredentialProcedure.getProcedureId().toString())
@@ -173,6 +175,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                         return Mono.just(CredentialDetails.builder()
                                 .procedureId(credentialProcedure.getProcedureId())
                                 .credentialStatus(String.valueOf(credentialProcedure.getCredentialStatus()))
+                                .operationMode(credentialProcedure.getOperationMode())
+                                .signatureMode(credentialProcedure.getSignatureMode())
                                 .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
                                 .build());
                     } catch (JsonProcessingException e) {
