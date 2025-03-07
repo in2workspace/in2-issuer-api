@@ -98,7 +98,7 @@ class AccessTokenServiceImplTest {
     void testGetOrganizationId_ValidToken() {
         String validJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZGVudGlmaWVyIjoib3JnMTIzIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedOrganizationId = "org123";
-        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organization\":\"" + expectedOrganizationId + "\"}}}}}";
+        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}}}}}";
 
         try (MockedStatic<SignedJWT> mockedJwtStatic = mockStatic(SignedJWT.class)) {
             mockedJwtStatic.when(() -> SignedJWT.parse(anyString())).thenReturn(mockSignedJwt);
@@ -131,7 +131,7 @@ class AccessTokenServiceImplTest {
     void testGetOrganizationIdFromCurrentSession_ValidToken() throws ParseException {
         String validJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZGVudGlmaWVyIjoib3JnMTIzIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedOrganizationId = "org123";
-        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organization\":\"" + expectedOrganizationId + "\"}}}}}";
+        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}}}}}";
 
         Jwt jwt = Jwt.withTokenValue(validJwtToken).header("alg", "HS256").claim("organizationIdentifier", expectedOrganizationId).build();
         JwtAuthenticationToken jwtAuthenticationToken = new JwtAuthenticationToken(jwt);
