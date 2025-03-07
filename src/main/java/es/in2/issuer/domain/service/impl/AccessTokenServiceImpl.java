@@ -55,8 +55,10 @@ public class AccessTokenServiceImpl implements AccessTokenService {
         return getCleanBearerToken(authorizationHeader)
                 .flatMap(token -> {
                     try {
+                        log.info(token);
                         SignedJWT parsedVcJwt = SignedJWT.parse(token);
                         JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
+                        log.info(jsonObject.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
                         return Mono.just(jsonObject.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
                     } catch (ParseException | JsonProcessingException e) {
                         return Mono.error(e);
