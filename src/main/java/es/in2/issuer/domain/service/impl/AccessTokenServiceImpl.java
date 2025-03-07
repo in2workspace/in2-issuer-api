@@ -70,6 +70,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                 .flatMap(this::getCleanBearerToken)
                 .flatMap(token -> {
                     try {
+                        log.info(token);
                         SignedJWT parsedVcJwt = SignedJWT.parse(token);
                         JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
                         return Mono.just(jsonObject.get("organizationIdentifier").asText());
