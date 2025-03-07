@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;

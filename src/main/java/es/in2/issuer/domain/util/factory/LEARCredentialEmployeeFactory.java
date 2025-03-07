@@ -5,8 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.DetailedIssuer;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.domain.model.dto.credential.lear.Power;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.AccessTokenService;
@@ -89,7 +90,7 @@ public class LEARCredentialEmployeeFactory {
         String validFrom = currentTime.toString();
         String validUntil = currentTime.plus(365, ChronoUnit.DAYS).toString();
 
-        List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers = createPopulatedPowers(baseCredentialSubject);
+        List<Power> populatedPowers = createPopulatedPowers(baseCredentialSubject);
         DetailedIssuer issuer = createIssuer();
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = createMandatee(baseCredentialSubject);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = createMandate(baseCredentialSubject, mandatee, populatedPowers);
@@ -109,10 +110,10 @@ public class LEARCredentialEmployeeFactory {
         return Mono.just(credentialEmployee);
     }
 
-    private List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> createPopulatedPowers(
+    private List<Power> createPopulatedPowers(
             LEARCredentialEmployee.CredentialSubject baseCredentialSubject) {
         return baseCredentialSubject.mandate().power().stream()
-                .map(power -> LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+                .map(power -> Power.builder()
                         .id(UUID.randomUUID().toString())
                         .type(power.type())
                         .domain(power.domain())
@@ -147,7 +148,7 @@ public class LEARCredentialEmployeeFactory {
     private LEARCredentialEmployee.CredentialSubject.Mandate createMandate(
             LEARCredentialEmployee.CredentialSubject baseCredentialSubject,
             LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee,
-            List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> populatedPowers) {
+            List<Power> populatedPowers) {
         return LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                 .id(UUID.randomUUID().toString())
                 .mandator(baseCredentialSubject.mandate().mandator())
@@ -199,7 +200,7 @@ public class LEARCredentialEmployeeFactory {
                 .id(basePayload.learCredentialEmployee().id())
                 .type(basePayload.learCredentialEmployee().type())
                 .description(basePayload.learCredentialEmployee().description())
-                .issuer(basePayload.learCredentialEmployee().getIssuer())
+                .issuer(basePayload.learCredentialEmployee().issuer())
                 .validFrom(basePayload.learCredentialEmployee().validFrom())
                 .validUntil(basePayload.learCredentialEmployee().validUntil())
                 .credentialSubject(

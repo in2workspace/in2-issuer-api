@@ -7,7 +7,7 @@ import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
 import es.in2.issuer.domain.model.dto.IssuanceRequest;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;

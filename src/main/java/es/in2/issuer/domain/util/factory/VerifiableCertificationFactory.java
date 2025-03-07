@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;

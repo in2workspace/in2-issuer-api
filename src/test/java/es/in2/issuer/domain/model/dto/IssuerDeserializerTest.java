@@ -3,6 +3,10 @@ package es.in2.issuer.domain.model.dto;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.domain.model.dto.credential.Issuer;
+import es.in2.issuer.domain.model.dto.credential.IssuerDeserializer;
+import es.in2.issuer.domain.model.dto.credential.SimpleIssuer;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

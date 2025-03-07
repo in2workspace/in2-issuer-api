@@ -37,6 +37,7 @@ public class Constants {
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
     public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
+    public static final String LEAR_CREDENTIAL_MACHINE = "LEARCredentialMachine";
     public static final String SUPPORTED_PROOF_ALG = "ES256";
     public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
     public static final String REQUEST_ERROR_MESSAGE = "Error processing the request";

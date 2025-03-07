@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -173,7 +174,7 @@ class VerifiableCertificationFactoryTest {
 
     // Auxiliary methods to create LEARCredentialEmployee objects
     private LEARCredentialEmployee getLEARCredentialEmployee() {
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+        Mandator mandator = Mandator.builder()
                 .organizationIdentifier("VATES-1234")
                 .organization("Organization")
                 .country("Country")
