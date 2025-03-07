@@ -61,9 +61,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             return validateCredentials(signatureRequest)
                 .flatMap(isValid -> {
                     if (!isValid) {
-                        return Mono.error(new RemoteSignatureException("Certificate mismatch. Signature process aborted."));
+                        return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
                     } else{
-                        log.info("Certificate validated");
+                        log.info("Credentials validated successfully");
                         return executeSigningFlow(signatureRequest, token, procedureId);
                     }
                 }).doOnSuccess(result -> {
