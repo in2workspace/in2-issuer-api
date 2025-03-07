@@ -114,7 +114,7 @@ auth-server:
     nonce-validation-path: "/realms/${auth-server.realm}/verifiable-credential/nonce-valid"
 
 verifier:
-  external-domain: "https://verifier.dome-marketplace-lcl.org"
+  external-domain: "https://verifier-dev.in2.ssihub.org"
 
 issuer-identity:
   credential-subject-did-key:
