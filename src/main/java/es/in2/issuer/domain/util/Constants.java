@@ -24,6 +24,7 @@ public class Constants {
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
     public static final String ORGANIZATION = "organization";
+    public static final String ORGANIZATION_IDENTIFIER = "organizationIdentifier";
     public static final String VC = "vc";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";

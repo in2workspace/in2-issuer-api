@@ -49,6 +49,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
     }
 
+
     @Override
     public Mono<String> getOrganizationId(String authorizationHeader) {
         return getCleanBearerToken(authorizationHeader)
@@ -56,7 +57,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     try {
                         SignedJWT parsedVcJwt = SignedJWT.parse(token);
                         JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get("organizationIdentifier").asText());
+                        return Mono.just(jsonObject.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
                     } catch (ParseException | JsonProcessingException e) {
                         return Mono.error(e);
                     }
@@ -73,7 +74,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                         log.info(token);
                         SignedJWT parsedVcJwt = SignedJWT.parse(token);
                         JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get("organizationIdentifier").asText());
+                        return Mono.just(jsonObject.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(ORGANIZATION).asText());
                     } catch (ParseException | JsonProcessingException e) {
                         return Mono.error(e);
                     }
