@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSHeader;
@@ -30,10 +31,10 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AccessTokenServiceImplTest {
 
-    private static final String BEARER = "Bearer ";
-
     @Mock
     private SignedJWT mockSignedJwt;
+    @Mock
+    private ObjectMapper mockObjectMapper;
     @InjectMocks
     private AccessTokenServiceImpl accessTokenServiceImpl;
 
@@ -95,14 +96,18 @@ class AccessTokenServiceImplTest {
     }
 
     @Test
-    void testGetOrganizationId_ValidToken() {
+    void testGetOrganizationId_ValidToken() throws JsonProcessingException {
         String validJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZGVudGlmaWVyIjoib3JnMTIzIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedOrganizationId = "org123";
-        String jwtPayload = "{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}";
+        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}}}}}";
 
         try (MockedStatic<SignedJWT> mockedJwtStatic = mockStatic(SignedJWT.class)) {
             mockedJwtStatic.when(() -> SignedJWT.parse(anyString())).thenReturn(mockSignedJwt);
             when(mockSignedJwt.getPayload()).thenReturn(new Payload(jwtPayload));
+            ObjectMapper realObjectMapper = new ObjectMapper();
+            JsonNode vcJsonNode = realObjectMapper.readTree(jwtPayload);
+            when(mockObjectMapper.readTree(jwtPayload)).thenReturn(vcJsonNode);
+
 
             Mono<String> result = accessTokenServiceImpl.getOrganizationId("Bearer " + validJwtToken);
 
@@ -122,16 +127,16 @@ class AccessTokenServiceImplTest {
             Mono<String> result = accessTokenServiceImpl.getOrganizationId("Bearer " + invalidJwtToken);
 
             StepVerifier.create(result)
-                    .expectError(ParseException.class)
+                    .expectError(InvalidTokenException.class)
                     .verify();
         }
     }
 
     @Test
-    void testGetOrganizationIdFromCurrentSession_ValidToken() throws ParseException {
+    void testGetOrganizationIdFromCurrentSession_ValidToken() throws ParseException, JsonProcessingException {
         String validJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvcmdhbml6YXRpb25JZGVudGlmaWVyIjoib3JnMTIzIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedOrganizationId = "org123";
-        String jwtPayload = "{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}";
+        String jwtPayload = "{\"vc\":{\"credentialSubject\":{\"mandate\":{\"mandator\":{\"organizationIdentifier\":\"" + expectedOrganizationId + "\"}}}}}";
 
         Jwt jwt = Jwt.withTokenValue(validJwtToken).header("alg", "HS256").claim("organizationIdentifier", expectedOrganizationId).build();
         JwtAuthenticationToken jwtAuthenticationToken = new JwtAuthenticationToken(jwt);
@@ -149,6 +154,9 @@ class AccessTokenServiceImplTest {
             SignedJWT signedJWT = new SignedJWT(jwsHeader, jwtClaimsSet);
 
             mockedJwtStatic.when(() -> SignedJWT.parse(validJwtToken)).thenReturn(signedJWT);
+            ObjectMapper realObjectMapper = new ObjectMapper();
+            JsonNode vcJsonNode = realObjectMapper.readTree(jwtPayload);
+            when(mockObjectMapper.readTree(jwtPayload)).thenReturn(vcJsonNode);
 
             Mono<String> result = accessTokenServiceImpl.getOrganizationIdFromCurrentSession();
 
@@ -182,7 +190,7 @@ class AccessTokenServiceImplTest {
             Mono<String> result = accessTokenServiceImpl.getOrganizationIdFromCurrentSession();
 
             StepVerifier.create(result)
-                    .expectError(ParseException.class)
+                    .expectError(InvalidTokenException.class)
                     .verify();
         }
     }

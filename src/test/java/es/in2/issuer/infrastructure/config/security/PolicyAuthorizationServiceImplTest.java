@@ -6,13 +6,15 @@ import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.domain.exception.ParseErrorException;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.domain.model.dto.credential.lear.Power;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
+import es.in2.issuer.domain.model.dto.credential.lear.machine.LEARCredentialMachine;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
+import es.in2.issuer.domain.util.factory.LEARCredentialMachineFactory;
 import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
-import es.in2.issuer.infrastructure.config.AuthServerConfig;
-import es.in2.issuer.infrastructure.config.VerifierConfig;
 import es.in2.issuer.infrastructure.config.security.service.impl.PolicyAuthorizationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,16 +44,11 @@ class PolicyAuthorizationServiceImplTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private AuthServerConfig authServerConfig;
-
-
-    @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     @Mock
     private VerifiableCertificationFactory verifiableCertificationFactory;
-
     @Mock
-    private VerifierConfig verifierConfig;
+    private LEARCredentialMachineFactory learCredentialMachineFactory;
 
     @InjectMocks
     private PolicyAuthorizationServiceImpl policyAuthorizationService;
@@ -59,15 +56,13 @@ class PolicyAuthorizationServiceImplTest {
     @BeforeEach
     void setUp() {
         // Creamos una instancia real de CredentialFactory, pasando los mocks necesarios
-        CredentialFactory credentialFactory = new CredentialFactory(learCredentialEmployeeFactory, verifiableCertificationFactory);
+        CredentialFactory credentialFactory = new CredentialFactory(learCredentialEmployeeFactory, learCredentialMachineFactory, verifiableCertificationFactory);
 
         // Inicializamos policyAuthorizationService con las dependencias adecuadas
         policyAuthorizationService = new PolicyAuthorizationServiceImpl(
                 jwtService,
                 objectMapper,
-                authServerConfig,
-                credentialFactory,
-                verifierConfig
+                credentialFactory
         );
     }
 
@@ -97,8 +92,6 @@ class PolicyAuthorizationServiceImplTest {
 
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -137,7 +130,7 @@ class PolicyAuthorizationServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof InsufficientPermissionException &&
-                                throwable.getMessage().contains("Unauthorized: Credential type 'LEARCredentialEmployee' is required."))
+                                throwable.getMessage().contains("Unauthorized: Credential type 'LEARCredentialEmployee' or 'LEARCredentialMachine' is required."))
                 .verify();
     }
 
@@ -221,8 +214,6 @@ class PolicyAuthorizationServiceImplTest {
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeWithDifferentOrg();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
-
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
 
@@ -295,8 +286,6 @@ class PolicyAuthorizationServiceImplTest {
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeForCertification();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn("external-verifier");
-
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
 
@@ -314,7 +303,7 @@ class PolicyAuthorizationServiceImplTest {
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeWithDifferentOrg();
 
         LEARCredentialEmployee.CredentialSubject.Mandate mandateFromPayload = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                .mandator(Mandator.builder()
                         .organizationIdentifier(learCredential.credentialSubject().mandate().mandator().organizationIdentifier())
                         .serialNumber(learCredential.credentialSubject().mandate().mandator().serialNumber())
                         .country(learCredential.credentialSubject().mandate().mandator().country())
@@ -322,7 +311,7 @@ class PolicyAuthorizationServiceImplTest {
                         .emailAddress(learCredential.credentialSubject().mandate().mandator().emailAddress())
                         .build())
                 .power(Collections.singletonList(
-                        LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+                        Power.builder()
                                 .function("ProductOffering")
                                 .action(List.of("Create", "Update", "Delete"))
                                 .build()))
@@ -346,7 +335,6 @@ class PolicyAuthorizationServiceImplTest {
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -365,7 +353,7 @@ class PolicyAuthorizationServiceImplTest {
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeWithDifferentOrg();
 
         LEARCredentialEmployee.CredentialSubject.Mandate mandateFromPayload = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                .mandator(Mandator.builder()
                         .organizationIdentifier(learCredential.credentialSubject().mandate().mandator().organizationIdentifier())
                         .serialNumber(learCredential.credentialSubject().mandate().mandator().serialNumber())
                         .country(learCredential.credentialSubject().mandate().mandator().country())
@@ -373,7 +361,7 @@ class PolicyAuthorizationServiceImplTest {
                         .emailAddress(learCredential.credentialSubject().mandate().mandator().emailAddress())
                         .build())
                 .power(Collections.singletonList(
-                        LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+                        Power.builder()
                                 .function("OtherFunction")
                                 .action("SomeAction")
                                 .build()))
@@ -397,7 +385,6 @@ class PolicyAuthorizationServiceImplTest {
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -411,18 +398,18 @@ class PolicyAuthorizationServiceImplTest {
     }
 
     @Test
-    void authorize_failure_dueToTokenNotIssuedByInternalAuthServer() throws Exception {
+    void authorize_success_withLearCredentialMachine() throws Exception {
         // Arrange
         String token = "valid-token";
         JsonNode payload = mock(JsonNode.class);
-
-        SignedJWT signedJWT = mock(SignedJWT.class);
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
+        // El vcClaim indica que se trata de una credencial de máquina
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
 
         Map<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("iss", "some-other-issuer");
+        payloadMap.put("iss", "internal-auth-server");
         Payload jwtPayload = new Payload(payloadMap);
 
+        SignedJWT signedJWT = mock(SignedJWT.class);
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
@@ -432,15 +419,45 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
+        // Emulate that the machine factory returns a credential that meets the policy
+        LEARCredentialMachine machineCredential = getLEARCredentialMachine();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
 
-        // Assert
+        StepVerifier.create(result)
+                .verifyComplete();
+    }
+
+    @Test
+    void authorize_failure_withLearCredentialMachine_dueToPolicy() throws Exception {
+        // Arrange
+        String token = "valid-token";
+        JsonNode payload = mock(JsonNode.class);
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
+
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("iss", "internal-auth-server");
+        Payload jwtPayload = new Payload(payloadMap);
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
+        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
+
+        // We emulate that the machine factory returns a credential that does NOT meet the policy
+        LEARCredentialMachine machineCredential = getLEARCredentialMachineWithInvalidPolicy();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof InsufficientPermissionException &&
@@ -448,10 +465,9 @@ class PolicyAuthorizationServiceImplTest {
                 .verify();
     }
 
-
     // Auxiliary methods to create LEARCredentialEmployee objects
     private LEARCredentialEmployee getLEARCredentialEmployee() {
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+        Mandator mandator = Mandator.builder()
                 .organizationIdentifier(IN2_ORGANIZATION_IDENTIFIER)
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
@@ -460,7 +476,7 @@ class PolicyAuthorizationServiceImplTest {
                 .lastName("Doe")
                 .email("john.doe@example.com")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+        Power power = Power.builder()
                 .function("Onboarding")
                 .action("Execute")
                 .build();
@@ -479,7 +495,7 @@ class PolicyAuthorizationServiceImplTest {
     }
 
     private LEARCredentialEmployee getLEARCredentialEmployeeWithDifferentOrg() {
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+        Mandator mandator = Mandator.builder()
                 .organizationIdentifier("OTHER_ORGANIZATION")
                 .commonName("SomeOtherOrganization")
                 .country("ES")
@@ -492,7 +508,7 @@ class PolicyAuthorizationServiceImplTest {
                 .lastName("Doe")
                 .email("john.doe@example.com")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+        Power power = Power.builder()
                 .function("Onboarding")
                 .action("Execute")
                 .build();
@@ -511,7 +527,7 @@ class PolicyAuthorizationServiceImplTest {
     }
 
     private LEARCredentialEmployee getLEARCredentialEmployeeForCertification() {
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+        Mandator mandator = Mandator.builder()
                 .organizationIdentifier("SomeOrganization")
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
@@ -520,7 +536,7 @@ class PolicyAuthorizationServiceImplTest {
                 .lastName("Doe")
                 .email("jane.doe@example.com")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Power power = LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+        Power power = Power.builder()
                 .function("Certification")
                 .action("Attest")
                 .build();
@@ -538,7 +554,56 @@ class PolicyAuthorizationServiceImplTest {
                 .build();
     }
 
+    private LEARCredentialMachine getLEARCredentialMachine() {
+        Mandator mandator = Mandator.builder()
+                .organizationIdentifier(IN2_ORGANIZATION_IDENTIFIER)
+                .build();
+        LEARCredentialMachine.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialMachine.CredentialSubject.Mandate.Mandatee.builder()
+                .id("did:key:1234")
+                .build();
+        Power power = Power.builder()
+                .function("Onboarding")
+                .action("Execute")
+                .build();
+        LEARCredentialMachine.CredentialSubject.Mandate mandate = LEARCredentialMachine.CredentialSubject.Mandate.builder()
+                .mandator(mandator)
+                .mandatee(mandatee)
+                .power(Collections.singletonList(power))
+                .build();
+        LEARCredentialMachine.CredentialSubject credentialSubject = LEARCredentialMachine.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
+        return LEARCredentialMachine.builder()
+                .type(List.of("VerifiableCredential", "LEARCredentialMachine"))
+                .credentialSubject(credentialSubject)
+                .build();
+    }
 
+    private LEARCredentialMachine getLEARCredentialMachineWithInvalidPolicy() {
+        Mandator mandator = Mandator.builder()
+                .organizationIdentifier(IN2_ORGANIZATION_IDENTIFIER)
+                .build();
+        LEARCredentialMachine.CredentialSubject.Mandate.Mandatee mandatee =
+                LEARCredentialMachine.CredentialSubject.Mandate.Mandatee.builder()
+                        .id("did:key:1234")
+                        .build();
+        // Create an empty list of powers to simulate that the policy is not met
+        List<Power> emptyPowers = Collections.emptyList();
+        LEARCredentialMachine.CredentialSubject.Mandate mandate =
+                LEARCredentialMachine.CredentialSubject.Mandate.builder()
+                        .mandator(mandator)
+                        .mandatee(mandatee)
+                        .power(emptyPowers)
+                        .build();
+        LEARCredentialMachine.CredentialSubject credentialSubject =
+                LEARCredentialMachine.CredentialSubject.builder()
+                        .mandate(mandate)
+                        .build();
+        return LEARCredentialMachine.builder()
+                .type(List.of("VerifiableCredential", "LEARCredentialMachine"))
+                .credentialSubject(credentialSubject)
+                .build();
+    }
 }
 
 
