@@ -17,7 +17,7 @@ public class LEARCredentialMachineFactory {
     public LEARCredentialMachine mapStringToLEARCredentialMachine(String learCredential)
             throws InvalidCredentialFormatException {
         try {
-            log.info(objectMapper.readValue(learCredential, LEARCredentialMachine.class).toString());
+            log.debug(objectMapper.readValue(learCredential, LEARCredentialMachine.class).toString());
             return objectMapper.readValue(learCredential, LEARCredentialMachine.class);
         } catch (JsonProcessingException e) {
             log.error("Error parsing LEARCredentialMachine", e);
