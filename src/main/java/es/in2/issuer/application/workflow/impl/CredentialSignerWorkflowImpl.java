@@ -42,8 +42,10 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
+        log.info("Start signing credential for procedureId: {}", procedureId);
         return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                 .flatMap(decodedCredential -> {
+                    log.info("Decoded Credential: {}", decodedCredential);
                     try{
                         log.info("Building JWT payload for credential signing.");
                         if(decodedCredential.contains("VerifiableCertification")){
