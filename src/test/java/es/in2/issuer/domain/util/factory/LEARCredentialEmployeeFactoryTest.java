@@ -54,7 +54,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
 
-        when(objectMapper.readValue(learCredential, LEARCredentialEmployeeJwtPayload.class)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(objectMapper.readValue(learCredential, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject()).thenReturn(credentialSubject);
         when(credentialSubject.mandate()).thenReturn(mandate);
@@ -66,12 +66,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(mandatee.lastName()).thenReturn("lastName");
         when(mandatee.nationality()).thenReturn("nationality");
         when(mandate.power()).thenReturn(List.of(LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder().build()));
-        when(learCredentialEmployeeJwtPayload.JwtId()).thenReturn("jwtId");
-        when(learCredentialEmployeeJwtPayload.expirationTime()).thenReturn(0L);
-        when(learCredentialEmployeeJwtPayload.issuedAt()).thenReturn(0L);
-        when(learCredentialEmployeeJwtPayload.issuer()).thenReturn("issuer");
-        when(learCredentialEmployeeJwtPayload.notValidBefore()).thenReturn(0L);
-        when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(expectedString);
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
 
         //Act & Assert
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindMandateeIdInToTheCredential(learCredential, mandateeId))
@@ -106,7 +101,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(defaultSignerConfig.getSerialNumber()).thenReturn("serialNumber");
         when(defaultSignerConfig.getCommonName()).thenReturn("commonName");
 
-        when(objectMapper.writeValueAsString(any(LEARCredentialEmployeeJwtPayload.class))).thenReturn(json);
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(json);
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));
 
         // Act

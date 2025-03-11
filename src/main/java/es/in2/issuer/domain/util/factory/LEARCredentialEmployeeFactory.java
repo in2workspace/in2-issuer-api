@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -37,21 +36,20 @@ public class LEARCredentialEmployeeFactory {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final DefaultSignerConfig defaultSignerConfig;
 
-    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String learCredential, String mandateeId)
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId)
             throws InvalidCredentialFormatException {
-        LEARCredentialEmployeeJwtPayload basePayload = mapStringToLEARCredentialEmployeeJwtPayload(learCredential);
-        return bindMandateeIdToLearCredentialEmployee(basePayload, mandateeId)
+        LEARCredentialEmployee decodedCredential = mapStringToLEARCredentialEmployee(decodedCredentialString);
+        return bindMandateeIdToLearCredentialEmployee(decodedCredential, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildLEARCredentialEmployee(JsonNode learCredential, String operationMode) {
         LEARCredentialEmployee.CredentialSubject baseCredentialSubject = mapJsonNodeToCredentialSubject(learCredential);
         return buildFinalLearCredentialEmployee(baseCredentialSubject)
-                .flatMap(this::buildLEARCredentialEmployeeJwtPayload)
-                .flatMap(payload ->
-                        convertLEARCredentialEmployeeInToString(payload)
-                                .flatMap(decoded ->
-                                        buildCredentialProcedureCreationRequest(decoded, payload, operationMode)
+                .flatMap(credentialDecoded ->
+                        convertLEARCredentialEmployeeInToString(credentialDecoded)
+                                .flatMap(credentialDecodedString ->
+                                        buildCredentialProcedureCreationRequest(credentialDecodedString, credentialDecoded, operationMode)
                                 )
                 );
     }
@@ -97,15 +95,16 @@ public class LEARCredentialEmployeeFactory {
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = createMandate(baseCredentialSubject, mandatee, populatedPowers);
         LEARCredentialEmployee.CredentialSubject credentialSubject = createCredentialSubject(mandate);
 
+        //TODO: if else segun el tipo de firma (server construye entero y remote no construye issuer)
         LEARCredentialEmployee credentialEmployee = LEARCredentialEmployee.builder()
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
                 .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
                 .description(LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION)
+                .credentialSubject(credentialSubject)
                 .issuer(issuer)
                 .validFrom(validFrom)
                 .validUntil(validUntil)
-                .credentialSubject(credentialSubject)
                 .build();
 
         return Mono.just(credentialEmployee);
@@ -134,6 +133,7 @@ public class LEARCredentialEmployeeFactory {
             issuerId = DID_ELSI + "VATES-D70795026";
             issuerIdentifier = "VATES-D70795026";
         }
+        //TODO if else segun el tipo de firma (server coge de var entorno y remote coge de la api)
         return DetailedIssuer.builder()
                 .id(issuerId)
                 .organizationIdentifier(issuerIdentifier)
@@ -174,8 +174,8 @@ public class LEARCredentialEmployeeFactory {
                 .build();
     }
 
-    private Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee) {
-        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
+    public Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee) {
+        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico, se debe cambiar "issuer" por el learCredentialEmployee.issuer.id
         String issuer;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
             issuer = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
@@ -200,9 +200,9 @@ public class LEARCredentialEmployeeFactory {
         return zonedDateTime.toInstant().getEpochSecond();
     }
 
-    private Mono<LEARCredentialEmployeeJwtPayload> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployeeJwtPayload basePayload, String mandateeId) {
+    private Mono<LEARCredentialEmployee> bindMandateeIdToLearCredentialEmployee(LEARCredentialEmployee decodedCredential, String mandateeId) {
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee baseMandatee =
-                basePayload.learCredentialEmployee().credentialSubject().mandate().mandatee();
+                decodedCredential.credentialSubject().mandate().mandatee();
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee updatedMandatee =
                 LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
                         .id(mandateeId)
@@ -212,62 +212,59 @@ public class LEARCredentialEmployeeFactory {
                         .nationality(baseMandatee.nationality())
                         .build();
 
-        LEARCredentialEmployee updatedCredentialEmployee = LEARCredentialEmployee.builder()
-                .context(basePayload.learCredentialEmployee().context())
-                .id(basePayload.learCredentialEmployee().id())
-                .type(basePayload.learCredentialEmployee().type())
-                .description(basePayload.learCredentialEmployee().description())
-                .issuer(basePayload.learCredentialEmployee().getIssuer())
-                .validFrom(basePayload.learCredentialEmployee().validFrom())
-                .validUntil(basePayload.learCredentialEmployee().validUntil())
+        return Mono.just( LEARCredentialEmployee.builder()
+                .context(decodedCredential.context())
+                .id(decodedCredential.id())
+                .type(decodedCredential.type())
+                .description(decodedCredential.description())
+                .issuer(decodedCredential.getIssuer())
+                .validFrom(decodedCredential.validFrom())
+                .validUntil(decodedCredential.validUntil())
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
                                 .mandate(
                                         LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                                                .id(basePayload.learCredentialEmployee().credentialSubject().mandate().id())
-                                                .mandator(basePayload.learCredentialEmployee().credentialSubject().mandate().mandator())
+                                                .id(decodedCredential.credentialSubject().mandate().id())
+                                                .mandator(decodedCredential.credentialSubject().mandate().mandator())
                                                 .mandatee(updatedMandatee)
-                                                .power(basePayload.learCredentialEmployee().credentialSubject().mandate().power())
+                                                .power(decodedCredential.credentialSubject().mandate().power())
                                                 .build()
                                 )
                                 .build()
                 )
-                .build();
-
-        return Mono.just(
-                LEARCredentialEmployeeJwtPayload.builder()
-                        .learCredentialEmployee(updatedCredentialEmployee)
-                        .subject(mandateeId)
-                        .JwtId(basePayload.JwtId())
-                        .expirationTime(basePayload.expirationTime())
-                        .issuedAt(basePayload.issuedAt())
-                        .issuer(basePayload.issuer())
-                        .notValidBefore(basePayload.notValidBefore())
-                        .build()
+                .build()
         );
     }
 
-    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployeeJwtPayload payload) {
+    private Mono<String> convertLEARCredentialEmployeeInToString(LEARCredentialEmployee credentialDecoded) {
         try {
-            return Mono.just(objectMapper.writeValueAsString(payload));
+            return Mono.just(objectMapper.writeValueAsString(credentialDecoded));
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException());
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployeeJwtPayload payload, String operationMode) {
+    public Mono<String> convertLEARCredentialEmployeeJwtPayloadInToString(LEARCredentialEmployeeJwtPayload credential) {
+        try {
+            return Mono.just(objectMapper.writeValueAsString(credential));
+        } catch (JsonProcessingException e) {
+            return Mono.error(new RuntimeException());
+        }
+    }
+
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, LEARCredentialEmployee credentialDecoded, String operationMode) {
         return accessTokenService.getOrganizationIdFromCurrentSession()
                 .flatMap(organizationId ->
                         Mono.just(
                                 CredentialProcedureCreationRequest.builder()
-                                        .credentialId(payload.learCredentialEmployee().id())
+                                        .credentialId(credentialDecoded.id())
                                         .organizationIdentifier(organizationId)
                                         .credentialDecoded(decodedCredential)
                                         .credentialType(CredentialType.LEAR_CREDENTIAL_EMPLOYEE)
-                                        .subject(payload.learCredentialEmployee().credentialSubject().mandate().mandatee().firstName() +
+                                        .subject(credentialDecoded.credentialSubject().mandate().mandatee().firstName() +
                                                 " " +
-                                                payload.learCredentialEmployee().credentialSubject().mandate().mandatee().lastName())
-                                        .validUntil(parseEpochSecondIntoTimestamp(payload.expirationTime()))
+                                                credentialDecoded.credentialSubject().mandate().mandatee().lastName())
+                                        .validUntil(parseEpochSecondIntoTimestamp(parseDateToUnixTime(credentialDecoded.validUntil())))
                                         .operationMode(operationMode)
                                         .build()
                         )

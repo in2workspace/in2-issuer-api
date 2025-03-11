@@ -35,7 +35,7 @@ public class JwtUtils {
 
             return map1.equals(map2);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Error comparing JSONs", e);
             return false;
         }
     }

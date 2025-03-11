@@ -8,7 +8,8 @@ import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
-import es.in2.issuer.domain.util.Constants;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
+import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import nl.minvws.encoding.Base45;
@@ -34,13 +35,38 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final DeferredCredentialWorkflow deferredCredentialWorkflow;
     private final CredentialProcedureService credentialProcedureService;
     private final RemoteSignatureService remoteSignatureService;
+    private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+    private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
         return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
-                .flatMap(unsignedCredential -> {
-                    log.info("Start get signed credential.");
-                    return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
+                .flatMap(decodedCredential -> {
+                    try{
+                        log.info("Building JWT payload for credential signing.");
+                        if(decodedCredential.contains("VerifiableCertification")){
+                            VerifiableCertification verifiableCertification = verifiableCertificationFactory.mapStringToVerifiableCertification(decodedCredential);
+                            return verifiableCertificationFactory.buildVerifiableCertificationJwtPayload(verifiableCertification)
+                                    .flatMap(verifiableCertificationFactory::convertVerifiableCertificationJwtPayloadInToString)
+                                    .flatMap(unsignedCredential -> {
+                                        log.info("Start get signed credential.");
+                                        return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
+                                    });
+
+                        } else {
+                            LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
+                            return learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(learCredentialEmployee)
+                                    .flatMap(learCredentialEmployeeFactory::convertLEARCredentialEmployeeJwtPayloadInToString)
+                                    .flatMap(unsignedCredential -> {
+                                        log.info("Start get signed credential.");
+                                        return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
+                                    });
+                        }
+                    }
+                    catch (Exception e){
+                        log.error("Error signing credential: " + e.getMessage(), e);
+                        return Mono.error(new IllegalArgumentException("Error signing credential"));
+                    }
                 })
                 .flatMap(signedCredential -> {
                     log.info("Update Signed Credential");
@@ -59,7 +85,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token, String procedureId) {
         return Mono.defer(() -> {
             if (format.equals(JWT_VC)) {
-                log.info(unsignedCredential);
+                log.info("Credential Payload {}", unsignedCredential);
                 log.info("Signing credential in JADES remotely ...");
                 SignatureRequest signatureRequest = new SignatureRequest(
                         new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),

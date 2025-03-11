@@ -1,12 +1,11 @@
 package es.in2.issuer.application.workflow.impl;
 
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
-import es.in2.issuer.domain.model.dto.SignatureRequest;
-import es.in2.issuer.domain.model.dto.SignedCredentials;
-import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,12 +20,9 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialSignerWorkflowImplTest {
-    private static final Logger logger = LoggerFactory.getLogger(CredentialSignerWorkflowImplTest.class);
     @Mock
     private RemoteSignatureService remoteSignatureService;
 
@@ -39,6 +35,9 @@ class CredentialSignerWorkflowImplTest {
     @InjectMocks
     CredentialSignerWorkflowImpl credentialSignerWorkflow;
 
+    @Mock
+    private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
         String unsignedCredential = "unsignedCredential";
@@ -46,10 +45,14 @@ class CredentialSignerWorkflowImplTest {
         String signedCredential = "signedJWTData";
         String procedureId = "procedureId";
 
-        logger.info("Este es un log de prueba en JUnit");
-
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
+
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(unsignedCredential)).thenReturn(LEARCredentialEmployee .builder().build());
+        when(learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(any(LEARCredentialEmployee.class)))
+                .thenReturn(Mono.just(LEARCredentialEmployeeJwtPayload.builder().build()));
+        when(learCredentialEmployeeFactory.convertLEARCredentialEmployeeJwtPayloadInToString(any(LEARCredentialEmployeeJwtPayload.class)))
+                .thenReturn(Mono.just(unsignedCredential));
 
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
         when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
@@ -69,9 +72,14 @@ class CredentialSignerWorkflowImplTest {
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq("")))
                 .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
 
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(unsignedCredential)).thenReturn(LEARCredentialEmployee .builder().build());
+        when(learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(any(LEARCredentialEmployee.class)))
+                .thenReturn(Mono.just(LEARCredentialEmployeeJwtPayload.builder().build()));
+        when(learCredentialEmployeeFactory.convertLEARCredentialEmployeeJwtPayloadInToString(any(LEARCredentialEmployeeJwtPayload.class)))
+                .thenReturn(Mono.just(unsignedCredential));
+
         when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
         when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
-
 
         StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, CWT_VC))
                 .assertNext(signedData -> assertEquals(signedResult, signedData))

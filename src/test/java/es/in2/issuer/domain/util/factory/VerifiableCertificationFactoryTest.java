@@ -7,7 +7,6 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
-import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
@@ -162,7 +161,7 @@ class VerifiableCertificationFactoryTest {
 
         when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
 
-        when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
+        when(objectMapper.writeValueAsString(any(VerifiableCertification.class))).thenReturn("expectedString");
 
         // When: Calling mapAndBuildVerifiableCertification
         Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token, "S");

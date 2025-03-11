@@ -29,7 +29,7 @@ class CredentialDetailsTest {
         }
 
         // Act
-        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode, expectedOperationMode, expectedSignatureMode);
+        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
 
         // Assert
         assertEquals(uuid, credentialDetails.procedureId());
@@ -68,8 +68,8 @@ class CredentialDetailsTest {
         String expectedOperationMode = "operationMode";
         String expectedSignatureMode = "signatureMode";
 
-        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode, expectedOperationMode, expectedSignatureMode);
-        CredentialDetails credentialDetails2 = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode, expectedOperationMode, expectedSignatureMode);
+        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
+        CredentialDetails credentialDetails2 = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
 
         // Assert
         assertEquals(credentialDetails, credentialDetails2);

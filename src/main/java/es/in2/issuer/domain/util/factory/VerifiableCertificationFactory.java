@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
+import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
@@ -44,15 +45,13 @@ public class VerifiableCertificationFactory {
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
-                .flatMap(this::buildVerifiableCertificationJwtPayload)
-                .flatMap(verifiableCertificationJwtPayload ->
-                        convertVerifiableCertificationInToString(verifiableCertificationJwtPayload)
+                .flatMap(verifiableCertificationDecoded ->
+                        convertVerifiableCertificationInToString(verifiableCertificationDecoded)
                                 .flatMap(decodedCredential ->
-                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationJwtPayload, operationMode)
+                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationDecoded, operationMode)
                                 )
                 );
     }
-
 
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
         // Compliance list with new IDs
@@ -64,7 +63,6 @@ public class VerifiableCertificationFactory {
                         .standard(compliance.standard())
                         .build())
                 .toList();
-
 
         // Create the Signer object using the retrieved UserDetails
         VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
@@ -118,7 +116,7 @@ public class VerifiableCertificationFactory {
                 .build());
     }
 
-    private Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
+    public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
         //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
         String issuerCred;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
@@ -144,24 +142,44 @@ public class VerifiableCertificationFactory {
         return zonedDateTime.toInstant().getEpochSecond();
     }
 
-    private Mono<String> convertVerifiableCertificationInToString(VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
+    public VerifiableCertification mapStringToVerifiableCertification(String learCredential)
+            throws InvalidCredentialFormatException {
+        try {
+            log.info(objectMapper.readValue(learCredential, VerifiableCertification.class).toString());
+            return objectMapper.readValue(learCredential, VerifiableCertification.class);
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing VerifiableCertification", e);
+            throw new InvalidCredentialFormatException("Error parsing VerifiableCertification");
+        }
+    }
+
+    private Mono<String> convertVerifiableCertificationInToString(VerifiableCertification verifiableCertification) {
         try {
 
+            return Mono.just(objectMapper.writeValueAsString(verifiableCertification));
+        } catch (JsonProcessingException e) {
+            throw new ParseErrorException(e.getMessage());
+        }
+    }
+
+    public Mono<String> convertVerifiableCertificationJwtPayloadInToString(VerifiableCertificationJwtPayload verifiableCertificationJwtPayload) {
+        try {
             return Mono.just(objectMapper.writeValueAsString(verifiableCertificationJwtPayload));
         } catch (JsonProcessingException e) {
             throw new ParseErrorException(e.getMessage());
         }
     }
 
-    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertificationJwtPayload verifiableCertificationJwtPayload, String operationMode) {
+
+    private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertification verifiableCertificationDecoded, String operationMode) {
         String organizationId = defaultSignerConfig.getOrganizationIdentifier();
         return Mono.just(CredentialProcedureCreationRequest.builder()
-                .credentialId(verifiableCertificationJwtPayload.credential().id())
+                .credentialId(verifiableCertificationDecoded.id())
                 .organizationIdentifier(organizationId)
                 .credentialDecoded(decodedCredential)
                 .credentialType(CredentialType.VERIFIABLE_CERTIFICATION)
-                .subject(verifiableCertificationJwtPayload.credential().credentialSubject().product().productName())
-                .validUntil(parseEpochSecondIntoTimestamp(verifiableCertificationJwtPayload.expirationTime()))
+                .subject(verifiableCertificationDecoded.credentialSubject().product().productName())
+                .validUntil(parseEpochSecondIntoTimestamp(parseDateToUnixTime(verifiableCertificationDecoded.validUntil())))
                 .operationMode(operationMode)
                 .build()
         );
