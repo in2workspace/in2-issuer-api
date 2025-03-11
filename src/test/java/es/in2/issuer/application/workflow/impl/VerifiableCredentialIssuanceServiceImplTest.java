@@ -275,14 +275,11 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialProcedureService.getCredentialStatusByProcedureId("procedureId")).thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
-
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
         Mandator mandator = mock(Mandator.class);
 
-        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
         when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
         when(credentialSubject.mandate()).thenReturn(mandate);
         when(mandate.mandator()).thenReturn(mandator);
@@ -292,7 +289,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
 
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployee);
         when(trustFrameworkService.validateDidFormat(processId,organizationIdentifierDid)).thenReturn(Mono.just(true));
         when(trustFrameworkService.registerDid(processId,organizationIdentifierDid)).thenReturn(Mono.empty());
 
@@ -349,8 +346,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialProcedureService.getCredentialStatusByProcedureId("procedureId")).thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
-
         LEARCredentialEmployee learCredentialEmployee = LEARCredentialEmployee.builder()
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
@@ -363,10 +358,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
                                 .build()
                 )
                 .build();
-        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
 
-
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployee);
 
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
@@ -403,8 +396,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialProcedureService.getCredentialStatusByProcedureId("procedureId")).thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
         when(credentialProcedureService.getDecodedCredentialByProcedureId("procedureId")).thenReturn(Mono.just(decodedCredential));
 
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
-
         LEARCredentialEmployee learCredentialEmployee = LEARCredentialEmployee.builder()
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
@@ -420,11 +411,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
                                 .build()
                 )
                 .build();
-        when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
 
-
-        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
-
+        when(credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(learCredentialEmployee);
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
                 .expectError(IllegalArgumentException.class)

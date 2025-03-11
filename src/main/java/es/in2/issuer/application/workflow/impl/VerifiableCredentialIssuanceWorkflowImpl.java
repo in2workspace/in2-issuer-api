@@ -5,6 +5,7 @@ import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
@@ -213,9 +214,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private Mono<Void> processDecodedCredential(String processId, String decodedCredential) {
         log.info("ProcessID: {} Decoded Credential: {}", processId, decodedCredential);
 
-        LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential);
+        LEARCredentialEmployee learCredentialEmployee = credentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
 
-        String mandatorOrgIdentifier = learCredentialEmployeeJwtPayload.learCredentialEmployee().credentialSubject().mandate().mandator().organizationIdentifier();
+        String mandatorOrgIdentifier = learCredentialEmployee.credentialSubject().mandate().mandator().organizationIdentifier();
         if (mandatorOrgIdentifier == null || mandatorOrgIdentifier.isBlank()) {
             log.error("ProcessID: {} Mandator Organization Identifier cannot be null or empty", processId);
             return Mono.error(new IllegalArgumentException("Organization Identifier not valid"));
