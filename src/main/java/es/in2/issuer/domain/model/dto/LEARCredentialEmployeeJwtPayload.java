@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import lombok.Builder;
 
 @Builder

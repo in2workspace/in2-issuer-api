@@ -5,8 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
+import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.domain.model.dto.credential.lear.Power;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,7 +54,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
+        Mandator mandator = mock(Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
 
         when(objectMapper.readValue(learCredential, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
@@ -65,7 +68,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(mandatee.firstName()).thenReturn("firstName");
         when(mandatee.lastName()).thenReturn("lastName");
         when(mandatee.nationality()).thenReturn("nationality");
-        when(mandate.power()).thenReturn(List.of(LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder().build()));
+        when(mandate.power()).thenReturn(List.of(Power.builder().build()));
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
 
         //Act & Assert
@@ -80,11 +83,11 @@ class LEARCredentialEmployeeFactoryTest {
         String json = "{\"test\": \"test\"}";
         JsonNode jsonNode = objectMapper.readTree(json);
         LEARCredentialEmployee.CredentialSubject.Mandate mockMandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mockMandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
+        Mandator mockMandator = mock(Mandator.class);
         LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mockMandatee = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Power mockPower = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Power.class);
+        Power mockPower = mock(Power.class);
 
-        List<LEARCredentialEmployee.CredentialSubject.Mandate.Power> mockPowerList = new ArrayList<>();
+        List<Power> mockPowerList = new ArrayList<>();
         mockPowerList.add(mockPower);
 
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))

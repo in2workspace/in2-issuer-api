@@ -18,6 +18,7 @@ import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 public class CredentialFactory {
 
     public final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+    public final LEARCredentialMachineFactory learCredentialMachineFactory;
     public final VerifiableCertificationFactory verifiableCertificationFactory;
 
     public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, String credentialType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
@@ -25,10 +26,10 @@ public class CredentialFactory {
         String operationMode = preSubmittedCredentialRequest.operationMode();
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(credential, operationMode)
-                    .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
+                    .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - LEARCredentialEmployee mapped: {}", processId, credential));
         } else if (credentialType.equals(VERIFIABLE_CERTIFICATION)) {
             return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential, token, operationMode)
-                    .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - Credential mapped: {}", processId, credential));
+                    .doOnSuccess(verifiableCertification -> log.info("ProcessID: {} - VerifiableCertification mapped: {}", processId, credential));
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));
     }

@@ -1,5 +1,12 @@
 package es.in2.issuer.domain.model.dto;
 
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.domain.model.dto.credential.Issuer;
+import es.in2.issuer.domain.model.dto.credential.lear.LifeSpan;
+import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.domain.model.dto.credential.lear.Power;
+import es.in2.issuer.domain.model.dto.credential.lear.Signer;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,8 +26,8 @@ class LEARCredentialEmployeeTest {
     @Test
     void testBuilderAndGettersUsingMockIssuer() {
         // Build nested objects for the credentialSubject property
-        LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan lifeSpan =
-                LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
+        LifeSpan lifeSpan =
+                LifeSpan.builder()
                         .startDateTime("2024-01-01T00:00:00Z")
                         .endDateTime("2025-01-01T00:00:00Z")
                         .build();
@@ -35,8 +42,8 @@ class LEARCredentialEmployeeTest {
                         .nationality("US")
                         .build();
 
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator =
-                LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+        Mandator mandator =
+                Mandator.builder()
                         .commonName("MandatorCommonName")
                         .country("US")
                         .emailAddress("mandator@example.com")
@@ -45,8 +52,8 @@ class LEARCredentialEmployeeTest {
                         .serialNumber("SN123")
                         .build();
 
-        LEARCredentialEmployee.CredentialSubject.Mandate.Power power =
-                LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+        Power power =
+                Power.builder()
                         .id("power-id")
                         .action("action-value")
                         .domain("domain-value")
@@ -54,8 +61,8 @@ class LEARCredentialEmployeeTest {
                         .type("type-value")
                         .build();
 
-        LEARCredentialEmployee.CredentialSubject.Mandate.Signer signer =
-                LEARCredentialEmployee.CredentialSubject.Mandate.Signer.builder()
+        Signer signer =
+                Signer.builder()
                         .commonName("SignerCommonName")
                         .country("US")
                         .emailAddress("signer@example.com")
@@ -94,19 +101,19 @@ class LEARCredentialEmployeeTest {
                 .build();
 
         // Verify that the getters return the expected values
-        assertEquals(List.of("https://www.w3.org/2018/credentials/v1"), employee.getContext());
-        assertEquals("credential-id", employee.getId());
-        assertEquals(List.of("VerifiableCredential", "LEARCredentialEmployee"), employee.getType());
-        assertEquals("Test credential with mock issuer", employee.getDescription());
-        assertEquals("issuer-mock-id", employee.getIssuer().getId());
-        assertEquals("2024-01-01T00:00:00Z", employee.getValidFrom());
-        assertEquals("2025-01-01T00:00:00Z", employee.getValidUntil());
+        assertEquals(List.of("https://www.w3.org/2018/credentials/v1"), employee.context());
+        assertEquals("credential-id", employee.id());
+        assertEquals(List.of("VerifiableCredential", "LEARCredentialEmployee"), employee.type());
+        assertEquals("Test credential with mock issuer", employee.description());
+        assertEquals("issuer-mock-id", employee.issuer().getId());
+        assertEquals("2024-01-01T00:00:00Z", employee.validFrom());
+        assertEquals("2025-01-01T00:00:00Z", employee.validUntil());
         // Verify some nested fields
-        assertEquals("mandate-id", employee.getCredentialSubject().mandate().id());
-        assertEquals("John", employee.getCredentialSubject().mandate().mandatee().firstName());
-        assertEquals("MandatorOrg", employee.getCredentialSubject().mandate().mandator().organization());
-        assertEquals("action-value", employee.getCredentialSubject().mandate().power().get(0).action());
-        assertEquals("SignerOrg123", employee.getCredentialSubject().mandate().signer().organizationIdentifier());
+        assertEquals("mandate-id", employee.credentialSubject().mandate().id());
+        assertEquals("John", employee.credentialSubject().mandate().mandatee().firstName());
+        assertEquals("MandatorOrg", employee.credentialSubject().mandate().mandator().organization());
+        assertEquals("action-value", employee.credentialSubject().mandate().power().get(0).action());
+        assertEquals("SignerOrg123", employee.credentialSubject().mandate().signer().organizationIdentifier());
     }
 
     @Test
@@ -115,7 +122,7 @@ class LEARCredentialEmployeeTest {
         LEARCredentialEmployee.CredentialSubject.Mandate mandate =
                 LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                         .id("mandate-id")
-                        .lifeSpan(LEARCredentialEmployee.CredentialSubject.Mandate.LifeSpan.builder()
+                        .lifeSpan(LifeSpan.builder()
                                 .startDateTime("2024-01-01T00:00:00Z")
                                 .endDateTime("2025-01-01T00:00:00Z")
                                 .build())
@@ -127,7 +134,7 @@ class LEARCredentialEmployeeTest {
                                 .mobilePhone("+123456789")
                                 .nationality("US")
                                 .build())
-                        .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                        .mandator(Mandator.builder()
                                 .commonName("MandatorCommonName")
                                 .country("US")
                                 .emailAddress("mandator@example.com")
@@ -135,14 +142,14 @@ class LEARCredentialEmployeeTest {
                                 .organizationIdentifier("Org123")
                                 .serialNumber("SN123")
                                 .build())
-                        .power(List.of(LEARCredentialEmployee.CredentialSubject.Mandate.Power.builder()
+                        .power(List.of(Power.builder()
                                 .id("power-id")
                                 .action("action-value")
                                 .domain("domain-value")
                                 .function("function-value")
                                 .type("type-value")
                                 .build()))
-                        .signer(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.builder()
+                        .signer(Signer.builder()
                                 .commonName("SignerCommonName")
                                 .country("US")
                                 .emailAddress("signer@example.com")

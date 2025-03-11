@@ -8,6 +8,9 @@ import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.exception.FormatUnsupportedException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.domain.model.dto.credential.lear.Signer;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
@@ -277,7 +280,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = mock(LEARCredentialEmployee.CredentialSubject.Mandate.class);
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandator mandator = mock(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.class);
+        Mandator mandator = mock(Mandator.class);
 
         when(learCredentialEmployeeJwtPayload.learCredentialEmployee()).thenReturn(learCredentialEmployee);
         when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
@@ -352,7 +355,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
                                 .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                                        .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                                        .mandator(Mandator.builder()
                                                 .organizationIdentifier("")
                                                 .build())
                                         .build()
@@ -406,10 +409,10 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .credentialSubject(
                         LEARCredentialEmployee.CredentialSubject.builder()
                                 .mandate(LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                                        .signer(LEARCredentialEmployee.CredentialSubject.Mandate.Signer.builder()
+                                        .signer(Signer.builder()
                                                 .organizationIdentifier("some-identifier")
                                                 .build())
-                                        .mandator(LEARCredentialEmployee.CredentialSubject.Mandate.Mandator.builder()
+                                        .mandator(Mandator.builder()
                                                 .organizationIdentifier("")
                                                 .build())
                                         .build()

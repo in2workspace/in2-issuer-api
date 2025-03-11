@@ -22,6 +22,8 @@ import static es.in2.issuer.domain.util.Constants.*;
 @RequiredArgsConstructor
 public class AccessTokenServiceImpl implements AccessTokenService {
 
+    private final ObjectMapper objectMapper;
+
     @Override
     public Mono<String> getCleanBearerToken(String authorizationHeader) {
         return Mono.just(authorizationHeader)
@@ -49,18 +51,11 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
     }
 
+
     @Override
     public Mono<String> getOrganizationId(String authorizationHeader) {
         return getCleanBearerToken(authorizationHeader)
-                .flatMap(token -> {
-                    try {
-                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
-                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get("organizationIdentifier").asText());
-                    } catch (ParseException | JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
-                })
+                .flatMap(this::extractOrganizationIdFromToken)
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
     }
 
@@ -68,16 +63,24 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     public Mono<String> getOrganizationIdFromCurrentSession() {
         return getTokenFromCurrentSession()
                 .flatMap(this::getCleanBearerToken)
-                .flatMap(token -> {
-                    try {
-                        SignedJWT parsedVcJwt = SignedJWT.parse(token);
-                        JsonNode jsonObject = new ObjectMapper().readTree(parsedVcJwt.getPayload().toString());
-                        return Mono.just(jsonObject.get("organizationIdentifier").asText());
-                    } catch (ParseException | JsonProcessingException e) {
-                        return Mono.error(e);
-                    }
-                })
+                .flatMap(this::extractOrganizationIdFromToken)
                 .switchIfEmpty(Mono.error(new InvalidTokenException()));
+    }
+
+    private Mono<String> extractOrganizationIdFromToken(String token) {
+        try {
+            SignedJWT parsedVcJwt = SignedJWT.parse(token);
+            JsonNode jsonObject = objectMapper.readTree(parsedVcJwt.getPayload().toString());
+            String organizationId = jsonObject.get(VC)
+                    .get(CREDENTIAL_SUBJECT)
+                    .get(MANDATE)
+                    .get(MANDATOR)
+                    .get(ORGANIZATION_IDENTIFIER)
+                    .asText();
+            return Mono.just(organizationId);
+        } catch (ParseException | JsonProcessingException e) {
+            return Mono.error(new InvalidTokenException());
+        }
     }
 
     private Mono<String> getTokenFromCurrentSession() {

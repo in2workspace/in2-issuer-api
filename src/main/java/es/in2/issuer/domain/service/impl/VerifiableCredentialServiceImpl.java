@@ -5,6 +5,7 @@ import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.DeferredCredentialRequest;
 import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
