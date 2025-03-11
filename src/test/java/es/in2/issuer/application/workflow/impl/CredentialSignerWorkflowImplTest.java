@@ -2,6 +2,7 @@ package es.in2.issuer.application.workflow.impl;
 
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;

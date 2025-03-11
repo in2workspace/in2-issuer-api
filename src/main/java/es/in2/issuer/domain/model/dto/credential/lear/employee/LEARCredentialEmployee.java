@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.model.dto.credential.lear.employee;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import es.in2.issuer.domain.model.dto.credential.Issuer;
@@ -21,12 +22,12 @@ public record LEARCredentialEmployee(
         @JsonProperty("validFrom") String validFrom,
         @JsonProperty("validUntil") String validUntil
 ) implements LEARCredential {
-
+    @JsonIgnore
     @Override
     public List<Power> getPowers() {
         return credentialSubject.mandate().power();
     }
-
+    @JsonIgnore
     @Override
     public Mandator getMandator() {
         return credentialSubject.mandate().mandator();

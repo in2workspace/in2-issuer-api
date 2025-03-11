@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model.dto.credential.lear.machine;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -22,12 +23,12 @@ public record LEARCredentialMachine(
         @JsonProperty("validFrom") String validFrom,
         @JsonProperty("validUntil") String validUntil
 ) implements LEARCredential {
-
+    @JsonIgnore
     @Override
     public List<Power> getPowers() {
         return credentialSubject.mandate().power();
     }
-
+    @JsonIgnore
     @Override
     public Mandator getMandator() {
         return credentialSubject.mandate().mandator();

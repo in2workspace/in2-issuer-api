@@ -5,6 +5,7 @@ import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
 import es.in2.issuer.domain.exception.Base45Exception;
 import es.in2.issuer.domain.model.dto.*;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
@@ -18,6 +19,7 @@ import org.apache.commons.compress.compressors.CompressorStreamFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+
 
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
