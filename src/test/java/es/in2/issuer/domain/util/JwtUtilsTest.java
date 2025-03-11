@@ -1,6 +1,9 @@
 package es.in2.issuer.domain.util;
 
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.util.Base64;
+import java.util.stream.Stream;
 
 @ExtendWith(MockitoExtension.class)
 class JwtUtilsTest {
@@ -57,69 +61,27 @@ class JwtUtilsTest {
         verify(mockJwtUtils, times(1)).getPayload("header.payload.signature");
     }
 
-    @Test
-    void testAreJsonsEqual_IdenticalJsons() {
-        String json1 = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-        String json2 = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-
+    @ParameterizedTest
+    @MethodSource("provideJsonsForEqualityTest")
+    void testAreJsonsEqual(String json1, String json2, boolean expectedResult) {
         boolean result = jwtUtils.areJsonsEqual(json1, json2);
-
-        assertThat(result).isTrue();
+        assertThat(result).isEqualTo(expectedResult);
     }
 
-    @Test
-    void testAreJsonsEqual_SameKeysDifferentOrder() {
-        String json1 = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-        String json2 = "{\"city\":\"New York\",\"age\":30,\"name\":\"John\"}";
-
-        boolean result = jwtUtils.areJsonsEqual(json1, json2);
-
-        assertThat(result).isTrue();
-    }
-
-    @Test
-    void testAreJsonsEqual_DifferentValues() {
-        String json1 = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-        String json2 = "{\"name\":\"John\",\"age\":31,\"city\":\"New York\"}";
-
-        boolean result = jwtUtils.areJsonsEqual(json1, json2);
-
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    void testAreJsonsEqual_DifferentKeys() {
-        String json1 = "{\"name\":\"John\",\"age\":30}";
-        String json2 = "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}";
-
-        boolean result = jwtUtils.areJsonsEqual(json1, json2);
-
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    void testAreJsonsEqual_EmptyJsons() {
-        String json1 = "{}";
-        String json2 = "{}";
-
-        boolean result = jwtUtils.areJsonsEqual(json1, json2);
-
-        assertThat(result).isTrue();
+    private static Stream<Arguments> provideJsonsForEqualityTest() {
+        return Stream.of(
+                Arguments.of("{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}", "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}", true),
+                Arguments.of("{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}", "{\"city\":\"New York\",\"age\":30,\"name\":\"John\"}", true),
+                Arguments.of("{}", "{}", true),
+                Arguments.of("{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}", "{\"name\":\"John\",\"age\":31,\"city\":\"New York\"}", false),
+                Arguments.of("{\"name\":\"John\",\"age\":30}", "{\"name\":\"John\",\"age\":30,\"city\":\"New York\"}", false),
+                Arguments.of("{\"name\":\"John\", \"age\":30}", "{name:\"John\", age:30}", false)
+        );
     }
 
     @Test
     void testAreJsonsEqual_NullJsons() {
         boolean result = jwtUtils.areJsonsEqual(null, null);
-
-        assertThat(result).isFalse();
-    }
-
-    @Test
-    void testAreJsonsEqual_InvalidJson() {
-        String json1 = "{\"name\":\"John\", \"age\":30}";
-        String json2 = "{name:\"John\", age:30}"; // JSON mal formado
-
-        boolean result = jwtUtils.areJsonsEqual(json1, json2);
 
         assertThat(result).isFalse();
     }

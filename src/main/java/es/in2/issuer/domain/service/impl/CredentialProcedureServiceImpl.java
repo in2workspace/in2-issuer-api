@@ -56,32 +56,33 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     @Override
     public Mono<String> getCredentialTypeByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
-                .flatMap(credentialProcedure -> {
-                    try {
-                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        JsonNode typeNode = NullNode.getInstance();
-                        if (credential.has(VC)) {
-                            typeNode  = credential.get(VC).get(TYPE);
-                        } else {
-                            typeNode = credential.get(TYPE);
-                        }
-                        if (typeNode != null && typeNode.isArray()) {
-                            String credentialType = null;
-                            for (JsonNode type : typeNode) {
-                                if (!type.asText().equals(VERIFIABLE_CREDENTIAL) && !type.asText().equals(VERIFIABLE_ATTESTATION)) {
-                                    credentialType = type.asText();
-                                    break;
-                                }
-                            }
-                            return Mono.justOrEmpty(credentialType);
-                        } else {
-                            return Mono.error(new RuntimeException("The credential type is missing"));
-                        }
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException(e));
-                    }
+                .flatMap(credentialProcedure -> getCredentialType(credentialProcedure));
+    }
 
-                });
+    private Mono<String> getCredentialType(CredentialProcedure credentialProcedure) {
+        try {
+            JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+            JsonNode typeNode = credential.has(VC) ? credential.get(VC).get(TYPE) : credential.get(TYPE);
+            if (typeNode == null || !typeNode.isArray()) {
+                return Mono.error(new RuntimeException("The credential type is missing"));
+            }
+            String credentialType = extractCredentialType(typeNode);
+            return Mono.justOrEmpty(credentialType);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new RuntimeException(e));
+        }
+    }
+
+    private String extractCredentialType(JsonNode typeNode) {
+        if (typeNode != null && typeNode.isArray()) {
+            for (JsonNode type : typeNode) {
+                String typeText = type.asText();
+                if (!typeText.equals(VERIFIABLE_CREDENTIAL) && !typeText.equals(VERIFIABLE_ATTESTATION)) {
+                    return typeText;
+                }
+            }
+        }
+        return null;
     }
 
     @Override

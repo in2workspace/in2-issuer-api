@@ -607,7 +607,7 @@ class RemoteSignatureServiceImplTest {
     }
 
     @Test
-    void testValidateCertificate_JsonProcessingException() throws JsonProcessingException {
+    void testValidateCertificate_JsonProcessingException() {
         when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn(mockCredentialID);
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
 

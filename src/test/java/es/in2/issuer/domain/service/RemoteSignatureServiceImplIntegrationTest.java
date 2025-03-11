@@ -26,8 +26,7 @@ class RemoteSignatureServiceImplIntegrationTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    //To test both methods, replace @Mock for @Autowired and @ExtendWith(MockitoExtension) for @SpringBootTest
-    @Disabled
+    @Disabled("To test both methods, replace @Mock for @Autowired and @ExtendWith(MockitoExtension) for @SpringBootTest")
     @Test
     void testRealGetSignedDocumentExternal() {
         String jsonContent = "{\"sign\":\"signtest1234\"}";
@@ -61,12 +60,12 @@ class RemoteSignatureServiceImplIntegrationTest {
         }
     }
 
-    @Disabled
+    @Disabled("To test both methods, replace @Mock for @Autowired and @ExtendWith(MockitoExtension) for @SpringBootTest")
     @Test
     void testSignFlow() throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectMapper objectMapperIntern = new ObjectMapper();
 
-        String jsonString = objectMapper.writeValueAsString(Map.of(
+        String jsonString = objectMapperIntern.writeValueAsString(Map.of(
                 "sub", "did:key:zDnaenW4mgDAQwSQKQ3hb8bmHPP6XfUmKQzWFhcLPr6Jd6EYG",
                 "nbf", 1740646197,
                 "iss", "did:elsi:VATEU-B99999999",

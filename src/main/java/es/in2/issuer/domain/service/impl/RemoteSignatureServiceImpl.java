@@ -38,6 +38,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
+    private static final String CREDENTIAL = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
@@ -130,12 +131,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         requestBody.put("lang", 0);
         requestBody.put("clientData", "string");
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            String requestBodyJson = objectMapper.writeValueAsString(requestBody);
+            ObjectMapper objectMapperIntern = new ObjectMapper();
+            String requestBodyJson = objectMapperIntern.writeValueAsString(requestBody);
             return httpUtils.postRequest(credentialListEndpoint, headers, requestBodyJson)
                     .flatMap(responseJson -> {
                         try {
-                            Map<String, List<String>> responseMap = objectMapper.readValue(responseJson, Map.class);
+                            Map<String, List<String>> responseMap = objectMapperIntern.readValue(responseJson, Map.class);
                             List<String> receivedCredentialIDs = responseMap.get("credentialIDs");
                             boolean isValid = receivedCredentialIDs != null &&
                                     receivedCredentialIDs.stream()
@@ -181,7 +182,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest) {
         log.info("Requesting signature to external service");
-        return requestAccessToken(signatureRequest, "credential")
+        return requestAccessToken(signatureRequest, CREDENTIAL)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
@@ -194,13 +195,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         String grantType = "client_credentials";
         String signatureGetAccessTokenEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/oauth2/token";
         String hashAlgorithmOID = "2.16.840.1.101.3.4.2.1";
-        String type = "credential";
 
         requestBody.clear();
         requestBody.put("grant_type", grantType);
         requestBody.put("scope", scope);
-        if(scope.equals("credential")){
-            requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID, type));
+        if(scope.equals(CREDENTIAL)){
+            requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID, CREDENTIAL));
         }
 
         String requestBodyString = requestBody.entrySet().stream()
