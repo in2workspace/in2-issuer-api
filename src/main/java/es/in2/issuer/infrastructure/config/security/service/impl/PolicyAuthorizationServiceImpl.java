@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Utils.extractMandator;
+import static es.in2.issuer.domain.util.Utils.extractPowers;
 
 @Service
 @Slf4j
@@ -136,22 +138,22 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     }
 
     private boolean isSignerIssuancePolicyValid(LEARCredential learCredential) {
-        return isLearCredentialEmployeeMandatorOrganizationIdentifierAllowedSigner(learCredential.getMandator()) &&
-                hasLearCredentialOnboardingExecutePower(learCredential.getPowers());
+        return isLearCredentialEmployeeMandatorOrganizationIdentifierAllowedSigner(extractMandator(learCredential)) &&
+                hasLearCredentialOnboardingExecutePower(extractPowers(learCredential));
     }
 
     private boolean isMandatorIssuancePolicyValid(LEARCredential learCredential, JsonNode payload) {
-        if (!hasLearCredentialOnboardingExecutePower(learCredential.getPowers())) {
+        if (!hasLearCredentialOnboardingExecutePower(extractPowers(learCredential))) {
             return false;
         }
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = objectMapper.convertValue(payload, LEARCredentialEmployee.CredentialSubject.Mandate.class);
         return mandate != null &&
-                mandate.mandator().equals(learCredential.getMandator()) &&
+                mandate.mandator().equals(extractMandator(learCredential)) &&
                 payloadPowersOnlyIncludeProductOffering(mandate.power());
     }
 
     private boolean isVerifiableCertificationPolicyValid(LEARCredential learCredential) {
-        return containsCertificationAndAttest(learCredential.getPowers());
+        return containsCertificationAndAttest(extractPowers(learCredential));
     }
 
     private boolean containsCertificationAndAttest(List<Power> powers) {
