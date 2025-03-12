@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support to sign the credential with an external service.
 - Error handling for the external service.
 
+## [v1.4.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.1)
+### Fixed
+- Solve error during credential serialization.
+
 ## [v1.4.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.0)
 ### Added
 - Compatibility with LEARCredentialMachine to issue LEARCredentialEmployee.

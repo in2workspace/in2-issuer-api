@@ -23,16 +23,6 @@ public record LEARCredentialMachine(
         @JsonProperty("validFrom") String validFrom,
         @JsonProperty("validUntil") String validUntil
 ) implements LEARCredential {
-    @JsonIgnore
-    @Override
-    public List<Power> getPowers() {
-        return credentialSubject.mandate().power();
-    }
-    @JsonIgnore
-    @Override
-    public Mandator getMandator() {
-        return credentialSubject.mandate().mandator();
-    }
 
     @Builder
     public record CredentialSubject(
