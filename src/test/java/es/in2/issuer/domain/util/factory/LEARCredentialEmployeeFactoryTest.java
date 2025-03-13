@@ -4,14 +4,17 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
+import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +47,9 @@ class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private DefaultSignerConfig defaultSignerConfig;
+
+    @Mock
+    private RemoteSignatureServiceImpl remoteSignatureServiceImpl;
 
     @Test
     void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
@@ -78,35 +85,6 @@ class LEARCredentialEmployeeFactoryTest {
     }
 
     @Test
-    void testMapCredentialAndBindIssuerInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
-        // Arrange
-        String learCredential = "validCredentialString";
-        String procedureId = "procedureId";
-        String expectedString = "expectedString";
-
-        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
-        LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
-
-        // Mock the initial parsing
-        when(objectMapper.readValue(learCredential, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-
-        // Mock the internal structure
-        when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
-
-        // Mock conversion to string
-        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
-        // Act & Assert
-        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(learCredential, procedureId))
-                .expectNext(expectedString)
-                .verifyComplete();
-
-        // Verify interactions
-        verify(objectMapper).readValue(learCredential, LEARCredentialEmployee.class);
-        verify(objectMapper).writeValueAsString(any(LEARCredentialEmployee.class));
-    }
-
-    @Test
     void testMapAndBuildLEARCredentialEmployee() throws JsonProcessingException {
         //Arrange
         String json = "{\"test\": \"test\"}";
@@ -135,6 +113,124 @@ class LEARCredentialEmployeeFactoryTest {
         StepVerifier.create(result)
                 .expectNextCount(1)
                 .verifyComplete();
+    }
+
+    @Test
+    void mapCredentialAndBindIssuerInToTheCredential_Server_Success() throws JsonProcessingException, InvalidCredentialFormatException {
+        String procedureId = "procedureId";
+        String credentialString = "validCredentialString";
+        String expectedString = "expectedString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        when(defaultSignerConfig.getOrganizationIdentifier()).thenReturn("ORG123");
+        when(defaultSignerConfig.getOrganization()).thenReturn("Company");
+        when(defaultSignerConfig.getCountry()).thenReturn("ES");
+        when(defaultSignerConfig.getCommonName()).thenReturn("Signer CN");
+        when(defaultSignerConfig.getEmail()).thenReturn("signer@email.com");
+        when(defaultSignerConfig.getSerialNumber()).thenReturn("123456789");
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
+
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
+                .expectNext(expectedString)
+                .verifyComplete();
+
+        verify(remoteSignatureServiceImpl, never()).validateCredentials();
+    }
+
+    @Test
+    void mapCredentialAndBindIssuerInToTheCredential_Cloud_Success() throws JsonProcessingException, InvalidCredentialFormatException {
+        String procedureId = "procedureId";
+        String credentialString = "validCredentialString";
+        String expectedString = "expectedString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(true));
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
+
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
+                .expectNext(expectedString)
+                .verifyComplete();
+
+        verify(remoteSignatureServiceImpl).validateCredentials();
+    }
+
+    @Test
+    void mapCredentialAndBindIssuerInToTheCredential_InvalidCredentials_Error() throws JsonProcessingException, InvalidCredentialFormatException {
+        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
+        String credentialString = "validCredentialString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(false));
+
+        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId))).thenReturn(Mono.empty());
+
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
+                .expectError(RemoteSignatureException.class)
+                .verify();
+
+        verify(remoteSignatureServiceImpl).validateCredentials();
+    }
+
+    @Test
+    void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_RetryOnRecoverableError() throws JsonProcessingException, InvalidCredentialFormatException {
+        String procedureId = "procedureId";
+        String credentialString = "validCredentialString";
+        String expectedString = "expectedString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+
+        when(remoteSignatureServiceImpl.validateCredentials())
+                .thenReturn(Mono.error(new ConnectException("Connection timeout")))
+                .thenReturn(Mono.error(new ConnectException("Connection timeout")))
+                .thenReturn(Mono.just(true));
+
+        when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(true);
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
+
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
+                .expectNext(expectedString)
+                .verifyComplete();
+
+        verify(remoteSignatureServiceImpl, times(3)).validateCredentials();
+    }
+
+    @Test
+    void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_FailsAfterRetries_SwitchToAsync() throws JsonProcessingException, InvalidCredentialFormatException {
+        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
+        String credentialString = "validCredentialString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+
+        when(remoteSignatureServiceImpl.validateCredentials())
+                .thenAnswer(invocation -> Mono.error(new ConnectException("Connection timeout")));
+
+        when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(true);
+        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId))).thenReturn(Mono.empty());
+
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
+                .expectErrorSatisfies(throwable -> {
+                    Assertions.assertInstanceOf(RemoteSignatureException.class, throwable);
+                    Assertions.assertEquals("Signature Failed, changed to ASYNC mode", throwable.getMessage());
+                })
+                .verify();
+
+        verify(remoteSignatureServiceImpl, times(4)).validateCredentials();
+        verify(remoteSignatureServiceImpl).handlePostRecoverError(any(), eq(procedureId));
     }
 
 }

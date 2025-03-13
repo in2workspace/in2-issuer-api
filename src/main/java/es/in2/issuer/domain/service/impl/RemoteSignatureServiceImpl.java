@@ -90,24 +90,17 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         log.info("Validating credentials");
         SignatureRequest signatureRequest = SignatureRequest.builder().build();
         return requestAccessToken(signatureRequest, "service")
-                .flatMap(this::validateCertificate);
+                .flatMap(this::validateCertificate)
+                .doOnSuccess(result -> log.info("Credentials validated"));
     }
 
     private Mono<SignedData> executeSigningFlow(SignatureRequest signatureRequest, String token, String procedureId) {
-        log.info("Signing credential with procedure id: {}", procedureId);
         return getSignedSignature(signatureRequest, token)
             .flatMap(response -> {
                 try {
                     return Mono.just(toSignedData(response));
                 } catch (SignedDataParsingException ex) {
                     return Mono.error(new RemoteSignatureException("Error parsing signed data", ex));
-                }
-            })
-            .doOnSuccess(result -> {
-                try {
-                    log.info("Credential signed!");
-                } catch (Exception e) {
-                    log.warn("Failed to delete deferred credential metadata for procedureId {}: {}", procedureId, e.getMessage());
                 }
             });
     }

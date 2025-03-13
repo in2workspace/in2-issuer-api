@@ -54,19 +54,13 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                             VerifiableCertification verifiableCertification = verifiableCertificationFactory.mapStringToVerifiableCertification(decodedCredential);
                             return verifiableCertificationFactory.buildVerifiableCertificationJwtPayload(verifiableCertification)
                                     .flatMap(verifiableCertificationFactory::convertVerifiableCertificationJwtPayloadInToString)
-                                    .flatMap(unsignedCredential -> {
-                                        log.info("Start get signed credential.");
-                                        return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
-                                    });
+                                    .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId));
 
                         } else {
                             LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential);
                             return learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(learCredentialEmployee)
                                     .flatMap(learCredentialEmployeeFactory::convertLEARCredentialEmployeeJwtPayloadInToString)
-                                    .flatMap(unsignedCredential -> {
-                                        log.info("Start get signed credential.");
-                                        return signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId);
-                                    });
+                                    .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId));
                         }
                     }
                     catch (Exception e){

@@ -142,8 +142,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<DetailedIssuer> createIssuerRemote(String procedureId) {
-        return Mono.defer(() ->
-            remoteSignatureServiceImpl.validateCredentials()
+        return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
                     if (valid) {
                         return Mono.just(DetailedIssuer.builder()
@@ -159,7 +158,7 @@ public class LEARCredentialEmployeeFactory {
                         log.error("Credentials mismatch. Signature process aborted.");
                         return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
                     }
-                })
+                }))
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                         .maxBackoff(Duration.ofSeconds(5))
                         .jitter(0.5)
@@ -169,11 +168,16 @@ public class LEARCredentialEmployeeFactory {
                             log.info("Retrying credential validation due to recoverable error (Attempt #{} of 3)", attempt);
                         }))
                 .onErrorResume(throwable -> {
-                    log.error("Error after 3 retries, switching to ASYNC mode.");
+                    boolean isRetryExhausted = !(throwable instanceof RemoteSignatureException &&
+                            throwable.getMessage().contains("Credentials mismatch"));
+
+                    if (isRetryExhausted) {
+                        log.error("Error after 3 retries, switching to ASYNC mode.");
+                    }
                     log.error("Error Time: {}", new Date());
                     return remoteSignatureServiceImpl.handlePostRecoverError(throwable, procedureId)
                             .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
-                }));
+                });
     }
 
     private LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee createMandatee(
