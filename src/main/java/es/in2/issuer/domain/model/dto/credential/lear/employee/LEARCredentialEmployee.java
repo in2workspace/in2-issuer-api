@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.model.dto.credential.lear.employee;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import es.in2.issuer.domain.model.dto.credential.Issuer;

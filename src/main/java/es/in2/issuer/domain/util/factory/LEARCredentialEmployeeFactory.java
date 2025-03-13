@@ -206,13 +206,6 @@ public class LEARCredentialEmployeeFactory {
     }
 
     public Mono<LEARCredentialEmployeeJwtPayload> buildLEARCredentialEmployeeJwtPayload(LEARCredentialEmployee learCredentialEmployee) {
-        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico, se debe cambiar "issuer" por el learCredentialEmployee.issuer.id
-        String issuer;
-        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
-            issuer = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
-        } else {
-            issuer = DID_ELSI + "VATES-D70795026";
-        }
         return Mono.just(
                 LEARCredentialEmployeeJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
@@ -220,7 +213,7 @@ public class LEARCredentialEmployeeFactory {
                         .expirationTime(parseDateToUnixTime(learCredentialEmployee.validUntil()))
                         .issuedAt(parseDateToUnixTime(learCredentialEmployee.validFrom()))
                         .notValidBefore(parseDateToUnixTime(learCredentialEmployee.validFrom()))
-                        .issuer(issuer)
+                        .issuer(learCredentialEmployee.issuer().getId())
                         .subject(learCredentialEmployee.credentialSubject().mandate().mandatee().id())
                         .build()
         );
