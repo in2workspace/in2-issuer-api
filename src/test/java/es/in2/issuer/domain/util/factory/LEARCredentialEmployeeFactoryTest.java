@@ -10,6 +10,7 @@ import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class LEARCredentialEmployeeFactoryTest {
 
     @InjectMocks
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+
+    @Mock
+    private DefaultSignerConfig defaultSignerConfig;
 
     @Test
     void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
