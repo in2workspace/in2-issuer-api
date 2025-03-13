@@ -24,7 +24,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -52,6 +56,7 @@ class RemoteSignatureServiceImplTest {
     @Mock
     private RemoteSignatureConfig remoteSignatureConfig;
 
+    @Spy
     @InjectMocks
     private RemoteSignatureServiceImpl remoteSignatureService;
 
@@ -116,10 +121,15 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
         when(httpUtils.postRequest(eq("http://remote-signature-dss.com/api/v1/sign"), any(), anyString()))
                 .thenReturn(Mono.error(new RemoteSignatureException("Error serializing signature request")));
+        doReturn(Mono.empty()).when(remoteSignatureService).handlePostRecoverError(any(), anyString());
+
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
         StepVerifier.create(result)
-                .expectError(RemoteSignatureException.class)
+                .expectErrorSatisfies(throwable -> {
+                    assertThat(throwable).isInstanceOf(RemoteSignatureException.class);
+                    assertThat(throwable.getMessage()).isEqualTo("Signature Failed, changed to ASYNC mode");
+                })
                 .verify();
     }
 
@@ -326,9 +336,6 @@ class RemoteSignatureServiceImplTest {
         when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
                 .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
 
-        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/credentials/list"), any(), anyString()))
-                .thenReturn(Mono.just("{\"credentialIDs\": [\"id1\", \"id2\"]}"));
-
         Map<String, Object> mockResponseMap = new HashMap<>();
         mockResponseMap.put("access_token", "mockAccessToken");
 
@@ -371,22 +378,21 @@ class RemoteSignatureServiceImplTest {
         token = "dummyToken";
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
 
+        // Create a server error response
+        WebClientResponseException serverError = WebClientResponseException.create(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Internal Server Error",
+                HttpHeaders.EMPTY,
+                null,
+                null
+        );
+
         // Configure server endpoint
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("http://remote-signature.com");
         when(remoteSignatureConfig.getRemoteSignatureCredentialId()).thenReturn("id1");
 
-        when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/credentials/list"), any(), anyString()))
-                .thenReturn(Mono.just("{\"credentialIDs\": [\"id1\", \"id2\"]}"));
-
         when(httpUtils.postRequest(eq("http://remote-signature.com/oauth2/token"), any(), anyString()))
-                .thenReturn(
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
-                        Mono.error(new RuntimeException("First attempt failed")), //Sign token fail
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
-                        Mono.error(new RuntimeException("Second attempt failed")), //Sign token fail
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}"), //Service token success
-                        Mono.just("{\"access_token\": \"mockAccessToken\"}") //Sign token success
-                );
+                .thenReturn(Mono.just("{\"access_token\": \"mockAccessToken\"}"));
 
         Map<String, Object> mockResponseMap = new HashMap<>();
         mockResponseMap.put("access_token", "mockAccessToken");
@@ -394,7 +400,11 @@ class RemoteSignatureServiceImplTest {
         when(objectMapper.readValue("{\"access_token\": \"mockAccessToken\"}", Map.class)).thenReturn(mockResponseMap);
 
         when(httpUtils.postRequest(eq("http://remote-signature.com/csc/v2/signatures/signDoc"), any(), any()))
-                .thenReturn(Mono.just("{DocumentWithSignature: [ZGF0YQo=]}"));
+                .thenReturn(
+                        Mono.error(serverError), // First attempt - fail
+                        Mono.error(serverError), // Second attempt - fail
+                        Mono.just("{DocumentWithSignature: [ZGF0YQo=]}") // Third attempt - success
+                );
 
         Map<String, List<String>> mockResponseMap2 = new HashMap<>();
         mockResponseMap2.put("DocumentWithSignature", List.of("ZGF0YQo="));
@@ -413,7 +423,7 @@ class RemoteSignatureServiceImplTest {
                 .expectComplete()
                 .verify();
 
-        verify(httpUtils, times(6)).postRequest(any(), any(), any());
+        verify(httpUtils, times(4)).postRequest(any(), any(), any());
         // Verify deferredCredentialMetadataService was called to delete the metadata
         verify(deferredCredentialMetadataService).deleteDeferredCredentialMetadataById(procedureId);
 
@@ -481,7 +491,7 @@ class RemoteSignatureServiceImplTest {
                 .verify();
 
         // Verify the post request was attempted at least 3 times
-        verify(httpUtils, atLeast(3)).postRequest(any(), any(),any());
+        verify(httpUtils, atLeast(2)).postRequest(any(), any(),any());
 
         // Verify entities were updated to ASYNC mode and PEND_SIGNATURE status
         verify(credentialProcedureRepository).findByProcedureId(procedureUUID);
@@ -621,4 +631,5 @@ class RemoteSignatureServiceImplTest {
                 .expectError(RemoteSignatureException.class)
                 .verify();
     }
+
 }

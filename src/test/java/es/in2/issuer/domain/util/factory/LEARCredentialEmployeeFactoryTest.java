@@ -11,7 +11,6 @@ import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
-import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,8 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class LEARCredentialEmployeeFactoryTest {
@@ -38,8 +36,6 @@ class LEARCredentialEmployeeFactoryTest {
 
     @Mock
     private RemoteSignatureConfig remoteSignatureConfig;
-    @Mock
-    private DefaultSignerConfig defaultSignerConfig;
 
     @InjectMocks
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
@@ -78,6 +74,35 @@ class LEARCredentialEmployeeFactoryTest {
     }
 
     @Test
+    void testMapCredentialAndBindIssuerInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
+        // Arrange
+        String learCredential = "validCredentialString";
+        String procedureId = "procedureId";
+        String expectedString = "expectedString";
+
+        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
+        LEARCredentialEmployee.CredentialSubject credentialSubject = mock(LEARCredentialEmployee.CredentialSubject.class);
+
+        // Mock the initial parsing
+        when(objectMapper.readValue(learCredential, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
+
+        // Mock the internal structure
+        when(learCredentialEmployee.credentialSubject()).thenReturn(credentialSubject);
+
+        // Mock conversion to string
+        when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        // Act & Assert
+        StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(learCredential, procedureId))
+                .expectNext(expectedString)
+                .verifyComplete();
+
+        // Verify interactions
+        verify(objectMapper).readValue(learCredential, LEARCredentialEmployee.class);
+        verify(objectMapper).writeValueAsString(any(LEARCredentialEmployee.class));
+    }
+
+    @Test
     void testMapAndBuildLEARCredentialEmployee() throws JsonProcessingException {
         //Arrange
         String json = "{\"test\": \"test\"}";
@@ -92,17 +117,9 @@ class LEARCredentialEmployeeFactoryTest {
 
         when(objectMapper.convertValue(jsonNode, LEARCredentialEmployee.CredentialSubject.Mandate.class))
                 .thenReturn(mockMandate);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
         when(mockMandate.mandator()).thenReturn(mockMandator);
         when(mockMandate.mandatee()).thenReturn(mockMandatee);
         when(mockMandate.power()).thenReturn(mockPowerList);
-
-        when(defaultSignerConfig.getOrganizationIdentifier()).thenReturn("orgId");
-        when(defaultSignerConfig.getOrganization()).thenReturn("org");
-        when(defaultSignerConfig.getCountry()).thenReturn("country");
-        when(defaultSignerConfig.getEmail()).thenReturn("email");
-        when(defaultSignerConfig.getSerialNumber()).thenReturn("serialNumber");
-        when(defaultSignerConfig.getCommonName()).thenReturn("commonName");
 
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(json);
         when(accessTokenService.getOrganizationIdFromCurrentSession()).thenReturn(Mono.just("orgId"));

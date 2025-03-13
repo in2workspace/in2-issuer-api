@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.NullNode;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
@@ -56,7 +55,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     @Override
     public Mono<String> getCredentialTypeByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
-                .flatMap(credentialProcedure -> getCredentialType(credentialProcedure));
+                .flatMap(this::getCredentialType);
     }
 
     private Mono<String> getCredentialType(CredentialProcedure credentialProcedure) {
@@ -171,9 +170,13 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         if(credential.has(VC)){
-                            return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(SIGNER).get(EMAIL_ADDRESS).asText());
+                            if(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).has(SIGNER)){
+                                return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(SIGNER).get(EMAIL_ADDRESS).asText());
+                            } else {
+                                return Mono.just(credential.get(VC).get(ISSUER).get(EMAIL_ADDRESS).asText());
+                            }
                         } else {
-                            return Mono.just(credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(SIGNER).get(EMAIL_ADDRESS).asText());
+                            return Mono.just(credential.get(ISSUER).get(EMAIL_ADDRESS).asText());
                         }
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());

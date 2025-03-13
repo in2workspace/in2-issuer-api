@@ -21,9 +21,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
+
 import static es.in2.issuer.domain.util.Constants.ASYNC;
 import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
 
@@ -54,39 +57,40 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         clientId = remoteSignatureConfig.getRemoteSignatureClientId();
         clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
-        return Mono.defer(() -> {
-            //Temporal since DSS does not implement all endpoints
-            if (remoteSignatureConfig.getRemoteSignatureType().equals("server")) {
-                return executeSigningFlow(signatureRequest, token, procedureId);
-            }
-            return validateCredentials(signatureRequest)
-                .flatMap(isValid -> {
-                    if (!isValid) {
-                        return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
-                    } else{
-                        log.info("Credentials validated successfully");
-                        return executeSigningFlow(signatureRequest, token, procedureId);
-                    }
-                }).doOnSuccess(result -> {
-                        log.info("Successfully Signed");
-                        log.info("Procedure with id: {}", procedureId);
-                        log.info("at time: {}", new Date());
-                })
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                        .maxBackoff(Duration.ofSeconds(5))
-                        .jitter(0.5)
-                        .doBeforeRetry(retrySignal -> {
-                            long attempt = retrySignal.totalRetries() + 1;
-                            log.info("Retrying signing process (Attempt #{} of 3)", attempt);
-                        })
-                )
-                .onErrorResume(throwable -> {
-                    log.error("Error after 3 retries, switching to ASYNC mode.");
-                    log.error("Error Time: {}", new Date());
-                    return handlePostRecoverError(throwable, procedureId)
-                            .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
-                });
-        });
+        return Mono.defer(() -> executeSigningFlow(signatureRequest, token, procedureId)
+            .doOnSuccess(result -> {
+                    log.info("Successfully Signed");
+                    log.info("Procedure with id: {}", procedureId);
+                    log.info("at time: {}", new Date());
+                    deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
+            })
+            .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
+                    .maxBackoff(Duration.ofSeconds(5))
+                    .jitter(0.5)
+                    .filter(this::isRecoverableError)   // Retry only on recoverable errors
+                    .doBeforeRetry(retrySignal -> {
+                        long attempt = retrySignal.totalRetries() + 1;
+                        log.info("Retrying signing process due to recoverable error (Attempt #{} of 3)", attempt);
+                    }))
+            .onErrorResume(throwable -> {
+                log.error("Error after 3 retries, switching to ASYNC mode.");
+                log.error("Error Time: {}", new Date());
+                return handlePostRecoverError(throwable, procedureId)
+                        .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
+            }));
+    }
+
+    public boolean isRecoverableError(Throwable throwable) {
+        if (throwable instanceof WebClientResponseException ex) {
+            return ex.getStatusCode().is5xxServerError();
+        } else return throwable instanceof ConnectException || throwable instanceof TimeoutException;
+    }
+
+    public Mono<Boolean> validateCredentials() {
+        log.info("Validating credentials");
+        SignatureRequest signatureRequest = SignatureRequest.builder().build();
+        return requestAccessToken(signatureRequest, "service")
+                .flatMap(this::validateCertificate);
     }
 
     private Mono<SignedData> executeSigningFlow(SignatureRequest signatureRequest, String token, String procedureId) {
@@ -101,18 +105,11 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             })
             .doOnSuccess(result -> {
                 try {
-                    deferredCredentialMetadataService.deleteDeferredCredentialMetadataById(procedureId);
                     log.info("Credential signed!");
                 } catch (Exception e) {
                     log.warn("Failed to delete deferred credential metadata for procedureId {}: {}", procedureId, e.getMessage());
                 }
             });
-    }
-
-    private Mono<Boolean> validateCredentials(SignatureRequest signatureRequest) {
-        log.info("Validating credentials");
-        return requestAccessToken(signatureRequest, "service")
-                .flatMap(this::validateCertificate);
     }
 
     public Mono<Boolean> validateCertificate(String accessToken) {
@@ -200,7 +197,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         requestBody.put("grant_type", grantType);
         requestBody.put("scope", scope);
         if(scope.equals(CREDENTIAL)){
-            requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID, CREDENTIAL));
+            requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID));
         }
 
         String requestBodyString = requestBody.entrySet().stream()
@@ -297,12 +294,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         });
     }
 
-    private String buildAuthorizationDetails(String unsignedCredential, String hashAlgorithmOID, String type) {
+    private String buildAuthorizationDetails(String unsignedCredential, String hashAlgorithmOID) {
         credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
-            authorizationDetails.put("type", type);
+            authorizationDetails.put("type", CREDENTIAL);
             authorizationDetails.put("credentialID", credentialID);
             authorizationDetails.put("credentialPassword", credentialPassword);
             String hashedCredential = hashGeneratorService.generateHash(unsignedCredential, hashAlgorithmOID);
@@ -330,7 +327,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
-    private Mono<String>handlePostRecoverError(Throwable error, String procedureId) {
+    public Mono<String>handlePostRecoverError(Throwable error, String procedureId) {
         Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);

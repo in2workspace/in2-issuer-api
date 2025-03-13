@@ -7,6 +7,7 @@ import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
+import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +21,7 @@ import static es.in2.issuer.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialSignerWorkflowImplTest {
@@ -38,6 +39,9 @@ class CredentialSignerWorkflowImplTest {
 
     @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
+
+    @Mock
+    private VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
@@ -100,6 +104,107 @@ class CredentialSignerWorkflowImplTest {
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
+
+    @Test
+    void signCredentialWithVcAlreadyPresent_Success() {
+        String unsignedCredential = "{\"vc\":{\"id\":\"123\"}}"; // Contiene "vc"
+        String signedCredential = "signedJWTData";
+        String token = "dummyToken";
+        String procedureId = "procedureId";
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(unsignedCredential));
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.JADES, signedCredential)));
+        when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                .assertNext(result -> assertEquals(signedCredential, result))
+                .verifyComplete();
+
+        verify(remoteSignatureService).sign(any(SignatureRequest.class), eq(token), eq(procedureId));
+        verify(deferredCredentialWorkflow).updateSignedCredentials(any(SignedCredentials.class));
+    }
+
+    @Test
+    void signVerifiableCertificationCredential_Success() {
+        String decodedCredential = "{\"VerifiableCertification\":\"data\"}";
+        String unsignedJwtPayload = "unsignedPayload";
+        String signedCredential = "signedJWTData";
+        String token = "dummyToken";
+        String procedureId = "procedureId";
+
+        VerifiableCertification mockCertification = VerifiableCertification.builder().build();
+        VerifiableCertificationJwtPayload mockVerifiablePayload = mock(VerifiableCertificationJwtPayload.class);
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(decodedCredential));
+        when(verifiableCertificationFactory.mapStringToVerifiableCertification(decodedCredential)).thenReturn(mockCertification);
+        when(verifiableCertificationFactory.buildVerifiableCertificationJwtPayload(mockCertification)).thenReturn(Mono.just(mockVerifiablePayload));
+        when(verifiableCertificationFactory.convertVerifiableCertificationJwtPayloadInToString(any(VerifiableCertificationJwtPayload.class)))
+                .thenReturn(Mono.just(unsignedJwtPayload));
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.JADES, signedCredential)));
+        when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                .assertNext(result -> assertEquals(signedCredential, result))
+                .verifyComplete();
+
+        verify(verifiableCertificationFactory).mapStringToVerifiableCertification(decodedCredential);
+        verify(verifiableCertificationFactory).buildVerifiableCertificationJwtPayload(any(VerifiableCertification.class));
+        verify(remoteSignatureService).sign(any(SignatureRequest.class), eq(token), eq(procedureId));
+        verify(deferredCredentialWorkflow).updateSignedCredentials(any(SignedCredentials.class));
+    }
+
+    @Test
+    void signLEARCredentialEmployee_Success() {
+        String decodedCredential = "{\"LEARCredentialEmployee\":\"data\"}";
+        String unsignedJwtPayload = "unsignedPayload";
+        String signedCredential = "signedJWTData";
+        String token = "dummyToken";
+        String procedureId = "procedureId";
+
+        LEARCredentialEmployee mockEmployee = LEARCredentialEmployee.builder().build();
+        LEARCredentialEmployeeJwtPayload mockLearPayload = mock(LEARCredentialEmployeeJwtPayload.class);
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(decodedCredential));
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(decodedCredential)).thenReturn(mockEmployee);
+        when(learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(mockEmployee)).thenReturn(Mono.just(mockLearPayload));
+        when(learCredentialEmployeeFactory.convertLEARCredentialEmployeeJwtPayloadInToString(any(LEARCredentialEmployeeJwtPayload.class)))
+                .thenReturn(Mono.just(unsignedJwtPayload));
+        when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
+                .thenReturn(Mono.just(new SignedData(SignatureType.JADES, signedCredential)));
+        when(deferredCredentialWorkflow.updateSignedCredentials(any(SignedCredentials.class))).thenReturn(Mono.empty());
+
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                .assertNext(result -> assertEquals(signedCredential, result))
+                .verifyComplete();
+
+        verify(learCredentialEmployeeFactory).mapStringToLEARCredentialEmployee(decodedCredential);
+        verify(learCredentialEmployeeFactory).buildLEARCredentialEmployeeJwtPayload(any(LEARCredentialEmployee.class));
+        verify(remoteSignatureService).sign(any(SignatureRequest.class), eq(token), eq(procedureId));
+        verify(deferredCredentialWorkflow).updateSignedCredentials(any(SignedCredentials.class));
+    }
+
+    @Test
+    void signCredential_ErrorDuringJwtPayloadCreation() {
+        String decodedCredential = "{\"VerifiableCertification\":\"data\"}";
+        String token = "dummyToken";
+        String procedureId = "procedureId";
+
+        when(credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)).thenReturn(Mono.just(decodedCredential));
+        when(verifiableCertificationFactory.mapStringToVerifiableCertification(decodedCredential))
+                .thenThrow(new RuntimeException("Mapping error"));
+
+        StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, JWT_VC))
+                .expectError(IllegalArgumentException.class)
+                .verify();
+
+        verify(verifiableCertificationFactory).mapStringToVerifiableCertification(decodedCredential);
+        verify(remoteSignatureService, never()).sign(any(SignatureRequest.class), eq(token), eq(procedureId));
+        verify(deferredCredentialWorkflow, never()).updateSignedCredentials(any(SignedCredentials.class));
+    }
+
+
 
 
 }
