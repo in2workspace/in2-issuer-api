@@ -26,6 +26,9 @@ public class Constants {
     public static final String ORGANIZATION = "organization";
     public static final String ORGANIZATION_IDENTIFIER = "organizationIdentifier";
     public static final String VC = "vc";
+    public static final String ROL = "rol";
+    public static final String LER = "LER";
+    public static final String LEAR = "LEAR";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
     public static final String EMAIL_ADDRESS = "emailAddress";

@@ -3,6 +3,7 @@ package es.in2.issuer.infrastructure.config.security.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.credential.lear.LEARCredential;
@@ -36,15 +37,28 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     @Override
     public Mono<Void> authorize(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
-                .flatMap(signedJWT -> {
-                    String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
-                    return mapVcToLEARCredential(vcClaim, schema)
-                            .flatMap(learCredential -> switch (schema) {
-                                case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);
-                                case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential);
-                                default -> Mono.error(new InsufficientPermissionException("Unauthorized: Unsupported schema"));
-                            });
-                });
+                .flatMap(signedJWT -> Mono.justOrEmpty(jwtService.getClaimFromPayload(signedJWT.getPayload(), ROL))
+                        .switchIfEmpty(Mono.error(new SecurityException("Access denied: Unauthorized Rol 'null'")))
+                        .flatMap(rol -> switch(rol){
+                            case LER -> Mono.empty();
+                            case LEAR -> handleLearRole(token, schema, payload);
+                            default -> Mono.error(new SecurityException("Access denied: Unauthorized Rol '"+rol+"'"));
+                        })
+                );
+    }
+
+
+    private Mono<Void> handleLearRole(String token, String schema, JsonNode payload) {
+        return Mono.fromCallable(() -> jwtService.parseJWT(token))
+            .flatMap(signedJWT -> {
+                String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
+                return mapVcToLEARCredential(vcClaim, schema)
+                    .flatMap(learCredential -> switch (schema) {
+                        case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);
+                        case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential);
+                        default -> Mono.error(new InsufficientPermissionException("Unauthorized: Unsupported schema"));
+                    });
+            });
     }
 
     /**
@@ -122,7 +136,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
             }
         });
     }
-    
+
     private Mono<Void> authorizeLearCredentialEmployee(LEARCredential learCredential, JsonNode payload) {
         if (isSignerIssuancePolicyValid(learCredential) || isMandatorIssuancePolicyValid(learCredential, payload)) {
             return Mono.empty();
