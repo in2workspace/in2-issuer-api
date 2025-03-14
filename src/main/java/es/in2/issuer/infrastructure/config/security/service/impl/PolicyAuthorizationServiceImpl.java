@@ -3,7 +3,6 @@ package es.in2.issuer.infrastructure.config.security.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.credential.lear.LEARCredential;
@@ -46,7 +45,6 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
                         })
                 );
     }
-
 
     private Mono<Void> handleLearRole(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
