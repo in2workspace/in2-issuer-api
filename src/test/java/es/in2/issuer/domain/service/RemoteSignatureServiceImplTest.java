@@ -1,11 +1,9 @@
 package es.in2.issuer.domain.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.exception.AccessTokenException;
-import es.in2.issuer.domain.exception.HashGenerationException;
-import es.in2.issuer.domain.exception.RemoteSignatureException;
-import es.in2.issuer.domain.exception.SignatureProcessingException;
+import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
@@ -16,6 +14,7 @@ import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
+import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -72,12 +71,16 @@ class RemoteSignatureServiceImplTest {
     @Mock
     private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
+    @Mock
+    private DefaultSignerConfig defaultSignerConfig;
+
     private SignatureRequest signatureRequest;
     private String token;
     private SignatureType signatureType;
     private final String mockAccessToken = "mockAccessToken";
     private final String mockCredentialID = "mockCredentialID";
     private final String mockCredentialListEndpoint = "https://remote-signature.com/csc/v2/credentials/list";
+    private final String mockCredentialInfoEndpoint = "https://remote-signature.com/csc/v2/credentials/info";
 
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
@@ -491,7 +494,7 @@ class RemoteSignatureServiceImplTest {
                 .verify();
 
         // Verify the post request was attempted at least 3 times
-        verify(httpUtils, atLeast(2)).postRequest(any(), any(),any());
+        verify(httpUtils, atLeast(2)).postRequest(any(), any(), any());
 
         // Verify entities were updated to ASYNC mode and PEND_SIGNATURE status
         verify(credentialProcedureRepository).findByProcedureId(procedureUUID);
@@ -622,7 +625,8 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
 
         doAnswer(invocation -> {
-            throw new JsonProcessingException("Error processing JSON") {};
+            throw new JsonProcessingException("Error processing JSON") {
+            };
         }).when(httpUtils).postRequest(eq(mockCredentialListEndpoint), anyList(), anyString());
 
         Mono<Boolean> result = remoteSignatureService.validateCertificate(mockAccessToken);
@@ -632,4 +636,113 @@ class RemoteSignatureServiceImplTest {
                 .verify();
     }
 
+    @Test
+    void requestCertificateInfo_Success() throws JsonProcessingException {
+        String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
+
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        when(objectMapper.writeValueAsString(any())).thenReturn(requestBody);
+        String mockCertificateResponse = "certificate-info-response";
+        when(httpUtils.postRequest(eq(mockCredentialInfoEndpoint), anyList(), eq(requestBody)))
+                .thenReturn(Mono.just(mockCertificateResponse));
+
+        StepVerifier.create(remoteSignatureService.requestCertificateInfo(mockAccessToken, mockCredentialID))
+                .expectNext(mockCertificateResponse)
+                .verifyComplete();
+    }
+
+    @Test
+    void requestCertificateInfo_SerializationError() throws JsonProcessingException {
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        when(objectMapper.writeValueAsString(any())).thenThrow(new JsonProcessingException("Serialization failed") {
+        });
+
+        StepVerifier.create(remoteSignatureService.requestCertificateInfo(mockAccessToken, mockCredentialID))
+                .expectErrorMessage("Error serializing signature request")
+                .verify();
+    }
+
+    @Test
+    void requestCertificateInfo_HttpError() throws JsonProcessingException {
+        String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
+
+        when(remoteSignatureConfig.getRemoteSignatureDomain()).thenReturn("https://remote-signature.com");
+        when(objectMapper.writeValueAsString(any())).thenReturn(requestBody);
+        when(httpUtils.postRequest(eq(mockCredentialInfoEndpoint), anyList(), eq(requestBody)))
+                .thenReturn(Mono.error(new RuntimeException("HTTP request failed")));
+
+        StepVerifier.create(remoteSignatureService.requestCertificateInfo(mockAccessToken, mockCredentialID))
+                .expectErrorMessage("HTTP request failed")
+                .verify();
+    }
+
+    @Test
+    void extractIssuerFromCertificateInfo_Success() throws JsonProcessingException {
+        String certificateInfo = "{ \"cert\": { \"subjectDN\": \"CN=John Doe,O=Company,C=US\", \"serialNumber\": \"12345\", \"certificates\": [\"b3JnYW5pemF0aW9uSWRlbnRpZmllcj1vcmc=\"] } }";
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
+
+        when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
+        when(defaultSignerConfig.getEmail()).thenReturn("john@example.com");
+
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+                .assertNext(issuer -> {
+                    Assertions.assertEquals("did:elsi:org", issuer.id());
+                    Assertions.assertEquals("org", issuer.organizationIdentifier());
+                    Assertions.assertEquals("Company", issuer.organization());
+                    Assertions.assertEquals("US", issuer.country());
+                    Assertions.assertEquals("John Doe", issuer.commonName());
+                    Assertions.assertEquals("john@example.com", issuer.emailAddress());
+                    Assertions.assertEquals("12345", issuer.serialNumber());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void extractIssuerFromCertificateInfo_JsonProcessingError() throws JsonProcessingException {
+        String certificateInfo = "invalid-json";
+
+        when(objectMapper.readTree(certificateInfo)).thenThrow(new JsonProcessingException("JSON parse error") {
+        });
+
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+                .expectErrorMessage("Error parsing certificate info")
+                .verify();
+    }
+
+    @Test
+    void extractIssuerFromCertificateInfo_InvalidSubjectDN() throws JsonProcessingException {
+        String certificateInfo = "{ \"cert\": { \"subjectDN\": \"invalid-dn\", \"serialNumber\": \"12345\" } }";
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
+
+        when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
+
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+                .expectErrorSatisfies(throwable -> {
+                    Assertions.assertInstanceOf(RuntimeException.class, throwable);
+                    Assertions.assertEquals("Error parsing subjectDN", throwable.getMessage());
+                })
+                .verify();
+    }
+
+    @Test
+    void extractIssuerFromCertificateInfo_OrganizationIdentifierNotFound() throws JsonProcessingException {
+        String certificateInfo = "{ \"cert\": { \"subjectDN\": \"CN=John Doe,O=Company,C=US\", \"serialNumber\": \"12345\", \"certificates\": [] } }";
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
+
+        when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
+
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+                .expectErrorSatisfies(throwable -> {
+                    Assertions.assertInstanceOf(OrganizationIdentifierNotFoundException.class, throwable);
+                    Assertions.assertEquals("organizationIdentifier not found in the certificate.", throwable.getMessage());
+                })
+                .verify();
+
+    }
 }

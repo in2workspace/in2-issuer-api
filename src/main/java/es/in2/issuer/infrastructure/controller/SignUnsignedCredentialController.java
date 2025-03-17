@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,20 +28,31 @@ public class SignUnsignedCredentialController {
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final CredentialProcedureService credentialProcedureService;
     private final CredentialProcedureRepository credentialProcedureRepository;
+    private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
 
     @PostMapping(value = "/{procedure_id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> signUnsignedCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable("procedure_id") String procedureId) {
-        return credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC)
-                .then(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
-                .then(
-                        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
-                                .flatMap(credentialProcedure -> {
-                                    credentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
-                                    return credentialProcedureRepository.save(credentialProcedure);
+
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
+                .flatMap(credentialProcedure ->
+                        learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(
+                                credentialProcedure.getCredentialDecoded(), procedureId)
+                                .flatMap(bindCredential -> {
+                                    log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);
+                                    return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, JWT_VC);
                                 })
-                ).then();
-     }
+                )
+                .then(Mono.defer(() -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC)))
+                .flatMap(ignored -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
+                .then(Mono.defer(() -> credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))))
+                .flatMap(updatedCredentialProcedure -> {
+                    updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+                    return credentialProcedureRepository.save(updatedCredentialProcedure);
+                })
+                .then();
+    }
 }

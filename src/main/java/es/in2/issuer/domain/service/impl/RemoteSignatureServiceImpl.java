@@ -1,13 +1,16 @@
 package es.in2.issuer.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.SignatureRequest;
 import es.in2.issuer.domain.model.dto.SignedData;
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
+import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -20,15 +23,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+import javax.naming.InvalidNameException;
+import javax.naming.ldap.LdapName;
+import javax.naming.ldap.Rdn;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import static es.in2.issuer.domain.util.Constants.ASYNC;
-import static es.in2.issuer.domain.util.Constants.BEARER_PREFIX;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Slf4j
 @Service
@@ -40,6 +47,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final JwtUtils jwtUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
+    private final DefaultSignerConfig defaultSignerConfig;
     private static final String ACCESS_TOKEN_NAME = "access_token";
     private static final String CREDENTIAL = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
@@ -57,7 +65,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         clientId = remoteSignatureConfig.getRemoteSignatureClientId();
         clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
-        return Mono.defer(() -> executeSigningFlow(signatureRequest, token, procedureId)
+        return Mono.defer(() -> executeSigningFlow(signatureRequest, token)
             .doOnSuccess(result -> {
                     log.info("Successfully Signed");
                     log.info("Procedure with id: {}", procedureId);
@@ -90,11 +98,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         log.info("Validating credentials");
         SignatureRequest signatureRequest = SignatureRequest.builder().build();
         return requestAccessToken(signatureRequest, "service")
-                .flatMap(this::validateCertificate)
-                .doOnSuccess(result -> log.info("Credentials validated"));
+                .flatMap(this::validateCertificate);
     }
 
-    private Mono<SignedData> executeSigningFlow(SignatureRequest signatureRequest, String token, String procedureId) {
+    private Mono<SignedData> executeSigningFlow(SignatureRequest signatureRequest, String token) {
         return getSignedSignature(signatureRequest, token)
             .flatMap(response -> {
                 try {
@@ -177,7 +184,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
 
-    private Mono<String> requestAccessToken(SignatureRequest signatureRequest, String scope) {
+    public Mono<String> requestAccessToken(SignatureRequest signatureRequest, String scope) {
         credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
         credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         clientId = remoteSignatureConfig.getRemoteSignatureClientId();
@@ -223,6 +230,81 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 return Mono.error(ex);
             })
             .doOnError(error -> log.error("Error retrieving access token: {}", error.getMessage()));
+    }
+
+    public Mono<String> requestCertificateInfo(String accessToken, String credentialID){
+        String credentialsInfoEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/credentials/info";
+        Map<String, Object> requestBody = new HashMap<>();
+        List<Map.Entry<String, String>> headers = new ArrayList<>();
+        requestBody.put("credentialID", credentialID);
+        requestBody.put("certificates", "chain");
+        requestBody.put("certInfo", "true");
+        requestBody.put("authInfo", "true");
+
+        String requestBodySignature;
+        try {
+            requestBodySignature = objectMapper.writeValueAsString(requestBody);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new RuntimeException("Error serializing signature request", e));
+        }
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken));
+        headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
+        return httpUtils.postRequest(credentialsInfoEndpoint, headers, requestBodySignature)
+                .doOnError(error -> log.error("Error sending credential to sign: {}", error.getMessage()));
+    }
+
+    public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo) {
+        try {
+            JsonNode certificateInfoNode = objectMapper.readTree(certificateInfo);
+            String subjectDN = certificateInfoNode.get("cert").get("subjectDN").asText();
+            String serialNumber = certificateInfoNode.get("cert").get("serialNumber").asText();
+            LdapName ldapDN = new LdapName(subjectDN);
+            Map<String, String> dnAttributes = new HashMap<>();
+
+            for (Rdn rdn : ldapDN.getRdns()) {
+                dnAttributes.put(rdn.getType(), rdn.getValue().toString());
+            }
+
+            String organizationIdentifier = null;
+            JsonNode certificatesArray = certificateInfoNode.get("cert").get("certificates");
+
+            if (certificatesArray != null && certificatesArray.isArray()) {
+                for (JsonNode certNode : certificatesArray) {
+                    String base64Cert = certNode.asText();
+                    byte[] decodedBytes = Base64.getDecoder().decode(base64Cert);
+                    String decodedCert = new String(decodedBytes);
+
+                    Pattern pattern = Pattern.compile("organizationIdentifier\\s*=\\s*([\\w\\-]+)");
+                    Matcher matcher = pattern.matcher(decodedCert);
+
+                    if (matcher.find()) {
+                        organizationIdentifier = matcher.group(1);
+                        break;
+                    }
+                }
+            }
+
+            if (organizationIdentifier == null) {
+                return Mono.error(new OrganizationIdentifierNotFoundException("organizationIdentifier not found in the certificate."));
+            }
+
+            return Mono.just(DetailedIssuer.builder()
+                    .id(DID_ELSI + organizationIdentifier)
+                    .organizationIdentifier(organizationIdentifier)
+                    .organization(dnAttributes.get("O"))
+                    .country(dnAttributes.get("C"))
+                    .commonName(dnAttributes.get("CN"))
+                    .emailAddress(defaultSignerConfig.getEmail())
+                    .serialNumber(serialNumber)
+                    .build());
+
+        } catch (JsonProcessingException e) {
+            return Mono.error(new RuntimeException("Error parsing certificate info", e));
+        } catch (InvalidNameException e) {
+            return Mono.error(new RuntimeException("Error parsing subjectDN", e));
+        } catch (Exception e) {
+            return Mono.error(new RuntimeException("Unexpected error", e));
+        }
     }
 
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
@@ -310,6 +392,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             throw new AuthorizationDetailsException("Error generating authorization details", e);
         }
     }
+
 
     private SignedData toSignedData(String signedSignatureResponse) throws SignedDataParsingException {
         try {

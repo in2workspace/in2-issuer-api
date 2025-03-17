@@ -52,7 +52,7 @@ public class VerifiableCertificationFactory {
                                 )
                 );
     }
-
+    //TODO el issuer debe construirse como en el LEARCredentialEmployeeFactory una vez se realice la tarea de modificación del flujo para cumplir con el OIDC4VC
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
         // Compliance list with new IDs
         List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
@@ -74,7 +74,6 @@ public class VerifiableCertificationFactory {
                 .serialNumber(defaultSignerConfig.getSerialNumber())
                 .build();
 
-        //TODO: Ahora el issuer está harcodeado segun el tipo de firma, debe ser dinamico
         String issuerCred;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
             issuerCred = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
@@ -117,7 +116,6 @@ public class VerifiableCertificationFactory {
     }
 
     public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
-        //TODO: Ahora el iss está harcodeado segun el tipo de firma, debe ser dinamico
         String issuerCred;
         if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
             issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
