@@ -42,6 +42,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final TrustFrameworkService trustFrameworkService;
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
+    private final M2MTokenService m2MTokenService;
+
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
         // Check if the format is not "json_vc_jwt"
@@ -66,17 +68,21 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         }
                         return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest, token)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                    .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
+                                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
                                         // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
                                         .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                        .then(sendVcToResponseUri(issuanceRequest, encodedVc, token))
-                                ));
+                                                .then(m2MTokenService.getM2MToken()
+                                                        .flatMap(m2mAccessToken ->
+                                                                sendVcToResponseUri(
+                                                                        issuanceRequest,
+                                                                        encodedVc,
+                                                                        m2mAccessToken.accessToken())))));
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(type));
                 }));
     }
 
-    private Mono<Void> sendCredentialOfferEmail(String transactionCode, IssuanceRequest issuanceRequest){
+    private Mono<Void> sendCredentialOfferEmail(String transactionCode, IssuanceRequest issuanceRequest) {
         String email = issuanceRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = issuanceRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + issuanceRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = issuanceRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
@@ -202,7 +208,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
-                return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+        return verifiableCredentialService.generateDeferredCredentialResponse(processId, deferredCredentialRequest)
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 

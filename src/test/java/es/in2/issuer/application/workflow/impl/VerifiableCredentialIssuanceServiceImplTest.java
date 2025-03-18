@@ -32,8 +32,7 @@ import javax.naming.OperationNotSupportedException;
 
 import static es.in2.issuer.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {
@@ -71,28 +70,32 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Mock
     private LEARCredentialEmployeeFactory credentialEmployeeFactory;
 
+    @Mock
+    private M2MTokenService m2MTokenService;
+
     @InjectMocks
     private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
 
     @Test
-    void unsupportedFormatErrorExceptionTest(){
+    void unsupportedFormatErrorExceptionTest() {
         String processId = "1234";
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("LEARCredentialEmployee").format("json_ldp").operationMode("S").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,"LEARCredentialEmployee", issuanceRequest, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, "LEARCredentialEmployee", issuanceRequest, "token"))
                 .expectError(FormatUnsupportedException.class)
                 .verify();
     }
 
     @Test
-    void unsupportedOperationModeExceptionTest(){
+    void unsupportedOperationModeExceptionTest() {
         String processId = "1234";
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("LEARCredentialEmployee").format(JWT_VC).operationMode("F").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,"LEARCredentialEmployee", issuanceRequest, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, "LEARCredentialEmployee", issuanceRequest, "token"))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
+
     @Test
-    void operationNotSupportedExceptionDueInvalidResponseUriTest(){
+    void operationNotSupportedExceptionDueInvalidResponseUriTest() {
         String processId = "1234";
         String token = "token";
         String type = "VerifiableCertification";
@@ -100,7 +103,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
@@ -170,12 +173,12 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String transactionCode = "4321";
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVc(processId,type, issuanceRequest, token)).thenReturn(Mono.just(transactionCode));
+        when(verifiableCredentialService.generateVc(processId, type, issuanceRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es","Activate your new credential",issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl,"Jhon Doe","IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
+        when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es", "Activate your new credential", issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
                 .verifyComplete();
     }
 
@@ -227,10 +230,11 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVerifiableCertification(processId,type, issuanceRequest, token)).thenReturn(Mono.just(procedureId));
+        when(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest, token)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
-        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+"internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+        when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
@@ -243,11 +247,14 @@ class VerifiableCredentialIssuanceServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
                 .verifyComplete();
+
+        verify(m2MTokenService, times(1)).getM2MToken();
     }
+
     @Test
-    void generateVerifiableCredentialResponseSyncSuccess(){
+    void generateVerifiableCredentialResponseSyncSuccess() {
         String processId = "1234";
         CredentialRequest credentialRequest = CredentialRequest.builder()
                 .format(JWT_VC)
@@ -267,7 +274,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId, did, jti, credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
@@ -294,16 +301,16 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String organizationIdentifierDid = DID_ELSI + organizationIdentifier;
 
         when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
-        when(trustFrameworkService.validateDidFormat(processId,organizationIdentifierDid)).thenReturn(Mono.just(true));
-        when(trustFrameworkService.registerDid(processId,organizationIdentifierDid)).thenReturn(Mono.empty());
+        when(trustFrameworkService.validateDidFormat(processId, organizationIdentifierDid)).thenReturn(Mono.just(true));
+        when(trustFrameworkService.registerDid(processId, organizationIdentifierDid)).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
                 .expectNext(verifiableCredentialResponse)
                 .verifyComplete();
     }
 
     @Test
-    void generateVerifiableCredentialResponseFailedProofException(){
+    void generateVerifiableCredentialResponseFailedProofException() {
         String processId = "1234";
         CredentialRequest credentialRequest = CredentialRequest.builder()
                 .format(JWT_VC)
@@ -316,13 +323,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(false));
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
                 .expectError(InvalidOrMissingProofException.class)
                 .verify();
     }
 
     @Test
-    void generateVerifiableCredentialResponseInvalidSignerOrgIdentifier(){
+    void generateVerifiableCredentialResponseInvalidSignerOrgIdentifier() {
         String processId = "1234";
         CredentialRequest credentialRequest = CredentialRequest.builder()
                 .format(JWT_VC)
@@ -342,7 +349,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId, did, jti, credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
@@ -371,13 +378,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
 
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
 
     @Test
-    void generateVerifiableCredentialResponseInvalidMandatorOrgIdentifier(){
+    void generateVerifiableCredentialResponseInvalidMandatorOrgIdentifier() {
         String processId = "1234";
         CredentialRequest credentialRequest = CredentialRequest.builder()
                 .format(JWT_VC)
@@ -397,7 +404,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId, did, jti, credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
@@ -429,23 +436,23 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialEmployeeFactory.mapStringToLEARCredentialEmployeeJwtPayload(decodedCredential)).thenReturn(learCredentialEmployeeJwtPayload);
 
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId,credentialRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.generateVerifiableCredentialResponse(processId, credentialRequest, token))
                 .expectError(IllegalArgumentException.class)
                 .verify();
     }
 
 
     @Test
-    void bindAccessTokenByPreAuthorizedCodeSuccess(){
+    void bindAccessTokenByPreAuthorizedCodeSuccess() {
         String processId = "1234";
         AuthServerNonceRequest authServerNonceRequest = AuthServerNonceRequest.builder()
                 .accessToken("ey1234")
                 .preAuthorizedCode("4321")
                 .build();
 
-        when(verifiableCredentialService.bindAccessTokenByPreAuthorizedCode(processId,authServerNonceRequest.accessToken(),authServerNonceRequest.preAuthorizedCode()))
+        when(verifiableCredentialService.bindAccessTokenByPreAuthorizedCode(processId, authServerNonceRequest.accessToken(), authServerNonceRequest.preAuthorizedCode()))
                 .thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.bindAccessTokenByPreAuthorizedCode(processId,authServerNonceRequest))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.bindAccessTokenByPreAuthorizedCode(processId, authServerNonceRequest))
                 .verifyComplete();
     }
 
