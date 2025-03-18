@@ -15,8 +15,6 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialMachineFactory;
 import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
-import es.in2.issuer.infrastructure.config.AuthServerConfig;
-import es.in2.issuer.infrastructure.config.VerifierConfig;
 import es.in2.issuer.infrastructure.config.security.service.impl.PolicyAuthorizationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -46,17 +45,12 @@ class PolicyAuthorizationServiceImplTest {
     private ObjectMapper objectMapper;
 
     @Mock
-    private AuthServerConfig authServerConfig;
-
-
-    @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     @Mock
     private VerifiableCertificationFactory verifiableCertificationFactory;
     @Mock
     private LEARCredentialMachineFactory learCredentialMachineFactory;
-    @Mock
-    private VerifierConfig verifierConfig;
+
 
     @InjectMocks
     private PolicyAuthorizationServiceImpl policyAuthorizationService;
@@ -72,32 +66,6 @@ class PolicyAuthorizationServiceImplTest {
                 objectMapper,
                 credentialFactory
         );
-    }
-
-    @Test
-    void authorize_certClaimNotNull_returnMonoEmty() throws Exception {
-        // Arrange
-        String token = "valid-token";
-        JsonNode payload = mock(JsonNode.class);
-
-        SignedJWT signedJWT = mock(SignedJWT.class);
-
-        // Create and configure the simulated Payload
-        Map<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("iss", "internal-auth-server");
-        Payload jwtPayload = new Payload(payloadMap);
-
-        when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
-        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LER);
-
-        // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
-
-        // Assert
-        StepVerifier.create(result)
-                .verifyComplete();
     }
 
     @Test
@@ -117,8 +85,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         // We use a real ObjectMapper to create the JsonNode we need
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -127,8 +95,6 @@ class PolicyAuthorizationServiceImplTest {
 
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -154,8 +120,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -168,7 +134,7 @@ class PolicyAuthorizationServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof InsufficientPermissionException &&
-                                throwable.getMessage().contains("Unauthorized: Credential type 'LEARCredentialEmployee' is required."))
+                                throwable.getMessage().contains("Unauthorized: Credential type 'LEARCredentialEmployee' or 'LEARCredentialMachine' is required."))
                 .verify();
     }
 
@@ -189,8 +155,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -242,10 +208,9 @@ class PolicyAuthorizationServiceImplTest {
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -253,8 +218,6 @@ class PolicyAuthorizationServiceImplTest {
 
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeWithDifferentOrg();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -283,8 +246,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -320,8 +283,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -329,8 +292,6 @@ class PolicyAuthorizationServiceImplTest {
 
         LEARCredentialEmployee learCredential = getLEARCredentialEmployeeForCertification();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn("external-verifier");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
@@ -374,15 +335,14 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -426,15 +386,14 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -463,8 +422,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -496,8 +455,8 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -518,44 +477,56 @@ class PolicyAuthorizationServiceImplTest {
     }
 
     @Test
-    void authorize_failure_dueToTokenNotIssuedByInternalAuthServer() throws Exception {
+    void authorize_failure_dueToUnauthorizedRoleLER() {
         // Arrange
         String token = "valid-token";
         JsonNode payload = mock(JsonNode.class);
-        // El vcClaim indica que se trata de una credencial de máquina
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
 
+        SignedJWT signedJWT = mock(SignedJWT.class);
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "internal-auth-server");
         Payload jwtPayload = new Payload(payloadMap);
 
-        SignedJWT signedJWT = mock(SignedJWT.class);
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
-
-        ObjectMapper realObjectMapper = new ObjectMapper();
-        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
-        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
-
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-auth-server");
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LER);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
 
         // Assert
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
-                        throwable instanceof InsufficientPermissionException &&
-                                throwable.getMessage().contains("Unauthorized: LEARCredentialEmployee does not meet any issuance policies."))
+                        throwable instanceof ResponseStatusException &&
+                                throwable.getMessage().contains("The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."))
                 .verify();
     }
 
+    @Test
+    void authorize_failure_dueToUnauthorizedRoleSYSADMIN() {
+        // Arrange
+        String token = "valid-token";
+        JsonNode payload = mock(JsonNode.class);
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("iss", "internal-auth-server");
+        Payload jwtPayload = new Payload(payloadMap);
+
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(SYSDAMIN);
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof ResponseStatusException &&
+                                throwable.getMessage().contains("The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."))
+                .verify();
+    }
 
     // Auxiliary methods to create LEARCredentialEmployee objects
     private LEARCredentialEmployee getLEARCredentialEmployee() {

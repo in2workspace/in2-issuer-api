@@ -14,7 +14,9 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -36,12 +38,13 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     @Override
     public Mono<Void> authorize(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
-                .flatMap(signedJWT -> Mono.justOrEmpty(jwtService.getClaimFromPayload(signedJWT.getPayload(), ROL))
+                .flatMap(signedJWT -> Mono.justOrEmpty(jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE))
                         .switchIfEmpty(Mono.error(new SecurityException("Access denied: Unauthorized Rol 'null'")))
-                        .flatMap(rol -> switch(rol){
-                            case LER -> Mono.empty();
+                        .flatMap(role -> switch(role){
+                            case SYSDAMIN, LER -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
+                                    "The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
                             case LEAR -> handleLearRole(token, schema, payload);
-                            default -> Mono.error(new SecurityException("Access denied: Unauthorized Rol '"+rol+"'"));
+                            default -> Mono.error(new SecurityException("Access denied: Unauthorized Rol '"+role+"'"));
                         })
                 );
     }
@@ -49,7 +52,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     private Mono<Void> handleLearRole(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
             .flatMap(signedJWT -> {
-                String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
+                String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), LEARCREDENTIAL);
                 return mapVcToLEARCredential(vcClaim, schema)
                     .flatMap(learCredential -> switch (schema) {
                         case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);

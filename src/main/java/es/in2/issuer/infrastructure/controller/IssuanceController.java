@@ -33,6 +33,8 @@ public class IssuanceController {
             value = {
                     @ApiResponse(responseCode = "201", description = "Returns Created when the creation was successfully"),
                     @ApiResponse(responseCode = "400", description = "The request is invalid or missing params Ensure the 'Authorization' header is set with a valid Bearer Token."),
+                    // Remove the @ApiResponse 401 error if functionality is implemented for the 'lear' and 'sysadmin' roles in the authorization process.
+                    @ApiResponse(responseCode = "401", description = "The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."),
                     @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs.")
             }
     )

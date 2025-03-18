@@ -154,8 +154,8 @@ class VerifiableCertificationFactoryTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROL)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn("vcJson");
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn("vcJson");
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 
