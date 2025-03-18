@@ -59,41 +59,168 @@ class VerifiableCertificationFactoryTest {
     void testMapAndBuildVerifiableCertification() throws Exception {
         String token = "valid-token";
         // Given: A mocked JsonNode input representing the VerifiableCertification
-        String credentialJson = """
-                {
-                  "@context": ["https://www.w3.org/2018/credentials/v1"],
-                  "id": "urn:uuid:%s",
-                  "type": ["VerifiableCertification"],
-                  "credentialSubject": {
-                    "company": {
-                      "address": "1234 Example St.",
-                      "commonName": "Company Name",
-                      "country": "Country",
-                      "email": "company@example.com",
-                      "id": "company-id",
-                      "organization": "Company Organization"
-                    },
-                    "compliance": [{
-                      "id": "compliance-id",
-                      "hash": "1234",
-                      "scope": "compliance-scope",
-                      "standard": "compliance-standard"
-                    }],
-                    "product": {
-                      "productId": "product-id",
-                      "productName": "Product Name",
-                      "productVersion": "1.0"
-                    }
-                  },
-                  "validFrom": "2023-09-07T00:00:00Z",
-                  "validUntil": "2024-09-07T00:00:00Z"
-                }
-                """.formatted(UUID.randomUUID().toString());
-
+        String credentialJson = createCredentialJson();
         JsonNode credentialNode = objectMapper.readTree(credentialJson);
-
         // Mock the objectMapper's convertValue method
-        VerifiableCertification verifiableCertification = VerifiableCertification.builder()
+        VerifiableCertification verifiableCertification = createVerifiableCertification();
+
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Payload jwtPayload = mock(Payload.class);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn("vcJson");
+        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
+
+        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
+
+        when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
+
+        // When: Calling mapAndBuildVerifiableCertification
+        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
+
+        // Then: Verify the result
+        StepVerifier.create(resultMono)
+                .expectNextMatches(credentialProcedureCreationRequest -> credentialProcedureCreationRequest.credentialId() != null &&
+                        credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
+                        credentialProcedureCreationRequest.credentialDecoded() != null)
+                .verifyComplete();
+    }
+
+    @Test
+    void mapAndBuildVerifiableCertification_failure_dueToUnauthorizedRoleNull() throws Exception {
+        String token = "valid-token";
+        // Given: A mocked JsonNode input representing the VerifiableCertification
+        String credentialJson = createCredentialJson();
+        JsonNode credentialNode = objectMapper.readTree(credentialJson);
+        // Mock the objectMapper's convertValue method
+        VerifiableCertification verifiableCertification = createVerifiableCertification();
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Payload jwtPayload = mock(Payload.class);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(null);
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn("vcJson");
+        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
+
+        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
+
+        when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
+
+        // When: Calling mapAndBuildVerifiableCertification
+        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
+
+        // Then: Verify the result
+        // Assert
+        StepVerifier.create(resultMono)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof SecurityException &&
+                                throwable.getMessage().equals("Access denied: Unauthorized Role 'null'")
+                )
+                .verify();
+    }
+
+    @Test
+    void mapAndBuildVerifiableCertification_failure_dueToUnauthorizedRoleADMIN() throws Exception {
+        String token = "valid-token";
+        // Given: A mocked JsonNode input representing the VerifiableCertification
+        String credentialJson = createCredentialJson();
+        JsonNode credentialNode = objectMapper.readTree(credentialJson);
+        // Mock the objectMapper's convertValue method
+        VerifiableCertification verifiableCertification = createVerifiableCertification();
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Payload jwtPayload = mock(Payload.class);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn("ADMIN");
+        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn("vcJson");
+        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
+
+        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
+
+        when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
+
+        // When: Calling mapAndBuildVerifiableCertification
+        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
+
+        // Then: Verify the result
+        // Assert
+        StepVerifier.create(resultMono)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof SecurityException &&
+                                throwable.getMessage().equals("Access denied: Unauthorized Role 'ADMIN'")
+                )
+                .verify();
+    }
+
+    // Auxiliary methods to create LEARCredentialEmployee objects
+    private LEARCredentialEmployee getLEARCredentialEmployee() {
+        Mandator mandator = Mandator.builder()
+                .organizationIdentifier("VATES-1234")
+                .organization("Organization")
+                .country("Country")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                .id("did:key:1234")
+                .firstName("John")
+                .lastName("Doe")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+                .mandator(mandator)
+                .mandatee(mandatee)
+                .build();
+        LEARCredentialEmployee.CredentialSubject credentialSubject = LEARCredentialEmployee.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
+        return LEARCredentialEmployee.builder()
+                .credentialSubject(credentialSubject)
+                .build();
+    }
+
+    private String createCredentialJson() {
+        return """
+            {
+              "@context": ["https://www.w3.org/2018/credentials/v1"],
+              "id": "urn:uuid:%s",
+              "type": ["VerifiableCertification"],
+              "credentialSubject": {
+                "company": {
+                  "address": "1234 Example St.",
+                  "commonName": "Company Name",
+                  "country": "Country",
+                  "email": "company@example.com",
+                  "id": "company-id",
+                  "organization": "Company Organization"
+                },
+                "compliance": [{
+                  "id": "compliance-id",
+                  "hash": "1234",
+                  "scope": "compliance-scope",
+                  "standard": "compliance-standard"
+                }],
+                "product": {
+                  "productId": "product-id",
+                  "productName": "Product Name",
+                  "productVersion": "1.0"
+                }
+              },
+              "validFrom": "2023-09-07T00:00:00Z",
+              "validUntil": "2024-09-07T00:00:00Z"
+            }
+            """.formatted(UUID.randomUUID().toString());
+    }
+
+    private VerifiableCertification createVerifiableCertification() {
+        return VerifiableCertification.builder()
                 .context(List.of("https://www.w3.org/2018/credentials/v1"))
                 .id("urn:uuid:" + UUID.randomUUID())
                 .type(List.of("VerifiableCertification"))
@@ -148,53 +275,6 @@ class VerifiableCertificationFactoryTest {
                         .organizationIdentifier("VATES-1234")
                         .build())
                 .build();
-
-        SignedJWT signedJWT = mock(SignedJWT.class);
-        Payload jwtPayload = mock(Payload.class);
-        when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
-        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn("vcJson");
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
-
-        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
-
-        when(objectMapper.writeValueAsString(any(VerifiableCertificationJwtPayload.class))).thenReturn("expectedString");
-
-        // When: Calling mapAndBuildVerifiableCertification
-        Mono<CredentialProcedureCreationRequest> resultMono = verifiableCertificationFactory.mapAndBuildVerifiableCertification(credentialNode, token);
-
-        // Then: Verify the result
-        StepVerifier.create(resultMono)
-                .expectNextMatches(credentialProcedureCreationRequest -> credentialProcedureCreationRequest.credentialId() != null &&
-                        credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
-                        credentialProcedureCreationRequest.credentialDecoded() != null)
-                .verifyComplete();
     }
 
-    // Auxiliary methods to create LEARCredentialEmployee objects
-    private LEARCredentialEmployee getLEARCredentialEmployee() {
-        Mandator mandator = Mandator.builder()
-                .organizationIdentifier("VATES-1234")
-                .organization("Organization")
-                .country("Country")
-                .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
-                .id("did:key:1234")
-                .firstName("John")
-                .lastName("Doe")
-                .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
-                .mandator(mandator)
-                .mandatee(mandatee)
-                .build();
-        LEARCredentialEmployee.CredentialSubject credentialSubject = LEARCredentialEmployee.CredentialSubject.builder()
-                .mandate(mandate)
-                .build();
-        return LEARCredentialEmployee.builder()
-                .credentialSubject(credentialSubject)
-                .build();
-    }
 }
