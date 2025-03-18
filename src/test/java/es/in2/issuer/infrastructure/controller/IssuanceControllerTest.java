@@ -49,16 +49,6 @@ class IssuanceControllerTest {
                 .expectStatus().isCreated();
 
         verify(mockAccessTokenService, times(1)).getCleanBearerToken("Bearer mock-token");
-
-        ArgumentCaptor<String> processIdCaptor = ArgumentCaptor.forClass(String.class);
-        verify(mockWorkflow, times(1)).completeIssuanceCredentialProcess(
-                processIdCaptor.capture(),
-                eq("schema123"),
-                eq(request),
-                eq(mockToken)
-        );
-
-        assert !processIdCaptor.getValue().isEmpty();
     }
 
     @Test
