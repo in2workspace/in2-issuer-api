@@ -62,23 +62,12 @@ public class CustomAuthenticationManager implements ReactiveAuthenticationManage
             return Mono.error(new BadCredentialsException("Error al analizar el token JWT", e));
         }
 
-        if (authServerConfig.getJwtValidator().equals(issuer)) {
-            // Internal issuer (OAuth2 resource server)
-            log.debug("Emisor interno detectado");
-            return internalJwtDecoder.decode(token)
-                    .map(jwt -> (Authentication) new JwtAuthenticationToken(jwt, Collections.emptyList()))
-                    .doOnError(e -> log.error("Error al decodificar token interno", e));
-        } else if (verifierConfig.getVerifierExternalDomain().equals(issuer)) {
-            // External issuer (Verifier service)
-            log.debug("Emisor externo detectado");
-            return verifierService.verifyToken(token)
-                    .then(parseExternalJwt(token))
-                    .map(jwt -> (Authentication) new JwtAuthenticationToken(jwt, Collections.emptyList()))
-                    .doOnError(e -> log.error("Error al validar token externo", e));
-        } else {
-            log.warn("Emisor desconocido: {}", issuer);
-            return Mono.error(new BadCredentialsException("Emisor desconocido"));
-        }
+        // External issuer (Verifier service)
+        log.debug("External issuer (verifier service)");
+        return verifierService.verifyToken(token)
+                .then(parseExternalJwt(token))
+                .map(jwt -> (Authentication) new JwtAuthenticationToken(jwt, Collections.emptyList()))
+                .doOnError(e -> log.error("Error al validar token externo", e));
     }
 
     private Mono<Jwt> parseExternalJwt(String token) {

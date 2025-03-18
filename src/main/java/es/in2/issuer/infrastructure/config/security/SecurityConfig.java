@@ -34,7 +34,7 @@ public class SecurityConfig {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
         // Set the path for which the filter will be applied
         authenticationWebFilter.setRequiresAuthenticationMatcher(
-                ServerWebExchangeMatchers.pathMatchers(ISSUANCE)
+                ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE)
         );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
@@ -62,12 +62,12 @@ public class SecurityConfig {
                                 DEFERRED_CREDENTIALS,
                                 TOKEN,
                                 // protected endpoints
-                                ISSUANCE
+                                EXTERNAL_ISSUANCE
                         )
                 )
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(HttpMethod.POST, ISSUANCE).authenticated()
+                        .pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE).authenticated()
                         .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
                         .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
                         .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()

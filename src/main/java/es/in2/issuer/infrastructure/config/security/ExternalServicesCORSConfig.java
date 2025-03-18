@@ -32,7 +32,7 @@ public class ExternalServicesCORSConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration(PUBLIC_CREDENTIAL_OFFER, configuration);
         source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
-        source.registerCorsConfiguration(ISSUANCE, configuration);
+        source.registerCorsConfiguration(EXTERNAL_ISSUANCE, configuration);
         source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
         source.registerCorsConfiguration(TOKEN, configuration);
         return source;

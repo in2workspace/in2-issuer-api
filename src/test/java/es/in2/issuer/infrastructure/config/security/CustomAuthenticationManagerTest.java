@@ -63,8 +63,6 @@ class CustomAuthenticationManagerTest {
         String token = header + "." + payload + ".signature";
 
         // Mock configurations
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-issuer");
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn("external-issuer");
         when(verifierService.verifyToken(token)).thenReturn(Mono.empty());
 
         // Use a real ObjectMapper to parse JSON
@@ -89,38 +87,6 @@ class CustomAuthenticationManagerTest {
                 .verifyComplete();
 
         verify(verifierService).verifyToken(token);
-    }
-
-
-    @Test
-    void authenticate_withValidInternalToken_returnsAuthentication() throws Exception {
-        // Arrange
-        String headerJson = "{\"alg\":\"none\"}";
-        String payloadJson = "{\"iss\":\"internal-issuer\",\"iat\":1633036800,\"exp\":1633040400}";
-        String header = base64UrlEncode(headerJson);
-        String payload = base64UrlEncode(payloadJson);
-        String token = header + "." + payload + ".signature";
-
-        Jwt decodedJwt = mock(Jwt.class);
-
-        ObjectMapper realObjectMapper = new ObjectMapper();
-        JsonNode payloadNode = realObjectMapper.readTree(payloadJson);
-
-        when(objectMapper.readTree(payloadJson)).thenReturn(payloadNode);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-issuer");
-        when(internalJwtDecoder.decode(token)).thenReturn(Mono.just(decodedJwt));
-
-        Authentication authentication = new TestingAuthenticationToken(null, token);
-
-        // Act
-        Mono<Authentication> result = authenticationManager.authenticate(authentication);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectNextMatches(JwtAuthenticationToken.class::isInstance)
-                .verifyComplete();
-
-        verify(internalJwtDecoder).decode(token);
     }
 
     @Test
@@ -156,63 +122,6 @@ class CustomAuthenticationManagerTest {
     }
 
     @Test
-    void authenticate_withUnknownIssuer_throwsBadCredentialsException() throws Exception {
-        // Arrange
-        String headerJson = "{\"alg\":\"none\"}";
-        String payloadJson = "{\"iss\":\"unknown-issuer\"}";
-        String header = base64UrlEncode(headerJson);
-        String payload = base64UrlEncode(payloadJson);
-        String token = header + "." + payload + ".signature";
-
-        ObjectMapper realObjectMapper = new ObjectMapper();
-        JsonNode payloadNode = realObjectMapper.readTree(payloadJson);
-
-        when(objectMapper.readTree(payloadJson)).thenReturn(payloadNode);
-
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-issuer");
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn("external-issuer");
-
-        Authentication authentication = new TestingAuthenticationToken(null, token);
-
-        // Act
-        Mono<Authentication> result = authenticationManager.authenticate(authentication);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectErrorMatches(e -> e instanceof BadCredentialsException && e.getMessage().equals("Emisor desconocido"))
-                .verify();
-    }
-
-    @Test
-    void authenticate_withInvalidInternalTokenSignature_throwsBadCredentialsException() throws Exception {
-        // Arrange
-        String headerJson = "{\"alg\":\"none\"}";
-        String payloadJson = "{\"iss\":\"internal-issuer\"}";
-        String header = base64UrlEncode(headerJson);
-        String payload = base64UrlEncode(payloadJson);
-        String token = header + "." + payload + ".signature";
-
-        ObjectMapper realObjectMapper = new ObjectMapper();
-        JsonNode payloadNode = realObjectMapper.readTree(payloadJson);
-
-        when(objectMapper.readTree(payloadJson)).thenReturn(payloadNode);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-issuer");
-        when(internalJwtDecoder.decode(token)).thenReturn(Mono.error(new JwtException("Invalid signature")));
-
-        Authentication authentication = new TestingAuthenticationToken(null, token);
-
-        // Act
-        Mono<Authentication> result = authenticationManager.authenticate(authentication);
-
-        // Assert
-        StepVerifier.create(result)
-                .expectError(JwtException.class)
-                .verify();
-
-        verify(internalJwtDecoder).decode(token);
-    }
-
-    @Test
     void authenticate_withInvalidExternalTokenVerification_throwsBadCredentialsException() throws Exception {
         // Arrange
         String headerJson = "{\"alg\":\"none\"}";
@@ -225,8 +134,6 @@ class CustomAuthenticationManagerTest {
         JsonNode payloadNode = realObjectMapper.readTree(payloadJson);
 
         when(objectMapper.readTree(payloadJson)).thenReturn(payloadNode);
-        when(authServerConfig.getJwtValidator()).thenReturn("internal-issuer");
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn("external-issuer");
         when(verifierService.verifyToken(token)).thenReturn(Mono.error(new JWTVerificationException("Verification failed")));
 
         Authentication authentication = new TestingAuthenticationToken(null, token);
