@@ -27,15 +27,12 @@ public class SecurityConfig {
     private final ReactiveJwtDecoder internalJwtDecoder;
     private final DefaultCORSConfig defaultCORSConfig;
     private final ExternalServicesCORSConfig externalServicesCORSConfig;
+    private final PublicCORSConfig publicCORSConfig;
 
 
     @Bean
     public AuthenticationWebFilter customAuthenticationWebFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
-        // Set the path for which the filter will be applied
-        authenticationWebFilter.setRequiresAuthenticationMatcher(
-                ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE)
-        );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
@@ -43,38 +40,41 @@ public class SecurityConfig {
         return authenticationWebFilter;
     }
 
-    //Security configuration for specific endpoints
+    // Public filter chain for public endpoints
     @Bean
     @Order(1)
-    public SecurityWebFilterChain externalServicesFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain publicFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(
-                        ServerWebExchangeMatchers.pathMatchers(
-                                // Public endpoints
-                                SWAGGER_UI,
-                                SWAGGER_RESOURCES,
-                                SWAGGER_API_DOCS,
-                                SWAGGER_SPRING_UI,
-                                SWAGGER_WEBJARS,
-                                PUBLIC_HEALTH,
-                                PUBLIC_CREDENTIAL_OFFER,
-                                PUBLIC_DISCOVERY_ISSUER,
-                                DEFERRED_CREDENTIALS,
-                                TOKEN,
-                                // protected endpoints
-                                EXTERNAL_ISSUANCE
-                        )
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
+                        SWAGGER_UI,
+                        SWAGGER_RESOURCES,
+                        SWAGGER_API_DOCS,
+                        SWAGGER_SPRING_UI,
+                        SWAGGER_WEBJARS,
+                        PUBLIC_HEALTH,
+                        PUBLIC_CREDENTIAL_OFFER,
+                        PUBLIC_DISCOVERY_ISSUER,
+                        TOKEN,
+                        DEFERRED_CREDENTIALS
+                ))
+                .cors(cors -> cors.configurationSource(publicCORSConfig.publicCorsConfigurationSource()))
+                .authorizeExchange(exchanges -> exchanges
+                        .anyExchange().permitAll()
                 )
+                .csrf(ServerHttpSecurity.CsrfSpec::disable);
+
+        return http.build();
+    }
+
+    // External filter chain for external endpoints
+    @Bean
+    @Order(2)
+    public SecurityWebFilterChain externalFilterChain(ServerHttpSecurity http) {
+        http
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE))
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE).authenticated()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_HEALTH).permitAll()
-                        .pathMatchers(HttpMethod.GET, getSwaggerPaths()).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_CREDENTIAL_OFFER).permitAll()
-                        .pathMatchers(HttpMethod.GET, PUBLIC_DISCOVERY_ISSUER).permitAll()
-                        .pathMatchers(HttpMethod.POST, TOKEN).permitAll()
-                        .pathMatchers(HttpMethod.GET, DEFERRED_CREDENTIALS).permitAll()
-                        .pathMatchers(HttpMethod.POST, DEFERRED_CREDENTIALS).permitAll()
                         .anyExchange().denyAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -86,7 +86,7 @@ public class SecurityConfig {
 
     // General security configuration for other endpoints
     @Bean
-    @Order(2)
+    @Order(3)
     public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())

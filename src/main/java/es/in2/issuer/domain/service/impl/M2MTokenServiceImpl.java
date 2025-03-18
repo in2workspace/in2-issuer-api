@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -67,6 +68,9 @@ public class M2MTokenServiceImpl implements M2MTokenService {
 
         String vpTokenJWTString = createVPTokenJWT(vcMachineString, clientId, iat, exp);
 
+        String vpTokenJWTBase64 = Base64.getEncoder()
+                .encodeToString(vpTokenJWTString.getBytes(StandardCharsets.UTF_8));
+
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
                 "iss", clientId,
@@ -74,7 +78,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
                 "iat", iat,
                 "exp", exp,
                 "jti", UUID.randomUUID(),
-                "vp_token", vpTokenJWTString
+                "vp_token", vpTokenJWTBase64
         ));
 
         return jwtService.generateJWT(payload.toString());
