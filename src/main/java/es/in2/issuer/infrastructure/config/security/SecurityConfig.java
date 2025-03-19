@@ -33,6 +33,10 @@ public class SecurityConfig {
     @Bean
     public AuthenticationWebFilter customAuthenticationWebFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
+        // Set the path for which the filter will be applied
+        authenticationWebFilter.setRequiresAuthenticationMatcher(
+                ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE)
+        );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
@@ -86,7 +90,7 @@ public class SecurityConfig {
     // General security configuration for other endpoints
     @Bean
     @Order(3)
-    public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain internalFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
                 .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
@@ -101,16 +105,5 @@ public class SecurityConfig {
 
                 );
         return http.build();
-    }
-
-    // Helper method to get Swagger-related paths for permitting access
-    private String[] getSwaggerPaths() {
-        return new String[]{
-                SWAGGER_UI,
-                SWAGGER_RESOURCES,
-                SWAGGER_API_DOCS,
-                SWAGGER_SPRING_UI,
-                SWAGGER_WEBJARS
-        };
     }
 }
