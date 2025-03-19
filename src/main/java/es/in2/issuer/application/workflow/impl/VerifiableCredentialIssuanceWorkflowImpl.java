@@ -45,7 +45,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final M2MTokenService m2MTokenService;
 
     @Override
-    public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, IssuanceRequest issuanceRequest, String token) {
+    public Mono<Void> completeIssuanceCredentialProcess(String processId, IssuanceRequest issuanceRequest, String token, String idToken) {
         // Check if the format is not "json_vc_jwt"
         if (!JWT_VC_JSON.equals(issuanceRequest.format())) {
             return Mono.error(new FormatUnsupportedException("Format: " + issuanceRequest.format() + " is not supported"));
@@ -59,14 +59,18 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         return policyAuthorizationService.authorize(token, issuanceRequest.schema(), issuanceRequest.payload())
                 .then(Mono.defer(() -> {
                     if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                        return verifiableCredentialService.generateVc(processId, type, issuanceRequest, token)
+                        return verifiableCredentialService.generateVc(processId, issuanceRequest.schema(), issuanceRequest, token)
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, issuanceRequest));
                     } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
+                        // Validate idToken header for VerifiableCertification schema
+                        if (idToken == null || idToken.isBlank()) {
+                            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
+                        }
                         // Check if responseUri is null, empty, or only contains whitespace
                         if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
                         }
-                        return verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest, token)
+                        return verifiableCredentialService.generateVerifiableCertification(processId, issuanceRequest.schema(), issuanceRequest, token)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
                                         // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
@@ -78,7 +82,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                         encodedVc,
                                                                         m2mAccessToken.accessToken())))));
                     }
-                    return Mono.error(new CredentialTypeUnsupportedException(type));
+                    return Mono.error(new CredentialTypeUnsupportedException(issuanceRequest.schema()));
                 }));
     }
 

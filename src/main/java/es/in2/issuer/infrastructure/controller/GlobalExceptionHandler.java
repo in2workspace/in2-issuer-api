@@ -278,4 +278,20 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
+    @ExceptionHandler(MissingIdTokenHeaderException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleMissingIdTokenHeaderException(Exception ex) {
+        String description = "The X-ID-TOKEN header is missing";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.MISSING_HEADER,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
 }

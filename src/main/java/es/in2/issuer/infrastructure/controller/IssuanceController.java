@@ -43,16 +43,17 @@ public class IssuanceController {
             @RequestBody IssuanceRequest issuanceRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader).flatMap(
-                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, token));
+                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, null));
     }
 
     @PostMapping("/external")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> externalIssueCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
+            @RequestHeader(name = "X-ID-TOKEN", required = false) String idToken,
             @RequestBody IssuanceRequest issuanceRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader).flatMap(
-                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest.schema(), issuanceRequest, token));
+                token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, idToken));
     }
 }

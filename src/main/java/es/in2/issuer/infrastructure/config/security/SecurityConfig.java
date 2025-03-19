@@ -86,8 +86,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-
-    // General security configuration for other endpoints
+    // Internal security configuration for internal endpoints
     @Bean
     @Order(3)
     public SecurityWebFilterChain internalFilterChain(ServerHttpSecurity http) {
