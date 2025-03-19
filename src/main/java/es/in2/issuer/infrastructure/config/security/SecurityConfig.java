@@ -71,11 +71,10 @@ public class SecurityConfig {
     @Order(2)
     public SecurityWebFilterChain externalFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE))
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE))
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE).authenticated()
-                        .anyExchange().denyAll()
+                        .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(customAuthenticationWebFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
