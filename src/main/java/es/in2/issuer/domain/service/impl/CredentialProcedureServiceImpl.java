@@ -57,7 +57,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                         validateCredential(credential,procedureId);
-                        JsonNode typeNode = credential.get(VC).get(TYPE);
+                        JsonNode typeNode = credential.get(TYPE);
                         if (typeNode != null && typeNode.isArray()) {
                             String credentialType = null;
                             for (JsonNode type : typeNode) {
@@ -84,14 +84,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
         } else {
             log.info("Contenido del credential: {}", credential);
         }
-
-        if (!credential.has(VC)) {
-            log.error("El credential no contiene el nodo VC para procedureId: {}", procedureId);
-            throw new IllegalStateException("El credential no contiene el nodo VC");
-        } else {
-            log.info("Contenido del nodo VC: {}", credential.get(VC).toString());
-        }
-
         JsonNode vcNode = credential.get(VC);
         if (!vcNode.has(TYPE)) {
             log.error("El nodo VC no contiene el nodo TYPE para procedureId: {}", procedureId);
