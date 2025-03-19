@@ -52,6 +52,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<String> getCredentialTypeByProcedureId(String procedureId) {
+        log.info("'INICIO' getCredentialTypeByProcedureId procedureId: {}", procedureId);
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     try {
@@ -220,6 +221,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     @Override
     public Mono<CredentialProcedures> getAllProceduresBasicInfoByOrganizationId(String organizationIdentifier) {
+        log.info("'INICIO' getAllProceduresBasicInfoByOrganizationId organizationIdentifier: {}", organizationIdentifier);
         return credentialProcedureRepository.findAllByOrganizationIdentifier(organizationIdentifier)
                 .flatMap(credentialProcedure -> getCredentialTypeByProcedureId(String.valueOf(credentialProcedure.getProcedureId()))
                         .flatMap(credentialType -> Mono.just(ProcedureBasicInfo.builder()
