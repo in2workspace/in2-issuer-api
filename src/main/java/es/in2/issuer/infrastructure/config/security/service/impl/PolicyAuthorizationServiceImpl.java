@@ -52,7 +52,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     private Mono<Void> handleLearRole(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
             .flatMap(signedJWT -> {
-                String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), LEARCREDENTIAL);
+                String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
                 return mapVcToLEARCredential(vcClaim, schema)
                     .flatMap(learCredential -> switch (schema) {
                         case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);

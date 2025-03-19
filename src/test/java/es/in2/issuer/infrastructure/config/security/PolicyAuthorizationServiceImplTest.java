@@ -86,7 +86,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         // We use a real ObjectMapper to create the JsonNode we need
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -121,7 +121,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -156,7 +156,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -210,7 +210,7 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -247,7 +247,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -284,7 +284,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -336,7 +336,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -387,7 +387,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -423,7 +423,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -456,7 +456,7 @@ class PolicyAuthorizationServiceImplTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, LEARCREDENTIAL)).thenReturn(vcClaim);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);

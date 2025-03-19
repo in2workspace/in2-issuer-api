@@ -43,7 +43,7 @@ public class VerifiableCertificationFactory {
             return Mono.error(new SecurityException("Access denied: Unauthorized Role '"
                     +(rolClaim==null?"null":rolClaim)+"'"));
         }
-        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), LEARCREDENTIAL);
+        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
