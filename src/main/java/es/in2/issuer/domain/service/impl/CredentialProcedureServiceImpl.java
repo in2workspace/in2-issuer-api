@@ -56,6 +56,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .flatMap(credentialProcedure -> {
                     try {
                         JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                        validateCredential(credential,procedureId);
                         JsonNode typeNode = credential.get(VC).get(TYPE);
                         if (typeNode != null && typeNode.isArray()) {
                             String credentialType = null;
@@ -74,6 +75,31 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     }
 
                 });
+    }
+
+    private void validateCredential(JsonNode credential, String procedureId) {
+        if (credential == null) {
+            log.error("Credential es null para procedureId: {}", procedureId);
+            throw new IllegalStateException("Credential es null");
+        } else {
+            log.info("Contenido del credential: {}", credential);
+        }
+
+        if (!credential.has(VC)) {
+            log.error("El credential no contiene el nodo VC para procedureId: {}", procedureId);
+            throw new IllegalStateException("El credential no contiene el nodo VC");
+        } else {
+            log.info("Contenido del nodo VC: {}", credential.get(VC).toString());
+        }
+
+        JsonNode vcNode = credential.get(VC);
+        if (!vcNode.has(TYPE)) {
+            log.error("El nodo VC no contiene el nodo TYPE para procedureId: {}", procedureId);
+            throw new IllegalStateException("El nodo VC no contiene el nodo TYPE");
+        }
+
+        JsonNode typeNode = vcNode.get(TYPE);
+        log.info("Contenido del nodo TYPE: {}", typeNode.toString());
     }
 
     @Override
