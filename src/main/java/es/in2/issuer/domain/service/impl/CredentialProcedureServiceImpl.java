@@ -84,13 +84,12 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
         } else {
             log.info("Contenido del credential: {}", credential);
         }
-        JsonNode vcNode = credential.get(VC);
-        if (!vcNode.has(TYPE)) {
+        if (!credential.has(TYPE)) {
             log.error("El nodo VC no contiene el nodo TYPE para procedureId: {}", procedureId);
             throw new IllegalStateException("El nodo VC no contiene el nodo TYPE");
         }
 
-        JsonNode typeNode = vcNode.get(TYPE);
+        JsonNode typeNode = credential.get(TYPE);
         log.info("Contenido del nodo TYPE: {}", typeNode.toString());
     }
 
