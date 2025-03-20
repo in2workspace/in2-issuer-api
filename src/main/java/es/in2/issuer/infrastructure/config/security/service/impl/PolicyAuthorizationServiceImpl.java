@@ -40,17 +40,14 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> Mono.justOrEmpty(jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE))
                         .switchIfEmpty(Mono.error(new SecurityException("Access denied: Unauthorized Rol 'null'")))
-                        .flatMap(role -> {
-                            log.info(" ---->>> El role que esta pasando es : "+ role );
-                            log.info(" ---->>> El role es igual a "+LEAR+": "+ (role.equals(LEAR)));
-                            return switch(role) {
+                        .flatMap(role -> switch(role.replace("\"", "")) {
                                 case SYSDAMIN, LER -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
                                         "The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
                                 case LEAR -> handleLearRole(token, schema, payload);
                                 default ->
                                         Mono.error(new SecurityException("Access denied: Unauthorized Rol '" + role + "'"));
-                            };
-                        })
+                            }
+                        )
                 );
     }
 
