@@ -49,7 +49,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HashGeneratorService hashGeneratorService;
     private final DefaultSignerConfig defaultSignerConfig;
     private static final String ACCESS_TOKEN_NAME = "access_token";
-    private static final String CREDENTIAL = "credential";
+    private static final String CREDENTIALSIGN = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
@@ -179,7 +179,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest) {
         log.info("Requesting signature to external service");
-        return requestAccessToken(signatureRequest, CREDENTIAL)
+        return requestAccessToken(signatureRequest, CREDENTIALSIGN)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
@@ -196,7 +196,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         requestBody.clear();
         requestBody.put("grant_type", grantType);
         requestBody.put("scope", scope);
-        if(scope.equals(CREDENTIAL)){
+        if(scope.equals(CREDENTIALSIGN)){
             requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID));
         }
 
@@ -376,7 +376,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
-            authorizationDetails.put("type", CREDENTIAL);
+            authorizationDetails.put("type", CREDENTIALSIGN);
             authorizationDetails.put("credentialID", credentialID);
             authorizationDetails.put("credentialPassword", credentialPassword);
             String hashedCredential = hashGeneratorService.generateHash(unsignedCredential, hashAlgorithmOID);
