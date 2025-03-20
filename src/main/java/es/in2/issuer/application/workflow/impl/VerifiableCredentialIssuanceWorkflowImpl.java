@@ -9,7 +9,7 @@ import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -38,7 +38,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
-    private final PolicyAuthorizationService policyAuthorizationService;
+    private final VerifiableCredentialPolicyAuthorizationService verifiableCredentialPolicyAuthorizationService;
     private final TrustFrameworkService trustFrameworkService;
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
@@ -55,17 +55,18 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             return Mono.error(new OperationNotSupportedException("operation_mode: " + issuanceRequest.operationMode() + " with schema: " + issuanceRequest.schema()));
         }
 
+        // Validate idToken header for VerifiableCertification schema
+        if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
+            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
+        }
+
         // Validate user policy before proceeding
-        return policyAuthorizationService.authorize(token, issuanceRequest.schema(), issuanceRequest.payload())
+        return verifiableCredentialPolicyAuthorizationService.authorize(token, issuanceRequest.schema(), issuanceRequest.payload(), idToken)
                 .then(Mono.defer(() -> {
                     if (issuanceRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                         return verifiableCredentialService.generateVc(processId, issuanceRequest.schema(), issuanceRequest, token)
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, issuanceRequest));
                     } else if (issuanceRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
-                        // Validate idToken header for VerifiableCertification schema
-                        if (idToken == null || idToken.isBlank()) {
-                            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
-                        }
                         // Check if responseUri is null, empty, or only contains whitespace
                         if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));

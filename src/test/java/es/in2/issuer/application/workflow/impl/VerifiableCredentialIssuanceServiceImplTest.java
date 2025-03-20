@@ -15,7 +15,7 @@ import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,7 +63,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     private WebClientConfig webClientConfig;
 
     @Mock
-    private PolicyAuthorizationService policyAuthorizationService;
+    private VerifiableCredentialPolicyAuthorizationService verifiableCredentialPolicyAuthorizationService;
 
     @Mock
     private TrustFrameworkService trustFrameworkService;
@@ -99,10 +99,11 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String processId = "1234";
         String token = "token";
         String type = "VerifiableCertification";
+        String idToken = "idToken";
         JsonNode jsonNode = mock(JsonNode.class);
 
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
-        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
+        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, "idToken"))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
@@ -172,7 +173,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
-        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
+        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, null)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId, type, issuanceRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
@@ -230,7 +231,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         JsonNode jsonNode = objectMapper.readTree(json);
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
-        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
+        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId, issuanceRequest, idToken)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
