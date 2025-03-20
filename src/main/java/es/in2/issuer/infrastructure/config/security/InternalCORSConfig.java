@@ -12,7 +12,7 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 
-public class DefaultCORSConfig {
+public class InternalCORSConfig {
     private final AppConfig appConfig;
 
     /**

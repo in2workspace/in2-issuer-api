@@ -25,7 +25,7 @@ public class SecurityConfig {
 
     private final CustomAuthenticationManager customAuthenticationManager;
     private final ReactiveJwtDecoder internalJwtDecoder;
-    private final DefaultCORSConfig defaultCORSConfig;
+    private final InternalCORSConfig internalCORSConfig;
     private final ExternalServicesCORSConfig externalServicesCORSConfig;
     private final PublicCORSConfig publicCORSConfig;
 
@@ -92,7 +92,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain internalFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
-                .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
+                .cors(cors -> internalCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
                 )

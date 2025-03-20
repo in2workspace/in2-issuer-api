@@ -278,6 +278,7 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
+
     @ExceptionHandler(MissingIdTokenHeaderException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Mono<ResponseEntity<CredentialErrorResponse>> handleMissingIdTokenHeaderException(Exception ex) {

@@ -44,7 +44,8 @@ sonar {
                 "src/main/java/es/in2/issuer/IssuerApiApplication.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/config/security/SecurityConfig.java, " +
                         "src/main/java/es/in2/issuer/domain/service/impl/VerifierServiceImpl.java, " +
-                        "src/main/java/es/in2/issuer/infrastructure/config/security/DefaultCORSConfig.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/config/security/InternalCORSConfig.java, " +
+                        "src/main/java/es/in2/issuer/infrastructure/config/security/PublicCORSConfig.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/config/security/ExternalServicesCORSConfig.java, " +
                         "src/main/java/es/in2/issuer/infrastructure/controller/TokenController.java"
     }

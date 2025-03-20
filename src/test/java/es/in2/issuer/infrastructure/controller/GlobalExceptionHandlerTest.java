@@ -412,4 +412,36 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleMissingIdTokenHeaderException_withMessage() {
+        String errorMessage = "Error message for testing";
+        MissingIdTokenHeaderException exception = new MissingIdTokenHeaderException(errorMessage);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> result = globalExceptionHandler.handleMissingIdTokenHeaderException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.MISSING_HEADER, responseEntity.getBody().error());
+                    assertEquals(errorMessage, responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleMissingIdTokenHeaderException_withoutMessage() {
+        MissingIdTokenHeaderException exception = new MissingIdTokenHeaderException(null);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> result = globalExceptionHandler.handleMissingIdTokenHeaderException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    assertNotNull(responseEntity.getBody());
+                    assertEquals(CredentialResponseErrorCodes.MISSING_HEADER, responseEntity.getBody().error());
+                    assertEquals("The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification", responseEntity.getBody().description());
+                })
+                .verifyComplete();
+    }
 }
