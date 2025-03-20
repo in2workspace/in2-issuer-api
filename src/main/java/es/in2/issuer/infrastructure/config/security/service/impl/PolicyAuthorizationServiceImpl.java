@@ -54,12 +54,12 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     private Mono<String> determineAllowedCredentialType(List<String> types, String schema) {
         return Mono.fromCallable(() -> {
             if (VERIFIABLE_CERTIFICATION.equals(schema)) {
-                // For verifiable certification, only LEARCredentialEmployee is allowed.
-                if (types.contains(LEAR_CREDENTIAL_EMPLOYEE)) {
-                    return LEAR_CREDENTIAL_EMPLOYEE;
+                // For verifiable certification, only LEARCredentialMachine is allowed.
+                if (types.contains(LEAR_CREDENTIAL_MACHINE)) {
+                    return LEAR_CREDENTIAL_MACHINE;
                 } else {
                     throw new InsufficientPermissionException(
-                            "Unauthorized: Credential type 'LEARCredentialEmployee' is required for verifiable certification.");
+                            "Unauthorized: Credential type 'LEARCredentialMachine' is required for verifiable certification.");
                 }
             } else {
                 // For LEAR_CREDENTIAL_EMPLOYEE schema, allow either employee or machine.

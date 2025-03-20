@@ -232,7 +232,7 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode payload = mock(JsonNode.class);
 
         SignedJWT signedJWT = mock(SignedJWT.class);
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
 
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "some-other-issuer");
@@ -247,8 +247,8 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
+        LEARCredentialMachine learCredential = getLEARCredentialMachineWithInvalidPolicy();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
@@ -268,10 +268,9 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode payload = mock(JsonNode.class);
 
         SignedJWT signedJWT = mock(SignedJWT.class);
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
 
         Map<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("iss", "external-verifier");
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
@@ -283,8 +282,8 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployeeForCertification();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
+        LEARCredentialMachine learCredential = getLEARCredentialMachineForCertification();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
@@ -526,30 +525,27 @@ class PolicyAuthorizationServiceImplTest {
                 .build();
     }
 
-    private LEARCredentialEmployee getLEARCredentialEmployeeForCertification() {
+    private LEARCredentialMachine getLEARCredentialMachineForCertification() {
         Mandator mandator = Mandator.builder()
                 .organizationIdentifier("SomeOrganization")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+        LEARCredentialMachine.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialMachine.CredentialSubject.Mandate.Mandatee.builder()
                 .id("did:key:1234")
-                .firstName("Jane")
-                .lastName("Doe")
-                .email("jane.doe@example.com")
                 .build();
         Power power = Power.builder()
                 .function("Certification")
                 .action("Attest")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+        LEARCredentialMachine.CredentialSubject.Mandate mandate = LEARCredentialMachine.CredentialSubject.Mandate.builder()
                 .mandator(mandator)
                 .mandatee(mandatee)
                 .power(Collections.singletonList(power))
                 .build();
-        LEARCredentialEmployee.CredentialSubject credentialSubject = LEARCredentialEmployee.CredentialSubject.builder()
+        LEARCredentialMachine.CredentialSubject credentialSubject = LEARCredentialMachine.CredentialSubject.builder()
                 .mandate(mandate)
                 .build();
-        return LEARCredentialEmployee.builder()
-                .type(List.of("VerifiableCredential", "LEARCredentialEmployee"))
+        return LEARCredentialMachine.builder()
+                .type(List.of("VerifiableCredential", "LEARCredentialMachine"))
                 .credentialSubject(credentialSubject)
                 .build();
     }
