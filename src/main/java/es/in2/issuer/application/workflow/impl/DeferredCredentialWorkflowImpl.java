@@ -10,6 +10,7 @@ import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -17,6 +18,7 @@ import reactor.core.publisher.Mono;
 import static es.in2.issuer.domain.util.Constants.ASYNC;
 import static es.in2.issuer.domain.util.Constants.VC;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflow {
@@ -44,9 +46,12 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         // Extract JWT payload
                         String jwt = signedCredential.credential();
                         SignedJWT signedJWT = SignedJWT.parse(jwt);
+                        log.info("signedJWT: {}", signedJWT);
                         String payload = signedJWT.getPayload().toString();
+                        log.info("payload: {}", payload);
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
+                        log.info("credentialNode: {}", credentialNode);
                         String credentialId = credentialNode.get(VC).get("id").asText();
                         // Update the credential in the database
                         return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
