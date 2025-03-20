@@ -77,6 +77,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     }
 
     private Mono<Void> updateSignedCredential(String signedCredential) {
+        log.info("signedCredential: {}", signedCredential);
         List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
         SignedCredentials signedCredentials = new SignedCredentials(credentials);
         return deferredCredentialWorkflow.updateSignedCredentials(signedCredentials);
