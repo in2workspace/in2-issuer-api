@@ -41,7 +41,6 @@ public class LEARCredentialEmployeeFactory {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final DefaultSignerConfig defaultSignerConfig;
     private final RemoteSignatureServiceImpl remoteSignatureServiceImpl;
-    private static final String CREDENTIAL = "credential";
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId)
             throws InvalidCredentialFormatException {
@@ -144,7 +143,7 @@ public class LEARCredentialEmployeeFactory {
         return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
                     if (valid) {
-                        return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), CREDENTIAL)
+                        return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), "service")
                                 .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
                                 .flatMap(remoteSignatureServiceImpl::extractIssuerFromCertificateInfo);
                     } else {
