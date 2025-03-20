@@ -30,7 +30,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
-import static es.in2.issuer.domain.util.EndpointsConstants.CREDENTIAL;
 
 @Slf4j
 @Component
@@ -42,6 +41,7 @@ public class LEARCredentialEmployeeFactory {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final DefaultSignerConfig defaultSignerConfig;
     private final RemoteSignatureServiceImpl remoteSignatureServiceImpl;
+    private static final String CREDENTIAL = "credential";
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId)
             throws InvalidCredentialFormatException {

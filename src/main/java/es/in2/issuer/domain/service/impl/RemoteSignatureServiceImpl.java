@@ -49,7 +49,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final HashGeneratorService hashGeneratorService;
     private final DefaultSignerConfig defaultSignerConfig;
     private static final String ACCESS_TOKEN_NAME = "access_token";
-    private static final String CREDENTIALSIGN = "credential";
+    private static final String CREDENTIAL = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
@@ -179,7 +179,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest) {
         log.info("Requesting signature to external service");
-        return requestAccessToken(signatureRequest, CREDENTIALSIGN)
+        return requestAccessToken(signatureRequest, CREDENTIAL)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
@@ -196,7 +196,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         requestBody.clear();
         requestBody.put("grant_type", grantType);
         requestBody.put("scope", scope);
-        if(scope.equals(CREDENTIALSIGN)){
+        if(scope.equals(CREDENTIAL)){
             requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID));
         }
 
@@ -211,8 +211,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headers.clear();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, basicAuthHeader));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
-        log.info("headers: {}", headers);
-        log.info("requestBodyString: {}", requestBodyString);
         return httpUtils.postRequest(signatureGetAccessTokenEndpoint, headers, requestBodyString)
             .flatMap(responseJson -> Mono.fromCallable(() -> {
                 try {
@@ -376,7 +374,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
-            authorizationDetails.put("type", CREDENTIALSIGN);
+            authorizationDetails.put("type", CREDENTIAL);
             authorizationDetails.put("credentialID", credentialID);
             authorizationDetails.put("credentialPassword", credentialPassword);
             String hashedCredential = hashGeneratorService.generateHash(unsignedCredential, hashAlgorithmOID);
