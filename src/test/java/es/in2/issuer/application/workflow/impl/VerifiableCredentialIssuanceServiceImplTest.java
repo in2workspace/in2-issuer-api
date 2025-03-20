@@ -80,7 +80,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     void unsupportedFormatErrorExceptionTest() {
         String processId = "1234";
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("LEARCredentialEmployee").format("json_ldp").operationMode("S").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, "LEARCredentialEmployee", issuanceRequest, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, "token", null))
                 .expectError(FormatUnsupportedException.class)
                 .verify();
     }
@@ -89,7 +89,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     void unsupportedOperationModeExceptionTest() {
         String processId = "1234";
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(null).schema("LEARCredentialEmployee").format(JWT_VC).operationMode("F").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, "LEARCredentialEmployee", issuanceRequest, "token"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, "token", null))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
@@ -103,7 +103,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, "idToken"))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
@@ -178,7 +178,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
         when(emailService.sendTransactionCodeForCredentialOffer("example@in2.es", "Activate your new credential", issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, null))
                 .verifyComplete();
     }
 
@@ -247,7 +247,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, "idToken"))
                 .verifyComplete();
 
         verify(m2MTokenService, times(1)).getM2MToken();

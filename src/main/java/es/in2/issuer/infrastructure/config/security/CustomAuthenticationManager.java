@@ -68,8 +68,22 @@ public class CustomAuthenticationManager implements ReactiveAuthenticationManage
         if (vcObj == null) {
             throw new BadCredentialsException("The 'vc' claim is required but not present.");
         }
-
-        JsonNode vcNode = objectMapper.valueToTree(vcObj);
+        String vcJson;
+        if (vcObj instanceof String) {
+            vcJson = (String) vcObj;
+        } else {
+            try {
+                vcJson = objectMapper.writeValueAsString(vcObj);
+            } catch (Exception e) {
+                throw new BadCredentialsException("Error processing 'vc' claim", e);
+            }
+        }
+        JsonNode vcNode;
+        try {
+            vcNode = objectMapper.readTree(vcJson);
+        } catch (Exception e) {
+            throw new BadCredentialsException("Error parsing 'vc' claim", e);
+        }
         JsonNode typeNode = vcNode.get("type");
         if (typeNode == null || !typeNode.isArray() ||
                 StreamSupport.stream(typeNode.spliterator(), false)

@@ -36,7 +36,7 @@ class IssuanceControllerTest {
         IssuanceRequest request = new IssuanceRequest("schema123", "jwt_vc_json", null, "auto", 365, "https://callback.com");
 
         when(mockAccessTokenService.getCleanBearerToken(anyString())).thenReturn(Mono.just(mockToken));
-        when(mockWorkflow.completeIssuanceCredentialProcess(anyString(), anyString(), any(IssuanceRequest.class), anyString()))
+        when(mockWorkflow.completeIssuanceCredentialProcess(anyString(), any(IssuanceRequest.class), anyString(), nullable(String.class)))
                 .thenReturn(Mono.empty());
 
         webTestClient.post()
@@ -56,12 +56,13 @@ class IssuanceControllerTest {
         IssuanceRequest request = new IssuanceRequest("schema123", "jwt_vc_json", null, "auto", 365, "https://callback.com");
 
         when(mockAccessTokenService.getCleanBearerToken(anyString())).thenReturn(Mono.just(mockToken));
-        when(mockWorkflow.completeIssuanceCredentialProcess(anyString(), anyString(), any(IssuanceRequest.class), anyString()))
+        when(mockWorkflow.completeIssuanceCredentialProcess(anyString(), any(IssuanceRequest.class), anyString(), nullable(String.class)))
                 .thenReturn(Mono.empty());
 
         webTestClient.post()
                 .uri("/vci/v1/issuances/external")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer mock-token")
+                // No enviamos el header X-ID-TOKEN para que sea null
                 .contentType(MediaType.APPLICATION_JSON)
                 .bodyValue(request)
                 .exchange()
