@@ -35,10 +35,11 @@ public class VerifiableCertificationFactory {
     private final ObjectMapper objectMapper;
     private final JWTService jwtService;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String idToken) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
-        SignedJWT signedJWT = jwtService.parseJWT(token);
-        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
+        SignedJWT signedJWT = jwtService.parseJWT(idToken);
+        // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
+        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)

@@ -188,6 +188,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String type = "VerifiableCertification";
         String procedureId = "procedureId";
         String token = "token";
+        String idToken = "idToken";
         String json = """
                 {
                     "type": [
@@ -230,7 +231,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         IssuanceRequest issuanceRequest = IssuanceRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVerifiableCertification(processId, type, issuanceRequest, token)).thenReturn(Mono.just(procedureId));
+        when(verifiableCredentialService.generateVerifiableCertification(processId, issuanceRequest, idToken)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
@@ -247,7 +248,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, "idToken"))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, issuanceRequest, token, idToken))
                 .verifyComplete();
 
         verify(m2MTokenService, times(1)).getM2MToken();

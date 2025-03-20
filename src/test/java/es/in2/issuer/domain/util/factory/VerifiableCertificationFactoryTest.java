@@ -153,7 +153,7 @@ class VerifiableCertificationFactoryTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn("vcJson");
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc_json")).thenReturn("vcJson");
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 

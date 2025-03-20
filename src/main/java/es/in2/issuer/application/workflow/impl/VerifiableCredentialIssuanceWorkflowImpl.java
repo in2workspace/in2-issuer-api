@@ -70,7 +70,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                         if (issuanceRequest.responseUri() == null || issuanceRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + issuanceRequest.schema() + " response_uri is required"));
                         }
-                        return verifiableCredentialService.generateVerifiableCertification(processId, issuanceRequest.schema(), issuanceRequest, token)
+                        return verifiableCredentialService.generateVerifiableCertification(processId, issuanceRequest, idToken)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
                                         // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
