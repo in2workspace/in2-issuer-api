@@ -17,7 +17,6 @@ import reactor.core.publisher.Mono;
 import static es.in2.issuer.domain.util.Constants.ASYNC;
 import static es.in2.issuer.domain.util.Constants.VC;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflow {
