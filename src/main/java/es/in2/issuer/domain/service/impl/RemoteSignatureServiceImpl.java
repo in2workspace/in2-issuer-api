@@ -211,6 +211,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         headers.clear();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, basicAuthHeader));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE));
+        log.info("clientID: {}", clientId);
+        log.info("clientSecret: {}", clientSecret);
+        log.info("credentialID: {}", credentialID);
+        log.info("credentialPassword: {}", credentialPassword);
         return httpUtils.postRequest(signatureGetAccessTokenEndpoint, headers, requestBodyString)
             .flatMap(responseJson -> Mono.fromCallable(() -> {
                 try {
