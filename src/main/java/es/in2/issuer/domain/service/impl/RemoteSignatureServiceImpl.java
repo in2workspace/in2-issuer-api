@@ -75,7 +75,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                     .maxBackoff(Duration.ofSeconds(5))
                     .jitter(0.5)
-                    .filter(this::isRecoverableError)   // Retry only on recoverable errors
+                    //.filter(this::isRecoverableError)   // Retry only on recoverable errors
                     .doBeforeRetry(retrySignal -> {
                         long attempt = retrySignal.totalRetries() + 1;
                         log.info("Retrying signing process due to recoverable error (Attempt #{} of 3)", attempt);
