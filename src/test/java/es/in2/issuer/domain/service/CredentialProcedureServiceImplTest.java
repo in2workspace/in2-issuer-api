@@ -555,7 +555,6 @@ class CredentialProcedureServiceImplTest {
         verify(credentialProcedureRepository, times(1)).save(existingCredentialProcedure);
 
         assert existingCredentialProcedure.getCredentialEncoded().equals(newEncodedCredential);
-        assert existingCredentialProcedure.getCredentialStatus() == CredentialStatus.PEND_DOWNLOAD;
     }
 
     @Test

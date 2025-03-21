@@ -218,7 +218,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
         return credentialProcedureRepository.findByCredentialId(UUID.fromString(credentialId))
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setCredentialEncoded(encodedCredential);
-                    credentialProcedure.setCredentialStatus(CredentialStatus.PEND_DOWNLOAD);
                     return credentialProcedureRepository.save(credentialProcedure)
                             .then(Mono.just(credentialProcedure.getProcedureId().toString()));
                 });
