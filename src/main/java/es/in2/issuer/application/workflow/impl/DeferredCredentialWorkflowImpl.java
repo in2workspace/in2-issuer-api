@@ -56,7 +56,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
                                                 String email = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                                                String firstName = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                                String firstName = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("firstName").asText();
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
                                             }
                                             return Mono.empty();

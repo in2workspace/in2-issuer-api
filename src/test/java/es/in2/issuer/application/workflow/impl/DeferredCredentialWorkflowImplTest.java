@@ -97,8 +97,8 @@ class DeferredCredentialWorkflowImplTest {
                                 "mandatee": {
                                     "id": "did:key:zDnaewZjPbFqyGvXVf5JuGCuSfTxXyFrKqoVrBFTQh17pqRbA",
                                     "email": "juan.perez@mail.com",
-                                    "first_name": "Juan",
-                                    "last_name": "Perez",
+                                    "firstName": "Juan",
+                                    "lastName": "Perez",
                                     "mobile_phone": "+34 662233445"
                                 },
                                 "mandator": {
