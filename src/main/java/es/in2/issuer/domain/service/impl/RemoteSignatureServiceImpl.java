@@ -61,7 +61,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private String clientSecret;
 
     @Override
-    //TODO Cuando se implementen los "settings" del issuer, se debe pasar el clientId, secret, etc. como parámetros en lugar de var entorno
+    //FIXME Cuando se implementen los "settings" del issuer, se debe pasar el clientId, secret, etc. como parámetros en lugar de var entorno
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         clientId = remoteSignatureConfig.getRemoteSignatureClientId();
         clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();

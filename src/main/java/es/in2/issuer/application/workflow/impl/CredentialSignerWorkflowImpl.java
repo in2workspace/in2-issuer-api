@@ -85,7 +85,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token, String procedureId) {
         return Mono.defer(() -> {
             if (format.equals(JWT_VC)) {
-                log.info("Credential Payload {}", unsignedCredential);
+                log.debug("Credential Payload {}", unsignedCredential);
                 log.info("Signing credential in JADES remotely ...");
                 SignatureRequest signatureRequest = new SignatureRequest(
                         new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
