@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.domain.exception.ParseErrorException;
+import es.in2.issuer.domain.exception.UnauthorizedRoleException;
 import es.in2.issuer.domain.model.dto.credential.lear.LEARCredential;
 import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.domain.model.dto.credential.lear.Power;
@@ -14,9 +15,7 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
@@ -39,20 +38,30 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     public Mono<Void> authorize(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> Mono.justOrEmpty(jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE))
-                        .switchIfEmpty(Mono.error(new SecurityException("Access denied: Unauthorized Rol 'null'")))
-                        .flatMap(role -> switch(role.replace("\"", "")) {
-                                // case LER -> Mono.empty();
-                                case SYSDAMIN, LER -> Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED,
-                                        "The request is invalid. The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
-                                case LEAR -> handleLearRole(token, schema, payload);
-                                default ->
-                                        Mono.error(new SecurityException("Access denied: Unauthorized Rol '" + role + "'"));
-                            }
-                        )
+                        .flatMap(role -> {
+                            String roleClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE);
+                            return authorizeByRole(roleClaim, token, schema, payload);
+                        })
                 );
     }
 
-    private Mono<Void> handleLearRole(String token, String schema, JsonNode payload) {
+    private Mono<Void> authorizeByRole(String role, String token, String schema, JsonNode payload) {
+        String cleanedRole = role.replace("\"", "");
+        if (cleanedRole.isBlank()) {
+            return Mono.error(new UnauthorizedRoleException("Access denied: Role is empty"));
+        }
+        if (VERIFIABLE_CERTIFICATION.equals(schema) && !LEAR.equals(cleanedRole)) {
+            return Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + cleanedRole + "'"));
+        }
+        return switch (cleanedRole) {
+            case SYS_ADMIN, LER -> Mono.error(new UnauthorizedRoleException( "The request is invalid. " +
+                    "The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
+            case LEAR -> checkPoliciesForLEARRole(token, schema, payload);
+            default -> Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + cleanedRole + "'"));
+        };
+    }
+
+    private Mono<Void> checkPoliciesForLEARRole(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
             .flatMap(signedJWT -> {
                 String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);

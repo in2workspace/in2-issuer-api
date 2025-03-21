@@ -29,7 +29,7 @@ public class Constants {
     public static final String ROLE = "role";
     public static final String LER = "LER";
     public static final String LEAR = "LEAR";
-    public static final String SYSDAMIN = "SYSDAMIN";
+    public static final String SYS_ADMIN = "SYSADMIN";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
     public static final String EMAIL_ADDRESS = "emailAddress";

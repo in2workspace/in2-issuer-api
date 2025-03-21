@@ -38,11 +38,6 @@ public class VerifiableCertificationFactory {
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
         SignedJWT signedJWT = jwtService.parseJWT(token);
-        String rolClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE);
-        if(rolClaim==null || !rolClaim.equals(LEAR)){
-            return Mono.error(new SecurityException("Access denied: Unauthorized Role '"
-                    +(rolClaim==null?"null":rolClaim)+"'"));
-        }
         String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
