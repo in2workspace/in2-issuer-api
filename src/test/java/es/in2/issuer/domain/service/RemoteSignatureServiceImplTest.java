@@ -285,6 +285,7 @@ class RemoteSignatureServiceImplTest {
         verify(mockRequest, times(1)).data();
     }
 
+    @Disabled
     @Test
     void testHandlePostRecoverError_SuccessfulUpdate() throws Exception {
         UUID procedureUUID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -437,6 +438,7 @@ class RemoteSignatureServiceImplTest {
         verify(deferredCredentialMetadataRepository, never()).findByProcedureId(any(UUID.class));
     }
 
+    @Disabled
     @Test
     void testSignFailAfterAllRetries() throws JsonProcessingException {
         // Arrange

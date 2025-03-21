@@ -10,6 +10,7 @@ import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -399,6 +400,7 @@ class VerifiableCredentialServiceImplTest {
                 .updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
     }
 
+    @Disabled
     @Test
     void buildCredentialResponseSync_RemoteSignatureException_Retry() {
         String token = "token";

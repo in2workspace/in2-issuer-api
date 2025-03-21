@@ -10,6 +10,7 @@ import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
@@ -53,6 +54,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
+    private final CredentialProcedureService credentialProcedureService;
+    private final AppConfig appConfig;
+    private final EmailService emailService;
     private final List<Map.Entry<String, String>> headers = new ArrayList<>();
     private final Map<String, Object> requestBody = new HashMap<>();
     private String credentialID;
@@ -309,7 +313,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
         credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
-        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDocdummy";
+        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
         String signatureQualifier = "eu_eidas_qes";
         String signatureFormat = "J";
         String conformanceLevel = "Ades-B-B";
@@ -420,8 +424,20 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             .then();
                 });
 
+        String domain = appConfig.getIssuerUiExternalDomain();
+        Mono<Void> sendEmail = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)
+                .flatMap(signerEmail ->
+                        emailService.sendPendingSignatureCredentialNotification(
+                                signerEmail,
+                                "Failed to sign credential, please activate manual signature.",
+                                procedureId,
+                                domain
+                        )
+                );
+
         return updateOperationMode
                 .then(updateDeferredMetadata)
+                .then(sendEmail)
                 .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", error)));
     }
 }

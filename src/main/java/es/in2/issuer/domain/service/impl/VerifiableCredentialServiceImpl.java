@@ -122,19 +122,15 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                             .build()))
                                     .onErrorResume(RemoteSignatureException.class, error -> {
                                         log.info("Error in SYNC mode, retrying with new operation mode");
-                                        return credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureIdReceived)
-                                                .flatMap(signerEmail ->
-                                                        emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived, domain)
-                                                                .then(credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived))
-                                                )
-                                                //FIXME MAIL FUERA
+                                        return credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived)
                                                 .flatMap(unsignedCredential ->
-                                                        Mono.just(VerifiableCredentialResponse.builder()
-                                                        .credential(unsignedCredential)
-                                                        .transactionId(transactionId)
-                                                        .build())
-                                                ).doOnSuccess(credentialResponse -> log.info("Credential response built successfully {} {}", credentialResponse.credential(), credentialResponse.transactionId()));
-
+                                                        Mono.just(
+                                                                VerifiableCredentialResponse.builder()
+                                                                        .credential(unsignedCredential)
+                                                                        .transactionId(transactionId)
+                                                                        .build()
+                                                        )
+                                                );
                                     })
                     );
         }
