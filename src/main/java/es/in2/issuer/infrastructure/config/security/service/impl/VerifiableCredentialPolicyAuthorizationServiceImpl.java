@@ -176,6 +176,7 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
                     try {
                         // Unescape the JSON string
                         String unescapedVcClaim = objectMapper.readValue(idVcClaim, String.class);
+                        log.info("Unescaped vc_json: {}", unescapedVcClaim);
                         LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(unescapedVcClaim);
                         return Mono.just(learCredential);
                     } catch (Exception e) {
