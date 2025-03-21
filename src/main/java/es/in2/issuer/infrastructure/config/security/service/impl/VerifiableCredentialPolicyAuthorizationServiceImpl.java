@@ -173,13 +173,14 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
                 .flatMap(idSignedJWT -> {
                     // Extract the 'vc_json' claim from the idToken.
                     String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
-                    LEARCredentialEmployee learCredential;
                     try {
-                        learCredential = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(idVcClaim);
+                        // Unescape the JSON string
+                        String unescapedVcClaim = objectMapper.readValue(idVcClaim, String.class);
+                        LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(unescapedVcClaim);
+                        return Mono.just(learCredential);
                     } catch (Exception e) {
                         return Mono.error(new ParseErrorException("Error parsing id_token credential"));
                     }
-                    return Mono.just(learCredential);
                 });
     }
 
