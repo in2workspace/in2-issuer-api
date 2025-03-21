@@ -93,14 +93,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                         return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid)
                                                 .flatMap(bindCredentialWithMandateeId -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredentialWithMandateeId, format)
                                                     .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
-                                                    .flatMap(transactionIdMandatee -> {
-                                                        log.info("Transaction ID obtained for Mandatee Completion: {}", transactionIdMandatee);
-                                                        //FIXME -------------
+                                                    .flatMap(transactionId -> {
+                                                        log.info("Transaction ID obtained: {}", transactionId);
                                                         return credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredentialWithMandateeId, credentialType, format, authServerNonce)
-                                                                .flatMap(transactionIdIssuer -> {
-                                                                    log.info("Transaction ID obtained for Issuer Completion: {}", transactionIdIssuer);
-                                                                    return buildCredentialResponseBasedOnOperationMode(operationMode, bindCredentialWithMandateeId, transactionIdIssuer, authServerNonce, token);
-                                                                });
+                                                                .then(buildCredentialResponseBasedOnOperationMode(operationMode, bindCredentialWithMandateeId, transactionId, authServerNonce, token));
                                                     }));
                                     });
                         });
@@ -131,6 +127,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                                         emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived, domain)
                                                                 .then(credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived))
                                                 )
+                                                //FIXME MAIL FUERA
                                                 .flatMap(unsignedCredential ->
                                                         Mono.just(VerifiableCredentialResponse.builder()
                                                         .credential(unsignedCredential)

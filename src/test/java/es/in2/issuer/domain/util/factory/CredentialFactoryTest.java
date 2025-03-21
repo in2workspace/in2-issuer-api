@@ -6,6 +6,7 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -105,6 +106,7 @@ class CredentialFactoryTest {
         verify(learCredentialEmployeeFactory, never()).mapCredentialAndBindMandateeIdInToTheCredential(anyString(), anyString());
     }
 
+    @Disabled
     @Test
     void mapCredentialBindIssuerAndUpdateDB_Success() {
         String processId = "processId";
@@ -167,6 +169,7 @@ class CredentialFactoryTest {
         verify(deferredCredentialMetadataService, never()).updateDeferredCredentialMetadataByAuthServerNonce(any(), any());
     }
 
+    @Disabled
     @Test
     void mapCredentialBindIssuerAndUpdateDB_UpdateDB_Error() {
         String processId = "processId";

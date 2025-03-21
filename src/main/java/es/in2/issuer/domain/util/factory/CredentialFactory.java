@@ -45,13 +45,13 @@ public class CredentialFactory {
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));
     }
 
-    public Mono<String> mapCredentialBindIssuerAndUpdateDB(String processId, String procedureId, String decodedCredential, String credentialType, String format, String authServerNonce) {
+    public Mono<Void> mapCredentialBindIssuerAndUpdateDB(String processId, String procedureId, String decodedCredential, String credentialType, String format, String authServerNonce) {
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(decodedCredential, procedureId)
                     .flatMap(bindCredential -> {
                         log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", processId, bindCredential);
                         return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, format)
-                                .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format));
+                                .then(deferredCredentialMetadataService.updateDeferredCredentialByAuthServerNonce(authServerNonce, format));
                     });
         }
         return Mono.error(new CredentialTypeUnsupportedException(credentialType));

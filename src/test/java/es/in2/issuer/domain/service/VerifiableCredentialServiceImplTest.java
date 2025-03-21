@@ -257,7 +257,7 @@ class VerifiableCredentialServiceImplTest {
         when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
                 .thenReturn(Mono.just(transactionId));
 
-        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.just(transactionId));
+        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
 
         // Act: Call the method
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "A");
@@ -354,7 +354,7 @@ class VerifiableCredentialServiceImplTest {
 
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)).thenReturn(Mono.just(procedureId));
 
-        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.just(transactionId));
+        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "token", procedureId, Constants.JWT_VC)).thenReturn(Mono.just("signedCredential"));
 
         // Act: Call the method
@@ -430,7 +430,7 @@ class VerifiableCredentialServiceImplTest {
         when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
                 .thenReturn(Mono.just(transactionId));
 
-        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.just(transactionId));
+        when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
 
         // --- SYNC ---
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
