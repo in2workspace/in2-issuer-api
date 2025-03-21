@@ -95,6 +95,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                                     .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
                                                     .flatMap(transactionIdMandatee -> {
                                                         log.info("Transaction ID obtained for Mandatee Completion: {}", transactionIdMandatee);
+                                                        //FIXME -------------
                                                         return credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredentialWithMandateeId, credentialType, format, authServerNonce)
                                                                 .flatMap(transactionIdIssuer -> {
                                                                     log.info("Transaction ID obtained for Issuer Completion: {}", transactionIdIssuer);
@@ -130,10 +131,13 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                                         emailService.sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureIdReceived, domain)
                                                                 .then(credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived))
                                                 )
-                                                .flatMap(unsignedCredential -> Mono.just(VerifiableCredentialResponse.builder()
+                                                .flatMap(unsignedCredential ->
+                                                        Mono.just(VerifiableCredentialResponse.builder()
                                                         .credential(unsignedCredential)
                                                         .transactionId(transactionId)
-                                                        .build()));
+                                                        .build())
+                                                ).doOnSuccess(credentialResponse -> log.info("Credential response built successfully {} {}", credentialResponse.credential(), credentialResponse.transactionId()));
+
                                     })
                     );
         }
