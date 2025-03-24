@@ -106,6 +106,12 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
+    public Mono<String> getOperationModeByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> Mono.just(credentialProcedure.getOperationMode()));
+    }
+
+    @Override
     public Mono<String> getCredentialStatusByProcedureId(String procedureId) {
         log.debug("Getting credential status for procedureId: {}", procedureId);
         return credentialProcedureRepository.findCredentialStatusByProcedureId(UUID.fromString(procedureId));

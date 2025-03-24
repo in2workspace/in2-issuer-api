@@ -260,8 +260,9 @@ class VerifiableCredentialServiceImplTest {
 
         when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
 
+        when(credentialProcedureService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("A"));
         // Act: Call the method
-        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "A");
+        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token");
 
         // Convert the bindCredential JSON string to LEARCredentialEmployee
         JsonNode vcNode = objectMapper.readTree(bindCredential);
@@ -293,7 +294,7 @@ class VerifiableCredentialServiceImplTest {
         verify(credentialProcedureService, times(1))
                 .getCredentialTypeByProcedureId(procedureId);
 
-        verify(credentialProcedureService, times(1))
+        verify(credentialProcedureService, times(2))
                 .getDecodedCredentialByProcedureId(procedureId);
 
         verify(credentialFactory, times(1))
@@ -357,9 +358,9 @@ class VerifiableCredentialServiceImplTest {
 
         when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "token", procedureId, Constants.JWT_VC)).thenReturn(Mono.just("signedCredential"));
-
+        when(credentialProcedureService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("S"));
         // Act: Call the method
-        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token", "S");
+        Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(processId, subjectDid, authServerNonce, format, "token");
 
         // Convert the bindCredential JSON string to LEARCredentialEmployee
         JsonNode vcNode = objectMapper.readTree(bindCredential).get("vc");
@@ -449,7 +450,7 @@ class VerifiableCredentialServiceImplTest {
                 .thenReturn(Mono.empty());
 
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(
-                processId, subjectDid, authServerNonce, format, token, "S");
+                processId, subjectDid, authServerNonce, format, token);
 
         StepVerifier.create(result)
                 .expectNextMatches(response ->

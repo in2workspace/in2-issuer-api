@@ -149,7 +149,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                             deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
                                     .flatMap(operationMode ->
                                             verifiableCredentialService.buildCredentialResponse(
-                                                            processId, subjectDid, authServerNonce, credentialRequest.format(), token, operationMode)
+                                                            processId, subjectDid, authServerNonce, credentialRequest.format(), token)
                                                     .flatMap(credentialResponse -> switch (operationMode) {
                                                         case ASYNC -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                                                                 .flatMap(credentialProcedureService::getSignerEmailFromDecodedCredentialByProcedureId)

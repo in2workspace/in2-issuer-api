@@ -267,7 +267,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token)).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
@@ -338,7 +338,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token)).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));
@@ -388,7 +388,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String decodedCredential = "decodedCredential";
 
         when(proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)).thenReturn(Mono.just(true));
-        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token, "S")).thenReturn(Mono.just(verifiableCredentialResponse));
+        when(verifiableCredentialService.buildCredentialResponse(processId,did,jti,credentialRequest.format(), token)).thenReturn(Mono.just(verifiableCredentialResponse));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just(procedureId));
         when(deferredCredentialMetadataService.getOperationModeByAuthServerNonce(jti)).thenReturn(Mono.just("S"));
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(jti)).thenReturn(Mono.just("procedureId"));

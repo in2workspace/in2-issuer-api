@@ -8,10 +8,8 @@ import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.domain.service.EmailService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
-import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,8 +28,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
-    private final EmailService emailService;
-    private final AppConfig appConfig;
 
     @Override
     public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
@@ -80,7 +76,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
     @Override
-    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format, String token, String operationMode) {
+    public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format, String token) {
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
             .flatMap(procedureId -> {
                 log.info("Procedure ID obtained: {}", procedureId);
@@ -93,11 +89,12 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                         return credentialFactory.mapCredentialAndBindMandateeId(processId, credentialType, decodedCredential, subjectDid)
                                                 .flatMap(bindCredentialWithMandateeId -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredentialWithMandateeId, format)
                                                     .then(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
-                                                    .flatMap(transactionId -> {
-                                                        log.info("Transaction ID obtained: {}", transactionId);
-                                                        return credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredentialWithMandateeId, credentialType, format, authServerNonce)
-                                                                .then(buildCredentialResponseBasedOnOperationMode(operationMode, bindCredentialWithMandateeId, transactionId, authServerNonce, token));
-                                                    }));
+                                                        .flatMap(transactionId -> {
+                                                            log.info("Transaction ID obtained: {}", transactionId);
+                                                            return credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredentialWithMandateeId, credentialType, format, authServerNonce)
+                                                                    .then(credentialProcedureService.getOperationModeByProcedureId(procedureId))
+                                                                    .flatMap(actualOperationMode -> buildCredentialResponseBasedOnOperationMode(actualOperationMode, procedureId, transactionId, authServerNonce, token));
+                                                        }));
                                     });
                         });
             });
@@ -105,15 +102,17 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
 
 
-    private Mono<VerifiableCredentialResponse> buildCredentialResponseBasedOnOperationMode(String operationMode, String bindCredential, String transactionId, String authServerNonce, String token) {
+    private Mono<VerifiableCredentialResponse> buildCredentialResponseBasedOnOperationMode(String operationMode, String procedureId, String transactionId, String authServerNonce, String token) {
         if (operationMode.equals(ASYNC)) {
-            log.info("LEAR Credential JSON: {}", bindCredential);
-            return Mono.just(VerifiableCredentialResponse.builder()
-                    .credential(bindCredential)
-                    .transactionId(transactionId)
-                    .build());
+            return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
+                    .flatMap(decodedCredential -> {
+                        log.info("ASYNC Credential JSON: {}", decodedCredential);
+                        return Mono.just(VerifiableCredentialResponse.builder()
+                                .credential(decodedCredential)
+                                .transactionId(transactionId)
+                                .build());
+                    });
         } else if (operationMode.equals(SYNC)) {
-            String domain = appConfig.getIssuerUiExternalDomain();
             return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                     .flatMap(procedureIdReceived ->
                             credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureIdReceived, JWT_VC)

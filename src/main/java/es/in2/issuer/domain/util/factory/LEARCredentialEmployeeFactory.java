@@ -168,7 +168,7 @@ public class LEARCredentialEmployeeFactory {
                     }
                     log.error("Error Time: {}", new Date());
                     return remoteSignatureServiceImpl.handlePostRecoverError(throwable, procedureId)
-                            .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
+                            .then(Mono.empty());
                 });
     }
 
