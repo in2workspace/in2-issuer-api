@@ -15,6 +15,7 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -167,20 +168,23 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
      * @return a Mono emitting the LEARCredential interface if valid.
      */
     private Mono<LEARCredential> validateIdToken(String idToken) {
-        // Verify the token signature without checking expiration
+        // Use the verifierService's method that verifies the token without expiration check.
         return verifierService.verifyTokenWithoutExpiration(idToken)
                 .then(Mono.fromCallable(() -> jwtService.parseJWT(idToken)))
                 .flatMap(idSignedJWT -> {
                     // Extract the 'vc_json' claim from the idToken.
                     String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
                     try {
-                        // Check if the claim is already a valid JSON object string
+                        // Log the raw claim value for debugging
+                        log.info("Raw vc_json: {}", idVcClaim);
+                        // If the string starts and ends with quotes, remove them.
                         String processedVcClaim = idVcClaim;
-                        if (!idVcClaim.trim().startsWith("{")) {
-                            log.info("Processed vc claim, remove extra quotes and escapes : " + processedVcClaim);
-                            // If not, unescape it (i.e. remove extra quotes and escapes)
-                            processedVcClaim = objectMapper.readValue(idVcClaim, String.class);
+                        if (processedVcClaim.startsWith("\"") && processedVcClaim.endsWith("\"")) {
+                            processedVcClaim = processedVcClaim.substring(1, processedVcClaim.length() - 1);
                         }
+                        // Also, unescape any Java string escapes (e.g., \" becomes ")
+                        processedVcClaim = StringEscapeUtils.unescapeJava(processedVcClaim);
+                        log.info("Processed vc_json: {}", processedVcClaim);
                         LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory
                                 .mapStringToLEARCredentialEmployee(processedVcClaim);
                         return Mono.just(learCredential);
@@ -189,6 +193,7 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
                     }
                 });
     }
+
 
 
     private boolean containsCertificationAndAttest(List<Power> powers) {
