@@ -185,7 +185,7 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
                                 .mapStringToLEARCredentialEmployee(processedVcClaim);
                         return Mono.just(learCredential);
                     } catch (Exception e) {
-                        return Mono.error(new ParseErrorException("Error parsing id_token credential", e));
+                        return Mono.error(new ParseErrorException("Error parsing id_token credential" + e));
                     }
                 });
     }
