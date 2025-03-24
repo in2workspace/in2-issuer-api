@@ -38,18 +38,12 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     public Mono<Void> authorize(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> {
-                    try {
-                        String payloadStr = signedJWT.getPayload().toString();
-                        ObjectMapper mapper = new ObjectMapper();
-                        JsonNode jsonPayload = mapper.readTree(payloadStr);
-                        if (jsonPayload.has(ROLE)) {
-                            String roleClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE);
-                            return authorizeByRole(roleClaim, token, schema, payload);
-                        }else{
-                            return checkPoliciesForLearOrExternalAccess(token, schema, payload);
-                        }
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException("Error processing JSON payload: " + e.getMessage(), e));
+                    String payloadStr = signedJWT.getPayload().toString();
+                    if (!payloadStr.contains(ROLE)) {
+                        return checkPoliciesForLearOrExternalAccess(token, schema, payload);
+                    }else{
+                        String roleClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE);
+                        return authorizeByRole(roleClaim, token, schema, payload);
                     }
                 });
     }
