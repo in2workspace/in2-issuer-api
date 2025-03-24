@@ -69,8 +69,8 @@ public class CustomAuthenticationManager implements ReactiveAuthenticationManage
             throw new BadCredentialsException("The 'vc' claim is required but not present.");
         }
         String vcJson;
-        if (vcObj instanceof String) {
-            vcJson = (String) vcObj;
+        if (vcObj instanceof String vc) {
+            vcJson = vc;
         } else {
             try {
                 vcJson = objectMapper.writeValueAsString(vcObj);

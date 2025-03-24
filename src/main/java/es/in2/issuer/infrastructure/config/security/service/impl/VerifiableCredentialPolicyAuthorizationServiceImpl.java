@@ -15,7 +15,6 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -135,8 +134,11 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
 
     private Mono<Void> authorizeVerifiableCertification(LEARCredential learCredential, String idToken) {
         return isVerifiableCertificationPolicyValid(learCredential, idToken)
-                .flatMap(valid -> valid ? Mono.empty() : Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy.")));
+                .flatMap(valid -> valid
+                        ? Mono.empty()
+                        : Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy.")));
     }
+
 
     private boolean isSignerIssuancePolicyValid(LEARCredential learCredential) {
         return isLearCredentialEmployeeMandatorOrganizationIdentifierAllowedSigner(extractMandator(learCredential)) &&

@@ -75,10 +75,8 @@ public class VerifierServiceImpl implements VerifierService {
                         }
 
                         // Validate expiration time if requested
-                        if (checkExpiration) {
-                            if (claims.getExpirationTime() == null || new Date().after(claims.getExpirationTime())) {
-                                return Mono.error(new JWTVerificationException("Token has expired"));
-                            }
+                        if (checkExpiration && (claims.getExpirationTime() == null || new Date().after(claims.getExpirationTime()))) {
+                            return Mono.error(new JWTVerificationException("Token has expired"));
                         }
 
                         // Verify the signature
