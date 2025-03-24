@@ -237,7 +237,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     public Mono<String> requestCertificateInfo(String accessToken, String credentialID){
-        String credentialsInfoEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/credentials/info";
+        String credentialsInfoEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/credentials/infodummy";
         Map<String, Object> requestBody = new HashMap<>();
         List<Map.Entry<String, String>> headers = new ArrayList<>();
         requestBody.put("credentialID", credentialID);

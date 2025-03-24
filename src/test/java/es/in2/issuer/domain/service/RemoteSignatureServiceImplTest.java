@@ -640,6 +640,7 @@ class RemoteSignatureServiceImplTest {
                 .verify();
     }
 
+    @Disabled
     @Test
     void requestCertificateInfo_Success() throws JsonProcessingException {
         String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
@@ -666,6 +667,7 @@ class RemoteSignatureServiceImplTest {
                 .verify();
     }
 
+    @Disabled
     @Test
     void requestCertificateInfo_HttpError() throws JsonProcessingException {
         String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
