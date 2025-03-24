@@ -14,7 +14,6 @@ import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
-import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -72,9 +71,6 @@ class RemoteSignatureServiceImplTest {
     @Mock
     private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
-    @Mock
-    private DefaultSignerConfig defaultSignerConfig;
-
     private SignatureRequest signatureRequest;
     private String token;
     private SignatureType signatureType;
@@ -125,7 +121,7 @@ class RemoteSignatureServiceImplTest {
         when(remoteSignatureConfig.getRemoteSignatureSignPath()).thenReturn("/sign");
         when(httpUtils.postRequest(eq("http://remote-signature-dss.com/api/v1/sign"), any(), anyString()))
                 .thenReturn(Mono.error(new RemoteSignatureException("Error serializing signature request")));
-        doReturn(Mono.empty()).when(remoteSignatureService).handlePostRecoverError(any(), anyString());
+        doReturn(Mono.empty()).when(remoteSignatureService).handlePostRecoverError(anyString());
 
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, "550e8400-e29b-41d4-a716-446655440000");
 
@@ -304,10 +300,10 @@ class RemoteSignatureServiceImplTest {
 
         Throwable originalError = new RuntimeException("Error original");
 
-        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", Throwable.class, String.class);
+        Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
-        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, originalError, procedureUUID.toString());
+        Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, procedureUUID.toString());
 
         StepVerifier.create(resultMono)
                 .expectErrorMatches(throwable -> throwable instanceof RemoteSignatureException &&

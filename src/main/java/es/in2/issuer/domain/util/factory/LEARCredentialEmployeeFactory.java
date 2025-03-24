@@ -167,7 +167,7 @@ public class LEARCredentialEmployeeFactory {
                         log.error("Error after 3 retries, switching to ASYNC mode.");
                     }
                     log.error("Error Time: {}", new Date());
-                    return remoteSignatureServiceImpl.handlePostRecoverError(throwable, procedureId)
+                    return remoteSignatureServiceImpl.handlePostRecoverError(procedureId)
                             .then(Mono.empty());
                 });
     }

@@ -11,7 +11,6 @@ import es.in2.issuer.domain.service.*;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
 import es.in2.issuer.infrastructure.config.AppConfig;
-import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -48,7 +47,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final JwtUtils jwtUtils;
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
-    private final DefaultSignerConfig defaultSignerConfig;
     private static final String ACCESS_TOKEN_NAME = "access_token";
     private static final String CREDENTIAL = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
@@ -87,7 +85,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             .onErrorResume(throwable -> {
                 log.error("Error after 3 retries, switching to ASYNC mode.");
                 log.error("Error Time: {}", new Date());
-                return handlePostRecoverError(throwable, procedureId)
+                return handlePostRecoverError(procedureId)
                         .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", throwable)));
             }));
     }
@@ -427,7 +425,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
-    public Mono<String>handlePostRecoverError(Throwable error, String procedureId) {
+    public Mono<Void> handlePostRecoverError(String procedureId) {
         Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);
@@ -457,7 +455,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
         return updateOperationMode
                 .then(updateDeferredMetadata)
-                .then(sendEmail)
-                .then(Mono.error(new RemoteSignatureException("Signature Failed, changed to ASYNC mode", error)));
+                .then(sendEmail);
     }
 }

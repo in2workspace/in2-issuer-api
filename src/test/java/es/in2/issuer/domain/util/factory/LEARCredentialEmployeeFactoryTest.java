@@ -154,7 +154,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
         when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(false));
 
-        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId))).thenReturn(Mono.empty());
+        when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId))).thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
                 .expectError(RemoteSignatureException.class)
@@ -177,7 +177,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .thenAnswer(invocation -> Mono.error(new ConnectException("Connection timeout")));
 
         when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(true);
-        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId))).thenReturn(Mono.empty());
+        when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId))).thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
                 .expectErrorSatisfies(throwable -> {
@@ -187,7 +187,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(4)).validateCredentials();
-        verify(remoteSignatureServiceImpl).handlePostRecoverError(any(), eq(procedureId));
+        verify(remoteSignatureServiceImpl).handlePostRecoverError(eq(procedureId));
     }
     @Disabled
     @Test
@@ -236,7 +236,7 @@ class LEARCredentialEmployeeFactoryTest {
 
         when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(false);
 
-        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId)))
+        when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId)))
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
@@ -247,7 +247,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(1)).validateCredentials();
-        verify(remoteSignatureServiceImpl, times(1)).handlePostRecoverError(any(), eq(procedureId));
+        verify(remoteSignatureServiceImpl, times(1)).handlePostRecoverError(eq(procedureId));
     }
     @Disabled
     @Test
@@ -264,7 +264,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .thenAnswer(invocation -> Mono.error(new ConnectException("Connection timeout")));
 
         when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(true);
-        when(remoteSignatureServiceImpl.handlePostRecoverError(any(), eq(procedureId)))
+        when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId)))
                 .thenReturn(Mono.error(new RuntimeException("Error in post-recovery handling")));
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
@@ -275,7 +275,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(4)).validateCredentials();
-        verify(remoteSignatureServiceImpl).handlePostRecoverError(any(), eq(procedureId));
+        verify(remoteSignatureServiceImpl).handlePostRecoverError(eq(procedureId));
     }
 
 
