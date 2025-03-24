@@ -292,15 +292,17 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 return Mono.error(new OrganizationIdentifierNotFoundException("organizationIdentifier not found in the certificate."));
             }
 
-            return Mono.just(DetailedIssuer.builder()
-                    .id(DID_ELSI + organizationIdentifier)
-                    .organizationIdentifier(organizationIdentifier)
-                    .organization(dnAttributes.get("O"))
-                    .country(dnAttributes.get("C"))
-                    .commonName(dnAttributes.get("CN"))
-                    .emailAddress(getMandatorMail(procedureId).block())
-                    .serialNumber(serialNumber)
-                    .build());
+            String finalOrganizationIdentifier = organizationIdentifier;
+            return getMandatorMail(procedureId)
+                    .map(mandatorMail -> DetailedIssuer.builder()
+                            .id(DID_ELSI + finalOrganizationIdentifier)
+                            .organizationIdentifier(finalOrganizationIdentifier)
+                            .organization(dnAttributes.get("O"))
+                            .country(dnAttributes.get("C"))
+                            .commonName(dnAttributes.get("CN"))
+                            .emailAddress(mandatorMail)
+                            .serialNumber(serialNumber)
+                            .build());
 
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException("Error parsing certificate info", e));
