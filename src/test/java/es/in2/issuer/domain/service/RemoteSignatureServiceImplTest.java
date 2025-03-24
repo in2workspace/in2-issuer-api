@@ -688,9 +688,8 @@ class RemoteSignatureServiceImplTest {
         JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
 
         when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
-        when(defaultSignerConfig.getEmail()).thenReturn("john@example.com");
-
-        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+        doReturn(Mono.just("john@example.com")).when(remoteSignatureService).getMandatorMail(any());
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "procedureId"))
                 .assertNext(issuer -> {
                     Assertions.assertEquals("did:elsi:org", issuer.id());
                     Assertions.assertEquals("org", issuer.organizationIdentifier());
@@ -710,7 +709,7 @@ class RemoteSignatureServiceImplTest {
         when(objectMapper.readTree(certificateInfo)).thenThrow(new JsonProcessingException("JSON parse error") {
         });
 
-        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "procedureId"))
                 .expectErrorMessage("Error parsing certificate info")
                 .verify();
     }
@@ -724,7 +723,7 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
 
-        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "procedureId"))
                 .expectErrorSatisfies(throwable -> {
                     Assertions.assertInstanceOf(RuntimeException.class, throwable);
                     Assertions.assertEquals("Error parsing subjectDN", throwable.getMessage());
@@ -741,7 +740,7 @@ class RemoteSignatureServiceImplTest {
 
         when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
 
-        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo))
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "procedureId"))
                 .expectErrorSatisfies(throwable -> {
                     Assertions.assertInstanceOf(OrganizationIdentifierNotFoundException.class, throwable);
                     Assertions.assertEquals("organizationIdentifier not found in the certificate.", throwable.getMessage());

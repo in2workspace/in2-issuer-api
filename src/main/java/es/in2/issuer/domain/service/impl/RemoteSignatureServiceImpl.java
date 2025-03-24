@@ -257,7 +257,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 .doOnError(error -> log.error("Error sending credential to sign: {}", error.getMessage()));
     }
 
-    public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo) {
+    public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo, String procedureId) {
         try {
             JsonNode certificateInfoNode = objectMapper.readTree(certificateInfo);
             String subjectDN = certificateInfoNode.get("cert").get("subjectDN").asText();
@@ -298,7 +298,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                     .organization(dnAttributes.get("O"))
                     .country(dnAttributes.get("C"))
                     .commonName(dnAttributes.get("CN"))
-                    .emailAddress(defaultSignerConfig.getEmail())
+                    .emailAddress(getMandatorMail(procedureId).block())
                     .serialNumber(serialNumber)
                     .build());
 
@@ -311,9 +311,27 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
+    //FIXME Eliminar la función cuando el mail de Jesús no sea un problema
+    public Mono<String> getMandatorMail(String procedureId){
+        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
+                .flatMap(credentialProcedure -> {
+                    try {
+                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                            if (credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText().equals("jesus.ruiz@in2.es")) {
+                                return Mono.just("domesupport@in2.es");
+                            } else {
+                                return Mono.just(credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText());
+                        }
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new RuntimeException());
+                    }
+
+                });
+    }
+
     private Mono<String> sendSignatureRequest(SignatureRequest signatureRequest, String accessToken) {
         credentialID = remoteSignatureConfig.getRemoteSignatureCredentialId();
-        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDoc";
+        String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/signatures/signDocdummy";
         String signatureQualifier = "eu_eidas_qes";
         String signatureFormat = "J";
         String conformanceLevel = "Ades-B-B";

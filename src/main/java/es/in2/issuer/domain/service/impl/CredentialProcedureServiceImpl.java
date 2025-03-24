@@ -163,7 +163,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
-    //FIXME cambiar correo por el del mandator cuando quede claro que mail usar para no usar el de jesus
+    //FIXME Ajustar estos if-else
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
@@ -177,7 +177,11 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 return Mono.just(credential.get(VC).get(ISSUER).get(EMAIL_ADDRESS).asText());
                             }
                         } else {
-                            return Mono.just("domesupport@in2.es");
+                            if (credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText().equals("jesus.ruiz@in2.es")) {
+                                return Mono.just("domesupport@in2.es");
+                            } else {
+                                return Mono.just(credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText());
+                            }
                         }
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException());

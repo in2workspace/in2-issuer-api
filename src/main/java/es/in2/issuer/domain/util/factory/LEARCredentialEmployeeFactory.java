@@ -145,7 +145,7 @@ public class LEARCredentialEmployeeFactory {
                     if (valid) {
                         return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), "service")
                                 .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
-                                .flatMap(remoteSignatureServiceImpl::extractIssuerFromCertificateInfo);
+                                .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, procedureId));
                     } else {
                         log.error("Credentials mismatch. Signature process aborted.");
                         return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
