@@ -15,6 +15,7 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -173,9 +174,10 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
                 .flatMap(idSignedJWT -> {
                     // Extraer el claim "vc_json" del payload
                     String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
+                    String unescapedJson = StringEscapeUtils.unescapeJson(idVcClaim);
                     try {
                         // Convertir el JSON a un objeto LEARCredentialEmployee
-                        LEARCredentialEmployee credentialEmployee = objectMapper.readValue(idVcClaim, LEARCredentialEmployee.class);
+                        LEARCredentialEmployee credentialEmployee = objectMapper.readValue(unescapedJson, LEARCredentialEmployee.class);
                         return Mono.just(credentialEmployee);
                     } catch (Exception e) {
                         return Mono.error(e);
