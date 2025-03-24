@@ -172,19 +172,14 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
         return verifierService.verifyTokenWithoutExpiration(idToken)
                 .then(Mono.fromCallable(() -> jwtService.parseJWT(idToken)))
                 .flatMap(idSignedJWT -> {
-                    // Extraer el claim "vc_json" del payload
+                    // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
                     String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
-                    log.info(idVcClaim);
-//                    String unescapedJson = StringEscapeUtils.unescapeJson(idVcClaim);
-//                    log.info(unescapedJson);
                     try {
-                        // Convertir el JSON a un objeto LEARCredentialEmployee
-                        String innerJson = objectMapper.readValue(idVcClaim, String.class);
-                        LEARCredentialEmployee credentialEmployee = objectMapper.readValue(innerJson, LEARCredentialEmployee.class);
-                        log.info(credentialEmployee.toString());
+                        String processedVc = objectMapper.readValue(idVcClaim, String.class);
+                        LEARCredentialEmployee credentialEmployee = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(processedVc);
                         return Mono.just(credentialEmployee);
-                    } catch (Exception e) {
-                        return Mono.error(e);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new ParseErrorException("Error parsing id_token credential: " + e));
                     }
                 });
 

@@ -40,8 +40,14 @@ public class VerifiableCertificationFactory {
         SignedJWT signedJWT = jwtService.parseJWT(idToken);
         // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
         String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
-        log.info("vcClaim id token : {}", vcClaim);
-        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
+        String processedVc;
+
+        try {
+            processedVc = objectMapper.readValue(vcClaim, String.class);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new ParseErrorException("Error parsing id_token credential: " + e));
+        }
+        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(processedVc);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
                 .flatMap(this::buildVerifiableCertificationJwtPayload)
