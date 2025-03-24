@@ -1,7 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.service.M2MTokenService;
@@ -57,9 +56,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
 
     private String createClientAssertion() {
         String vcMachineString = getVCinJWTDecodedFromBase64();
-        SignedJWT vcMachineJWT = jwtService.parseJWT(vcMachineString);
-        Payload vcMachinePayload = jwtService.getPayloadFromSignedJWT(vcMachineJWT);
-        String clientId = jwtService.getClaimFromPayload(vcMachinePayload, "sub");
+        String clientId = appConfig.getCredentialSubjectDidKey();
 
         Instant issueTime = Instant.now();
         long iat = issueTime.toEpochMilli();
