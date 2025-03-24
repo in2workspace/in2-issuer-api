@@ -15,7 +15,6 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -168,23 +167,29 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
      * @return a Mono emitting the LEARCredential interface if valid.
      */
     private Mono<LEARCredential> validateIdToken(String idToken) {
-        // Use the verifierService's method that verifies the token without expiration check.
+        // Verify the token signature without checking expiration
         return verifierService.verifyTokenWithoutExpiration(idToken)
                 .then(Mono.fromCallable(() -> jwtService.parseJWT(idToken)))
                 .flatMap(idSignedJWT -> {
                     // Extract the 'vc_json' claim from the idToken.
-//                    String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
+                    String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
                     try {
-                        JsonNode root = objectMapper.readTree(idSignedJWT.getPayload().toString());
-                        JsonNode vcNode = root.get("vc_json");
-                        String vcJsonStr = vcNode.asText();
-                        LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcJsonStr);
+                        // Check if the claim is already a valid JSON object string
+                        String processedVcClaim = idVcClaim;
+                        if (!idVcClaim.trim().startsWith("{")) {
+                            log.info("Processed vc claim, remove extra quotes and escapes : " + processedVcClaim);
+                            // If not, unescape it (i.e. remove extra quotes and escapes)
+                            processedVcClaim = objectMapper.readValue(idVcClaim, String.class);
+                        }
+                        LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory
+                                .mapStringToLEARCredentialEmployee(processedVcClaim);
                         return Mono.just(learCredential);
                     } catch (Exception e) {
-                        return Mono.error(new ParseErrorException("Error parsing id_token credential"));
+                        return Mono.error(new ParseErrorException("Error parsing id_token credential", e));
                     }
                 });
     }
+
 
     private boolean containsCertificationAndAttest(List<Power> powers) {
         return powers.stream().anyMatch(this::isCertificationFunction) &&
