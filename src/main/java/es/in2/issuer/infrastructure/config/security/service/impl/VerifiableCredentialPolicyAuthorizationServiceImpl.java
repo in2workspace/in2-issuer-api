@@ -15,7 +15,6 @@ import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -172,26 +171,17 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
         return verifierService.verifyTokenWithoutExpiration(idToken)
                 .then(Mono.fromCallable(() -> jwtService.parseJWT(idToken)))
                 .flatMap(idSignedJWT -> {
-                    // Extract the 'vc_json' claim from the idToken.
+                    // Extraer el claim "vc_json" del payload
                     String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
                     try {
-                        // Log the raw claim value for debugging
-                        log.info("Raw vc_json: {}", idVcClaim);
-                        // If the string starts and ends with quotes, remove them.
-                        String processedVcClaim = idVcClaim;
-                        if (processedVcClaim.startsWith("\"") && processedVcClaim.endsWith("\"")) {
-                            processedVcClaim = processedVcClaim.substring(1, processedVcClaim.length() - 1);
-                        }
-                        // Also, unescape any Java string escapes (e.g., \" becomes ")
-                        processedVcClaim = StringEscapeUtils.unescapeJava(processedVcClaim);
-                        log.info("Processed vc_json: {}", processedVcClaim);
-                        LEARCredentialEmployee learCredential = credentialFactory.learCredentialEmployeeFactory
-                                .mapStringToLEARCredentialEmployee(processedVcClaim);
-                        return Mono.just(learCredential);
+                        // Convertir el JSON a un objeto LEARCredentialEmployee
+                        LEARCredentialEmployee credentialEmployee = objectMapper.readValue(idVcClaim, LEARCredentialEmployee.class);
+                        return Mono.just(credentialEmployee);
                     } catch (Exception e) {
-                        return Mono.error(new ParseErrorException("Error parsing id_token credential" + e));
+                        return Mono.error(e);
                     }
                 });
+
     }
 
 

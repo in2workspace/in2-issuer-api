@@ -40,6 +40,7 @@ public class VerifiableCertificationFactory {
         SignedJWT signedJWT = jwtService.parseJWT(idToken);
         // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
         String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
+        log.info("vcClaim id token : {}", vcClaim);
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
