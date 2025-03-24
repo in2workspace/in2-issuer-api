@@ -85,7 +85,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         // We use a real ObjectMapper to create the JsonNode we need
@@ -120,7 +119,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -155,7 +153,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -209,7 +206,6 @@ class PolicyAuthorizationServiceImplTest {
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -246,7 +242,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -283,8 +278,43 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
+        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
+
+        LEARCredentialEmployee learCredential = getLEARCredentialEmployeeForCertification();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
+
+        // Assert
+        StepVerifier.create(result)
+                .verifyComplete();
+    }
+    @Test
+    void authorize_success_withVerifiableCertificationRoleLear() throws Exception {
+        // Arrange
+        String token = "valid-token";
+        JsonNode payload = mock(JsonNode.class);
+
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
+
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("iss", "external-verifier");
+        String roleClaim =LEAR;
+        payloadMap.put(ROLE, roleClaim);
+        Payload jwtPayload = new Payload(payloadMap);
+
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
+
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
@@ -335,7 +365,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -386,7 +415,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -422,7 +450,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -455,7 +482,6 @@ class PolicyAuthorizationServiceImplTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
         when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn(vcClaim);
 
         ObjectMapper realObjectMapper = new ObjectMapper();
@@ -484,11 +510,13 @@ class PolicyAuthorizationServiceImplTest {
         SignedJWT signedJWT = mock(SignedJWT.class);
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "internal-auth-server");
+        String roleClaim = "\"\"";
+        payloadMap.put(ROLE,roleClaim);
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn("");
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
@@ -509,11 +537,13 @@ class PolicyAuthorizationServiceImplTest {
         SignedJWT signedJWT = mock(SignedJWT.class);
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "internal-auth-server");
+        String roleClaim = LER;
+        payloadMap.put(ROLE,roleClaim);
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LER);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
@@ -522,7 +552,7 @@ class PolicyAuthorizationServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof UnauthorizedRoleException &&
-                                throwable.getMessage().contains("Access denied: Unauthorized Role '"+LER+"'"))
+                                throwable.getMessage().contains("Access denied: Unauthorized Role '"+roleClaim+"'"))
                 .verify();
     }
 
@@ -534,11 +564,13 @@ class PolicyAuthorizationServiceImplTest {
         SignedJWT signedJWT = mock(SignedJWT.class);
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "internal-auth-server");
+        String roleClaim = SYS_ADMIN;
+        payloadMap.put(ROLE,roleClaim);
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(SYS_ADMIN);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -560,11 +592,13 @@ class PolicyAuthorizationServiceImplTest {
         SignedJWT signedJWT = mock(SignedJWT.class);
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "internal-auth-server");
+        String roleClaim = "ADMIN";
+        payloadMap.put(ROLE,roleClaim);
         Payload jwtPayload = new Payload(payloadMap);
 
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn("ADMIN");
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
         Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
@@ -573,10 +607,37 @@ class PolicyAuthorizationServiceImplTest {
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof UnauthorizedRoleException &&
-                                throwable.getMessage().contains("Access denied: Unauthorized Role 'ADMIN'"))
+                                throwable.getMessage().contains("Access denied: Unauthorized Role '"+roleClaim+"'"))
                 .verify();
     }
 
+    @Test
+    void authorize_failureDueToNullRole() {
+        // Arrange
+        String token = "valid-token";
+        JsonNode payload = mock(JsonNode.class);
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("iss", "internal-auth-server");
+        String roleClaim =null;
+        payloadMap.put(ROLE,roleClaim);
+        Payload jwtPayload = new Payload(payloadMap);
+
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof UnauthorizedRoleException &&
+                                throwable.getMessage().contains("Access denied: Role is empty"))
+                .verify();
+    }
+    
     // Auxiliary methods to create LEARCredentialEmployee objects
     private LEARCredentialEmployee getLEARCredentialEmployee() {
         Mandator mandator = Mandator.builder()

@@ -33,7 +33,7 @@ public class IssuanceController {
             value = {
                     @ApiResponse(responseCode = "201", description = "Returns Created when the creation was successfully"),
                     @ApiResponse(responseCode = "400", description = "The request is invalid or missing params Ensure the 'Authorization' header is set with a valid Bearer Token."),
-                    @ApiResponse(responseCode = "401", description = "The role in use is not authorized to access this resource."),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized: Access is denied due to invalid or insufficient credentials."),
                     @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs.")
             }
     )
