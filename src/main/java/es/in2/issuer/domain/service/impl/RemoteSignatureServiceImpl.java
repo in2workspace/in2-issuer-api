@@ -254,7 +254,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 .doOnError(error -> log.error("Error sending credential to sign: {}", error.getMessage()));
     }
 
-    public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo, String procedureId) {
+    public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo, String emailAdress) {
         try {
             JsonNode certificateInfoNode = objectMapper.readTree(certificateInfo);
             String subjectDN = certificateInfoNode.get("cert").get("subjectDN").asText();
@@ -290,16 +290,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             }
 
             String finalOrganizationIdentifier = organizationIdentifier;
-            return getMandatorMail(procedureId)
-                    .map(mandatorMail -> DetailedIssuer.builder()
-                            .id(DID_ELSI + finalOrganizationIdentifier)
-                            .organizationIdentifier(finalOrganizationIdentifier)
-                            .organization(dnAttributes.get("O"))
-                            .country(dnAttributes.get("C"))
-                            .commonName(dnAttributes.get("CN"))
-                            .emailAddress(mandatorMail)
-                            .serialNumber(serialNumber)
-                            .build());
+            return Mono.just(DetailedIssuer.builder()
+                    .id(DID_ELSI + finalOrganizationIdentifier)
+                    .organizationIdentifier(finalOrganizationIdentifier)
+                    .organization(dnAttributes.get("O"))
+                    .country(dnAttributes.get("C"))
+                    .commonName(dnAttributes.get("CN"))
+                    .emailAddress(emailAdress)
+                    .serialNumber(serialNumber)
+                    .build());
 
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException("Error parsing certificate info", e));

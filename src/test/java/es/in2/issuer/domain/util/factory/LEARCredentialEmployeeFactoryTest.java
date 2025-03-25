@@ -207,6 +207,7 @@ class LEARCredentialEmployeeFactoryTest {
         when(remoteSignatureServiceImpl.requestAccessToken(any(), eq(SIGNATURE_REMOTE_SCOPE_SERVICE))).thenReturn(Mono.just("validToken"));
         when(remoteSignatureServiceImpl.requestCertificateInfo(eq("validToken"), any())).thenReturn(Mono.just("mockedCertificateInfo"));
         when(remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(any(), any())).thenReturn(Mono.just(issuer));
+        when(remoteSignatureServiceImpl.getMandatorMail(procedureId)).thenReturn(Mono.just("mail"));
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))

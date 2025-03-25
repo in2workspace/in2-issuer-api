@@ -695,8 +695,7 @@ class RemoteSignatureServiceImplTest {
         JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
 
         when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
-        doReturn(Mono.just("john@example.com")).when(remoteSignatureService).getMandatorMail(any());
-        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "procedureId"))
+        StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "john@example.com"))
                 .assertNext(issuer -> {
                     Assertions.assertEquals("did:elsi:org", issuer.id());
                     Assertions.assertEquals("org", issuer.organizationIdentifier());

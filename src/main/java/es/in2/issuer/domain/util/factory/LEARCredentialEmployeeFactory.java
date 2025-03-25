@@ -143,9 +143,10 @@ public class LEARCredentialEmployeeFactory {
         return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
                     if (valid) {
-                        return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
-                                .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
-                                .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, procedureId));
+                        return remoteSignatureServiceImpl.getMandatorMail(procedureId)
+                            .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
+                                    .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
+                                    .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
                     } else {
                         log.error("Credentials mismatch. Signature process aborted.");
                         return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));

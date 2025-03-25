@@ -52,8 +52,12 @@ public class VerifiableCertificationFactory {
                                 )
                 );
     }
-    //FIXME el issuer del certification debe construirse como en el LEARCredentialEmployeeFactory una vez se realice la tarea de modificación del flujo para cumplir con el OIDC4VC
+    //TODO el issuer del certification debe construirse como en el LEARCredentialEmployeeFactory una vez se realice la tarea de modificación del flujo para cumplir con el OIDC4VC
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
+        //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
+        //Generate Issuer and Signer using LEARCredentialEmployee method
+
+
         // Compliance list with new IDs
         List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
                 .map(compliance -> VerifiableCertification.CredentialSubject.Compliance.builder()
@@ -80,6 +84,8 @@ public class VerifiableCertificationFactory {
         } else {
             issuerCred = DID_ELSI + "VATES-D70795026";
         }
+
+
         // Create the Issuer object using the retrieved UserDetails
         VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
                 .commonName(defaultSignerConfig.getCommonName())
@@ -116,12 +122,6 @@ public class VerifiableCertificationFactory {
     }
 
     public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
-        String issuerCred;
-        if((remoteSignatureConfig.getRemoteSignatureType()).equals(SIGNATURE_REMOTE_TYPE_SERVER)){
-            issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
-        } else {
-            issuerCred = DID_ELSI + "VATES-D70795026";
-        }
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
@@ -129,7 +129,7 @@ public class VerifiableCertificationFactory {
                         .expirationTime(parseDateToUnixTime(credential.validUntil()))
                         .issuedAt(parseDateToUnixTime(credential.validFrom()))
                         .notValidBefore(parseDateToUnixTime(credential.validFrom()))
-                        .issuer(issuerCred)
+                        .issuer(credential.issuer().id())
                         .subject(credential.credentialSubject().product().productId())
                         .build()
         );
