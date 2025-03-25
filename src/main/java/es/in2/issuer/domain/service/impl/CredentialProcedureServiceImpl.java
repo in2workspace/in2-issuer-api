@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.*;
@@ -62,26 +63,28 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
         try {
             JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
             JsonNode typeNode = credential.has(VC) ? credential.get(VC).get(TYPE) : credential.get(TYPE);
-            if (typeNode == null || !typeNode.isArray()) {
-                return Mono.error(new RuntimeException("The credential type is missing"));
-            }
-            String credentialType = extractCredentialType(typeNode);
-            return Mono.justOrEmpty(credentialType);
+
+            return extractCredentialType(typeNode)
+                    .map(Mono::just)
+                    .orElseGet(Mono::empty);
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException(e));
         }
     }
 
-    private String extractCredentialType(JsonNode typeNode) {
-        if (typeNode != null && typeNode.isArray()) {
-            for (JsonNode type : typeNode) {
-                String typeText = type.asText();
-                if (!typeText.equals(VERIFIABLE_CREDENTIAL) && !typeText.equals(VERIFIABLE_ATTESTATION)) {
-                    return typeText;
-                }
+    private Optional<String> extractCredentialType(JsonNode typeNode) {
+        if (typeNode == null || !typeNode.isArray()) {
+            throw new RuntimeException("The credential type is missing");
+        }
+
+        for (JsonNode type : typeNode) {
+            String typeText = type.asText();
+            if (!typeText.equals(VERIFIABLE_CREDENTIAL) && !typeText.equals(VERIFIABLE_ATTESTATION)) {
+                return Optional.of(typeText);
             }
         }
-        return null;
+
+        return Optional.empty();
     }
 
     @Override
@@ -169,7 +172,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
-    //FIXME Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista
+    //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))

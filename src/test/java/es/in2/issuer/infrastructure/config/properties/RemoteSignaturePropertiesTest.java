@@ -2,15 +2,16 @@ package es.in2.issuer.infrastructure.config.properties;
 
 import org.junit.jupiter.api.Test;
 
+import static es.in2.issuer.domain.util.Constants.SIGNATURE_REMOTE_TYPE_SERVER;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RemoteSignaturePropertiesTest {
     @Test
     void testRemoteSignatureProperties() {
         RemoteSignatureProperties.Paths paths = new RemoteSignatureProperties.Paths("signPath");
-        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties("server","domain", paths, "clientId", "clientSecret", "credentialId", "credentialPassword");
+        RemoteSignatureProperties remoteSignatureProperties = new RemoteSignatureProperties(SIGNATURE_REMOTE_TYPE_SERVER,"domain", paths, "clientId", "clientSecret", "credentialId", "credentialPassword");
 
-        assertEquals("server", remoteSignatureProperties.type());
+        assertEquals(SIGNATURE_REMOTE_TYPE_SERVER, remoteSignatureProperties.type());
         assertEquals("domain", remoteSignatureProperties.domain());
         assertEquals(paths, remoteSignatureProperties.paths());
         assertEquals("clientId", remoteSignatureProperties.clientId());

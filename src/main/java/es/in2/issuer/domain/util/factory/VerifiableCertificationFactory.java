@@ -75,7 +75,7 @@ public class VerifiableCertificationFactory {
                 .build();
 
         String issuerCred;
-        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals(SIGNATURE_REMOTE_TYPE_SERVER)){
             issuerCred = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
         } else {
             issuerCred = DID_ELSI + "VATES-D70795026";
@@ -117,7 +117,7 @@ public class VerifiableCertificationFactory {
 
     public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
         String issuerCred;
-        if((remoteSignatureConfig.getRemoteSignatureType()).equals("server")){
+        if((remoteSignatureConfig.getRemoteSignatureType()).equals(SIGNATURE_REMOTE_TYPE_SERVER)){
             issuerCred = DID_ELSI + credential.signer().organizationIdentifier();
         } else {
             issuerCred = DID_ELSI + "VATES-D70795026";

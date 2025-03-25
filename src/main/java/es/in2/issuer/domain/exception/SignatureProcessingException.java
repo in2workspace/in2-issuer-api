@@ -1,6 +1,11 @@
 package es.in2.issuer.domain.exception;
 
-public class SignatureProcessingException extends Exception {
+import java.io.Serial;
+
+public class SignatureProcessingException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public SignatureProcessingException(String message) {
         super(message);
     }

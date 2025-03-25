@@ -1,6 +1,11 @@
 package es.in2.issuer.domain.exception;
 
-public class HashGenerationException extends Exception {
+import java.io.Serial;
+
+public class HashGenerationException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public HashGenerationException(String message) {
         super(message);
     }

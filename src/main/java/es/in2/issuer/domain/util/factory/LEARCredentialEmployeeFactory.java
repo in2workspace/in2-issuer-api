@@ -124,7 +124,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<DetailedIssuer> createIssuer(String procedureId) {
-        if (remoteSignatureConfig.getRemoteSignatureType().equals("server")) {
+        if (remoteSignatureConfig.getRemoteSignatureType().equals(SIGNATURE_REMOTE_TYPE_SERVER)) {
             return Mono.just(DetailedIssuer.builder()
                     .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
                     .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
@@ -143,7 +143,7 @@ public class LEARCredentialEmployeeFactory {
         return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
                     if (valid) {
-                        return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), "service")
+                        return remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
                                 .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
                                 .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, procedureId));
                     } else {

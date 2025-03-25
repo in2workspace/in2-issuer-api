@@ -149,7 +149,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
-    public Mono<Void >updateDeferredCredentialByAuthServerNonce(String authServerNonce, String format) {
+    public Mono<Void> updateDeferredCredentialByAuthServerNonce(String authServerNonce, String format) {
         return deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)
                 .flatMap(deferredCredentialMetadata -> {
                     deferredCredentialMetadata.setVcFormat(format);

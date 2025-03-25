@@ -48,7 +48,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
-    private static final String CREDENTIAL = "credential";
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
@@ -63,7 +62,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private String clientSecret;
 
     @Override
-    //FIXME Cuando se implementen los "settings" del issuer, se debe pasar el clientId, secret, etc. como parámetros en lugar de var entorno
+    //TODO Cuando se implementen los "settings" del issuer, se debe pasar el clientId, secret, etc. como parámetros en lugar de var entorno
     public Mono<SignedData> sign(SignatureRequest signatureRequest, String token, String procedureId) {
         clientId = remoteSignatureConfig.getRemoteSignatureClientId();
         clientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
@@ -99,7 +98,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     public Mono<Boolean> validateCredentials() {
         log.info("Validating credentials");
         SignatureRequest signatureRequest = SignatureRequest.builder().build();
-        return requestAccessToken(signatureRequest, "service")
+        return requestAccessToken(signatureRequest, SIGNATURE_REMOTE_SCOPE_SERVICE)
                 .flatMap(this::validateCertificate);
     }
 
@@ -154,8 +153,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<String> getSignedSignature(SignatureRequest signatureRequest, String token) {
         return switch (remoteSignatureConfig.getRemoteSignatureType()) {
-            case "server" -> getSignedDocumentDSS(signatureRequest, token);
-            case "cloud" -> getSignedDocumentExternal(signatureRequest);
+            case SIGNATURE_REMOTE_TYPE_SERVER -> getSignedDocumentDSS(signatureRequest, token);
+            case SIGNATURE_REMOTE_TYPE_CLOUD -> getSignedDocumentExternal(signatureRequest);
             default -> Mono.error(new RemoteSignatureException("Remote signature service not available"));
         };
     }
@@ -181,7 +180,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<String> getSignedDocumentExternal(SignatureRequest signatureRequest) {
         log.info("Requesting signature to external service");
-        return requestAccessToken(signatureRequest, CREDENTIAL)
+        return requestAccessToken(signatureRequest, SIGNATURE_REMOTE_SCOPE_CREDENTIAL)
                 .flatMap(accessToken -> sendSignatureRequest(signatureRequest, accessToken))
                 .flatMap(responseJson -> processSignatureResponse(signatureRequest, responseJson));
     }
@@ -198,7 +197,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         requestBody.clear();
         requestBody.put("grant_type", grantType);
         requestBody.put("scope", scope);
-        if(scope.equals(CREDENTIAL)){
+        if(scope.equals(SIGNATURE_REMOTE_SCOPE_CREDENTIAL)){
             requestBody.put("authorization_details", buildAuthorizationDetails(signatureRequest.data(), hashAlgorithmOID));
         }
 
@@ -311,7 +310,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
-    //FIXME Eliminar la función cuando el mail de Jesús no sea un problema
+    //TODO Eliminar la función cuando el mail de Jesús no sea un problema
     public Mono<String> getMandatorMail(String procedureId){
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
@@ -396,7 +395,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         credentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
-            authorizationDetails.put("type", CREDENTIAL);
+            authorizationDetails.put("type", SIGNATURE_REMOTE_SCOPE_CREDENTIAL);
             authorizationDetails.put("credentialID", credentialID);
             authorizationDetails.put("credentialPassword", credentialPassword);
             String hashedCredential = hashGeneratorService.generateHash(unsignedCredential, hashAlgorithmOID);

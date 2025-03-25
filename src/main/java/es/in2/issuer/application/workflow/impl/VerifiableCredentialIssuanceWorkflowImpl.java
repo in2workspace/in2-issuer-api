@@ -89,7 +89,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        log.info("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedCredentialRequest.responseUri(), encodedVc, token);
+        log.debug("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedCredentialRequest.responseUri(), encodedVc, token);
 
         // Extract the product ID from the payload
         String productId = preSubmittedCredentialRequest.payload()

@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.DID_ELSI;
+import static es.in2.issuer.domain.util.Constants.SIGNATURE_REMOTE_TYPE_SERVER;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -59,7 +60,7 @@ class VerifiableCertificationFactoryTest {
     @Test
     void testMapAndBuildVerifiableCertification() throws Exception {
         String token = "valid-token";
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_SERVER);
         // Given: A mocked JsonNode input representing the VerifiableCertification
         String credentialJson = """
                 {

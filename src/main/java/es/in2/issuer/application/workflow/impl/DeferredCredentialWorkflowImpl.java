@@ -14,8 +14,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.domain.util.Constants.ASYNC;
-import static es.in2.issuer.domain.util.Constants.VC;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Service
 @RequiredArgsConstructor
@@ -55,8 +54,8 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                String email = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                                                String firstName = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("firstName").asText();
+                                                String email = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(EMAIL).asText();
+                                                String firstName = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText();
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
                                             }
                                             return Mono.empty();

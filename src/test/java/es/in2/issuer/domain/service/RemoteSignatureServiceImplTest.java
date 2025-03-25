@@ -35,7 +35,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
-import static es.in2.issuer.domain.util.Constants.ASYNC;
+import static es.in2.issuer.domain.util.Constants.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -90,7 +90,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignSuccessDSS() throws JsonProcessingException {
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_SERVER);
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -119,7 +119,7 @@ class RemoteSignatureServiceImplTest {
 
     @Test
     void testSignRemoteSignatureException() throws JsonProcessingException {
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_SERVER);
         signatureType = SignatureType.COSE;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration1 = new SignatureConfiguration(signatureType, parameters);
@@ -310,8 +310,6 @@ class RemoteSignatureServiceImplTest {
         when(emailService.sendPendingSignatureCredentialNotification(anyString(), anyString(), eq(procedureUUID.toString()), eq("http://issuer-ui.com")))
                 .thenReturn(Mono.empty());
 
-        Throwable originalError = new RuntimeException("Error original");
-
         Method method = RemoteSignatureServiceImpl.class.getDeclaredMethod("handlePostRecoverError", String.class);
         method.setAccessible(true);
         @SuppressWarnings("unchecked")
@@ -334,7 +332,7 @@ class RemoteSignatureServiceImplTest {
     @Test
     void testSignSuccessOnFirstAttempt() throws JsonProcessingException {
         // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
@@ -382,7 +380,7 @@ class RemoteSignatureServiceImplTest {
     @Test
     void testSignSuccessAfterRetries() throws JsonProcessingException {
         // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);
@@ -447,7 +445,7 @@ class RemoteSignatureServiceImplTest {
     @Test
     void testSignFailAfterAllRetries() throws JsonProcessingException {
         // Arrange
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         signatureType = SignatureType.JADES;
         Map<String, String> parameters = Map.of("param1", "value1", "param2", "value2");
         SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureType, parameters);

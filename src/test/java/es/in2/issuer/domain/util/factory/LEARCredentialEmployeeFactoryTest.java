@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
-import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
@@ -28,6 +27,7 @@ import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static es.in2.issuer.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -125,7 +125,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("server");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_SERVER);
         when(defaultSignerConfig.getOrganizationIdentifier()).thenReturn("ORG123");
         when(defaultSignerConfig.getOrganization()).thenReturn("Company");
         when(defaultSignerConfig.getCountry()).thenReturn("ES");
@@ -149,7 +149,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(false));
 
         when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId))).thenReturn(Mono.empty());
@@ -169,7 +169,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
 
         when(remoteSignatureServiceImpl.validateCredentials())
                 .thenAnswer(invocation -> Mono.error(new ConnectException("Connection timeout")));
@@ -197,14 +197,14 @@ class LEARCredentialEmployeeFactoryTest {
 
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
 
         when(remoteSignatureServiceImpl.validateCredentials())
                 .thenReturn(Mono.error(new ConnectException("Temporary failure")))
                 .thenReturn(Mono.just(true));
 
         when(remoteSignatureServiceImpl.isRecoverableError(any())).thenReturn(true);
-        when(remoteSignatureServiceImpl.requestAccessToken(any(), eq("service"))).thenReturn(Mono.just("validToken"));
+        when(remoteSignatureServiceImpl.requestAccessToken(any(), eq(SIGNATURE_REMOTE_SCOPE_SERVICE))).thenReturn(Mono.just("validToken"));
         when(remoteSignatureServiceImpl.requestCertificateInfo(eq("validToken"), any())).thenReturn(Mono.just("mockedCertificateInfo"));
         when(remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(any(), any())).thenReturn(Mono.just(issuer));
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class))).thenReturn(expectedString);
@@ -224,7 +224,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
 
         when(remoteSignatureServiceImpl.validateCredentials())
                 .thenReturn(Mono.error(new IllegalArgumentException("Non-recoverable error")));
@@ -250,7 +250,7 @@ class LEARCredentialEmployeeFactoryTest {
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class)).thenReturn(learCredentialEmployee);
-        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn("cloud");
+        when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
 
         when(remoteSignatureServiceImpl.validateCredentials())
                 .thenAnswer(invocation -> Mono.error(new ConnectException("Connection timeout")));

@@ -1,6 +1,11 @@
 package es.in2.issuer.domain.exception;
 
-public class AccessTokenException extends Exception {
+import java.io.Serial;
+
+public class AccessTokenException extends RuntimeException {
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     public AccessTokenException(String message) {
         super(message);
     }
