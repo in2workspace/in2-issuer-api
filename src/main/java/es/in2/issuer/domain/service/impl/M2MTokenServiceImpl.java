@@ -44,8 +44,6 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         parameters.put(OAuth2ParameterNames.CLIENT_ID, appConfig.getCredentialSubjectDidKey());
         parameters.put(OAuth2ParameterNames.CLIENT_ASSERTION_TYPE, CLIENT_ASSERTION_TYPE_VALUE);
         parameters.put(OAuth2ParameterNames.CLIENT_ASSERTION, createClientAssertion());
-        log.info("Assertion: {}", parameters.get(OAuth2ParameterNames.CLIENT_ASSERTION));
-        log.info("Client id: {}", parameters.get(OAuth2ParameterNames.CLIENT_ID));
 
         return parameters.entrySet()
                 .stream()
