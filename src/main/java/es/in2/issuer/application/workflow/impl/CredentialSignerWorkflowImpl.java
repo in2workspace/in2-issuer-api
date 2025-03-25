@@ -43,7 +43,6 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final VerifiableCertificationFactory verifiableCertificationFactory;
     private final CredentialProcedureRepository credentialProcedureRepository;
-    private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final CredentialProcedureService credentialProcedureService;
 
     @Override
