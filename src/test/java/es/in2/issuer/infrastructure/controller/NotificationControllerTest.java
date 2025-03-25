@@ -1,6 +1,7 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.service.NotificationService;
+import es.in2.issuer.backend.domain.service.NotificationService;
+import es.in2.issuer.backend.infrastructure.controller.NotificationController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

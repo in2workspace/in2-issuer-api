@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.service.impl.EmailServiceImpl;
+import es.in2.issuer.backend.domain.service.impl.EmailServiceImpl;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

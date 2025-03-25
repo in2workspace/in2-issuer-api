@@ -1,12 +1,13 @@
 package es.in2.issuer.application.workflow.impl;
 
-import es.in2.issuer.application.workflow.DeferredCredentialWorkflow;
-import es.in2.issuer.domain.model.dto.SignatureRequest;
-import es.in2.issuer.domain.model.dto.SignedCredentials;
-import es.in2.issuer.domain.model.dto.SignedData;
-import es.in2.issuer.domain.model.enums.SignatureType;
-import es.in2.issuer.domain.service.CredentialProcedureService;
-import es.in2.issuer.domain.service.RemoteSignatureService;
+import es.in2.issuer.backend.application.workflow.DeferredCredentialWorkflow;
+import es.in2.issuer.backend.application.workflow.impl.CredentialSignerWorkflowImpl;
+import es.in2.issuer.backend.domain.model.dto.SignatureRequest;
+import es.in2.issuer.backend.domain.model.dto.SignedCredentials;
+import es.in2.issuer.backend.domain.model.dto.SignedData;
+import es.in2.issuer.backend.domain.model.enums.SignatureType;
+import es.in2.issuer.backend.domain.service.CredentialProcedureService;
+import es.in2.issuer.backend.domain.service.RemoteSignatureService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,8 +16,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
-import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static es.in2.issuer.backend.domain.util.Constants.CWT_VC;
+import static es.in2.issuer.backend.domain.util.Constants.JWT_VC;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

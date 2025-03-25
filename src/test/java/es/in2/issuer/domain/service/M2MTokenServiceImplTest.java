@@ -2,10 +2,12 @@ package es.in2.issuer.domain.service;
 
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
-import es.in2.issuer.domain.service.impl.M2MTokenServiceImpl;
-import es.in2.issuer.infrastructure.config.AppConfig;
-import es.in2.issuer.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.domain.model.dto.VerifierOauth2AccessToken;
+import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.backend.domain.service.VerifierService;
+import es.in2.issuer.backend.domain.service.impl.M2MTokenServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,8 +20,8 @@ import reactor.test.StepVerifier;
 
 import java.util.Base64;
 
-import static es.in2.issuer.domain.util.Constants.CLIENT_ASSERTION_TYPE_VALUE;
-import static es.in2.issuer.domain.util.Constants.CLIENT_CREDENTIALS_GRANT_TYPE_VALUE;
+import static es.in2.issuer.backend.domain.util.Constants.CLIENT_ASSERTION_TYPE_VALUE;
+import static es.in2.issuer.backend.domain.util.Constants.CLIENT_CREDENTIALS_GRANT_TYPE_VALUE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 

@@ -3,6 +3,7 @@ package es.in2.issuer.domain.model.dto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backend.domain.model.dto.CredentialDetails;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;

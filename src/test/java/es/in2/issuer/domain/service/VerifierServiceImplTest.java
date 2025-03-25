@@ -1,8 +1,8 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.dto.OpenIDProviderMetadata;
-import es.in2.issuer.domain.service.impl.VerifierServiceImpl;
-import es.in2.issuer.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.domain.model.dto.OpenIDProviderMetadata;
+import es.in2.issuer.backend.domain.service.impl.VerifierServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,8 +18,8 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE;
-import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
+import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE;
+import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;

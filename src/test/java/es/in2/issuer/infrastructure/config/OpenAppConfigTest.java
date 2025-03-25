@@ -1,6 +1,8 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.properties.OpenApiProperties;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.infrastructure.config.OpenApiConfig;
+import es.in2.issuer.backend.infrastructure.config.properties.OpenApiProperties;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Contact;
 import io.swagger.v3.oas.models.info.Info;

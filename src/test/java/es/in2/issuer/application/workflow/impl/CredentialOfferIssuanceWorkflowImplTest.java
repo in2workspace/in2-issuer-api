@@ -2,11 +2,12 @@ package es.in2.issuer.application.workflow.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.service.*;
-import es.in2.issuer.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.infrastructure.config.AuthServerConfig;
-import es.in2.issuer.infrastructure.config.WebClientConfig;
+import es.in2.issuer.backend.application.workflow.impl.CredentialOfferIssuanceWorkflowImpl;
+import es.in2.issuer.backend.domain.model.dto.*;
+import es.in2.issuer.backend.domain.service.*;
+import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
+import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,8 +23,8 @@ import reactor.test.StepVerifier;
 import java.util.HashMap;
 import java.util.Map;
 
-import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE;
-import static es.in2.issuer.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
+import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE;
+import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

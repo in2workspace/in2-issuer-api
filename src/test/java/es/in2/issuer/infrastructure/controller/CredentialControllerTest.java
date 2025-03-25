@@ -1,8 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.service.AccessTokenService;
+import es.in2.issuer.backend.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.backend.domain.model.dto.*;
+import es.in2.issuer.backend.infrastructure.controller.CredentialController;
+import es.in2.issuer.backend.domain.service.AccessTokenService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

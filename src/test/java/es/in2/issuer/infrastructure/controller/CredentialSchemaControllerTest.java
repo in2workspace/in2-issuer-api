@@ -1,8 +1,9 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.exception.VcTemplateDoesNotExistException;
-import es.in2.issuer.domain.model.dto.VcTemplate;
-import es.in2.issuer.domain.service.CredentialSchemaService;
+import es.in2.issuer.backend.domain.exception.VcTemplateDoesNotExistException;
+import es.in2.issuer.backend.domain.model.dto.VcTemplate;
+import es.in2.issuer.backend.domain.service.CredentialSchemaService;
+import es.in2.issuer.backend.infrastructure.controller.CredentialSchemaController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

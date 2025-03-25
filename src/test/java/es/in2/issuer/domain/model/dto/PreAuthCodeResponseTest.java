@@ -1,5 +1,7 @@
 package es.in2.issuer.domain.model.dto;
 
+import es.in2.issuer.backend.domain.model.dto.Grant;
+import es.in2.issuer.backend.domain.model.dto.PreAuthCodeResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

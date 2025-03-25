@@ -1,8 +1,10 @@
 package es.in2.issuer.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import es.in2.issuer.domain.exception.CredentialTypeUnsupportedException;
-import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.backend.domain.exception.CredentialTypeUnsupportedException;
+import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.backend.domain.util.factory.CredentialFactory;
+import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -2,10 +2,11 @@ package es.in2.issuer.infrastructure.config.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.domain.exception.JWTVerificationException;
-import es.in2.issuer.domain.service.VerifierService;
-import es.in2.issuer.infrastructure.config.AuthServerConfig;
-import es.in2.issuer.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.domain.exception.JWTVerificationException;
+import es.in2.issuer.backend.domain.service.VerifierService;
+import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
+import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.infrastructure.config.security.CustomAuthenticationManager;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

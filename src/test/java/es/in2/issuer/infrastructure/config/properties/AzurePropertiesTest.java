@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.config.properties;
 
+import es.in2.issuer.backend.infrastructure.config.properties.AzureProperties;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

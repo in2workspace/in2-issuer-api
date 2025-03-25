@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.enums.CredentialType;
+import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.backend.domain.model.enums.CredentialType;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;

@@ -1,5 +1,6 @@
 package es.in2.issuer.infrastructure.config;
 
+import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;

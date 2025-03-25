@@ -1,8 +1,9 @@
 package es.in2.issuer.infrastructure.config;
 
-import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.infrastructure.config.adapter.factory.ConfigAdapterFactory;
-import es.in2.issuer.infrastructure.config.properties.RemoteSignatureProperties;
+import es.in2.issuer.backend.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
+import es.in2.issuer.backend.infrastructure.config.properties.RemoteSignatureProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

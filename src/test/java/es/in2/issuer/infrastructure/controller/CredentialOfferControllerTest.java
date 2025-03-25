@@ -1,9 +1,10 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.application.workflow.CredentialOfferIssuanceWorkflow;
-import es.in2.issuer.domain.model.dto.CredentialOfferUriResponse;
-import es.in2.issuer.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.domain.model.dto.Grant;
+import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflow;
+import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
+import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.backend.domain.model.dto.Grant;
+import es.in2.issuer.backend.infrastructure.controller.CredentialOfferController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

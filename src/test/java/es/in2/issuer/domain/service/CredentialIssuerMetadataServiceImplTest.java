@@ -1,12 +1,12 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.domain.model.dto.CredentialDefinition;
-import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.domain.service.impl.CredentialIssuerMetadataServiceImpl;
-import es.in2.issuer.domain.util.Constants;
-import es.in2.issuer.domain.util.EndpointsConstants;
-import es.in2.issuer.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.domain.model.dto.CredentialConfiguration;
+import es.in2.issuer.backend.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.backend.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.backend.domain.service.impl.CredentialIssuerMetadataServiceImpl;
+import es.in2.issuer.backend.domain.util.Constants;
+import es.in2.issuer.backend.domain.util.EndpointsConstants;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

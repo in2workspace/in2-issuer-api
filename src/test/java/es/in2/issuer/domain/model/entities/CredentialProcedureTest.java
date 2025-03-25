@@ -1,6 +1,7 @@
 package es.in2.issuer.domain.model.entities;
 
-import es.in2.issuer.domain.model.enums.CredentialStatus;
+import es.in2.issuer.backend.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;

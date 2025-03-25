@@ -1,8 +1,11 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.model.enums.CredentialStatus;
-import es.in2.issuer.domain.service.impl.NotificationServiceImpl;
-import es.in2.issuer.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
+import es.in2.issuer.backend.domain.service.CredentialProcedureService;
+import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.backend.domain.service.EmailService;
+import es.in2.issuer.backend.domain.service.impl.NotificationServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

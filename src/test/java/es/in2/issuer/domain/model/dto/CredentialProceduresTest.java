@@ -1,5 +1,7 @@
 package es.in2.issuer.domain.model.dto;
 
+import es.in2.issuer.backend.domain.model.dto.CredentialProcedures;
+import es.in2.issuer.backend.domain.model.dto.ProcedureBasicInfo;
 import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;

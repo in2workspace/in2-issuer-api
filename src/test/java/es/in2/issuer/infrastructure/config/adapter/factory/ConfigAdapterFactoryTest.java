@@ -1,9 +1,10 @@
 package es.in2.issuer.infrastructure.config.adapter.factory;
 
-import es.in2.issuer.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.infrastructure.config.adapter.impl.AzureConfigAdapter;
-import es.in2.issuer.infrastructure.config.adapter.impl.YamlConfigAdapter;
-import es.in2.issuer.infrastructure.config.properties.ApiProperties;
+import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
+import es.in2.issuer.backend.infrastructure.config.adapter.impl.AzureConfigAdapter;
+import es.in2.issuer.backend.infrastructure.config.adapter.impl.YamlConfigAdapter;
+import es.in2.issuer.backend.infrastructure.config.properties.ApiProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

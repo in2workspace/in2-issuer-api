@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.util;
 
+import es.in2.issuer.backend.domain.util.UVarInt;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;

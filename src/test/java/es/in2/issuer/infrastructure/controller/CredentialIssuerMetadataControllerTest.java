@@ -1,7 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
-import es.in2.issuer.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.domain.service.CredentialIssuerMetadataService;
+import es.in2.issuer.backend.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.backend.domain.service.CredentialIssuerMetadataService;
+import es.in2.issuer.backend.infrastructure.controller.CredentialIssuerMetadataController;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

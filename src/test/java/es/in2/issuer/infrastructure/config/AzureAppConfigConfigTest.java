@@ -2,7 +2,8 @@ package es.in2.issuer.infrastructure.config;
 
 import com.azure.core.credential.TokenCredential;
 import com.azure.data.appconfiguration.ConfigurationClient;
-import es.in2.issuer.infrastructure.config.properties.AzureProperties;
+import es.in2.issuer.backend.infrastructure.config.AzAppConfigurationConfig;
+import es.in2.issuer.backend.infrastructure.config.properties.AzureProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

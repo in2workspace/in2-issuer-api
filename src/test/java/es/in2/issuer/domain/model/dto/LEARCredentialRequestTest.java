@@ -2,6 +2,7 @@ package es.in2.issuer.domain.model.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import es.in2.issuer.backend.domain.model.dto.LEARCredentialRequest;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

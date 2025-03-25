@@ -1,5 +1,7 @@
 package es.in2.issuer.infrastructure.config;
 
+import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

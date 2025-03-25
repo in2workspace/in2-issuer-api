@@ -1,9 +1,9 @@
 package es.in2.issuer.domain.service;
 
 
-import es.in2.issuer.domain.service.impl.TrustFrameworkServiceImpl;
-import es.in2.issuer.infrastructure.config.TrustFrameworkConfig;
-import es.in2.issuer.infrastructure.config.WebClientConfig;
+import es.in2.issuer.backend.domain.service.impl.TrustFrameworkServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.TrustFrameworkConfig;
+import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

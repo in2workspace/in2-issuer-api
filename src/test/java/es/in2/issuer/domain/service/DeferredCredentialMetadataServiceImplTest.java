@@ -1,11 +1,11 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.exception.CredentialAlreadyIssuedException;
-import es.in2.issuer.domain.model.entities.DeferredCredentialMetadata;
-import es.in2.issuer.domain.service.impl.DeferredCredentialMetadataServiceImpl;
-import es.in2.issuer.domain.util.Utils;
-import es.in2.issuer.infrastructure.repository.CacheStore;
-import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
+import es.in2.issuer.backend.domain.exception.CredentialAlreadyIssuedException;
+import es.in2.issuer.backend.domain.model.entities.DeferredCredentialMetadata;
+import es.in2.issuer.backend.domain.service.impl.DeferredCredentialMetadataServiceImpl;
+import es.in2.issuer.backend.domain.util.Utils;
+import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.backend.infrastructure.repository.DeferredCredentialMetadataRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

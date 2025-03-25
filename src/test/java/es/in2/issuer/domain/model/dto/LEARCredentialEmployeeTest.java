@@ -1,12 +1,12 @@
 package es.in2.issuer.domain.model.dto;
 
-import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
-import es.in2.issuer.domain.model.dto.credential.Issuer;
-import es.in2.issuer.domain.model.dto.credential.lear.LifeSpan;
-import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
-import es.in2.issuer.domain.model.dto.credential.lear.Power;
-import es.in2.issuer.domain.model.dto.credential.lear.Signer;
-import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
+import es.in2.issuer.backend.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.backend.domain.model.dto.credential.Issuer;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.LifeSpan;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.Power;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.Signer;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

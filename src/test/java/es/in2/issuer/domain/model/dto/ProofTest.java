@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.model.dto;
 
+import es.in2.issuer.backend.domain.model.dto.Proof;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
