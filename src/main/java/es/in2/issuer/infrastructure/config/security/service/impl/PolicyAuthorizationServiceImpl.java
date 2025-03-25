@@ -40,7 +40,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
                 .flatMap(signedJWT -> {
                     String payloadStr = signedJWT.getPayload().toString();
                     if (!payloadStr.contains(ROLE)) {
-                        return checkPoliciesForLearOrExternalAccess(token, schema, payload);
+                        return checkPolicies(token, schema, payload);
                     }else{
                         String roleClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), ROLE);
                         return authorizeByRole(roleClaim, token, schema, payload);
@@ -53,18 +53,18 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         if (role==null || role.isBlank()) {
             return Mono.error(new UnauthorizedRoleException("Access denied: Role is empty"));
         }
-        if (VERIFIABLE_CERTIFICATION.equals(schema) && !LEAR.equals(role)) {
+        if (VERIFIABLE_CERTIFICATION.equals(schema)) {
             return Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + role + "'"));
         }
         return switch (role) {
             case SYS_ADMIN, LER -> Mono.error(new UnauthorizedRoleException( "The request is invalid. " +
                     "The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
-            case LEAR -> checkPoliciesForLearOrExternalAccess(token, schema, payload);
+            case LEAR -> checkPolicies(token, schema, payload);
             default -> Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + role + "'"));
         };
     }
 
-    private Mono<Void> checkPoliciesForLearOrExternalAccess(String token, String schema, JsonNode payload) {
+    private Mono<Void> checkPolicies(String token, String schema, JsonNode payload) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
             .flatMap(signedJWT -> {
                 String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);

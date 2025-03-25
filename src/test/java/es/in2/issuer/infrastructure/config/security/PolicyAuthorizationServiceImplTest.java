@@ -295,7 +295,7 @@ class PolicyAuthorizationServiceImplTest {
                 .verifyComplete();
     }
     @Test
-    void authorize_success_withVerifiableCertificationRoleLear() throws Exception {
+    void authorize_failure_withLearCredentialEmployerRoleLear() throws Exception {
         // Arrange
         String token = "valid-token";
         JsonNode payload = mock(JsonNode.class);
@@ -324,11 +324,14 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
-                .verifyComplete();
+                .expectErrorMatches(throwable ->
+                        throwable instanceof InsufficientPermissionException &&
+                                throwable.getMessage().contains("Unauthorized: LEARCredentialEmployee does not meet any issuance policies."))
+                .verify();
     }
 
     @Test
