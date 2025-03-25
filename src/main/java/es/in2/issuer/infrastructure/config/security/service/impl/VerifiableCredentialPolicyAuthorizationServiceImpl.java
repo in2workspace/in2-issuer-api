@@ -10,8 +10,9 @@ import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.JWTService;
+import es.in2.issuer.domain.service.VerifierService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
-import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,21 +28,22 @@ import static es.in2.issuer.domain.util.Utils.extractPowers;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationService {
+public class VerifiableCredentialPolicyAuthorizationServiceImpl implements VerifiableCredentialPolicyAuthorizationService {
 
     private final JWTService jwtService;
     private final ObjectMapper objectMapper;
     private final CredentialFactory credentialFactory;
+    private final VerifierService verifierService;
 
     @Override
-    public Mono<Void> authorize(String token, String schema, JsonNode payload) {
+    public Mono<Void> authorize(String token, String schema, JsonNode payload, String idToken) {
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> {
                     String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
                     return mapVcToLEARCredential(vcClaim, schema)
                             .flatMap(learCredential -> switch (schema) {
                                 case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);
-                                case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential);
+                                case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential, idToken);
                                 default -> Mono.error(new InsufficientPermissionException("Unauthorized: Unsupported schema"));
                             });
                 });
@@ -54,12 +56,12 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     private Mono<String> determineAllowedCredentialType(List<String> types, String schema) {
         return Mono.fromCallable(() -> {
             if (VERIFIABLE_CERTIFICATION.equals(schema)) {
-                // For verifiable certification, only LEARCredentialEmployee is allowed.
-                if (types.contains(LEAR_CREDENTIAL_EMPLOYEE)) {
-                    return LEAR_CREDENTIAL_EMPLOYEE;
+                // For verifiable certification, only LEARCredentialMachine is allowed.
+                if (types.contains(LEAR_CREDENTIAL_MACHINE)) {
+                    return LEAR_CREDENTIAL_MACHINE;
                 } else {
                     throw new InsufficientPermissionException(
-                            "Unauthorized: Credential type 'LEARCredentialEmployee' is required for verifiable certification.");
+                            "Unauthorized: Credential type 'LEARCredentialMachine' is required for verifiable certification.");
                 }
             } else {
                 // For LEAR_CREDENTIAL_EMPLOYEE schema, allow either employee or machine.
@@ -130,12 +132,13 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         return Mono.error(new InsufficientPermissionException("Unauthorized: LEARCredentialEmployee does not meet any issuance policies."));
     }
 
-    private Mono<Void> authorizeVerifiableCertification(LEARCredential learCredential) {
-        if (isVerifiableCertificationPolicyValid(learCredential)) {
-            return Mono.empty();
-        }
-        return Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy."));
+    private Mono<Void> authorizeVerifiableCertification(LEARCredential learCredential, String idToken) {
+        return isVerifiableCertificationPolicyValid(learCredential, idToken)
+                .flatMap(valid -> Boolean.TRUE.equals(valid)
+                        ? Mono.empty()
+                        : Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy.")));
     }
+
 
     private boolean isSignerIssuancePolicyValid(LEARCredential learCredential) {
         return isLearCredentialEmployeeMandatorOrganizationIdentifierAllowedSigner(extractMandator(learCredential)) &&
@@ -152,9 +155,39 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
                 payloadPowersOnlyIncludeProductOffering(mandate.power());
     }
 
-    private boolean isVerifiableCertificationPolicyValid(LEARCredential learCredential) {
-        return containsCertificationAndAttest(extractPowers(learCredential));
+    private Mono<Boolean> isVerifiableCertificationPolicyValid(LEARCredential learCredential, String idToken) {
+        boolean credentialValid = containsCertificationAndAttest(extractPowers(learCredential));
+        return validateIdToken(idToken)
+                .map(learCredentialFromIdToken -> containsCertificationAndAttest(extractPowers(learCredentialFromIdToken)))
+                .map(idTokenValid -> credentialValid && idTokenValid);
     }
+
+    /**
+     * Validates the idToken by verifying its signature (without checking expiration),
+     * parsing its 'vc_json' claim into a LEARCredentialEmployee.
+     *
+     * @param idToken the id token to validate.
+     * @return a Mono emitting the LEARCredential interface if valid.
+     */
+    private Mono<LEARCredential> validateIdToken(String idToken) {
+        // Use the verifierService's method that verifies the token without expiration check.
+        return verifierService.verifyTokenWithoutExpiration(idToken)
+                .then(Mono.fromCallable(() -> jwtService.parseJWT(idToken)))
+                .flatMap(idSignedJWT -> {
+                    // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
+                    String idVcClaim = jwtService.getClaimFromPayload(idSignedJWT.getPayload(), "vc_json");
+                    try {
+                        String processedVc = objectMapper.readValue(idVcClaim, String.class);
+                        LEARCredentialEmployee credentialEmployee = credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(processedVc);
+                        return Mono.just(credentialEmployee);
+                    } catch (JsonProcessingException e) {
+                        return Mono.error(new ParseErrorException("Error parsing id_token credential: " + e));
+                    }
+                });
+
+    }
+
+
 
     private boolean containsCertificationAndAttest(List<Power> powers) {
         return powers.stream().anyMatch(this::isCertificationFunction) &&

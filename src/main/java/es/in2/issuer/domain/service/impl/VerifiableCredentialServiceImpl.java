@@ -44,8 +44,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     }
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, String vcType, IssuanceRequest issuanceRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, issuanceRequest.payload(), token)
+    public Mono<String> generateVerifiableCertification(String processId, IssuanceRequest issuanceRequest, String idToken) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, issuanceRequest.schema(), issuanceRequest.payload(), idToken)
                 .flatMap(credentialProcedureService::createCredentialProcedure);
     }
 

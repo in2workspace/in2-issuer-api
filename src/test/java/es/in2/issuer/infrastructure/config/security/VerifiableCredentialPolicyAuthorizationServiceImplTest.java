@@ -11,11 +11,12 @@ import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.credential.lear.machine.LEARCredentialMachine;
 import es.in2.issuer.domain.service.JWTService;
+import es.in2.issuer.domain.service.VerifierService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialMachineFactory;
 import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
-import es.in2.issuer.infrastructure.config.security.service.impl.PolicyAuthorizationServiceImpl;
+import es.in2.issuer.infrastructure.config.security.service.impl.VerifiableCredentialPolicyAuthorizationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,13 +36,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PolicyAuthorizationServiceImplTest {
+class VerifiableCredentialPolicyAuthorizationServiceImplTest {
 
     @Mock
     private JWTService jwtService;
 
     @Mock
     private ObjectMapper objectMapper;
+    @Mock
+    private VerifierService verifierService;
 
     @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
@@ -51,7 +54,7 @@ class PolicyAuthorizationServiceImplTest {
     private LEARCredentialMachineFactory learCredentialMachineFactory;
 
     @InjectMocks
-    private PolicyAuthorizationServiceImpl policyAuthorizationService;
+    private VerifiableCredentialPolicyAuthorizationServiceImpl policyAuthorizationService;
 
     @BeforeEach
     void setUp() {
@@ -59,10 +62,11 @@ class PolicyAuthorizationServiceImplTest {
         CredentialFactory credentialFactory = new CredentialFactory(learCredentialEmployeeFactory, learCredentialMachineFactory, verifiableCertificationFactory);
 
         // Inicializamos policyAuthorizationService con las dependencias adecuadas
-        policyAuthorizationService = new PolicyAuthorizationServiceImpl(
+        policyAuthorizationService = new VerifiableCredentialPolicyAuthorizationServiceImpl(
                 jwtService,
                 objectMapper,
-                credentialFactory
+                credentialFactory,
+                verifierService
         );
     }
 
@@ -94,7 +98,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -124,7 +128,7 @@ class PolicyAuthorizationServiceImplTest {
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -161,7 +165,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, schema, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, schema, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -179,7 +183,7 @@ class PolicyAuthorizationServiceImplTest {
         when(jwtService.parseJWT(token)).thenThrow(new ParseErrorException("Invalid token"));
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -215,7 +219,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -229,17 +233,16 @@ class PolicyAuthorizationServiceImplTest {
     void authorize_failure_dueToVerifiableCertificationPolicyNotMet() throws Exception {
         // Arrange
         String token = "valid-token";
+        String idToken = "dummy-id-token";
         JsonNode payload = mock(JsonNode.class);
 
+        // Mocks para el token principal
         SignedJWT signedJWT = mock(SignedJWT.class);
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
-
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
         Map<String, Object> payloadMap = new HashMap<>();
         payloadMap.put("iss", "some-other-issuer");
         Payload jwtPayload = new Payload(payloadMap);
-
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
 
@@ -247,11 +250,23 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
+        LEARCredentialMachine learCredential = getLEARCredentialMachineWithInvalidPolicy();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
+
+        SignedJWT idTokenSignedJWT = mock(SignedJWT.class);
+        Payload idTokenPayload = new Payload(new HashMap<>());
+        when(idTokenSignedJWT.getPayload()).thenReturn(idTokenPayload);
+        when(verifierService.verifyTokenWithoutExpiration(idToken)).thenReturn(Mono.empty());
+        when(jwtService.parseJWT(idToken)).thenReturn(idTokenSignedJWT);
+        when(jwtService.getClaimFromPayload(idTokenPayload, "vc_json")).thenReturn("\"vcJson\"");
+        when(objectMapper.readValue("\"vcJson\"", String.class)).thenReturn("vcJson");
+
+        LEARCredentialEmployee idTokenCredential = getLEARCredentialEmployeeForCertification();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(idTokenCredential);
+        // --------------------------------------------------------------
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, idToken);
 
         // Assert
         StepVerifier.create(result)
@@ -265,17 +280,15 @@ class PolicyAuthorizationServiceImplTest {
     void authorize_success_withVerifiableCertification() throws Exception {
         // Arrange
         String token = "valid-token";
+        String idToken = "dummy-id-token";
         JsonNode payload = mock(JsonNode.class);
 
+        // Mocks para el token principal
         SignedJWT signedJWT = mock(SignedJWT.class);
-        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialEmployee\"]}";
-
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
         Map<String, Object> payloadMap = new HashMap<>();
-        payloadMap.put("iss", "external-verifier");
         Payload jwtPayload = new Payload(payloadMap);
-
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
-
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
 
@@ -283,16 +296,30 @@ class PolicyAuthorizationServiceImplTest {
         JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
-        LEARCredentialEmployee learCredential = getLEARCredentialEmployeeForCertification();
-        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
+        // Simular LEARCredentialMachine con política válida
+        LEARCredentialMachine learCredential = getLEARCredentialMachineForCertification();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
+
+        // --- Mocks para el id_token ---
+        SignedJWT idTokenSignedJWT = mock(SignedJWT.class);
+        Payload idTokenPayload = new Payload(new HashMap<>());
+        when(idTokenSignedJWT.getPayload()).thenReturn(idTokenPayload);
+        when(verifierService.verifyTokenWithoutExpiration(idToken)).thenReturn(Mono.empty());
+        when(jwtService.parseJWT(idToken)).thenReturn(idTokenSignedJWT);
+        when(jwtService.getClaimFromPayload(idTokenPayload, "vc_json")).thenReturn("\"vcJson\"");
+        when(objectMapper.readValue("\"vcJson\"", String.class)).thenReturn("vcJson");
+        LEARCredentialEmployee idTokenCredential = getLEARCredentialEmployeeForCertification();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(idTokenCredential);
+        // ---------------------------------
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, idToken);
 
         // Assert
         StepVerifier.create(result)
                 .verifyComplete();
     }
+
 
     @Test
     void authorize_success_withMandatorIssuancePolicyValid() throws Exception {
@@ -337,7 +364,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -387,7 +414,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         // Assert
         StepVerifier.create(result)
@@ -424,7 +451,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload,"dummy-id-token");
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -456,7 +483,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload, "dummy-id-token");
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
@@ -526,19 +553,44 @@ class PolicyAuthorizationServiceImplTest {
                 .build();
     }
 
-    private LEARCredentialEmployee getLEARCredentialEmployeeForCertification() {
+    private LEARCredentialMachine getLEARCredentialMachineForCertification() {
         Mandator mandator = Mandator.builder()
                 .organizationIdentifier("SomeOrganization")
                 .build();
-        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+        LEARCredentialMachine.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialMachine.CredentialSubject.Mandate.Mandatee.builder()
                 .id("did:key:1234")
-                .firstName("Jane")
-                .lastName("Doe")
-                .email("jane.doe@example.com")
                 .build();
         Power power = Power.builder()
                 .function("Certification")
                 .action("Attest")
+                .build();
+        LEARCredentialMachine.CredentialSubject.Mandate mandate = LEARCredentialMachine.CredentialSubject.Mandate.builder()
+                .mandator(mandator)
+                .mandatee(mandatee)
+                .power(Collections.singletonList(power))
+                .build();
+        LEARCredentialMachine.CredentialSubject credentialSubject = LEARCredentialMachine.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
+        return LEARCredentialMachine.builder()
+                .type(List.of("VerifiableCredential", "LEARCredentialMachine"))
+                .credentialSubject(credentialSubject)
+                .build();
+    }
+
+    private LEARCredentialEmployee getLEARCredentialEmployeeForCertification() {
+        Mandator mandator = Mandator.builder()
+                .organizationIdentifier("SomeOrganizationIdentifier")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                .id("did:key:1234")
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .build();
+        Power power = Power.builder()
+                .function("Certification")
+                .action(List.of("Attest", "Upload"))
                 .build();
         LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
                 .mandator(mandator)

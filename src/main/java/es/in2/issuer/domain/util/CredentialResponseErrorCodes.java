@@ -16,6 +16,7 @@ public class CredentialResponseErrorCodes {
     public static final String RESPONSE_URI_ERROR = "response_uri_error";
     public static final String FORMAT_IS_NOT_SUPPORTED = "format_is_not_supported";
     public static final String INSUFFICIENT_PERMISSION = "insufficient_permission";
+    public static final String MISSING_HEADER = "missing_header";
     private CredentialResponseErrorCodes() {
         throw new IllegalStateException("Utility class");
     }

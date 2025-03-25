@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
@@ -35,11 +35,19 @@ public class VerifiableCertificationFactory {
     private final ObjectMapper objectMapper;
     private final JWTService jwtService;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String idToken) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
-        SignedJWT signedJWT = jwtService.parseJWT(token);
-        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
-        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
+        SignedJWT signedJWT = jwtService.parseJWT(idToken);
+        // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
+        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
+        String processedVc;
+
+        try {
+            processedVc = objectMapper.readValue(vcClaim, String.class);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new ParseErrorException("Error parsing id_token credential: " + e));
+        }
+        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(processedVc);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
                 .flatMap(this::buildVerifiableCertificationJwtPayload)
