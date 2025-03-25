@@ -43,7 +43,7 @@ public class VerifierServiceImpl implements VerifierService {
     @Override
     public Mono<Void> verifyToken(String accessToken) {
         return parseAndValidateJwt(accessToken, true)
-                .doOnSuccess(unused -> log.info("verifyToken -- IS VALID"))
+                .doOnSuccess(unused -> log.info("The verification of the token is valid"))
                 .onErrorResume(e -> {
                     log.error("Error while verifying token", e);
                     return Mono.error(e);
@@ -54,7 +54,7 @@ public class VerifierServiceImpl implements VerifierService {
     public Mono<Void> verifyTokenWithoutExpiration(String accessToken) {
         // This method will not validate the expiration
         return parseAndValidateJwt(accessToken, false)
-                .doOnSuccess(unused -> log.info("verifyTokenWithoutExpiration -- IS VALID"))
+                .doOnSuccess(unused -> log.info("The verification of the token without expiration is valid"))
                 .onErrorResume(e -> {
                     log.error("Error while verifying token (without expiration)", e);
                     return Mono.error(e);
