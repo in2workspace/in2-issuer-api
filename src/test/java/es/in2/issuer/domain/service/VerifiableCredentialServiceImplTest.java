@@ -3,14 +3,12 @@ package es.in2.issuer.domain.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
-import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.*;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.domain.util.Constants;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.infrastructure.config.AppConfig;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -401,7 +399,6 @@ class VerifiableCredentialServiceImplTest {
                 .updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
     }
 
-    @Disabled
     @Test
     void buildCredentialResponseSync_RemoteSignatureException_Retry() {
         String token = "token";
@@ -435,19 +432,11 @@ class VerifiableCredentialServiceImplTest {
 
         when(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, bindCredential, credentialType, format, authServerNonce)).thenReturn(Mono.empty());
 
+        when(credentialProcedureService.getOperationModeByProcedureId(procedureId))
+                .thenReturn(Mono.just("S"));
         // --- SYNC ---
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC))
-                .thenReturn(Mono.error(new RemoteSignatureException("Simulated error")));
-
-        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId))
-                .thenReturn(Mono.just(signerEmail));
-        when(appConfig.getIssuerUiExternalDomain()).thenReturn("domain");
-        when(emailService.sendPendingSignatureCredentialNotification(
-                signerEmail,
-                "Failed to sign credential, please activate manual signature.",
-                procedureId,
-                "domain"))
-                .thenReturn(Mono.empty());
+                .thenReturn(Mono.error(new IllegalArgumentException("Simulated error")));
 
         Mono<VerifiableCredentialResponse> result = verifiableCredentialServiceImpl.buildCredentialResponse(
                 processId, subjectDid, authServerNonce, format, token);
@@ -460,9 +449,5 @@ class VerifiableCredentialServiceImplTest {
 
         verify(credentialSignerWorkflow, times(1))
                 .signAndUpdateCredentialByProcedureId(BEARER_PREFIX + token, procedureId, JWT_VC);
-        verify(credentialProcedureService, times(1))
-                .getSignerEmailFromDecodedCredentialByProcedureId(procedureId);
-        verify(emailService, times(1))
-                .sendPendingSignatureCredentialNotification(signerEmail, "Failed to sign credential, please activate manual signature.", procedureId, "domain");
     }
 }

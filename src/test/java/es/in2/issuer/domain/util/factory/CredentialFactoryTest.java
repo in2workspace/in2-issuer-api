@@ -6,7 +6,6 @@ import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -106,7 +105,6 @@ class CredentialFactoryTest {
         verify(learCredentialEmployeeFactory, never()).mapCredentialAndBindMandateeIdInToTheCredential(anyString(), anyString());
     }
 
-    @Disabled
     @Test
     void mapCredentialBindIssuerAndUpdateDB_Success() {
         String processId = "processId";
@@ -120,7 +118,7 @@ class CredentialFactoryTest {
                 .thenReturn(Mono.just(boundCredential));
         when(credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, boundCredential, format))
                 .thenReturn(Mono.empty());
-        when(deferredCredentialMetadataService.updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format))
+        when(deferredCredentialMetadataService.updateDeferredCredentialByAuthServerNonce(authServerNonce, format))
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(credentialFactory.mapCredentialBindIssuerAndUpdateDB(processId, procedureId, decodedCredential, LEAR_CREDENTIAL_EMPLOYEE, format, authServerNonce))
@@ -128,7 +126,7 @@ class CredentialFactoryTest {
 
         verify(learCredentialEmployeeFactory).mapCredentialAndBindIssuerInToTheCredential(decodedCredential, procedureId);
         verify(credentialProcedureService).updateDecodedCredentialByProcedureId(procedureId, boundCredential, format);
-        verify(deferredCredentialMetadataService).updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
+        verify(deferredCredentialMetadataService).updateDeferredCredentialByAuthServerNonce(authServerNonce, format);
     }
 
     @Test
@@ -169,7 +167,6 @@ class CredentialFactoryTest {
         verify(deferredCredentialMetadataService, never()).updateDeferredCredentialMetadataByAuthServerNonce(any(), any());
     }
 
-    @Disabled
     @Test
     void mapCredentialBindIssuerAndUpdateDB_UpdateDB_Error() {
         String processId = "processId";
@@ -190,7 +187,7 @@ class CredentialFactoryTest {
 
         verify(learCredentialEmployeeFactory).mapCredentialAndBindIssuerInToTheCredential(decodedCredential, procedureId);
         verify(credentialProcedureService).updateDecodedCredentialByProcedureId(procedureId, boundCredential, format);
-        verify(deferredCredentialMetadataService).updateDeferredCredentialMetadataByAuthServerNonce(authServerNonce, format);
+        verify(deferredCredentialMetadataService).updateDeferredCredentialByAuthServerNonce(authServerNonce, format);
     }
 
 

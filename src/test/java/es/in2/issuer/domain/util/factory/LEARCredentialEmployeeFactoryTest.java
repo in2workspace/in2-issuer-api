@@ -16,7 +16,6 @@ import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -142,7 +141,6 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl, never()).validateCredentials();
     }
 
-    @Disabled
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_InvalidCredentials_Error() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
@@ -157,12 +155,12 @@ class LEARCredentialEmployeeFactoryTest {
         when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId))).thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
-                .expectError(RemoteSignatureException.class)
+                .expectComplete()
                 .verify();
 
         verify(remoteSignatureServiceImpl).validateCredentials();
     }
-    @Disabled
+
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_FailsAfterRetries_SwitchToAsync() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
@@ -180,16 +178,13 @@ class LEARCredentialEmployeeFactoryTest {
         when(remoteSignatureServiceImpl.handlePostRecoverError(eq(procedureId))).thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
-                .expectErrorSatisfies(throwable -> {
-                    Assertions.assertInstanceOf(RemoteSignatureException.class, throwable);
-                    Assertions.assertEquals("Signature Failed, changed to ASYNC mode", throwable.getMessage());
-                })
+                .expectComplete()
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(4)).validateCredentials();
         verify(remoteSignatureServiceImpl).handlePostRecoverError(eq(procedureId));
     }
-    @Disabled
+
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_SuccessOnSecondAttempt() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
@@ -220,7 +215,7 @@ class LEARCredentialEmployeeFactoryTest {
 
         verify(remoteSignatureServiceImpl, times(2)).validateCredentials();
     }
-    @Disabled
+
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_NonRecoverableError() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
@@ -240,16 +235,13 @@ class LEARCredentialEmployeeFactoryTest {
                 .thenReturn(Mono.empty());
 
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
-                .expectErrorSatisfies(throwable -> {
-                    Assertions.assertInstanceOf(RemoteSignatureException.class, throwable);
-                    Assertions.assertEquals("Signature Failed, changed to ASYNC mode", throwable.getMessage());
-                })
+                .expectComplete()
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(1)).validateCredentials();
         verify(remoteSignatureServiceImpl, times(1)).handlePostRecoverError(eq(procedureId));
     }
-    @Disabled
+
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_HandlePostRecoverErrorFails() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";

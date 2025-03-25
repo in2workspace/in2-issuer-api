@@ -14,11 +14,11 @@ import es.in2.issuer.domain.model.enums.SignatureType;
 import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.domain.util.HttpUtils;
 import es.in2.issuer.domain.util.JwtUtils;
+import es.in2.issuer.infrastructure.config.AppConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,7 +69,16 @@ class RemoteSignatureServiceImplTest {
     private CredentialProcedureRepository credentialProcedureRepository;
 
     @Mock
+    private CredentialProcedureService credentialProcedureService;
+
+    @Mock
     private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
+
+    @Mock
+    private AppConfig appConfig;
+
+    @Mock
+    private EmailService emailService;
 
     private SignatureRequest signatureRequest;
     private String token;
@@ -132,8 +141,7 @@ class RemoteSignatureServiceImplTest {
                 })
                 .verify();
     }
-
-    @Disabled
+    
     @Test
     void testGetSignedDocumentExternal() throws JsonProcessingException, HashGenerationException {
         signatureType = SignatureType.JADES;
@@ -281,7 +289,6 @@ class RemoteSignatureServiceImplTest {
         verify(mockRequest, times(1)).data();
     }
 
-    @Disabled
     @Test
     void testHandlePostRecoverError_SuccessfulUpdate() throws Exception {
         UUID procedureUUID = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
@@ -297,6 +304,11 @@ class RemoteSignatureServiceImplTest {
                 .thenReturn(Mono.just(deferredProcedure));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn("http://issuer-ui.com");
+        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureUUID.toString()))
+                .thenReturn(Mono.just(""));
+        when(emailService.sendPendingSignatureCredentialNotification(anyString(), anyString(), eq(procedureUUID.toString()), eq("http://issuer-ui.com")))
+                .thenReturn(Mono.empty());
 
         Throwable originalError = new RuntimeException("Error original");
 
@@ -306,9 +318,7 @@ class RemoteSignatureServiceImplTest {
         Mono<String> resultMono = (Mono<String>) method.invoke(remoteSignatureService, procedureUUID.toString());
 
         StepVerifier.create(resultMono)
-                .expectErrorMatches(throwable -> throwable instanceof RemoteSignatureException &&
-                        throwable.getMessage().equals("Signature Failed, changed to ASYNC mode") &&
-                        throwable.getCause() == originalError)
+                .expectComplete()
                 .verify();
 
         verify(credentialProcedureRepository).findByProcedureId(procedureUUID);
@@ -320,7 +330,7 @@ class RemoteSignatureServiceImplTest {
         verify(procedure).setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
         verify(deferredProcedure).setOperationMode(ASYNC);
     }
-    @Disabled
+    
     @Test
     void testSignSuccessOnFirstAttempt() throws JsonProcessingException {
         // Arrange
@@ -368,7 +378,7 @@ class RemoteSignatureServiceImplTest {
         verify(credentialProcedureRepository, never()).findByProcedureId(any(UUID.class));
         verify(deferredCredentialMetadataRepository, never()).findByProcedureId(any(UUID.class));
     }
-    @Disabled
+    
     @Test
     void testSignSuccessAfterRetries() throws JsonProcessingException {
         // Arrange
@@ -433,8 +443,7 @@ class RemoteSignatureServiceImplTest {
         verify(credentialProcedureRepository, never()).findByProcedureId(any(UUID.class));
         verify(deferredCredentialMetadataRepository, never()).findByProcedureId(any(UUID.class));
     }
-
-    @Disabled
+    
     @Test
     void testSignFailAfterAllRetries() throws JsonProcessingException {
         // Arrange
@@ -479,7 +488,11 @@ class RemoteSignatureServiceImplTest {
                 .thenReturn(Mono.just(deferredMetadata));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
                 .thenReturn(Mono.just(deferredMetadata));
-
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn("http://issuer-ui.com");
+        when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureUUID.toString()))
+                .thenReturn(Mono.just(""));
+        when(emailService.sendPendingSignatureCredentialNotification(anyString(), anyString(), eq(procedureUUID.toString()), eq("http://issuer-ui.com")))
+                .thenReturn(Mono.empty());
         // Act
         Mono<SignedData> result = remoteSignatureService.sign(signatureRequest, token, procedureId);
 
@@ -635,8 +648,7 @@ class RemoteSignatureServiceImplTest {
                 .expectError(RemoteSignatureException.class)
                 .verify();
     }
-
-    @Disabled
+    
     @Test
     void requestCertificateInfo_Success() throws JsonProcessingException {
         String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
@@ -663,7 +675,6 @@ class RemoteSignatureServiceImplTest {
                 .verify();
     }
 
-    @Disabled
     @Test
     void requestCertificateInfo_HttpError() throws JsonProcessingException {
         String requestBody = "{\"credentialID\":\"" + mockCredentialID + "\",\"certificates\":\"chain\",\"certInfo\":\"true\",\"authInfo\":\"true\"}";
