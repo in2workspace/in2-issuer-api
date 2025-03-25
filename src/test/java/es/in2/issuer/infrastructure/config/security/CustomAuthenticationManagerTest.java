@@ -69,7 +69,7 @@ class CustomAuthenticationManagerTest {
 
         // Assert
         StepVerifier.create(result)
-                .expectNextMatches(auth -> auth instanceof JwtAuthenticationToken)
+                .expectNextMatches(JwtAuthenticationToken.class::isInstance)
                 .verifyComplete();
 
         verify(verifierService).verifyToken(token);

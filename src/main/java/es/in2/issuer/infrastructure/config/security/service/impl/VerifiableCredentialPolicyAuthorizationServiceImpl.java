@@ -134,7 +134,7 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
 
     private Mono<Void> authorizeVerifiableCertification(LEARCredential learCredential, String idToken) {
         return isVerifiableCertificationPolicyValid(learCredential, idToken)
-                .flatMap(valid -> valid
+                .flatMap(valid -> Boolean.TRUE.equals(valid)
                         ? Mono.empty()
                         : Mono.error(new InsufficientPermissionException("Unauthorized: VerifiableCertification does not meet the issuance policy.")));
     }
