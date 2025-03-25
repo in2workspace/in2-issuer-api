@@ -58,14 +58,14 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                     String credentialType = credentialProcedure.getCredentialType();
                     log.info("Building JWT payload for credential signing for credential with type: {}", credentialType);
                     return switch (credentialType) {
-                        case "VerifiableCertification" -> {
+                        case "VERIFIABLE_CERTIFICATION" -> {
                             VerifiableCertification verifiableCertification = verifiableCertificationFactory
                                     .mapStringToVerifiableCertification(credentialProcedure.getCredentialDecoded());
                             yield verifiableCertificationFactory.buildVerifiableCertificationJwtPayload(verifiableCertification)
                                     .flatMap(verifiableCertificationFactory::convertVerifiableCertificationJwtPayloadInToString)
                                     .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId));
                         }
-                        case "LEARCredentialEmployee" -> {
+                        case "LEAR_CREDENTIAL_EMPLOYEE" -> {
                             LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory
                                     .mapStringToLEARCredentialEmployee(credentialProcedure.getCredentialDecoded());
                             yield learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(learCredentialEmployee)

@@ -64,7 +64,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
-        credentialProcedure.setCredentialType("LEARCredentialEmployee");
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES,signedCredential)));
 
@@ -89,7 +89,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
-        credentialProcedure.setCredentialType("LEARCredentialEmployee");
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
 
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq("")))
                 .thenReturn(Mono.just(new SignedData(SignatureType.COSE, signedCredential)));
@@ -114,7 +114,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
-        credentialProcedure.setCredentialType("LEARCredentialEmployee");
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))).thenReturn(Mono.just(credentialProcedure));
         StepVerifier.create(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(token, procedureId, unsupportedFormat))
@@ -130,7 +130,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
-        credentialProcedure.setCredentialType("LEARCredentialEmployee");
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
 
         when(remoteSignatureService.sign(any(SignatureRequest.class), eq(token), eq(procedureId)))
                 .thenReturn(Mono.just(new SignedData(SignatureType.JADES, signedCredential)));
@@ -153,7 +153,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
-        credentialProcedure.setCredentialType("VerifiableCertification");
+        credentialProcedure.setCredentialType("VERIFIABLE_CERTIFICATION");
         VerifiableCertification mockCertification = VerifiableCertification.builder().build();
         VerifiableCertificationJwtPayload mockVerifiablePayload = mock(VerifiableCertificationJwtPayload.class);
 
@@ -184,7 +184,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
-        credentialProcedure.setCredentialType("LEARCredentialEmployee");
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
 
         LEARCredentialEmployee mockEmployee = LEARCredentialEmployee.builder().build();
         LEARCredentialEmployeeJwtPayload mockLearPayload = mock(LEARCredentialEmployeeJwtPayload.class);
@@ -214,7 +214,7 @@ class CredentialSignerWorkflowImplTest {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
-        credentialProcedure.setCredentialType("VerifiableCertification");
+        credentialProcedure.setCredentialType("VERIFIABLE_CERTIFICATION");
 
         when(verifiableCertificationFactory.mapStringToVerifiableCertification(decodedCredential))
                 .thenThrow(new RuntimeException("Mapping error"));
