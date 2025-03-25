@@ -229,73 +229,97 @@ class VerifiableCredentialPolicyAuthorizationServiceImplTest {
                 .verify();
     }
 
-//    @Test
-//    void authorize_failure_dueToVerifiableCertificationPolicyNotMet() throws Exception {
-//        // Arrange
-//        String token = "valid-token";
-//        JsonNode payload = mock(JsonNode.class);
-//
-//        SignedJWT signedJWT = mock(SignedJWT.class);
-//        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
-//
-//        Map<String, Object> payloadMap = new HashMap<>();
-//        payloadMap.put("iss", "some-other-issuer");
-//        Payload jwtPayload = new Payload(payloadMap);
-//
-//        when(signedJWT.getPayload()).thenReturn(jwtPayload);
-//
-//        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-//        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
-//
-//        ObjectMapper realObjectMapper = new ObjectMapper();
-//        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
-//        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
-//
-//        LEARCredentialMachine learCredential = getLEARCredentialMachineWithInvalidPolicy();
-//        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
-//
-//        // Act
-//        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, "dummy-id-token");
-//
-//        // Assert
-//        StepVerifier.create(result)
-//                .expectErrorMatches(throwable ->
-//                        throwable instanceof InsufficientPermissionException &&
-//                                throwable.getMessage().contains("Unauthorized: VerifiableCertification does not meet the issuance policy."))
-//                .verify();
-//    }
+    @Test
+    void authorize_failure_dueToVerifiableCertificationPolicyNotMet() throws Exception {
+        // Arrange
+        String token = "valid-token";
+        String idToken = "dummy-id-token";
+        JsonNode payload = mock(JsonNode.class);
 
-//    @Test
-//    void authorize_success_withVerifiableCertification() throws Exception {
-//        // Arrange
-//        String token = "valid-token";
-//        JsonNode payload = mock(JsonNode.class);
-//
-//        SignedJWT signedJWT = mock(SignedJWT.class);
-//        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
-//
-//        Map<String, Object> payloadMap = new HashMap<>();
-//        Payload jwtPayload = new Payload(payloadMap);
-//
-//        when(signedJWT.getPayload()).thenReturn(jwtPayload);
-//
-//        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-//        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
-//
-//        ObjectMapper realObjectMapper = new ObjectMapper();
-//        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
-//        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
-//
-//        LEARCredentialMachine learCredential = getLEARCredentialMachineForCertification();
-//        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
-//
-//        // Act
-//        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, "dummy-id-token");
-//
-//        // Assert
-//        StepVerifier.create(result)
-//                .verifyComplete();
-//    }
+        // Mocks para el token principal
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
+        Map<String, Object> payloadMap = new HashMap<>();
+        payloadMap.put("iss", "some-other-issuer");
+        Payload jwtPayload = new Payload(payloadMap);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
+        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
+
+        LEARCredentialMachine learCredential = getLEARCredentialMachineWithInvalidPolicy();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
+
+        SignedJWT idTokenSignedJWT = mock(SignedJWT.class);
+        Payload idTokenPayload = new Payload(new HashMap<>());
+        when(idTokenSignedJWT.getPayload()).thenReturn(idTokenPayload);
+        when(verifierService.verifyTokenWithoutExpiration(idToken)).thenReturn(Mono.empty());
+        when(jwtService.parseJWT(idToken)).thenReturn(idTokenSignedJWT);
+        when(jwtService.getClaimFromPayload(idTokenPayload, "vc_json")).thenReturn("\"vcJson\"");
+        when(objectMapper.readValue("\"vcJson\"", String.class)).thenReturn("vcJson");
+
+        LEARCredentialEmployee idTokenCredential = getLEARCredentialEmployeeForCertification();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(idTokenCredential);
+        // --------------------------------------------------------------
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, idToken);
+
+        // Assert
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof InsufficientPermissionException &&
+                                throwable.getMessage().contains("Unauthorized: VerifiableCertification does not meet the issuance policy."))
+                .verify();
+    }
+
+    @Test
+    void authorize_success_withVerifiableCertification() throws Exception {
+        // Arrange
+        String token = "valid-token";
+        String idToken = "dummy-id-token";
+        JsonNode payload = mock(JsonNode.class);
+
+        // Mocks para el token principal
+        SignedJWT signedJWT = mock(SignedJWT.class);
+        String vcClaim = "{\"type\": [\"VerifiableCredential\", \"LEARCredentialMachine\"]}";
+        Map<String, Object> payloadMap = new HashMap<>();
+        Payload jwtPayload = new Payload(payloadMap);
+        when(signedJWT.getPayload()).thenReturn(jwtPayload);
+        when(jwtService.parseJWT(token)).thenReturn(signedJWT);
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn(vcClaim);
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode vcJsonNode = realObjectMapper.readTree(vcClaim);
+        when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
+
+        // Simular LEARCredentialMachine con política válida
+        LEARCredentialMachine learCredential = getLEARCredentialMachineForCertification();
+        when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(learCredential);
+
+        // --- Mocks para el id_token ---
+        SignedJWT idTokenSignedJWT = mock(SignedJWT.class);
+        Payload idTokenPayload = new Payload(new HashMap<>());
+        when(idTokenSignedJWT.getPayload()).thenReturn(idTokenPayload);
+        when(verifierService.verifyTokenWithoutExpiration(idToken)).thenReturn(Mono.empty());
+        when(jwtService.parseJWT(idToken)).thenReturn(idTokenSignedJWT);
+        when(jwtService.getClaimFromPayload(idTokenPayload, "vc_json")).thenReturn("\"vcJson\"");
+        when(objectMapper.readValue("\"vcJson\"", String.class)).thenReturn("vcJson");
+        LEARCredentialEmployee idTokenCredential = getLEARCredentialEmployeeForCertification();
+        when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(idTokenCredential);
+        // ---------------------------------
+
+        // Act
+        Mono<Void> result = policyAuthorizationService.authorize(token, VERIFIABLE_CERTIFICATION, payload, idToken);
+
+        // Assert
+        StepVerifier.create(result)
+                .verifyComplete();
+    }
+
 
     @Test
     void authorize_success_withMandatorIssuancePolicyValid() throws Exception {
@@ -550,6 +574,34 @@ class VerifiableCredentialPolicyAuthorizationServiceImplTest {
                 .build();
         return LEARCredentialMachine.builder()
                 .type(List.of("VerifiableCredential", "LEARCredentialMachine"))
+                .credentialSubject(credentialSubject)
+                .build();
+    }
+
+    private LEARCredentialEmployee getLEARCredentialEmployeeForCertification() {
+        Mandator mandator = Mandator.builder()
+                .organizationIdentifier("SomeOrganizationIdentifier")
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee mandatee = LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
+                .id("did:key:1234")
+                .firstName("John")
+                .lastName("Doe")
+                .email("john.doe@example.com")
+                .build();
+        Power power = Power.builder()
+                .function("Certification")
+                .action(List.of("Attest", "Upload"))
+                .build();
+        LEARCredentialEmployee.CredentialSubject.Mandate mandate = LEARCredentialEmployee.CredentialSubject.Mandate.builder()
+                .mandator(mandator)
+                .mandatee(mandatee)
+                .power(Collections.singletonList(power))
+                .build();
+        LEARCredentialEmployee.CredentialSubject credentialSubject = LEARCredentialEmployee.CredentialSubject.builder()
+                .mandate(mandate)
+                .build();
+        return LEARCredentialEmployee.builder()
+                .type(List.of("VerifiableCredential", "LEARCredentialEmployee"))
                 .credentialSubject(credentialSubject)
                 .build();
     }
