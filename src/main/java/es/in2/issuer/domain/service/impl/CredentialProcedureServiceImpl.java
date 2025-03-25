@@ -169,7 +169,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
-    //FIXME Ajustar estos if-else
+    //FIXME Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))

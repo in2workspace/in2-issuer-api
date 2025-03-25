@@ -119,17 +119,17 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                     .flatMap(signedCredential -> Mono.just(VerifiableCredentialResponse.builder()
                                             .credential(signedCredential)
                                             .build()))
-                                    .onErrorResume(RemoteSignatureException.class, error -> {
-                                        log.info("Error in SYNC mode, retrying with new operation mode");
-                                        return credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived)
-                                                .flatMap(unsignedCredential ->
-                                                        Mono.just(
-                                                                VerifiableCredentialResponse.builder()
-                                                                        .credential(unsignedCredential)
-                                                                        .transactionId(transactionId)
-                                                                        .build()
-                                                        )
-                                                );
+                                    .onErrorResume(error -> {
+                                        if (error instanceof RemoteSignatureException || error instanceof IllegalArgumentException) {
+                                            log.info("Error in SYNC mode, retrying with new operation mode");
+                                            return credentialProcedureService.getDecodedCredentialByProcedureId(procedureIdReceived)
+                                                    .flatMap(unsignedCredential ->
+                                                            Mono.just(VerifiableCredentialResponse.builder()
+                                                                    .credential(unsignedCredential)
+                                                                    .transactionId(transactionId)
+                                                                    .build()));
+                                        }
+                                        return Mono.error(error);
                                     })
                     );
         }
