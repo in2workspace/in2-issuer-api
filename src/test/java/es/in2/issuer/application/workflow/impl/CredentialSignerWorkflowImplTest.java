@@ -10,7 +10,6 @@ import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

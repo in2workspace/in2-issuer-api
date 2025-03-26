@@ -146,7 +146,7 @@ class VerifiableCertificationFactoryTest {
         JsonNode credentialNode = objectMapper.readTree(credentialJson);
 
         // Mock the objectMapper's convertValue method
-        VerifiableCertification verifiableCertification = VerifiableCertification.builder()
+        VerifiableCertification verifiableCertificationBuild = VerifiableCertification.builder()
                 .context(List.of("https://www.w3.org/2018/credentials/v1"))
                 .id("urn:uuid:" + UUID.randomUUID())
                 .type(List.of("VerifiableCertification"))
@@ -211,7 +211,7 @@ class VerifiableCertificationFactoryTest {
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 
-        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertification);
+        when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertificationBuild);
 
         when(objectMapper.writeValueAsString(any(VerifiableCertification.class))).thenReturn("expectedString");
 
