@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS issuer.credential_procedure (
     updated_at TIMESTAMP,
     subject VARCHAR(255),
     valid_until TIMESTAMP,
-    credential_type VARCHAR(50),
+    credential_type VARCHAR(50)
 );
 
 -- Create credential_deferred table if it doesn't exist
