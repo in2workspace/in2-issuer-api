@@ -48,11 +48,8 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                     try {
                         // Extract JWT payload
                         String jwt = signedCredential.credential();
-                        log.info("JWT: {}", jwt);
                         SignedJWT signedJWT = SignedJWT.parse(jwt);
-                        log.info("Signed JWT: {}", signedJWT);
                         String payload = signedJWT.getPayload().toString();
-                        log.info("Payload: {}", payload);
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get(VC).get("id").asText();
@@ -63,30 +60,10 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
-                                                        .flatMap(credentialProcedure -> {
-                                                            String credentialType = credentialProcedure.getCredentialType();
-                                                            log.info("Credential Type: {}", credentialType);
-                                                            return switch (credentialType) {
-                                                                case "LEAR_CREDENTIAL_EMPLOYEE" -> {
-                                                                    JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
-                                                                    String email = mandateeNode.get(EMAIL).asText();
-                                                                    String firstName = mandateeNode.get(FIRST_NAME).asText();
-                                                                    yield emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
-                                                                }
-
-                                                                case "VERIFIABLE_CERTIFICATION" -> {
-                                                                    JsonNode companyNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(COMPANY);
-                                                                    log.info("Company Node: {}", companyNode);
-                                                                    String email = companyNode.get(EMAIL).asText();
-                                                                    log.info("Email: {}", email);
-                                                                    String commonName = companyNode.get(COMMON_NAME).asText();
-                                                                    yield emailService.sendCredentialSignedNotification(email, "Credential Ready", commonName);
-                                                                }
-
-                                                                default -> Mono.empty();
-                                                            };
-                                                        });
+                                                JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
+                                                String email = mandateeNode.get(EMAIL).asText();
+                                                String firstName = mandateeNode.get(FIRST_NAME).asText();
+                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
                                             }
                                             return Mono.empty();
                                         })

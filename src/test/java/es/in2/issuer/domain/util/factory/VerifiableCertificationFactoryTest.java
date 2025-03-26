@@ -221,7 +221,7 @@ class VerifiableCertificationFactoryTest {
         // Then: Verify the result
         StepVerifier.create(resultMono)
                 .expectNextMatches(credentialProcedureCreationRequest -> credentialProcedureCreationRequest.credentialId() != null &&
-                        credentialProcedureCreationRequest.organizationIdentifier().equals("VATES-D70795026") &&
+                        credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
                         credentialProcedureCreationRequest.credentialDecoded() != null)
                 .verifyComplete();
     }
