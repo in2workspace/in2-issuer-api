@@ -183,7 +183,9 @@ public class VerifiableCertificationFactory {
 
 
     private Mono<CredentialProcedureCreationRequest> buildCredentialProcedureCreationRequest(String decodedCredential, VerifiableCertification verifiableCertificationDecoded, String operationMode) {
-        String organizationId = defaultSignerConfig.getOrganizationIdentifier();
+        //FIXME Harcode Temporal para tests
+        //String organizationId = defaultSignerConfig.getOrganizationIdentifier();
+        String organizationId = "VATES-D70795026";
         return Mono.just(CredentialProcedureCreationRequest.builder()
                 .credentialId(verifiableCertificationDecoded.id())
                 .organizationIdentifier(organizationId)
