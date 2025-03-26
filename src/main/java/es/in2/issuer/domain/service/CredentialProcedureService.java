@@ -15,6 +15,8 @@ public interface CredentialProcedureService {
 
     Mono<Void> updateDecodedCredentialByProcedureId(String procedureId, String credential, String format);
 
+    Mono<Void> updateJustDecodedCredentialByProcedureId(String procedureId, String credential);
+
     Mono<String> getDecodedCredentialByProcedureId(String procedureId);
 
     Mono<String> getOperationModeByProcedureId(String procedureId);

@@ -21,6 +21,7 @@ public class Constants {
     public static final String AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
+    public static final String COMPANY = "company";
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
     public static final String ORGANIZATION = "organization";

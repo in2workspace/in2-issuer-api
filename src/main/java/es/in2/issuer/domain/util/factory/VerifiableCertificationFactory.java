@@ -7,10 +7,12 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.domain.model.enums.CredentialType;
+import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
@@ -36,7 +38,7 @@ public class VerifiableCertificationFactory {
     private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final ObjectMapper objectMapper;
     private final JWTService jwtService;
-    private final RemoteSignatureConfig remoteSignatureConfig;
+    private final CredentialProcedureService credentialProcedureService;
 
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token, String operationMode) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
@@ -54,10 +56,6 @@ public class VerifiableCertificationFactory {
     }
     //TODO el issuer del certification debe construirse como en el LEARCredentialEmployeeFactory una vez se realice la tarea de modificación del flujo para cumplir con el OIDC4VC
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
-        //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
-        //Generate Issuer and Signer using LEARCredentialEmployee method
-
-
         // Compliance list with new IDs
         List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
                 .map(compliance -> VerifiableCertification.CredentialSubject.Compliance.builder()
@@ -67,32 +65,6 @@ public class VerifiableCertificationFactory {
                         .standard(compliance.standard())
                         .build())
                 .toList();
-
-        // Create the Signer object using the retrieved UserDetails
-        VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
-                .commonName(defaultSignerConfig.getCommonName())
-                .country(defaultSignerConfig.getCountry())
-                .emailAddress(defaultSignerConfig.getEmail())
-                .organization(defaultSignerConfig.getOrganization())
-                .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
-                .serialNumber(defaultSignerConfig.getSerialNumber())
-                .build();
-
-        String issuerCred;
-        if((remoteSignatureConfig.getRemoteSignatureType()).equals(SIGNATURE_REMOTE_TYPE_SERVER)){
-            issuerCred = DID_ELSI + defaultSignerConfig.getOrganizationIdentifier();
-        } else {
-            issuerCred = DID_ELSI + "VATES-D70795026";
-        }
-
-
-        // Create the Issuer object using the retrieved UserDetails
-        VerifiableCertification.Issuer issuer = VerifiableCertification.Issuer.builder()
-                .commonName(defaultSignerConfig.getCommonName())
-                .country(defaultSignerConfig.getCountry())
-                .id(issuerCred)
-                .organization(defaultSignerConfig.getOrganization())
-                .build();
 
         VerifiableCertification.Atester atester = VerifiableCertification.Atester.builder()
                 .firstName(learCredentialEmployee.credentialSubject().mandate().mandatee().firstName())
@@ -108,7 +80,6 @@ public class VerifiableCertificationFactory {
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
                 .type(VERIFIABLE_CERTIFICATION_TYPE)
-                .issuer(issuer)
                 .credentialSubject(VerifiableCertification.CredentialSubject.builder()
                         .company(credential.credentialSubject().company())
                         .product(credential.credentialSubject().product())
@@ -116,8 +87,50 @@ public class VerifiableCertificationFactory {
                         .build())
                 .validFrom(credential.validFrom())
                 .validUntil(credential.validUntil())
-                .signer(signer)
                 .atester(atester)
+                .build());
+    }
+
+    public Mono<String> mapIssuerAndSigner(String procedureId, DetailedIssuer issuer) {
+        return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
+                .flatMap(credential -> {
+                    try {
+                        VerifiableCertification verifiableCertification = mapStringToVerifiableCertification(credential);
+                        return bindIssuerAndSigner(verifiableCertification, issuer)
+                                .flatMap(this::convertVerifiableCertificationInToString);
+                    } catch (InvalidCredentialFormatException e) {
+                        return Mono.error(e);
+                    }
+                });
+    }
+
+    public Mono<VerifiableCertification> bindIssuerAndSigner(VerifiableCertification verifiableCertification, DetailedIssuer issuer) {
+        VerifiableCertification.Signer signer = VerifiableCertification.Signer.builder()
+                .commonName(issuer.commonName())
+                .country(issuer.country())
+                .emailAddress(verifiableCertification.credentialSubject().company().email())
+                .organization(issuer.organization())
+                .organizationIdentifier(issuer.organizationIdentifier())
+                .serialNumber(issuer.serialNumber())
+                .build();
+
+        VerifiableCertification.Issuer issuerCred = VerifiableCertification.Issuer.builder()
+                .commonName(issuer.commonName())
+                .country(issuer.country())
+                .id(issuer.id())
+                .organization(issuer.organization())
+                .build();
+
+        return Mono.just( VerifiableCertification.builder()
+                .context(verifiableCertification.context())
+                .id(verifiableCertification.id())
+                .type(verifiableCertification.type())
+                .issuer(issuerCred)
+                .credentialSubject(verifiableCertification.credentialSubject())
+                .validFrom(verifiableCertification.validFrom())
+                .validUntil(verifiableCertification.validUntil())
+                .signer(signer)
+                .atester(verifiableCertification.atester())
                 .build());
     }
 

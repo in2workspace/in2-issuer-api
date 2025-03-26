@@ -10,6 +10,8 @@ import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.VerifiableCredentialService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
+import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
+import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
+    private final LEARCredentialEmployeeFactory LEARCredentialEmployeeFactory;
+    private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
     public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
@@ -42,7 +46,19 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     @Override
     public Mono<String> generateVerifiableCertification(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
         return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, vcType, preSubmittedCredentialRequest, token)
-                .flatMap(credentialProcedureService::createCredentialProcedure);
+                .flatMap(credentialProcedureService::createCredentialProcedure)
+                //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
+                //Generate Issuer and Signer using LEARCredentialEmployee method
+                .flatMap(procedureId ->
+                        LEARCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
+                                .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
+                                .flatMap(bindVerifiableCertification -> credentialProcedureService.updateJustDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification))
+                                .onErrorResume(error -> {
+                                    log.error("Error generating issuer/signer, continuing in ASYNC mode", error);
+                                    return Mono.empty();
+                                })
+                                .thenReturn(procedureId)
+                );
     }
 
     @Override

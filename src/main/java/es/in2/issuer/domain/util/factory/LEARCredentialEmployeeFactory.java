@@ -123,7 +123,7 @@ public class LEARCredentialEmployeeFactory {
                 .toList();
     }
 
-    private Mono<DetailedIssuer> createIssuer(String procedureId) {
+    public Mono<DetailedIssuer> createIssuer(String procedureId, String credentialType) {
         if (remoteSignatureConfig.getRemoteSignatureType().equals(SIGNATURE_REMOTE_TYPE_SERVER)) {
             return Mono.just(DetailedIssuer.builder()
                     .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
@@ -135,22 +135,34 @@ public class LEARCredentialEmployeeFactory {
                     .serialNumber(defaultSignerConfig.getSerialNumber())
                     .build());
         } else {
-            return createIssuerRemote(procedureId);
+            return createIssuerRemote(procedureId, credentialType);
         }
     }
 
-    private Mono<DetailedIssuer> createIssuerRemote(String procedureId) {
+    private Mono<DetailedIssuer> createIssuerRemote(String procedureId, String credentialType) {
         return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
-                    if (valid) {
-                        return remoteSignatureServiceImpl.getMandatorMail(procedureId)
-                            .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
-                                    .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
-                                    .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
-                    } else {
+                    if (!valid) {
                         log.error("Credentials mismatch. Signature process aborted.");
                         return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
                     }
+
+                    return switch (credentialType) {
+                        case LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
+                                .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
+                                        .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
+                                        .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
+
+                        case VERIFIABLE_CERTIFICATION -> remoteSignatureServiceImpl.getMailForVerifiableCertification(procedureId)
+                                .flatMap(mail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
+                                        .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
+                                        .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mail)));
+
+                        default -> {
+                            log.error("Unsupported credentialType: {}", credentialType);
+                            yield Mono.error(new RemoteSignatureException("Unsupported credentialType: " + credentialType));
+                        }
+                    };
                 }))
                 .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
                         .maxBackoff(Duration.ofSeconds(5))
@@ -258,7 +270,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployee> bindIssuerToLearCredentialEmployee(LEARCredentialEmployee decodedCredential, String procedureId) {
-        return createIssuer(procedureId)
+        return createIssuer(procedureId, LEAR_CREDENTIAL_EMPLOYEE)
                 .map(issuer -> LEARCredentialEmployee.builder()
                     .context(decodedCredential.context())
                     .id(decodedCredential.id())
