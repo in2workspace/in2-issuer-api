@@ -66,6 +66,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                                 return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                                                         .flatMap(credentialProcedure -> {
                                                             String credentialType = credentialProcedure.getCredentialType();
+                                                            log.info("Credential Type: {}", credentialType);
                                                             return switch (credentialType) {
                                                                 case "LEAR_CREDENTIAL_EMPLOYEE" -> {
                                                                     JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
@@ -76,7 +77,9 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
 
                                                                 case "VERIFIABLE_CERTIFICATION" -> {
                                                                     JsonNode companyNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(COMPANY);
+                                                                    log.info("Company Node: {}", companyNode);
                                                                     String email = companyNode.get(EMAIL).asText();
+                                                                    log.info("Email: {}", email);
                                                                     String commonName = companyNode.get(COMMON_NAME).asText();
                                                                     yield emailService.sendCredentialSignedNotification(email, "Credential Ready", commonName);
                                                                 }
