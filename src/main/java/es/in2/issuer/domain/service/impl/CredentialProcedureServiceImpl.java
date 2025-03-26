@@ -173,7 +173,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
-    //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista
+    //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista y el de la certificación
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
@@ -196,7 +196,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 yield Mono.just(email.equals("jesus.ruiz@in2.es") ? "domesupport@in2.es" : email);
                             }
                         }
-                        case "VERIFIABLE_CERTIFICATION" -> Mono.just(credential.get(SIGNER).get(EMAIL_ADDRESS).asText());
+                        case "VERIFIABLE_CERTIFICATION" -> Mono.just("domesupport@in2.es");
 
                         default -> Mono.error(new IllegalArgumentException("Unsupported credential type: " + credentialProcedure.getCredentialType()));
                     };

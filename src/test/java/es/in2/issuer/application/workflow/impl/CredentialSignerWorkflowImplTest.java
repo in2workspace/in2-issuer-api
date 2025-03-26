@@ -57,16 +57,12 @@ class CredentialSignerWorkflowImplTest {
     private final String authorizationHeader = "Bearer some-token";
     private final String bindedCredential = "bindedCredential";
 
-    @BeforeEach
-    void setUp() {
-        String procedureId = UUID.randomUUID().toString();
-    }
+
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
         String unsignedCredential = "unsignedCredential";
         String token = "dummyToken";
         String signedCredential = "signedJWTData";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");

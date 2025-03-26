@@ -61,7 +61,7 @@ class DeferredCredentialWorkflowImplTest {
     }
 
     @Test
-    void updateSignedCredentials() throws JsonProcessingException {
+    void updateSignedCredentialsLearCredentialEmployee() throws JsonProcessingException {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
@@ -159,4 +159,63 @@ class DeferredCredentialWorkflowImplTest {
         StepVerifier.create(deferredCredentialWorkflow.updateSignedCredentials(signedCredentials))
                 .verifyComplete();
     }
+    @Test
+    void updateSignedCredentials_verifiableCertification() throws Exception {
+        String procedureId = UUID.randomUUID().toString();
+        CredentialProcedure credentialProcedure = new CredentialProcedure();
+        credentialProcedure.setCredentialType("VERIFIABLE_CERTIFICATION");
+        credentialProcedure.setProcedureId(UUID.fromString(procedureId));
+        String credential = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+        String expectedEmail = "in2.rrhh@mail.com";
+        String expectedFirstName = "IN2";
+        String expectedId = "390ecd06-4e56-483a-b550-18d93a4bf9e3";
+
+        List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder()
+                .credential(credential)
+                .build()
+        );
+
+        SignedCredentials signedCredentials = SignedCredentials.builder()
+                .credentials(credentials)
+                .build();
+
+        String json = """
+                {
+                    "vc": {
+                        "id": "390ecd06-4e56-483a-b550-18d93a4bf9e3",
+                        "credentialSubject": {
+                            "company": {
+                                "commonName": "IN2",
+                                "country": "ES",
+                                "email": "in2.rrhh@mail.com",
+                                "organization": "IN2, Ingeniería de la Información, S.L.",
+                                "organizationIdentifier": "VATES-B60645900",
+                                "serialNumber": "B60645900"
+                            }
+                        }
+                    }
+                }
+                """;
+        ObjectMapper objectMapper2 = new ObjectMapper();
+        JsonNode jsonNode = objectMapper2.readTree(json);
+
+        when(credentialProcedureRepository.findByProcedureId(any(UUID.class)))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(objectMapper.readTree(anyString())).thenReturn(jsonNode);
+
+        when(credentialProcedureService.updatedEncodedCredentialByCredentialId(signedCredentials.credentials().get(0).credential(),expectedId))
+                .thenReturn(Mono.just(procedureId));
+
+        when(deferredCredentialMetadataService.updateVcByProcedureId(credential,procedureId))
+                .thenReturn(Mono.empty());
+
+        when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready",expectedFirstName))
+                .thenReturn(Mono.empty());
+
+        when(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("A"));
+
+        StepVerifier.create(deferredCredentialWorkflow.updateSignedCredentials(signedCredentials))
+                .verifyComplete();
+    }
+
 }
