@@ -30,8 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.CWT_VC;
-import static es.in2.issuer.domain.util.Constants.JWT_VC;
+import static es.in2.issuer.domain.util.Constants.*;
 
 @Service
 @Slf4j
@@ -177,13 +176,27 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     public Mono<Void> retrySignUnsignedCredential(String authorizationHeader, String procedureId) {
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                 .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
-                .flatMap(credentialProcedure ->
-                        learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialProcedure.getCredentialDecoded(), procedureId)
-                                .flatMap(bindCredential -> {
-                                    log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);
-                                    return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, JWT_VC);
-                                })
-                )
+                .flatMap(credentialProcedure -> switch (credentialProcedure.getCredentialType()) {
+                    case "VERIFIABLE_CERTIFICATION" ->
+                            learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
+                                    .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
+                                    .flatMap(bindCredential -> {
+                                        log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);
+                                        return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, JWT_VC);
+                                    });
+
+                    case "LEAR_CREDENTIAL_EMPLOYEE" ->
+                            learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialProcedure.getCredentialDecoded(), procedureId)
+                                    .flatMap(bindCredential -> {
+                                        log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);
+                                        return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, JWT_VC);
+                                    });
+
+                    default -> {
+                        log.error("Unknown credential type: {}", credentialProcedure.getCredentialType());
+                        yield Mono.error(new IllegalArgumentException("Unsupported credential type: " + credentialProcedure.getCredentialType()));
+                    }
+                })
                 .then(this.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC))
                 .flatMap(ignored -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
                 .then(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))

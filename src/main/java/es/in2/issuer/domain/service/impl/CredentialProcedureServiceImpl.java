@@ -103,19 +103,6 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
-    public Mono<Void> updateJustDecodedCredentialByProcedureId(String procedureId, String credential) {
-        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
-                .flatMap(credentialProcedure -> {
-                    credentialProcedure.setCredentialDecoded(credential);
-                    credentialProcedure.setUpdatedAt(new Timestamp(Instant.now().toEpochMilli()));
-
-                    return credentialProcedureRepository.save(credentialProcedure)
-                            .doOnSuccess(result -> log.info("Updated credential"))
-                            .then();
-                });
-    }
-
-    @Override
     public Mono<String> getDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> Mono.just(credentialProcedure.getCredentialDecoded()));

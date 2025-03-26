@@ -52,7 +52,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                 .flatMap(procedureId ->
                         LEARCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
                                 .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
-                                .flatMap(bindVerifiableCertification -> credentialProcedureService.updateJustDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification))
+                                .flatMap(bindVerifiableCertification -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification, JWT_VC))
                                 .onErrorResume(error -> {
                                     log.error("Error generating issuer/signer, continuing in ASYNC mode", error);
                                     return Mono.empty();

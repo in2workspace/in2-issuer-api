@@ -231,6 +231,8 @@ class CredentialSignerWorkflowImplTest {
     void testRetrySignUnsignedCredential_Success() {
         CredentialProcedure credentialProcedure = mock(CredentialProcedure.class);
         when(credentialProcedure.getCredentialDecoded()).thenReturn("decodedCredential");
+        when(credentialProcedure.getCredentialType()).thenReturn("LEAR_CREDENTIAL_EMPLOYEE");
+
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
@@ -272,6 +274,7 @@ class CredentialSignerWorkflowImplTest {
     void testRetrySignUnsignedCredential_ErrorOnMappingCredential() {
         CredentialProcedure credentialProcedure = mock(CredentialProcedure.class);
         when(credentialProcedure.getCredentialDecoded()).thenReturn("decodedCredential");
+        when(credentialProcedure.getCredentialType()).thenReturn("LEAR_CREDENTIAL_EMPLOYEE");
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
@@ -287,6 +290,8 @@ class CredentialSignerWorkflowImplTest {
     void testRetrySignUnsignedCredential_ErrorOnUpdatingDecodedCredential() {
         CredentialProcedure credentialProcedure = mock(CredentialProcedure.class);
         when(credentialProcedure.getCredentialDecoded()).thenReturn("decodedCredential");
+        when(credentialProcedure.getCredentialType()).thenReturn("LEAR_CREDENTIAL_EMPLOYEE");
+
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
@@ -304,6 +309,8 @@ class CredentialSignerWorkflowImplTest {
     void testRetrySignUnsignedCredential_ErrorOnSigningCredential() {
         CredentialProcedure credentialProcedure = mock(CredentialProcedure.class);
         when(credentialProcedure.getCredentialDecoded()).thenReturn("decodedCredential");
+        when(credentialProcedure.getCredentialType()).thenReturn("LEAR_CREDENTIAL_EMPLOYEE");
+
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
@@ -324,6 +331,8 @@ class CredentialSignerWorkflowImplTest {
     void testRetrySignUnsignedCredential_ErrorOnSavingUpdatedAt() {
         CredentialProcedure credentialProcedure = mock(CredentialProcedure.class);
         when(credentialProcedure.getCredentialDecoded()).thenReturn("decodedCredential");
+        when(credentialProcedure.getCredentialType()).thenReturn("LEAR_CREDENTIAL_EMPLOYEE");
+
 
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
