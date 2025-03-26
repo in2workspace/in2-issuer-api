@@ -1,6 +1,5 @@
 package es.in2.issuer.backend.domain.util;
 
-import es.in2.issuer.backend.domain.util.Utils;
 import org.junit.jupiter.api.Test;
 import reactor.test.StepVerifier;
 
@@ -22,7 +21,7 @@ class UtilsTest {
 
     @Test
     void testGenerateCustomNonce() {
-        StepVerifier.create(Utils.generateCustomNonce())
+        StepVerifier.create(es.in2.issuer.shared.domain.util.Utils.generateCustomNonce())
                 .assertNext(nonce -> {
                     assertNotNull(nonce);
                     assertFalse(nonce.isEmpty());

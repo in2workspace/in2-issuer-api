@@ -4,7 +4,7 @@ import es.in2.issuer.backend.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.backend.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import es.in2.issuer.backend.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.backend.infrastructure.repository.DeferredCredentialMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.UUID;
 
-import static es.in2.issuer.backend.domain.util.Utils.generateCustomNonce;
+import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Service
 @RequiredArgsConstructor
