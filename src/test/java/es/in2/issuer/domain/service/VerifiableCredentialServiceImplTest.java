@@ -409,8 +409,6 @@ class VerifiableCredentialServiceImplTest {
         String decodedCredential = "decodedCredential";
         String bindCredential = "bindCredential";
         String unsignedCredential = "unsignedCredential";
-        String signerEmail = "signer@example.com";
-
         // --- ASYNC ---
         when(deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce))
                 .thenReturn(Mono.just(procedureId));

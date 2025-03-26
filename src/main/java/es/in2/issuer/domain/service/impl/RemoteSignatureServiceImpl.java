@@ -48,6 +48,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private final RemoteSignatureConfig remoteSignatureConfig;
     private final HashGeneratorService hashGeneratorService;
     private static final String ACCESS_TOKEN_NAME = "access_token";
+    private static final String CERTIFICATES = "certificates";
+    private static final String SERIALIZING_ERROR = "Error serializing request body to JSON";
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
@@ -122,7 +124,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
         requestBody.clear();
         requestBody.put("credentialInfo", true);
-        requestBody.put("certificates", "chain");
+        requestBody.put(CERTIFICATES, "chain");
         requestBody.put("certInfo", true);
         requestBody.put("authInfo", true);
         requestBody.put("onlyValid", true);
@@ -147,7 +149,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                     .switchIfEmpty(Mono.just(false))
                     .doOnError(error -> log.error("Error validating certificate: {}", error.getMessage()));
         } catch (JsonProcessingException e) {
-            return Mono.error(new RemoteSignatureException("Error serializing request body to JSON", e));
+            return Mono.error(new RemoteSignatureException(SERIALIZING_ERROR, e));
         }
     }
 
@@ -169,7 +171,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         try {
             signatureRequestJSON = objectMapper.writeValueAsString(signatureRequest);
         } catch (JsonProcessingException e) {
-            return Mono.error(new RemoteSignatureException("Error serializing signature request", e));
+            return Mono.error(new RemoteSignatureException(SERIALIZING_ERROR, e));
         }
         headers.clear();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, token));
@@ -234,11 +236,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     public Mono<String> requestCertificateInfo(String accessToken, String credentialID){
-        String credentialsInfoEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/credentials/info";
-        Map<String, Object> requestBody = new HashMap<>();
-        List<Map.Entry<String, String>> headers = new ArrayList<>();
-        requestBody.put("credentialID", credentialID);
-        requestBody.put("certificates", "chain");
+        String credentialsInfoEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/csc/v2/credentials/infodummy";
+        requestBody.clear();
+        requestBody.put(CREDENTIAL_ID, credentialID);
+        requestBody.put(CERTIFICATES, "chain");
         requestBody.put("certInfo", "true");
         requestBody.put("authInfo", "true");
 
@@ -246,8 +247,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         try {
             requestBodySignature = objectMapper.writeValueAsString(requestBody);
         } catch (JsonProcessingException e) {
-            return Mono.error(new RuntimeException("Error serializing signature request", e));
+            return Mono.error(new RuntimeException(SERIALIZING_ERROR, e));
         }
+        headers.clear();
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + accessToken));
         headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE));
         return httpUtils.postRequest(credentialsInfoEndpoint, headers, requestBodySignature)
@@ -267,7 +269,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             }
 
             String organizationIdentifier = null;
-            JsonNode certificatesArray = certificateInfoNode.get("cert").get("certificates");
+            JsonNode certificatesArray = certificateInfoNode.get("cert").get(CERTIFICATES);
 
             if (certificatesArray != null && certificatesArray.isArray()) {
                 for (JsonNode certNode : certificatesArray) {
@@ -350,7 +352,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
         String base64Document = Base64.getEncoder().encodeToString(signatureRequest.data().getBytes(StandardCharsets.UTF_8));
         requestBody.clear();
-        requestBody.put("credentialID", credentialID);
+        requestBody.put(CREDENTIAL_ID, credentialID);
         requestBody.put("signatureQualifier", signatureQualifier);
         List<Map<String, String>> documents = List.of(
                 Map.of(
@@ -366,7 +368,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         try {
             requestBodySignature = objectMapper.writeValueAsString(requestBody);
         } catch (JsonProcessingException e) {
-            return Mono.error(new RuntimeException("Error serializing signature request", e));
+            return Mono.error(new RuntimeException(SERIALIZING_ERROR, e));
         }
 
         headers.clear();
@@ -408,7 +410,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         try {
             Map<String, Object> authorizationDetails = new HashMap<>();
             authorizationDetails.put("type", SIGNATURE_REMOTE_SCOPE_CREDENTIAL);
-            authorizationDetails.put("credentialID", credentialID);
+            authorizationDetails.put(CREDENTIAL_ID, credentialID);
             authorizationDetails.put("credentialPassword", credentialPassword);
             String hashedCredential = hashGeneratorService.generateHash(unsignedCredential, hashAlgorithmOID);
             List<Map<String, String>> documentDigests = null;

@@ -9,10 +9,13 @@ import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.*;
 
@@ -24,6 +27,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
+    private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
     public Mono<PendingCredentials> getPendingCredentialsByOrganizationId(String organizationId) {
@@ -54,9 +58,27 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                String email = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(EMAIL).asText();
-                                                String firstName = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE).get(FIRST_NAME).asText();
-                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                                return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                                                        .flatMap(credentialProcedure -> {
+                                                            String credentialType = credentialProcedure.getCredentialType();
+                                                            return switch (credentialType) {
+                                                                case "LEAR_CREDENTIAL_EMPLOYEE" -> {
+                                                                    JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
+                                                                    String email = mandateeNode.get(EMAIL).asText();
+                                                                    String firstName = mandateeNode.get(FIRST_NAME).asText();
+                                                                    yield emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                                                }
+
+                                                                case "VERIFIABLE_CERTIFICATION" -> {
+                                                                    JsonNode companyNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(COMPANY);
+                                                                    String email = companyNode.get(EMAIL).asText();
+                                                                    String commonName = companyNode.get(COMMON_NAME).asText();
+                                                                    yield emailService.sendCredentialSignedNotification(email, "Credential Ready", commonName);
+                                                                }
+
+                                                                default -> Mono.empty();
+                                                            };
+                                                        });
                                             }
                                             return Mono.empty();
                                         })

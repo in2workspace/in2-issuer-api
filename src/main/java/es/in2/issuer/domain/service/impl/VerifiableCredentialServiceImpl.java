@@ -30,7 +30,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
-    private final LEARCredentialEmployeeFactory LEARCredentialEmployeeFactory;
+    private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
@@ -50,7 +50,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                 //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
                 //Generate Issuer and Signer using LEARCredentialEmployee method
                 .flatMap(procedureId ->
-                        LEARCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
+                        learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
                                 .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
                                 .flatMap(bindVerifiableCertification -> credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification, JWT_VC))
                                 .onErrorResume(error -> {

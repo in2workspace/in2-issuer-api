@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.domain.exception.MissingCredentialTypeException;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
@@ -74,7 +75,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
     private Optional<String> extractCredentialType(JsonNode typeNode) {
         if (typeNode == null || !typeNode.isArray()) {
-            throw new RuntimeException("The credential type is missing");
+            throw new MissingCredentialTypeException("The credential type is missing");
         }
 
         for (JsonNode type : typeNode) {
@@ -175,28 +176,35 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
-        return credentialProcedureRepository.findById(UUID.fromString(procedureId))
-                .flatMap(credentialProcedure -> {
-                    try {
-                        JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
-                        if(credential.has(VC)){
-                            if(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).has(SIGNER)){
-                                return Mono.just(credential.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(SIGNER).get(EMAIL_ADDRESS).asText());
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+            .flatMap(credentialProcedure -> {
+                try {
+                    JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
+                    return switch (credentialProcedure.getCredentialType()) {
+                        case "LEAR_CREDENTIAL_EMPLOYEE" -> {
+                            if (credential.has(VC)) {
+                                JsonNode vcNode = credential.get(VC);
+                                JsonNode mandateNode = vcNode.get(CREDENTIAL_SUBJECT).get(MANDATE);
+                                if (mandateNode.has(SIGNER)) {
+                                    yield Mono.just(mandateNode.get(SIGNER).get(EMAIL_ADDRESS).asText());
+                                } else {
+                                    yield Mono.just(vcNode.get(ISSUER).get(EMAIL_ADDRESS).asText());
+                                }
                             } else {
-                                return Mono.just(credential.get(VC).get(ISSUER).get(EMAIL_ADDRESS).asText());
-                            }
-                        } else {
-                            if (credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText().equals("jesus.ruiz@in2.es")) {
-                                return Mono.just("domesupport@in2.es");
-                            } else {
-                                return Mono.just(credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS).asText());
+                                JsonNode mandatorEmailNode = credential.get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATOR).get(EMAIL_ADDRESS);
+                                String email = mandatorEmailNode.asText();
+                                yield Mono.just(email.equals("jesus.ruiz@in2.es") ? "domesupport@in2.es" : email);
                             }
                         }
-                    } catch (JsonProcessingException e) {
-                        return Mono.error(new RuntimeException());
-                    }
+                        case "VERIFIABLE_CERTIFICATION" -> Mono.just(credential.get(SIGNER).get(EMAIL_ADDRESS).asText());
 
-                });
+                        default -> Mono.error(new IllegalArgumentException("Unsupported credential type: " + credentialProcedure.getCredentialType()));
+                    };
+                } catch (JsonProcessingException e) {
+                    return Mono.error(new RuntimeException());
+                }
+
+            });
     }
 
     @Override

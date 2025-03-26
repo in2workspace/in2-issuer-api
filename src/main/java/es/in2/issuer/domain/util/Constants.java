@@ -29,6 +29,7 @@ public class Constants {
     public static final String VC = "vc";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
+    public static final String COMMON_NAME = "commonName";
     public static final String EMAIL_ADDRESS = "emailAddress";
     public static final String FIRST_NAME = "firstName";
     public static final String LAST_NAME = "lastName";
@@ -70,6 +71,7 @@ public class Constants {
     public static final String SIGNATURE_REMOTE_TYPE_CLOUD = "cloud";
     public static final String SIGNATURE_REMOTE_SCOPE_SERVICE = "service";
     public static final String SIGNATURE_REMOTE_SCOPE_CREDENTIAL = "credential";
+    public static final String CREDENTIAL_ID = "credentialID";
     // ERROR MESSAGES
     public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
 }

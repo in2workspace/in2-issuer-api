@@ -10,6 +10,7 @@ import es.in2.issuer.domain.service.RemoteSignatureService;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -56,6 +57,10 @@ class CredentialSignerWorkflowImplTest {
     private final String authorizationHeader = "Bearer some-token";
     private final String bindedCredential = "bindedCredential";
 
+    @BeforeEach
+    void setUp() {
+        String procedureId = UUID.randomUUID().toString();
+    }
     @Test
     void signCredentialOnRequestedFormat_JWT_Success() {
         String unsignedCredential = "unsignedCredential";
@@ -86,7 +91,7 @@ class CredentialSignerWorkflowImplTest {
         String token = "dummyToken";
         String signedCredential = "eyJkYXRhIjoiZGF0YSJ9";
         String signedResult = "6BFWTLRH9.Q5$VAFLGV*M7:43S0";
-        String procedureId = UUID.randomUUID().toString();
+
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
@@ -111,7 +116,6 @@ class CredentialSignerWorkflowImplTest {
         String unsignedCredential = "unsignedCredential";
         String token = "dummyToken";
         String unsupportedFormat = "unsupportedFormat";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
@@ -127,7 +131,6 @@ class CredentialSignerWorkflowImplTest {
         String unsignedCredential = "{\"vc\":{\"id\":\"123\"}}"; // Contiene "vc"
         String signedCredential = "signedJWTData";
         String token = "dummyToken";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(unsignedCredential);
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
@@ -150,7 +153,6 @@ class CredentialSignerWorkflowImplTest {
         String unsignedJwtPayload = "unsignedPayload";
         String signedCredential = "signedJWTData";
         String token = "dummyToken";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
         credentialProcedure.setCredentialType("VERIFIABLE_CERTIFICATION");
@@ -181,7 +183,6 @@ class CredentialSignerWorkflowImplTest {
         String unsignedJwtPayload = "unsignedPayload";
         String signedCredential = "signedJWTData";
         String token = "dummyToken";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
         credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
@@ -211,7 +212,6 @@ class CredentialSignerWorkflowImplTest {
     void signCredential_ErrorDuringJwtPayloadCreation() {
         String decodedCredential = "{\"VerifiableCertification\":\"data\"}";
         String token = "dummyToken";
-        String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setCredentialDecoded(decodedCredential);
         credentialProcedure.setCredentialType("VERIFIABLE_CERTIFICATION");

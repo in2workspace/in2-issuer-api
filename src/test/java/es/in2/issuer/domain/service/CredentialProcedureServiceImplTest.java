@@ -391,11 +391,12 @@ class CredentialProcedureServiceImplTest {
         CredentialProcedure credentialProcedure = new CredentialProcedure();
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
         credentialProcedure.setCredentialDecoded(credentialDecoded);
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
 
         JsonNode credentialNode = new ObjectMapper().readTree(credentialDecoded);
 
         // When
-        when(credentialProcedureRepository.findById(any(UUID.class)))
+        when(credentialProcedureRepository.findByProcedureId(any(UUID.class)))
                 .thenReturn(Mono.just(credentialProcedure));
         when(objectMapper.readTree(credentialDecoded))
                 .thenReturn(credentialNode);

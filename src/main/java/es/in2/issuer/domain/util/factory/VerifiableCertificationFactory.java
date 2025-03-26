@@ -54,7 +54,7 @@ public class VerifiableCertificationFactory {
                                 )
                 );
     }
-    //TODO el issuer del certification debe construirse como en el LEARCredentialEmployeeFactory una vez se realice la tarea de modificación del flujo para cumplir con el OIDC4VC
+
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
         // Compliance list with new IDs
         List<VerifiableCertification.CredentialSubject.Compliance> populatedCompliance = credential.credentialSubject().compliance().stream()
