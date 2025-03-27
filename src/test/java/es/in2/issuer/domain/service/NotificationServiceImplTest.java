@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service;
 
+import es.in2.issuer.domain.exception.CredentialOfferNotificationException;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.impl.NotificationServiceImpl;
 import es.in2.issuer.infrastructure.config.AppConfig;
@@ -22,9 +23,9 @@ class NotificationServiceImplTest {
     private final String procedureId = "procedureId";
     private final String email = "test@example.com";
     private final String user = "Jhon";
-    private final String knowledgebaseWalletUrl = "http://knowledgebaseUrl.com";
+    private final String knowledgebaseWalletUrl = "https://knowledgebaseUrl.com";
     private final String organization = "organization";
-    private final String issuerUiExternalDomain = "http://example.com";
+    private final String issuerUiExternalDomain = "https://example.com";
 
     @Mock
     private AppConfig appConfig;
@@ -67,6 +68,40 @@ class NotificationServiceImplTest {
 
         verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
+
+    @Test
+    void testSendNotification_DraftStatus_EmailFailure() {
+        String transactionCode = "transactionCode";
+
+        when(credentialProcedureService.getCredentialStatusByProcedureId(procedureId))
+                .thenReturn(Mono.just(CredentialStatus.DRAFT.toString()));
+        when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(email));
+        when(credentialProcedureService.getMandateeCompleteNameFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(user));
+        when(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
+                .thenReturn(Mono.just(organization));
+        when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
+                .thenReturn(Mono.just(transactionCode));
+        when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
+
+        when(emailService.sendTransactionCodeForCredentialOffer(
+                email,
+                "Activate your new credential",
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,
+                knowledgebaseWalletUrl,
+                user,
+                organization))
+                .thenReturn(Mono.error(new RuntimeException("Email sending failed")));
+
+        Mono<Void> result = notificationService.sendNotification(processId, procedureId);
+
+        StepVerifier.create(result)
+                .expectErrorMatches(throwable -> throwable instanceof CredentialOfferNotificationException &&
+                        throwable.getMessage().contains("Error sending the reminder, please get in touch with the support team"))
+                .verify();
+    }
+
 
     @Test
     void testSendNotification_WithPendDownloadStatus() {

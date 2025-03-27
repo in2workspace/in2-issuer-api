@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import es.in2.issuer.domain.exception.CredentialOfferNotificationException;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
@@ -41,7 +42,9 @@ public class NotificationServiceImpl implements NotificationService {
                                                         appConfig.getKnowledgebaseWalletUrl(),
                                                         completeName,
                                                         organization
-                                                ));
+                                                ))
+                                                .onErrorMap(e -> new CredentialOfferNotificationException(
+                                                        "Error sending the reminder, please get in touch with the support team"));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
                                     } else {

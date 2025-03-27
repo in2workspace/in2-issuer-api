@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.domain.exception.CredentialOfferEmailException;
 import es.in2.issuer.domain.exception.FormatUnsupportedException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
@@ -178,6 +179,98 @@ class VerifiableCredentialIssuanceServiceImplTest {
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId,type, preSubmittedCredentialRequest, token))
                 .verifyComplete();
     }
+
+    @Test
+    void completeWithdrawLEARProcessSyncFailureOnEmailSending() throws JsonProcessingException {
+        String processId = "1234";
+        String type = "LEARCredentialEmployee";
+        String knowledgebaseWalletUrl = "https://knowledgebase.com";
+        String issuerUiExternalDomain = "https://example.com";
+        String token = "token";
+        String json = """
+            {
+                "life_span": {
+                    "end_date_time": "2025-04-02 09:23:22.637345122 +0000 UTC",
+                    "start_date_time": "2024-04-02 09:23:22.637345122 +0000 UTC"
+                },
+                "mandatee": {
+                    "email": "example@in2.es",
+                    "firstName": "Jhon",
+                    "lastName": "Doe",
+                    "mobile_phone": "+34666336699"
+                },
+                "mandator": {
+                    "commonName": "IN2",
+                    "country": "ES",
+                    "emailAddress": "rrhh@in2.es",
+                    "organization": "IN2, Ingeniería de la Información, S.L.",
+                    "organizationIdentifier": "VATES-B26246436",
+                    "serialNumber": "3424320"
+                },
+                "power": [
+                    {
+                        "id": "6b8f3137-a57a-46a5-97e7-1117a20142fv",
+                        "tmf_domain": "DOME",
+                        "tmf_function": "DomePlatform",
+                        "tmf_type": "Domain",
+                        "tmf_action": [
+                            "Operator",
+                            "Customer",
+                            "Provider"
+                        ]
+                    },
+                    {
+                        "id": "6b8f3137-a57a-46a5-97e7-1117a20142fb",
+                        "tmf_action": "Execute",
+                        "tmf_domain": "DOME",
+                        "tmf_function": "Onboarding",
+                        "tmf_type": "Domain"
+                    },
+                    {
+                        "id": "ad9b1509-60ea-47d4-9878-18b581d8e19b",
+                        "tmf_action": [
+                            "Create",
+                            "Update"
+                        ],
+                        "tmf_domain": "DOME",
+                        "tmf_function": "ProductOffering",
+                        "tmf_type": "Domain"
+                    }
+                ]
+            }
+            """;
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(json);
+        IssuanceRequest issuanceRequest = IssuanceRequest.builder()
+                .payload(jsonNode)
+                .schema("LEARCredentialEmployee")
+                .format(JWT_VC_JSON)
+                .operationMode("S")
+                .build();
+        String transactionCode = "4321";
+
+        when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
+        when(verifiableCredentialService.generateVc(processId, type, issuanceRequest, token)).thenReturn(Mono.just(transactionCode));
+        when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
+        when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
+
+        // Simulación de fallo en el envío del email
+        when(emailService.sendTransactionCodeForCredentialOffer(
+                "example@in2.es",
+                "Activate your new credential",
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,
+                knowledgebaseWalletUrl,
+                "Jhon Doe",
+                "IN2, Ingeniería de la Información, S.L."))
+                .thenReturn(Mono.error(new RuntimeException("Email sending failed")));
+
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
+                .expectErrorMatches(throwable ->
+                        throwable instanceof CredentialOfferEmailException &&
+                                throwable.getMessage().contains("The credential was created but there was an error sending the credential offer email"))
+                .verify();
+    }
+
 
     @Test
     void completeWithdrawVerifiableCertificationProcessSuccess() throws JsonProcessingException {

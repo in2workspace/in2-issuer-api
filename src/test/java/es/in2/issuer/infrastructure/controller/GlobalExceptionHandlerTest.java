@@ -21,12 +21,11 @@ import static org.mockito.Mockito.when;
 
 class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler globalExceptionHandler;
-    private WebRequest mockWebRequest;
 
     @BeforeEach
     void setUp() {
         globalExceptionHandler = new GlobalExceptionHandler();
-        mockWebRequest = mock(WebRequest.class);
+        WebRequest mockWebRequest = mock(WebRequest.class);
         when(mockWebRequest.getDescription(false)).thenReturn("WebRequestDescription");
     }
 
@@ -344,9 +343,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleJWTVerificationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -412,4 +409,61 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleCredentialOfferEmailException_withMessage() {
+        String errorMessage = "Email sent successfully";
+        CredentialOfferEmailException exception = new CredentialOfferEmailException(errorMessage);
+
+        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferEmailException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
+                    assertEquals(errorMessage, responseEntity.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleCredentialOfferEmailException_withoutMessage() {
+        CredentialOfferEmailException exception = new CredentialOfferEmailException(null);
+
+        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferEmailException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
+                    assertNull(responseEntity.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleCredentialOfferNotificationException_withMessage() {
+        String errorMessage = "Notification service unavailable";
+        CredentialOfferNotificationException exception = new CredentialOfferNotificationException(errorMessage);
+
+        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferNotificationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, responseEntity.getStatusCode());
+                    assertEquals(errorMessage, responseEntity.getBody());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleCredentialOfferNotificationException_withoutMessage() {
+        CredentialOfferNotificationException exception = new CredentialOfferNotificationException(null);
+
+        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferNotificationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, responseEntity.getStatusCode());
+                    assertNull(responseEntity.getBody());
+                })
+                .verifyComplete();
+    }
 }

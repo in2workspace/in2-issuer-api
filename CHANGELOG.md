@@ -4,11 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.2](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.2)
+### Fixed
+- Handle error during mail sending on the credential offer.
 
 ## [v1.5.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.1)
 ### Fixed
 - Fixed parsing certificates
-- 
+
 ## [v1.5.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.0)
 ### Added
 - Added support to sign the credential with an external service.
@@ -37,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changing environment variable for wallet knowledge redirection to email.
 - Changed email template implementation for better compatibility.
 
-## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.4)
+## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.3)
 ### Changed
 - Fix a problem with a cors endpoint.
 
