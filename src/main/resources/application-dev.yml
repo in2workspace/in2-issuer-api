@@ -12,6 +12,7 @@ spring:
   flyway:
     url:
     locations: classpath:db/migration
+    default-schema:
   mail:
     host: localhost
     port: 1025
