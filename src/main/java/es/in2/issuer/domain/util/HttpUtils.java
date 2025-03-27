@@ -27,8 +27,7 @@ public class HttpUtils {
                 .retrieve()
                 .onStatus(status -> status != HttpStatus.OK, clientResponse ->
                         Mono.error(new RuntimeException("Error during get request:" + clientResponse.statusCode())))
-                .bodyToMono(String.class)
-                .doOnNext(response -> logCRUD(url, headers, "", response, "GET"));
+                .bodyToMono(String.class);
     }
 
     public Mono<String> postRequest(@Nullable String url, List<Map.Entry<String, String>> headers, String body) {
@@ -39,8 +38,7 @@ public class HttpUtils {
                 .retrieve()
                 .onStatus(status -> status != HttpStatus.OK, clientResponse ->
                         Mono.error(new RuntimeException("Error during post request:" + clientResponse.statusCode())))
-                .bodyToMono(String.class)
-                .doOnNext(response -> logCRUD(url, headers, body, response, "POST"));
+                .bodyToMono(String.class);
     }
 
     public Mono<List<Map.Entry<String, String>>> prepareHeadersWithAuth(String token) {
@@ -49,16 +47,6 @@ public class HttpUtils {
             headers.add(new AbstractMap.SimpleEntry<>(HttpHeaders.AUTHORIZATION, "Bearer " + token));
             return headers;
         });
-    }
-
-    private void logCRUD(String url, List<Map.Entry<String, String>> headers, String requestBody, String responseBody, String method) {
-        log.debug("********************************************************************************");
-        log.debug(">>> METHOD: {}", method);
-        log.debug(">>> URI: {}", url);
-        log.debug(">>> HEADERS: {}", headers);
-        log.debug(">>> BODY: {}", requestBody);
-        log.debug("<<< BODY: {}", responseBody);
-        log.debug("********************************************************************************");
     }
 
     public static String ensureUrlHasProtocol(String url) {

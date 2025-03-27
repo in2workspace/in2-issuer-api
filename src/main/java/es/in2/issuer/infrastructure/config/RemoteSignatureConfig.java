@@ -23,5 +23,25 @@ public class RemoteSignatureConfig {
     public String getRemoteSignatureSignPath() {
         return configAdapter.getConfiguration(remoteSignatureProperties.paths().signPath());
     }
+
+    public String getRemoteSignatureClientId() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.clientId());
+    }
+
+    public String getRemoteSignatureClientSecret() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.clientSecret());
+    }
+
+    public String getRemoteSignatureCredentialId() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.credentialId());
+    }
+
+    public String getRemoteSignatureCredentialPassword() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.credentialPassword());
+    }
+
+    public String getRemoteSignatureType() {
+        return configAdapter.getConfiguration(remoteSignatureProperties.type());
+    }
     
 }

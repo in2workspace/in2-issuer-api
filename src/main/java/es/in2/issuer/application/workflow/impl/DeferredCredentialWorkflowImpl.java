@@ -9,14 +9,16 @@ import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.domain.util.Constants.ASYNC;
-import static es.in2.issuer.domain.util.Constants.VC;
+import static es.in2.issuer.domain.util.Constants.*;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflow {
@@ -25,6 +27,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
+    private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
     public Mono<PendingCredentials> getPendingCredentialsByOrganizationId(String organizationId) {
@@ -55,8 +58,9 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                String email = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("email").asText();
-                                                String firstName = credentialNode.get(VC).get("credentialSubject").get("mandate").get("mandatee").get("first_name").asText();
+                                                JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
+                                                String email = mandateeNode.get(EMAIL).asText();
+                                                String firstName = mandateeNode.get(FIRST_NAME).asText();
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
                                             }
                                             return Mono.empty();

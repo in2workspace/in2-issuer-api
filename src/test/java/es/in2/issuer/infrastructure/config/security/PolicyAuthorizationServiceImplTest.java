@@ -11,6 +11,8 @@ import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.credential.lear.machine.LEARCredentialMachine;
+import es.in2.issuer.domain.service.CredentialProcedureService;
+import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.domain.util.factory.CredentialFactory;
 import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
@@ -50,6 +52,10 @@ class PolicyAuthorizationServiceImplTest {
     private VerifiableCertificationFactory verifiableCertificationFactory;
     @Mock
     private LEARCredentialMachineFactory learCredentialMachineFactory;
+    @Mock
+    private CredentialProcedureService credentialProcedureService;
+    @Mock
+    private DeferredCredentialMetadataService deferredCredentialMetadataService;
 
 
     @InjectMocks
@@ -58,7 +64,7 @@ class PolicyAuthorizationServiceImplTest {
     @BeforeEach
     void setUp() {
         // Creamos una instancia real de CredentialFactory, pasando los mocks necesarios
-        CredentialFactory credentialFactory = new CredentialFactory(learCredentialEmployeeFactory, learCredentialMachineFactory, verifiableCertificationFactory);
+        CredentialFactory credentialFactory = new CredentialFactory(learCredentialEmployeeFactory, learCredentialMachineFactory, verifiableCertificationFactory, credentialProcedureService, deferredCredentialMetadataService);
 
         // Inicializamos policyAuthorizationService con las dependencias adecuadas
         policyAuthorizationService = new PolicyAuthorizationServiceImpl(

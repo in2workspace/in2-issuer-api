@@ -13,10 +13,10 @@ import java.util.UUID;
 @Repository
 public interface CredentialProcedureRepository extends ReactiveCrudRepository<CredentialProcedure, UUID> {
     Flux<CredentialProcedure> findByCredentialStatusAndOrganizationIdentifier(CredentialStatus credentialStatus, String organizationIdentifier);
-    @Query("SELECT * FROM credentials.credential_procedure WHERE organization_identifier = :organizationIdentifier ORDER BY updated_at DESC")
+    @Query("SELECT * FROM issuer.credential_procedure WHERE organization_identifier = :organizationIdentifier ORDER BY updated_at DESC")
     Flux<CredentialProcedure> findAllByOrganizationIdentifier(String organizationIdentifier);
     Mono<CredentialProcedure> findByProcedureIdAndOrganizationIdentifier(UUID procedureId, String organizationIdentifier);
-    @Query("SELECT credential_status FROM credentials.credential_procedure WHERE procedure_id = :procedureId")
+    @Query("SELECT credential_status FROM issuer.credential_procedure WHERE procedure_id = :procedureId")
     Mono<String> findCredentialStatusByProcedureId(UUID procedureId);
     Mono<CredentialProcedure> findByCredentialId(UUID credentialId);
     Mono<CredentialProcedure> findByProcedureId(UUID procedureId);

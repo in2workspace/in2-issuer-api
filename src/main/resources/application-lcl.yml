@@ -12,6 +12,7 @@ spring:
   flyway:
     url:
     locations: classpath:db/migration
+    default-schema:
   mail:
     host: localhost
     port: 1025
@@ -135,9 +136,14 @@ default-signer:
   serial-number:
 
 remote-signature:
+  type:
   domain: "http://localhost:8082"
   paths:
     sign-path: "/signature/sign"
+  client-id:
+  client-secret:
+  credential-id:
+  credential-password:
 
 trust-framework:
   url:

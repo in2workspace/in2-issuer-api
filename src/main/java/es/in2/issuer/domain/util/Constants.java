@@ -21,6 +21,7 @@ public class Constants {
     public static final String AUTHORIZATION_CODE = "authorization_code";
     public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
+    public static final String COMPANY = "company";
     public static final String MANDATE = "mandate";
     public static final String MANDATEE = "mandatee";
     public static final String ORGANIZATION = "organization";
@@ -32,11 +33,13 @@ public class Constants {
     public static final String SYS_ADMIN = "SYSADMIN";
     public static final String TYPE = "type";
     public static final String EMAIL = "email";
+    public static final String COMMON_NAME = "commonName";
     public static final String EMAIL_ADDRESS = "emailAddress";
     public static final String FIRST_NAME = "firstName";
     public static final String LAST_NAME = "lastName";
     public static final String SIGNER = "signer";
     public static final String PRODUCT = "product";
+    public static final String PRODUCT_ID = "productId";
     public static final String PRODUCT_NAME = "productName";
     public static final String MANDATOR = "mandator";
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
@@ -54,7 +57,6 @@ public class Constants {
     public static final String BEARER_PREFIX = "Bearer ";
     public static final String ENGLISH = "en";
     public static final String UTF_8 = "UTF-8";
-    public static final String FROM_EMAIL = "digitalidentitysupport@dome-marketplace.eu";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";
     public static final String CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded";
@@ -69,7 +71,11 @@ public class Constants {
     public static final long MSBALL = 0xFFFFFF80L;
     public static final String IN2_ORGANIZATION_IDENTIFIER = "VATES-B60645900";
     public static final String LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION = "Verifiable Credential for employees of an organization";
-
+    public static final String SIGNATURE_REMOTE_TYPE_SERVER = "server";
+    public static final String SIGNATURE_REMOTE_TYPE_CLOUD = "cloud";
+    public static final String SIGNATURE_REMOTE_SCOPE_SERVICE = "service";
+    public static final String SIGNATURE_REMOTE_SCOPE_CREDENTIAL = "credential";
+    public static final String CREDENTIAL_ID = "credentialID";
     // ERROR MESSAGES
     public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
 }

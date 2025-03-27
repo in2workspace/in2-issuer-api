@@ -62,4 +62,60 @@ class RemoteSignatureConfigTest {
         // Assert
         assertEquals(expectedPath, actualPath);
     }
+
+    @Test
+    void testGetRemoteSignatureClientId() {
+        // Arrange
+        String expectedClientId = "client_id";
+        when(remoteSignatureProperties.clientId()).thenReturn("remote.signature.client-id");
+        when(configAdapter.getConfiguration("remote.signature.client-id")).thenReturn(expectedClientId);
+
+        // Act
+        String actualClientId = remoteSignatureConfig.getRemoteSignatureClientId();
+
+        // Assert
+        assertEquals(expectedClientId, actualClientId);
+    }
+
+    @Test
+    void testGetRemoteSignatureClientSecret() {
+        // Arrange
+        String expectedClientSecret = "client_secret";
+        when(remoteSignatureProperties.clientSecret()).thenReturn("remote.signature.client-secret");
+        when(configAdapter.getConfiguration("remote.signature.client-secret")).thenReturn(expectedClientSecret);
+
+        // Act
+        String actualClientSecret = remoteSignatureConfig.getRemoteSignatureClientSecret();
+
+        // Assert
+        assertEquals(expectedClientSecret, actualClientSecret);
+    }
+
+    @Test
+    void testGetRemoteSignatureCredentialId() {
+        // Arrange
+        String expectedCredentialId = "credential_id";
+        when(remoteSignatureProperties.credentialId()).thenReturn("remote.signature.credential-id");
+        when(configAdapter.getConfiguration("remote.signature.credential-id")).thenReturn(expectedCredentialId);
+
+        // Act
+        String actualCredentialId = remoteSignatureConfig.getRemoteSignatureCredentialId();
+
+        // Assert
+        assertEquals(expectedCredentialId, actualCredentialId);
+    }
+
+    @Test
+    void testGetRemoteSignatureCredentialPassword() {
+        // Arrange
+        String expectedCredentialPassword = "credential_password";
+        when(remoteSignatureProperties.credentialPassword()).thenReturn("remote.signature.credential-password");
+        when(configAdapter.getConfiguration("remote.signature.credential-password")).thenReturn(expectedCredentialPassword);
+
+        // Act
+        String actualCredentialPassword = remoteSignatureConfig.getRemoteSignatureCredentialPassword();
+
+        // Assert
+        assertEquals(expectedCredentialPassword, actualCredentialPassword);
+    }
 }

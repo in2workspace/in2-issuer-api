@@ -20,6 +20,8 @@ class CredentialDetailsTest {
         String expectedCredentialStatus = "Valid";
         String expectedCredentialJson = "{\"key\": \"value\"}";
         JsonNode jsonNode = null;
+        String expectedOperationMode = "operationMode";
+        String expectedSignatureMode = "signatureMode";
         try {
             jsonNode = objectMapper.readTree(expectedCredentialJson);
         } catch (Exception e) {
@@ -27,12 +29,14 @@ class CredentialDetailsTest {
         }
 
         // Act
-        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode);
+        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
 
         // Assert
         assertEquals(uuid, credentialDetails.procedureId());
         assertEquals(expectedCredentialStatus, credentialDetails.credentialStatus());
         assertEquals(jsonNode, credentialDetails.credential());
+        assertEquals(expectedOperationMode, credentialDetails.operationMode());
+        assertEquals(expectedSignatureMode, credentialDetails.signatureMode());
     }
 
     @Test
@@ -61,9 +65,11 @@ class CredentialDetailsTest {
         UUID uuid = UUID.randomUUID();
         String expectedCredentialStatus = "Valid";
         JsonNode jsonNode = objectMapper.readTree("{\"key\": \"value\"}");
+        String expectedOperationMode = "operationMode";
+        String expectedSignatureMode = "signatureMode";
 
-        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode);
-        CredentialDetails credentialDetails2 = new CredentialDetails(uuid, expectedCredentialStatus, jsonNode);
+        CredentialDetails credentialDetails = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
+        CredentialDetails credentialDetails2 = new CredentialDetails(uuid, expectedCredentialStatus, expectedOperationMode, expectedSignatureMode, jsonNode);
 
         // Assert
         assertEquals(credentialDetails, credentialDetails2);

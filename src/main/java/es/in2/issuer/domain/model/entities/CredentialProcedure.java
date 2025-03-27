@@ -16,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-@Table("credentials.credential_procedure")
+@Table("issuer.credential_procedure")
 public class CredentialProcedure {
     @Id
     @Column("procedure_id")
@@ -52,4 +52,10 @@ public class CredentialProcedure {
 
     @Column("valid_until")
     private Timestamp validUntil;
+
+    @Column("operation_mode")
+    private String operationMode;
+
+    @Column("signature_mode")
+    private String signatureMode;
 }

@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added role claim and validations.
 - Modified authenticator to allow access exclusively with the "LEAR" role, returning a 401 error for any other role.
 
+## [v1.5.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.0)
+### Added
+- Added support to sign the credential with an external service.
+- Now issuer is created with data from the external service.
+- Error handling for the external service flows.
+- Added controller to handle manual signature after failed attempts.
+
+## [v1.4.3](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.3)
+### Fixed
+- Solve error on schema importation for flyway migration.
+
 ## [v1.4.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.1)
 ### Fixed
 - Solve error during credential serialization.
@@ -26,7 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changing environment variable for wallet knowledge redirection to email.
 - Changed email template implementation for better compatibility.
 
-## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.3)
+## [v1.2.4](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.2.4)
 ### Changed
 - Fix a problem with a cors endpoint.
 

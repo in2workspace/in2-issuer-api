@@ -16,6 +16,7 @@ public interface DeferredCredentialMetadataService {
     Mono<String> getOperationModeByProcedureId(String procedureId);
     Mono<Void> updateAuthServerNonceByTransactionCode(String transactionCode, String authServerNonce);
     Mono<String> updateDeferredCredentialMetadataByAuthServerNonce(String authServerNonce, String format);
+    Mono<Void> updateDeferredCredentialByAuthServerNonce(String authServerNonce, String format);
     Mono<Void> validateTransactionCode(String transactionCode);
     Mono<Void> updateAuthServerNonceByAuthServerNonce(String accessToken, String preAuthCode);
     Mono<Void> updateVcByProcedureId(String vc, String procedureId);
