@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.PendingCredentials;
 import es.in2.issuer.domain.model.dto.SignedCredentials;
+import es.in2.issuer.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
+import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,6 +20,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
@@ -37,6 +40,9 @@ class DeferredCredentialWorkflowImplTest {
     @InjectMocks
     private DeferredCredentialWorkflowImpl deferredCredentialWorkflow;
 
+    @Mock
+    private CredentialProcedureRepository credentialProcedureRepository;
+
     @Test
     void getPendingCredentialsByOrganizationId(){
         String organizationId = "4321";
@@ -55,12 +61,16 @@ class DeferredCredentialWorkflowImplTest {
     }
 
     @Test
-    void updateSignedCredentials() throws JsonProcessingException {
+    void updateSignedCredentialsLearCredentialEmployee() throws JsonProcessingException {
+        String procedureId = UUID.randomUUID().toString();
+        CredentialProcedure credentialProcedure = new CredentialProcedure();
+        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
+        credentialProcedure.setProcedureId(UUID.fromString(procedureId));
         String credential = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedEmail = "juan.perez@mail.com";
         String expectedFirstName = "Juan";
         String expectedId = "390ecd06-4e56-483a-b550-18d93a4bf9e3";
-        String procedureId = "1234";
+
         List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder()
                 .credential(credential)
                 .build()
@@ -97,8 +107,8 @@ class DeferredCredentialWorkflowImplTest {
                                 "mandatee": {
                                     "id": "did:key:zDnaewZjPbFqyGvXVf5JuGCuSfTxXyFrKqoVrBFTQh17pqRbA",
                                     "email": "juan.perez@mail.com",
-                                    "first_name": "Juan",
-                                    "last_name": "Perez",
+                                    "firstName": "Juan",
+                                    "lastName": "Perez",
                                     "mobile_phone": "+34 662233445"
                                 },
                                 "mandator": {

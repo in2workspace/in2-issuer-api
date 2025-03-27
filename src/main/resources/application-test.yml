@@ -135,9 +135,14 @@ default-signer:
   serial-number:
 
 remote-signature:
+  type:
   domain: "http://localhost:8082"
   paths:
     sign-path: "/signature/sign"
+  client-id:
+  client-secret:
+  credential-id:
+  credential-password:
 
 trust-framework:
   url:

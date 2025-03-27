@@ -103,7 +103,25 @@ public class EmailServiceImpl implements EmailService {
             return null;
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
+    @Override
+    public Mono<Void> sendPendingSignatureCredentialNotification(String to, String subject, String id, String domain){
+        return Mono.fromCallable(() -> {
+            MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
+            helper.setFrom(mailProperties.getUsername());
+            helper.setTo(to);
+            helper.setSubject(subject);
 
+            Context context = new Context();
+            context.setVariable("id", id);
+            context.setVariable("domain", domain);
+            String htmlContent = templateEngine.process("credential-pending-signature-notification", context);
+            helper.setText(htmlContent, true);
+
+            javaMailSender.send(mimeMessage);
+            return null;
+        }).subscribeOn(Schedulers.boundedElastic()).then();
+    }
     @Override
     public Mono<Void> sendCredentialSignedNotification(String to, String subject, String firstName) {
         firstName = firstName.replace("\"", "");

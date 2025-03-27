@@ -145,7 +145,18 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then(Mono.just(transactionId));
                 })
-                .doOnSuccess(result -> log.info("Updated deferred"));
+                .doOnSuccess(result -> log.info("Updated deferred Metadata"));
+    }
+
+    @Override
+    public Mono<Void> updateDeferredCredentialByAuthServerNonce(String authServerNonce, String format) {
+        return deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)
+                .flatMap(deferredCredentialMetadata -> {
+                    deferredCredentialMetadata.setVcFormat(format);
+                    return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
+                            .then();
+                })
+                .doOnSuccess(result -> log.info("Updated deferred Credential"));
     }
 
     @Override

@@ -94,6 +94,21 @@ class EmailServiceImplTest {
     }
 
     @Test
+    void testSendPendingSignatureCredentialNotification(){
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(templateEngine.process(eq("credential-pending-signature-notification"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
+
+        Mono<Void> result = emailService.sendPendingSignatureCredentialNotification("to@example.com", "subject", "\"John\"", "domain");
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
     void sendResponseUriFailed_sendsEmailSuccessfully(){
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
