@@ -122,7 +122,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
         if (operationMode.equals(ASYNC)) {
             return credentialProcedureService.getDecodedCredentialByProcedureId(procedureId)
                     .flatMap(decodedCredential -> {
-                        log.info("ASYNC Credential JSON: {}", decodedCredential);
+                        log.debug("ASYNC Credential JSON: {}", decodedCredential);
                         return Mono.just(VerifiableCredentialResponse.builder()
                                 .credential(decodedCredential)
                                 .transactionId(transactionId)

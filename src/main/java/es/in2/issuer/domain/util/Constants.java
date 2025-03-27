@@ -35,6 +35,7 @@ public class Constants {
     public static final String LAST_NAME = "lastName";
     public static final String SIGNER = "signer";
     public static final String PRODUCT = "product";
+    public static final String PRODUCT_ID = "productId";
     public static final String PRODUCT_NAME = "productName";
     public static final String MANDATOR = "mandator";
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";

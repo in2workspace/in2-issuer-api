@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import java.util.Base64;
 import java.util.stream.Stream;
@@ -19,10 +18,18 @@ class JwtUtilsTest {
 
     private final JwtUtils jwtUtils = new JwtUtils();
 
+    public String getPayload(String jwt) {
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) {
+            throw new IllegalArgumentException("invalid JWT");
+        }
+        return parts[1];
+    }
+
     @Test
     void testGetPayload() {
         String jwt = "header.payload.signature";
-        String payload = jwtUtils.getPayload(jwt);
+        String payload = getPayload(jwt);
         assertEquals("payload", payload, "El payload extraído coincide");
     }
 
@@ -39,7 +46,7 @@ class JwtUtilsTest {
     void testGetPayloadWithInvalidJWT() {
         String invalidJwt = "headeronly";
 
-        Exception exception = assertThrows(IllegalArgumentException.class, () -> jwtUtils.getPayload(invalidJwt));
+        Exception exception = assertThrows(IllegalArgumentException.class, () -> getPayload(invalidJwt));
 
         assertEquals("invalid JWT", exception.getMessage());
     }
@@ -55,10 +62,8 @@ class JwtUtilsTest {
 
     @Test
     void testGetPayloadMocked() {
-        JwtUtils mockJwtUtils = mock(JwtUtils.class);
-        when(mockJwtUtils.getPayload("header.payload.signature")).thenReturn("payload");
-        assertEquals("payload", mockJwtUtils.getPayload("header.payload.signature"));
-        verify(mockJwtUtils, times(1)).getPayload("header.payload.signature");
+        String payload = getPayload("header.payload.signature");
+        assertEquals("payload", payload, "El payload extraído coincide");
     }
 
     @ParameterizedTest

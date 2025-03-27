@@ -9,13 +9,6 @@ import java.util.Map;
 @Component
 @Slf4j
 public class JwtUtils {
-    public String getPayload(String jwt) {
-        String[] parts = jwt.split("\\.");
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("invalid JWT");
-        }
-        return parts[1];
-    }
 
     public String decodePayload(String jwt) {
         String[] parts = jwt.split("\\.");

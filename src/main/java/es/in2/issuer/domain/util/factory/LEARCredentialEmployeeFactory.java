@@ -42,15 +42,13 @@ public class LEARCredentialEmployeeFactory {
     private final DefaultSignerConfig defaultSignerConfig;
     private final RemoteSignatureServiceImpl remoteSignatureServiceImpl;
 
-    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId)
-            throws InvalidCredentialFormatException {
+    public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId){
         LEARCredentialEmployee decodedCredential = mapStringToLEARCredentialEmployee(decodedCredentialString);
         return bindMandateeIdToLearCredentialEmployee(decodedCredential, mandateeId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
     }
 
-    public Mono<String> mapCredentialAndBindIssuerInToTheCredential(String decodedCredentialString, String procedureId)
-            throws InvalidCredentialFormatException {
+    public Mono<String> mapCredentialAndBindIssuerInToTheCredential(String decodedCredentialString, String procedureId){
         LEARCredentialEmployee decodedCredential = mapStringToLEARCredentialEmployee(decodedCredentialString);
         return bindIssuerToLearCredentialEmployee(decodedCredential, procedureId)
                 .flatMap(this::convertLEARCredentialEmployeeInToString);
@@ -67,8 +65,7 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
-    public LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential)
-            throws InvalidCredentialFormatException {
+    public LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential){
         try {
             LEARCredentialEmployee employee = objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
             log.info(employee.toString());

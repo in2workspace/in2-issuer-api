@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.exception.MissingCredentialTypeException;
 import es.in2.issuer.domain.exception.NoCredentialFoundException;
+import es.in2.issuer.domain.exception.ParseCredentialJsonException;
 import es.in2.issuer.domain.model.dto.CredentialDetails;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.domain.model.dto.CredentialProcedures;
@@ -69,7 +70,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                     .map(Mono::just)
                     .orElseGet(Mono::empty);
         } catch (JsonProcessingException e) {
-            return Mono.error(new RuntimeException(e));
+            return Mono.error(new ParseCredentialJsonException("Error parsing credential"));
         }
     }
 
@@ -173,7 +174,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
-    //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista y el de la certificación
+    //TODO Ajustar estos if-else cuando quede claro que hacer con el mail de jesús y cuando la learemployee v1 ya no exista y el de la certificación arreglarlo
     @Override
     public Mono<String> getSignerEmailFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
@@ -244,6 +245,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 });
     }
 
+    //TODO Eliminar if else cuando la learemployee v1 ya no exista
     @Override
     public Mono<String> getMandatorOrganizationFromDecodedCredentialByProcedureId(String procedureId) {
         return credentialProcedureRepository.findById(UUID.fromString(procedureId))
