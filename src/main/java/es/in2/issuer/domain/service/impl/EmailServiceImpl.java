@@ -20,7 +20,7 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
 
-import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
+
 import static es.in2.issuer.domain.util.Constants.UTF_8;
 
 @Slf4j
