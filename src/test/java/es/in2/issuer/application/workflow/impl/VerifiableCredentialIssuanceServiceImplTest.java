@@ -241,7 +241,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
             """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        IssuanceRequest issuanceRequest = IssuanceRequest.builder()
+        PreSubmittedCredentialRequest issuanceRequest = PreSubmittedCredentialRequest.builder()
                 .payload(jsonNode)
                 .schema("LEARCredentialEmployee")
                 .format(JWT_VC_JSON)
