@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -26,6 +27,9 @@ class EmailServiceImplTest {
     @Mock
     private TemplateEngine templateEngine;
 
+    @Mock
+    private MailProperties mailProperties;
+
     @InjectMocks
     private EmailServiceImpl emailService;
 
@@ -34,6 +38,7 @@ class EmailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("pin-email"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
 
         Mono<Void> result = emailService.sendPin("to@example.com", "subject", "1234");
 
@@ -48,6 +53,7 @@ class EmailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("activate-credential-email"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
 
         Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "knowledgebaseUrl","user","organization");
 
@@ -62,6 +68,7 @@ class EmailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-pending-notification"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
 
         Mono<Void> result = emailService.sendPendingCredentialNotification("to@example.com", "subject");
 
@@ -76,6 +83,7 @@ class EmailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("credential-signed-notification"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
 
         Mono<Void> result = emailService.sendCredentialSignedNotification("to@example.com", "subject", "\"John\"");
 
@@ -104,6 +112,7 @@ class EmailServiceImplTest {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("response-uri-failed"), any(Context.class))).thenReturn("htmlContent");
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
 
         Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId", "guideUrl");
 
@@ -118,6 +127,31 @@ class EmailServiceImplTest {
         when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server error"));
 
         Mono<Void> result = emailService.sendResponseUriFailed("to@example.com", "productId", "guideUrl");
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+    }
+
+    @Test
+    void sendResponseUriAcceptedWithHtml_sendsEmailSuccessfully() {
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
+
+        Mono<Void> result = emailService.sendResponseUriAcceptedWithHtml("to@example.com", "productId", "htmlContent");
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendResponseUriAcceptedWithHtml_handlesException() {
+        when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server error"));
+
+        Mono<Void> result = emailService.sendResponseUriAcceptedWithHtml("to@example.com", "productId", "htmlContent");
 
         StepVerifier.create(result)
                 .expectError(RuntimeException.class)

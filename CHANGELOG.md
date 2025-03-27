@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Error handling for the external service flows.
 - Added controller to handle manual signature after failed attempts.
 
+## [v1.4.3](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.3)
+### Fixed
+- Solve error on schema importation for flyway migration.
+
 ## [v1.4.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.4.1)
 ### Fixed
 - Solve error during credential serialization.

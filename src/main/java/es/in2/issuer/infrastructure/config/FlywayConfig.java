@@ -16,6 +16,7 @@ public class FlywayConfig {
         return Flyway.configure()
                 .dataSource(flywayProperties.getUrl(), r2dbcProperties.getUsername(), r2dbcProperties.getPassword())
                 .locations(flywayProperties.getLocations().toArray(String[]::new))
+                .defaultSchema(flywayProperties.getDefaultSchema())
                 .baselineOnMigrate(true)
                 .load();
     }

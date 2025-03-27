@@ -12,6 +12,7 @@ spring:
   flyway:
     url: "jdbc:postgresql://localhost:5434/issuer"
     locations: classpath:db/migration
+    default-schema:
   mail:
     host: localhost
     port: 1025
