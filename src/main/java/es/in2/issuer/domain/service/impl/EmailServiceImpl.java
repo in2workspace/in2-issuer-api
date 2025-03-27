@@ -108,7 +108,7 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
+            helper.setFrom(mailProperties.getUsername());
             helper.setTo(to);
             helper.setSubject(subject);
 
