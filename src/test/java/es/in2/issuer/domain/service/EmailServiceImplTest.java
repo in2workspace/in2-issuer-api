@@ -118,4 +118,29 @@ class EmailServiceImplTest {
                 .expectError(RuntimeException.class)
                 .verify();
     }
+
+    @Test
+    void sendResponseUriAcceptedWithHtml_sendsEmailSuccessfully() {
+        MimeMessage mimeMessage = mock(MimeMessage.class);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+        when(mailProperties.getUsername()).thenReturn("user@example.com");
+
+        Mono<Void> result = emailService.sendResponseUriAcceptedWithHtml("to@example.com", "productId", "htmlContent");
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(javaMailSender).send(mimeMessage);
+    }
+
+    @Test
+    void sendResponseUriAcceptedWithHtml_handlesException() {
+        when(javaMailSender.createMimeMessage()).thenThrow(new RuntimeException("Mail server error"));
+
+        Mono<Void> result = emailService.sendResponseUriAcceptedWithHtml("to@example.com", "productId", "htmlContent");
+
+        StepVerifier.create(result)
+                .expectError(RuntimeException.class)
+                .verify();
+    }
 }
