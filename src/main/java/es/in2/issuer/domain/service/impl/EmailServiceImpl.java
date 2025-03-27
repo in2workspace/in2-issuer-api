@@ -19,7 +19,6 @@ import reactor.core.scheduler.Schedulers;
 
 import java.io.*;
 
-import static es.in2.issuer.domain.util.Constants.FROM_EMAIL;
 import static es.in2.issuer.domain.util.Constants.UTF_8;
 
 @Slf4j
@@ -34,7 +33,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -53,7 +51,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -89,7 +86,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -110,7 +106,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, "UTF-8");
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject(subject);
 
@@ -129,7 +124,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject("Certification Submission to Marketplace Unsuccessful");
 
@@ -149,7 +143,6 @@ public class EmailServiceImpl implements EmailService {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);
-            helper.setFrom(FROM_EMAIL);
             helper.setTo(to);
             helper.setSubject("Missing Documents for Certification: " + productId);
 
