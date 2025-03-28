@@ -286,20 +286,24 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             log.debug("organizationIdentifier found using regex: {}", matcher.group(1));
                             return Mono.just(matcher.group(1));
                         } else {
-                            log.debug("Regex did not find organizationIdentifier. Decoding X.509 certificate");
+                            log.debug("Regex did not find organizationIdentifier in decoded text. Converting X.509 certificate to string.");
                             return Mono.defer(() -> {
                                 try {
                                     CertificateFactory cf = CertificateFactory.getInstance("X.509");
                                     X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
                                     log.debug("X.509 certificate parsed successfully: {}", x509Certificate);
-                                    String subject = x509Certificate.getSubjectX500Principal().getName();
-                                    log.debug("Subject found on X.509 certificate: {}", subject);
-                                    LdapName ldapSubject = new LdapName(subject);
-                                    return Flux.fromIterable(ldapSubject.getRdns())
-                                            .filter(rdn -> "organizationIdentifier".equalsIgnoreCase(rdn.getType())
-                                                    || "2.5.4.97".equals(rdn.getType()))
-                                            .flatMap(rdn -> decodeRdnValue(rdn.getValue()))
-                                            .next();
+                                    String certAsString = x509Certificate.toString();
+                                    log.debug("Certificate as string: {}", certAsString);
+                                    Pattern certPattern = Pattern.compile("OID\\.2\\.5\\.4\\.97=([^,\\s]+)");
+                                    Matcher certMatcher = certPattern.matcher(certAsString);
+                                    if (certMatcher.find()) {
+                                        String orgId = certMatcher.group(1);
+                                        log.debug("organizationIdentifier found using regex on X.509 certificate string: {}", orgId);
+                                        return Mono.just(orgId);
+                                    } else {
+                                        log.debug("organizationIdentifier not found in X.509 certificate string.");
+                                        return Mono.empty();
+                                    }
                                 } catch (Exception e) {
                                     log.debug("Error parsing certificate: {}", e.getMessage());
                                     return Mono.empty();
@@ -335,50 +339,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         } catch (Exception e) {
             return Mono.error(new RuntimeException("Unexpected error", e));
         }
-    }
-
-    private Mono<String> decodeRdnValue(Object rdnValue) {
-        return Mono.fromSupplier(() -> {
-            if (rdnValue instanceof byte[]) {
-                return new String((byte[]) rdnValue, StandardCharsets.UTF_8);
-            } else if (rdnValue instanceof String) {
-                String strVal = (String) rdnValue;
-                if (strVal.startsWith("#")) {
-                    return decodeHexEncodedDerString(strVal);
-                }
-                if (strVal.length() >= 2 && strVal.charAt(0) == 0x0C && strVal.charAt(1) == 0x0F) {
-                    return strVal.substring(2);
-                }
-                return strVal;
-            }
-            return rdnValue.toString();
-        });
-    }
-
-    private String decodeHexEncodedDerString(String hexString) {
-        if (hexString.startsWith("#")) {
-            hexString = hexString.substring(1);
-        }
-        byte[] derBytes = hexStringToByteArray(hexString);
-        if (derBytes.length < 2) {
-            return "";
-        }
-        int tag = derBytes[0] & 0xFF;
-        int length = derBytes[1] & 0xFF;
-        if (derBytes.length < 2 + length) {
-            return "";
-        }
-        return new String(derBytes, 2, length, StandardCharsets.UTF_8);
-    }
-
-    private byte[] hexStringToByteArray(String s) {
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
-                    + Character.digit(s.charAt(i + 1), 16));
-        }
-        return data;
     }
 
     //TODO Eliminar la función cuando el mail de Jesús no sea un problema
