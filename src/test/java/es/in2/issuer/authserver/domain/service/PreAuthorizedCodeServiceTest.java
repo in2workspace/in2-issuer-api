@@ -1,8 +1,8 @@
 package es.in2.issuer.authserver.domain.service;
 
-import es.in2.issuer.authserver.domain.service.impl.PreAuthCodeServiceImpl;
+import es.in2.issuer.authserver.domain.service.impl.PreAuthorizedCodeServiceImpl;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
-import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
+import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,33 +18,33 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PreAuthCodeServiceTest {
+class PreAuthorizedCodeServiceTest {
 
     @Mock
     private SecureRandom random;
 
     @Mock
-    private PreAuthCodeCacheStore preAuthCodeCacheStore;
+    private PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
 
     @InjectMocks
-    private PreAuthCodeServiceImpl preAuthCodeService;
+    private PreAuthorizedCodeServiceImpl preAuthorizedCodeService;
 
     @Test
-    void itShouldReturnPreAuthCode() {
-        String expectedPreAuthCode = "1234";
+    void itShouldReturnPreAuthorizedCode() {
+        String expectedPreAuthorizedCode = "1234";
         int randomNextInt = 5678;
         int expectedPin = randomNextInt + 1000;
         String expectedPinStr = String.valueOf(expectedPin);
 
         PreAuthorizedCodeResponse expected =
-                PreAuthCodeResponseMother
-                        .withPreAuthCodeAndPin(expectedPreAuthCode, expectedPinStr);
+                PreAuthorizedCodeResponseMother
+                        .withPreAuthorizedCodeAndPin(expectedPreAuthorizedCode, expectedPinStr);
 
         when(random.nextInt(anyInt())).thenReturn(randomNextInt);
-        when(preAuthCodeCacheStore.save(anyString(), anyString(), eq(expectedPinStr)))
-                .thenReturn(Mono.just(expectedPreAuthCode));
+        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), eq(expectedPinStr)))
+                .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
-        Mono<PreAuthorizedCodeResponse> resultMono = preAuthCodeService.generatePreAuthCodeResponse("");
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService.generatePreAuthorizedCodeResponse("");
 
         StepVerifier
                 .create(resultMono)

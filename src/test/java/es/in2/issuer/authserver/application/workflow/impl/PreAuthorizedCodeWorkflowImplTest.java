@@ -1,9 +1,9 @@
 package es.in2.issuer.authserver.application.workflow.impl;
 
-import es.in2.issuer.authserver.domain.service.PreAuthCodeCacheStore;
-import es.in2.issuer.authserver.domain.service.PreAuthCodeService;
+import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeCacheStore;
+import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
-import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
+import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -21,19 +21,19 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class PreAuthorizedCodeWorkflowImplTest {
     @Mock
-    private PreAuthCodeService preAuthCodeService;
+    private PreAuthorizedCodeService preAuthorizedCodeService;
 
     @Mock
-    private PreAuthCodeCacheStore preAuthCodeCacheStore;
+    private PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
 
     @InjectMocks
     PreAuthorizedCodeWorkflowImpl preAuthorizedCodeWorkflow;
 
     @Test
-    void itShouldReturnPreAuthCode() {
-        PreAuthorizedCodeResponse expected = PreAuthCodeResponseMother.dummy();
-        when(preAuthCodeService.generatePreAuthCodeResponse(anyString())).thenReturn(Mono.just(expected));
-        when(preAuthCodeCacheStore.save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin())))
+    void itShouldReturnPreAuthorizedCode() {
+        PreAuthorizedCodeResponse expected = PreAuthorizedCodeResponseMother.dummy();
+        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString())).thenReturn(Mono.just(expected));
+        when(preAuthorizedCodeCacheStore.save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin())))
                 .thenReturn(Mono.just(expected.grant().preAuthorizedCode()));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse();
@@ -44,6 +44,6 @@ class PreAuthorizedCodeWorkflowImplTest {
                         assertThat(result).isEqualTo(expected))
                 .verifyComplete();
 
-        verify(preAuthCodeCacheStore).save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin()));
+        verify(preAuthorizedCodeCacheStore).save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin()));
     }
 }

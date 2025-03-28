@@ -42,10 +42,10 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                         credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                                 .flatMap(credentialType ->
                                         preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse()
-                                                .flatMap(preAuthCodeResponse ->
+                                                .flatMap(preAuthorizedCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,
-                                                                        preAuthCodeResponse.grant().preAuthorizedCode()
+                                                                        preAuthorizedCodeResponse.grant().preAuthorizedCode()
                                                                 )
                                                                 .then(
                                                                         credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
@@ -53,9 +53,9 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                                 .flatMap(email ->
                                                                         credentialOfferService.buildCustomCredentialOffer(
                                                                                         credentialType,
-                                                                                        preAuthCodeResponse.grant(),
+                                                                                        preAuthorizedCodeResponse.grant(),
                                                                                         email,
-                                                                                        preAuthCodeResponse.pin()
+                                                                                        preAuthorizedCodeResponse.pin()
                                                                                 )
                                                                                 .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                                                 .flatMap(credentialOfferService::createCredentialOfferUriResponse)

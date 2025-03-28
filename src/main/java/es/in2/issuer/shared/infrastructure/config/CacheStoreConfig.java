@@ -43,7 +43,7 @@ public class CacheStoreConfig {
     }
 
     @Bean
-    public CacheStore<String> pinByPreAuthCodeCacheStore() {
+    public CacheStore<String> pinByPreAuthorizedCodeCacheStore() {
         return new CacheStore<>(PIN_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
     }
 

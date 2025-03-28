@@ -5,9 +5,9 @@ import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 
 import static es.in2.issuer.authserver.domain.utils.Constants.*;
 
-public final class PreAuthCodeResponseMother {
+public final class PreAuthorizedCodeResponseMother {
 
-    private PreAuthCodeResponseMother() {
+    private PreAuthorizedCodeResponseMother() {
     }
 
     public static PreAuthorizedCodeResponse dummy() {
@@ -18,9 +18,9 @@ public final class PreAuthCodeResponseMother {
         );
     }
 
-    public static PreAuthorizedCodeResponse withPreAuthCodeAndPin(String preAuthCode, String pin) {
+    public static PreAuthorizedCodeResponse withPreAuthorizedCodeAndPin(String preAuthorizedCode, String pin) {
         return new PreAuthorizedCodeResponse(
-                new Grant(preAuthCode,
+                new Grant(preAuthorizedCode,
                         new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION)),
                 pin
         );

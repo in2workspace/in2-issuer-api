@@ -10,7 +10,7 @@ import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.domain.service.EmailService;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
-import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
+import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -81,7 +81,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String pin = "1234";
 
         PreAuthorizedCodeResponse preAuthorizedCodeResponse =
-                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", pin);
+                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", pin);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
@@ -149,7 +149,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String pin = "1234";
 
         PreAuthorizedCodeResponse preAuthorizedCodeResponse =
-                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", pin);
+                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", pin);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
