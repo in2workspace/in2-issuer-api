@@ -29,6 +29,7 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -787,6 +788,40 @@ class RemoteSignatureServiceImplTest {
                         Assertions.assertEquals("12345", issuer.serialNumber());
                     })
                     .verifyComplete();
+        }
+    }
+    @Test
+    void extractOrgFromX509_NoOrganizationIdentifier() throws Exception {
+        byte[] dummyBytes = "dummy".getBytes(StandardCharsets.UTF_8);
+        X509Certificate mockCert = mock(X509Certificate.class);
+        when(mockCert.toString()).thenReturn("Version: V3, Subject: C=ES, O=Company, CN=John Doe");
+        CertificateFactory mockCf = mock(CertificateFactory.class);
+        when(mockCf.generateCertificate(any(ByteArrayInputStream.class))).thenReturn(mockCert);
+
+        try (MockedStatic<CertificateFactory> mockedFactory = Mockito.mockStatic(CertificateFactory.class)) {
+            mockedFactory.when(() -> CertificateFactory.getInstance("X.509")).thenReturn(mockCf);
+
+            Mono<String> result = remoteSignatureService.extractOrgFromX509(dummyBytes);
+            StepVerifier.create(result)
+                    .expectComplete()
+                    .verify();
+        }
+    }
+
+    @Test
+    void extractOrgFromX509_Exception() throws Exception {
+        byte[] dummyBytes = "dummy".getBytes(StandardCharsets.UTF_8);
+        CertificateFactory mockCf = mock(CertificateFactory.class);
+        when(mockCf.generateCertificate(any(ByteArrayInputStream.class)))
+                .thenThrow(new RuntimeException("Test exception"));
+
+        try (MockedStatic<CertificateFactory> mockedFactory = Mockito.mockStatic(CertificateFactory.class)) {
+            mockedFactory.when(() -> CertificateFactory.getInstance("X.509")).thenReturn(mockCf);
+
+            Mono<String> result = remoteSignatureService.extractOrgFromX509(dummyBytes);
+            StepVerifier.create(result)
+                    .expectComplete()
+                    .verify();
         }
     }
 

@@ -320,7 +320,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         }
     }
 
-    private Mono<String> extractOrgFromX509(byte[] decodedBytes) {
+    public Mono<String> extractOrgFromX509(byte[] decodedBytes) {
         return Mono.defer(() -> {
             try {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
