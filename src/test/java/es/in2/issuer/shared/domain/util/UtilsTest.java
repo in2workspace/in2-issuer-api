@@ -19,5 +19,4 @@ class UtilsTest {
                 })
                 .verifyComplete();
     }
-
 }
