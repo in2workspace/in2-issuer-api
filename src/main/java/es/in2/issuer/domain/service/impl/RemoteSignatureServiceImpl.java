@@ -346,6 +346,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 if (strVal.startsWith("#")) {
                     return decodeHexEncodedDerString(strVal);
                 }
+                if (strVal.length() >= 2 && strVal.charAt(0) == 0x0C && strVal.charAt(1) == 0x0F) {
+                    return strVal.substring(2);
+                }
                 return strVal;
             }
             return rdnValue.toString();
