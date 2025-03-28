@@ -293,6 +293,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             log.debug("Regex did not find organizationIdentifier. Decoding X.509 certificate");
                             CertificateFactory cf = CertificateFactory.getInstance("X.509");
                             X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
+                            log.debug("X.509 certificate parsed successfully: {}", x509Certificate);
                             String subject = x509Certificate.getSubjectX500Principal().getName();
                             log.debug("Subject found on X.509 certificate: {}", subject);
                             LdapName ldapSubject = new LdapName(subject);
