@@ -278,4 +278,22 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
+
+    @ExceptionHandler(CredentialOfferEmailException.class)
+    public Mono<ResponseEntity<String>> handleCredentialOfferEmailException(CredentialOfferEmailException ex) {
+
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ex.getMessage())
+        );
+    }
+
+    @ExceptionHandler(CredentialOfferNotificationException.class)
+    public Mono<ResponseEntity<String>> handleCredentialOfferNotificationException(CredentialOfferNotificationException ex) {
+
+        return Mono.just(ResponseEntity
+                .status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body(ex.getMessage())
+        );
+    }
 }
