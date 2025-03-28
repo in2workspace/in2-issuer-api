@@ -297,8 +297,9 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             log.debug("Subject found on X.509 certificate: {}", subject);
                             LdapName ldapSubject = new LdapName(subject);
                             for (Rdn rdn : ldapSubject.getRdns()) {
+                                String decodedValue = String.valueOf(decodeRdnValue(rdn.getValue()));
                                 if ("organizationIdentifier".equalsIgnoreCase(rdn.getType()) || "2.5.4.97".equals(rdn.getType())) {
-                                    organizationIdentifier = rdn.getValue().toString();
+                                    organizationIdentifier = decodedValue;
                                     log.debug("organizationIdentifier found on X.509 certificate: {}", organizationIdentifier);
                                     break;
                                 }
@@ -338,6 +339,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         } catch (Exception e) {
             return Mono.error(new RuntimeException("Unexpected error", e));
         }
+    }
+
+    private Mono<String> decodeRdnValue(Object rdnValue) {
+        return Mono.fromSupplier(() -> {
+            if (rdnValue instanceof byte[]) {
+                return new String((byte[]) rdnValue, StandardCharsets.UTF_8);
+            }
+            return rdnValue.toString();
+        });
     }
 
     //TODO Eliminar la función cuando el mail de Jesús no sea un problema
