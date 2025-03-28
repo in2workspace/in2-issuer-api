@@ -1,6 +1,6 @@
 package es.in2.issuer.authserver.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthCodeWorkflow;
+import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.authserver.domain.service.PreAuthCodeCacheStore;
 import es.in2.issuer.authserver.domain.service.PreAuthCodeService;
 import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PreAuthCodeWorkflowImpl implements PreAuthCodeWorkflow {
+public class PreAuthorizedCodeWorkflowImpl implements PreAuthorizedCodeWorkflow {
     private final PreAuthCodeService preAuthCodeService;
     private final PreAuthCodeCacheStore preAuthCodeCacheStore;
 

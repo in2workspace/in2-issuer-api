@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PreAuthCodeWorkflowImplTest {
+class PreAuthorizedCodeWorkflowImplTest {
     @Mock
     private PreAuthCodeService preAuthCodeService;
 
@@ -27,7 +27,7 @@ class PreAuthCodeWorkflowImplTest {
     private PreAuthCodeCacheStore preAuthCodeCacheStore;
 
     @InjectMocks
-    PreAuthCodeWorkflowImpl preAuthCodeWorkflow;
+    PreAuthorizedCodeWorkflowImpl preAuthCodeWorkflow;
 
     @Test
     void itShouldReturnPreAuthCode() {

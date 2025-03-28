@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthCodeWorkflow;
+import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
@@ -44,7 +44,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
     private EmailService emailService;
 
     @Mock
-    private PreAuthCodeWorkflow preAuthCodeWorkflow;
+    private PreAuthorizedCodeWorkflow preAuthorizedCodeWorkflow;
 
     @InjectMocks
     private CredentialOfferIssuanceWorkflowImpl credentialOfferIssuanceService;
@@ -99,7 +99,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthCodeWorkflow.generatePreAuthCodeResponse())
+        when(preAuthorizedCodeWorkflow.generatePreAuthCodeResponse())
                 .thenReturn(Mono.just(preAuthCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
@@ -169,7 +169,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthCodeWorkflow.generatePreAuthCodeResponse())
+        when(preAuthorizedCodeWorkflow.generatePreAuthCodeResponse())
                 .thenReturn(Mono.just(preAuthCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));

@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthCodeWorkflow;
+import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
@@ -20,7 +20,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private final EmailService emailService;
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
-    private final PreAuthCodeWorkflow preAuthCodeWorkflow;
+    private final PreAuthorizedCodeWorkflow preAuthorizedCodeWorkflow;
 
     @Override
     public Mono<CredentialOfferUriResponse> buildCredentialOfferUri(String processId, String transactionCode) {
@@ -41,7 +41,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                 .flatMap(procedureId ->
                         credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                                 .flatMap(credentialType ->
-                                        preAuthCodeWorkflow.generatePreAuthCodeResponse()
+                                        preAuthorizedCodeWorkflow.generatePreAuthCodeResponse()
                                                 .flatMap(preAuthCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,

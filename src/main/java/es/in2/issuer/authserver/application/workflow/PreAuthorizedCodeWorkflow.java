@@ -3,6 +3,6 @@ package es.in2.issuer.authserver.application.workflow;
 import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
 import reactor.core.publisher.Mono;
 
-public interface PreAuthCodeWorkflow {
+public interface PreAuthorizedCodeWorkflow {
     Mono<PreAuthCodeResponse> generatePreAuthCodeResponse();
 }
