@@ -11,7 +11,7 @@ plugins {
 }
 
 group = 'es.in2'
-version = '1.4.1'
+version = '1.7.0'
 
 java {
     sourceCompatibility = '17'
@@ -116,6 +116,7 @@ dependencies {
     // Crypto
     implementation 'org.bitcoinj:bitcoinj-core:0.17-alpha5'
 
+    testImplementation 'org.springframework.data:spring-data-keyvalue:3.3.4'
 
     // AZURE
     implementation('com.azure.spring:spring-cloud-azure-starter-appconfiguration:5.7.0')
@@ -134,6 +135,9 @@ dependencies {
     // Resilience
     implementation 'org.springframework.cloud:spring-cloud-starter-circuitbreaker-reactor-resilience4j'
 
+    // vault
+    implementation 'org.springframework.vault:spring-vault-core:3.1.2'
+    //implementation 'org.springframework.cloud:spring-cloud-starter-vault-config'
     // Unit Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
@@ -150,6 +154,7 @@ dependencies {
     // Integration Test
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
+
 }
 
 dependencyManagement {

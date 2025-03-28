@@ -1,19 +1,24 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
+import es.in2.issuer.domain.model.dto.ApiErrorResponse;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Slf4j
 @RestControllerAdvice
@@ -277,5 +282,33 @@ public class GlobalExceptionHandler {
                 description);
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public Mono<ResponseEntity<ApiErrorResponse>> handleResponseStatusException(ResponseStatusException ex, ServerHttpRequest request) {
+        HttpStatusCode statusCode = ex.getStatusCode();
+        String type = (statusCode instanceof HttpStatus httpStatus && httpStatus == HttpStatus.UNAUTHORIZED)
+                ? "Unauthorized"
+                : "Error";
+
+        String instanceId = UUID.randomUUID().toString();
+
+        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Reason: {}, Message: {}",
+                instanceId,
+                request.getPath(),
+                statusCode.value(),
+                ex.getReason(),
+                ex.getMessage()
+        );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                type,
+                ex.getReason() != null ? ex.getReason() : "Unexpected error",
+                statusCode.value(),
+                ex.getMessage(),
+                instanceId
+        );
+
+        return Mono.just(ResponseEntity.status(statusCode).body(response));
     }
 }

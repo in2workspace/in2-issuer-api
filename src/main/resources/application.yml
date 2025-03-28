@@ -5,12 +5,12 @@ spring:
   main:
     web-application-type: reactive
   r2dbc:
-    url: "r2dbc:postgresql://localhost:5434/issuer"
+    url: "r2dbc:postgresql://localhost:5435/issuer"
     username: "postgres"
     password: "postgres"
     generate-unique-name: true
   flyway:
-    url: "jdbc:postgresql://localhost:5434/issuer"
+    url: "jdbc:postgresql://localhost:5435/issuer"
     locations: classpath:db/migration
   mail:
     host:
@@ -22,6 +22,7 @@ spring:
       starttls.enable:
       ssl.trust:
 
+
 # Spring Logging Configuration
 logging:
   pattern:
@@ -29,6 +30,7 @@ logging:
   level:
     org.springframework.security: INFO
     es.in2.issuer: INFO
+    root: DEBUG
 
 # Spring Management Configuration - Actuator
 management:
@@ -157,3 +159,11 @@ trust-framework:
 cors:
   default-allowed-origins: "http://localhost:4201"
   external-allowed-origins: "http://localhost:4201, http://localhost:4200"
+
+hashicorp:
+  vault:
+    path: /kv
+    host: localhost
+    port: 8004
+    scheme: http
+    token: 

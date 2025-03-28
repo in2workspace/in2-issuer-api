@@ -1,0 +1,13 @@
+package es.in2.issuer.domain.service;
+
+import es.in2.issuer.domain.model.entities.CloudProvider;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.util.UUID;
+
+public interface CloudProviderService {
+    Mono<CloudProvider> save(CloudProvider provider);
+    Flux<CloudProvider> findAll();
+    Mono<Boolean> requiresTOTP(UUID cloudProviderId);
+}

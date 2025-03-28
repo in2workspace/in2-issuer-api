@@ -60,6 +60,30 @@ public class AccessTokenServiceImpl implements AccessTokenService {
     }
 
     @Override
+    public Mono<String> getMandateeEmail(String authorizationHeader) {
+        return getCleanBearerToken(authorizationHeader)
+                .flatMap(this::extractMandateeEmailFromToken)
+                .switchIfEmpty(Mono.error(new InvalidTokenException()));
+    }
+
+
+    private Mono<String> extractMandateeEmailFromToken(String token) {
+        try {
+            SignedJWT parsedVcJwt = SignedJWT.parse(token);
+            JsonNode jsonObject = objectMapper.readTree(parsedVcJwt.getPayload().toString());
+            String email = jsonObject.get(VC)
+                    .get(CREDENTIAL_SUBJECT)
+                    .get(MANDATE)
+                    .get(MANDATEE)
+                    .get(EMAIL)
+                    .asText();
+            return Mono.just(email);
+        } catch (ParseException | JsonProcessingException e) {
+            return Mono.error(new InvalidTokenException());
+        }
+    }
+
+    @Override
     public Mono<String> getOrganizationIdFromCurrentSession() {
         return getTokenFromCurrentSession()
                 .flatMap(this::getCleanBearerToken)
@@ -79,6 +103,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     .asText();
             return Mono.just(organizationId);
         } catch (ParseException | JsonProcessingException e) {
+
             return Mono.error(new InvalidTokenException());
         }
     }
@@ -90,4 +115,6 @@ public class AccessTokenServiceImpl implements AccessTokenService {
                     return token.getToken().getTokenValue();
                 });
     }
+
+
 }

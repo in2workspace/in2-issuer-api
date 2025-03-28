@@ -62,7 +62,9 @@ public class SecurityConfig {
                                 DEFERRED_CREDENTIALS,
                                 TOKEN,
                                 // protected endpoints
-                                ISSUANCE
+                                ISSUANCE,
+                                SIGNATURE_CONFIGURATION,
+                                CONFIGURATION
                         )
                 )
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
@@ -75,6 +77,8 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.POST, TOKEN).permitAll()
                         .pathMatchers(HttpMethod.GET, DEFERRED_CREDENTIALS).permitAll()
                         .pathMatchers(HttpMethod.POST, DEFERRED_CREDENTIALS).permitAll()
+                        .pathMatchers(SIGNATURE_CONFIGURATION).permitAll()
+                        .pathMatchers(CONFIGURATION).permitAll()
                         .anyExchange().denyAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
