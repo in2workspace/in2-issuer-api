@@ -286,29 +286,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             log.debug("organizationIdentifier found using regex: {}", matcher.group(1));
                             return Mono.just(matcher.group(1));
                         } else {
-                            log.debug("Regex did not find organizationIdentifier in decoded text. Converting X.509 certificate to string.");
-                            return Mono.defer(() -> {
-                                try {
-                                    CertificateFactory cf = CertificateFactory.getInstance("X.509");
-                                    X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
-                                    log.debug("X.509 certificate parsed successfully: {}", x509Certificate);
-                                    String certAsString = x509Certificate.toString();
-                                    log.debug("Certificate as string: {}", certAsString);
-                                    Pattern certPattern = Pattern.compile("OID\\.2\\.5\\.4\\.97=([^,\\s]+)");
-                                    Matcher certMatcher = certPattern.matcher(certAsString);
-                                    if (certMatcher.find()) {
-                                        String orgId = certMatcher.group(1);
-                                        log.debug("organizationIdentifier found using regex on X.509 certificate string: {}", orgId);
-                                        return Mono.just(orgId);
-                                    } else {
-                                        log.debug("organizationIdentifier not found in X.509 certificate string.");
-                                        return Mono.empty();
-                                    }
-                                } catch (Exception e) {
-                                    log.debug("Error parsing certificate: {}", e.getMessage());
-                                    return Mono.empty();
-                                }
-                            });
+                            log.debug("Regex did not find organizationIdentifier in decoded text. Processing X.509 certificate.");
+                            return extractOrgFromX509(decodedBytes);
                         }
                     })
                     .next()
@@ -339,6 +318,31 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         } catch (Exception e) {
             return Mono.error(new RuntimeException("Unexpected error", e));
         }
+    }
+
+    private Mono<String> extractOrgFromX509(byte[] decodedBytes) {
+        return Mono.defer(() -> {
+            try {
+                CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
+                log.debug("X.509 certificate parsed successfully: {}", x509Certificate);
+                String certAsString = x509Certificate.toString();
+                log.debug("Certificate as string: {}", certAsString);
+                Pattern certPattern = Pattern.compile("OID\\.2\\.5\\.4\\.97=([^,\\s]+)");
+                Matcher certMatcher = certPattern.matcher(certAsString);
+                if (certMatcher.find()) {
+                    String orgId = certMatcher.group(1);
+                    log.debug("organizationIdentifier found using regex on X.509 certificate string: {}", orgId);
+                    return Mono.just(orgId);
+                } else {
+                    log.debug("organizationIdentifier not found in X.509 certificate string.");
+                    return Mono.empty();
+                }
+            } catch (Exception e) {
+                log.debug("Error parsing certificate: {}", e.getMessage());
+                return Mono.empty();
+            }
+        });
     }
 
     //TODO Eliminar la función cuando el mail de Jesús no sea un problema
