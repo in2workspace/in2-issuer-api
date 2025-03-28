@@ -78,12 +78,14 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
+        String pin = "1234";
+
         PreAuthCodeResponse preAuthCodeResponse =
-                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", transactionCode);
+                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", pin);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin(transactionCode)
+                .pin(pin)
                 .employeeEmail(mail)
                 .build();
 
@@ -144,12 +146,14 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
+        String pin = "1234";
+
         PreAuthCodeResponse preAuthCodeResponse =
-                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", subTransactionCode);
+                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", pin);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin(subTransactionCode)
+                .pin(pin)
                 .employeeEmail(mail)
                 .build();
 
