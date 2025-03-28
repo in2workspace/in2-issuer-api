@@ -7,6 +7,7 @@ import static es.in2.issuer.authserver.domain.utils.Constants.TX_CODE_DESCRIPTIO
 import static es.in2.issuer.authserver.domain.utils.Constants.TX_CODE_SIZE;
 
 public final class PreAuthCodeResponseMother {
+
     private PreAuthCodeResponseMother() {
     }
 
@@ -25,6 +26,4 @@ public final class PreAuthCodeResponseMother {
                 pin
         );
     }
-
-
 }
