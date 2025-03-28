@@ -283,10 +283,8 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                         Pattern pattern = Pattern.compile("organizationIdentifier\\s*=\\s*([\\w\\-]+)");
                         Matcher matcher = pattern.matcher(decodedCert);
                         if (matcher.find()) {
-                            log.debug("organizationIdentifier found using regex: {}", matcher.group(1));
                             return Mono.just(matcher.group(1));
                         } else {
-                            log.debug("Regex did not find organizationIdentifier in decoded text. Processing X.509 certificate.");
                             return extractOrgFromX509(decodedBytes);
                         }
                     })
@@ -308,7 +306,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                         .emailAddress(emailAdress)
                         .serialNumber(serialNumber)
                         .build();
-                log.debug("DetailedIssuer built successfully: {}", detailedIssuer);
                 return Mono.just(detailedIssuer);
             });
         } catch (JsonProcessingException e) {
@@ -325,17 +322,13 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             try {
                 CertificateFactory cf = CertificateFactory.getInstance("X.509");
                 X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
-                log.debug("X.509 certificate parsed successfully: {}", x509Certificate);
                 String certAsString = x509Certificate.toString();
-                log.debug("Certificate as string: {}", certAsString);
                 Pattern certPattern = Pattern.compile("OID\\.2\\.5\\.4\\.97=([^,\\s]+)");
                 Matcher certMatcher = certPattern.matcher(certAsString);
                 if (certMatcher.find()) {
                     String orgId = certMatcher.group(1);
-                    log.debug("organizationIdentifier found using regex on X.509 certificate string: {}", orgId);
                     return Mono.just(orgId);
                 } else {
-                    log.debug("organizationIdentifier not found in X.509 certificate string.");
                     return Mono.empty();
                 }
             } catch (Exception e) {
