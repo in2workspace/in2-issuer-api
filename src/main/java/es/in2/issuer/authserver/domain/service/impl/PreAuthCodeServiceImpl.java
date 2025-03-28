@@ -11,8 +11,7 @@ import reactor.core.publisher.Mono;
 
 import java.security.SecureRandom;
 
-import static es.in2.issuer.authserver.domain.utils.Constants.TX_CODE_DESCRIPTION;
-import static es.in2.issuer.authserver.domain.utils.Constants.TX_CODE_SIZE;
+import static es.in2.issuer.authserver.domain.utils.Constants.*;
 import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Slf4j
@@ -49,7 +48,7 @@ public class PreAuthCodeServiceImpl implements PreAuthCodeService {
     }
 
     private Mono<PreAuthCodeResponse> buildPreAuthCodeResponse(String preAuthCode, String pinTxCode) {
-        Grant.TxCode txCode = new Grant.TxCode(TX_CODE_SIZE, "", TX_CODE_DESCRIPTION);
+        Grant.TxCode txCode = new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
         Grant grant = new Grant(preAuthCode, txCode);
         return Mono.just(new PreAuthCodeResponse(grant, pinTxCode));
     }

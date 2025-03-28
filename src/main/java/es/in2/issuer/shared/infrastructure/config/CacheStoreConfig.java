@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.TimeUnit;
 
+import static es.in2.issuer.authserver.domain.utils.Constants.PIN_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES;
+
 @Configuration
 @RequiredArgsConstructor
 public class CacheStoreConfig {
@@ -38,6 +40,11 @@ public class CacheStoreConfig {
     @Bean
     public CacheStore<CredentialOfferData> cacheStoreForCredentialOffer() {
         return new CacheStore<>(appConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
+    }
+
+    @Bean
+    public CacheStore<String> pinByPreAuthCodeCacheStore() {
+        return new CacheStore<>(PIN_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
     }
 
 }
