@@ -3,7 +3,7 @@ package es.in2.issuer.backend.domain.service;
 import es.in2.issuer.backend.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

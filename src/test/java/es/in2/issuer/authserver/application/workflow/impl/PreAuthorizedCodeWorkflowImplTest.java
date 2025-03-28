@@ -1,0 +1,49 @@
+package es.in2.issuer.authserver.application.workflow.impl;
+
+import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeCacheStore;
+import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
+import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class PreAuthorizedCodeWorkflowImplTest {
+    @Mock
+    private PreAuthorizedCodeService preAuthorizedCodeService;
+
+    @Mock
+    private PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
+
+    @InjectMocks
+    PreAuthorizedCodeWorkflowImpl preAuthorizedCodeWorkflow;
+
+    @Test
+    void itShouldReturnPreAuthorizedCode() {
+        PreAuthorizedCodeResponse expected = PreAuthorizedCodeResponseMother.dummy();
+        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString())).thenReturn(Mono.just(expected));
+        when(preAuthorizedCodeCacheStore.save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin())))
+                .thenReturn(Mono.just(expected.grant().preAuthorizedCode()));
+
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse();
+
+        StepVerifier
+                .create(resultMono)
+                .assertNext(result ->
+                        assertThat(result).isEqualTo(expected))
+                .verifyComplete();
+
+        verify(preAuthorizedCodeCacheStore).save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin()));
+    }
+}

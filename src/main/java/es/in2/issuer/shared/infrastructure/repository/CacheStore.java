@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.infrastructure.repository;
+package es.in2.issuer.shared.infrastructure.repository;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
