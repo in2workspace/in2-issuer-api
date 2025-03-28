@@ -26,9 +26,12 @@ import reactor.util.retry.Retry;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -258,6 +261,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo, String emailAdress) {
         try {
+            log.info("Starting extraction of issuer from certificate info");
             JsonNode certificateInfoNode = objectMapper.readTree(certificateInfo);
             String subjectDN = certificateInfoNode.get("cert").get("subjectDN").asText();
             String serialNumber = certificateInfoNode.get("cert").get("serialNumber").asText();
@@ -282,7 +286,32 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
                     if (matcher.find()) {
                         organizationIdentifier = matcher.group(1);
+                        log.debug("organizationIdentifier found using regex: {}", organizationIdentifier);
                         break;
+                    } else {
+                        try {
+                            log.debug("Regex did not find organizationIdentifier. Decoding X.509 certificate");
+                            CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                            X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
+                            String subject = x509Certificate.getSubjectX500Principal().getName();
+                            log.debug("Subject found on X.509 certificate: {}", subject);
+                            LdapName ldapSubject = new LdapName(subject);
+                            for (Rdn rdn : ldapSubject.getRdns()) {
+                                if ("organizationIdentifier".equalsIgnoreCase(rdn.getType()) || "2.5.4.97".equals(rdn.getType())) {
+                                    organizationIdentifier = rdn.getValue().toString();
+                                    log.debug("organizationIdentifier found on X.509 certificate: {}", organizationIdentifier);
+                                    break;
+                                }
+                            }
+                            if (organizationIdentifier != null) {
+                                break;
+                            }
+                            else{
+                                log.debug("organizationIdentifier not found in the certificate.");
+                            }
+                        } catch (Exception e) {
+                            log.debug("Error parsing certificate: {}", e.getMessage());
+                        }
                     }
                 }
             }
