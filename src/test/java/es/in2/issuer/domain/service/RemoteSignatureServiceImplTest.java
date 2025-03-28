@@ -21,9 +21,7 @@ import es.in2.issuer.infrastructure.repository.DeferredCredentialMetadataReposit
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Spy;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -31,8 +29,12 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.*;
 
 import static es.in2.issuer.domain.util.Constants.*;
@@ -754,4 +756,73 @@ class RemoteSignatureServiceImplTest {
                 .verify();
 
     }
+    @Test
+    void extractIssuerFromCertificateInfo_Success_X509Branch() throws Exception {
+        String dummyCertContent = "-----BEGIN CERTIFICATE-----\nMIIDummyCertificateContent\n-----END CERTIFICATE-----";
+        String base64Cert = Base64.getEncoder().encodeToString(dummyCertContent.getBytes(StandardCharsets.UTF_8));
+        String certificateInfo = "{ \"cert\": { " +
+                "\"subjectDN\": \"CN=John Doe,O=Company,C=US\", " +
+                "\"serialNumber\": \"12345\", " +
+                "\"certificates\": [\"" + base64Cert + "\"] } }";
+
+        ObjectMapper realObjectMapper = new ObjectMapper();
+        JsonNode certificateInfoNode = realObjectMapper.readTree(certificateInfo);
+        when(objectMapper.readTree(certificateInfo)).thenReturn(certificateInfoNode);
+        X509Certificate mockCert = mock(X509Certificate.class);
+        when(mockCert.toString()).thenReturn(
+                "Version: V3, Subject: C=ES, L=Barcelona, O=IN2, OID.2.5.4.97=TESTVAT, SERIALNUMBER=TESTVAT, CN=Seal Signature Credentials in SBX for testing");
+
+        try (MockedStatic<CertificateFactory> mockedFactory = Mockito.mockStatic(CertificateFactory.class)) {
+            CertificateFactory mockCf = mock(CertificateFactory.class);
+            mockedFactory.when(() -> CertificateFactory.getInstance("X.509")).thenReturn(mockCf);
+            when(mockCf.generateCertificate(any(InputStream.class))).thenReturn(mockCert);
+
+            StepVerifier.create(remoteSignatureService.extractIssuerFromCertificateInfo(certificateInfo, "john@example.com"))
+                    .assertNext(issuer -> {
+                        Assertions.assertEquals("did:elsi:TESTVAT", issuer.id());
+                        Assertions.assertEquals("TESTVAT", issuer.organizationIdentifier());
+                        Assertions.assertEquals("Company", issuer.organization());
+                        Assertions.assertEquals("US", issuer.country());
+                        Assertions.assertEquals("John Doe", issuer.commonName());
+                        Assertions.assertEquals("john@example.com", issuer.emailAddress());
+                        Assertions.assertEquals("12345", issuer.serialNumber());
+                    })
+                    .verifyComplete();
+        }
+    }
+    @Test
+    void extractOrgFromX509_NoOrganizationIdentifier() throws Exception {
+        byte[] dummyBytes = "dummy".getBytes(StandardCharsets.UTF_8);
+        X509Certificate mockCert = mock(X509Certificate.class);
+        when(mockCert.toString()).thenReturn("Version: V3, Subject: C=ES, O=Company, CN=John Doe");
+        CertificateFactory mockCf = mock(CertificateFactory.class);
+        when(mockCf.generateCertificate(any(ByteArrayInputStream.class))).thenReturn(mockCert);
+
+        try (MockedStatic<CertificateFactory> mockedFactory = Mockito.mockStatic(CertificateFactory.class)) {
+            mockedFactory.when(() -> CertificateFactory.getInstance("X.509")).thenReturn(mockCf);
+
+            Mono<String> result = remoteSignatureService.extractOrgFromX509(dummyBytes);
+            StepVerifier.create(result)
+                    .expectComplete()
+                    .verify();
+        }
+    }
+
+    @Test
+    void extractOrgFromX509_Exception() throws Exception {
+        byte[] dummyBytes = "dummy".getBytes(StandardCharsets.UTF_8);
+        CertificateFactory mockCf = mock(CertificateFactory.class);
+        when(mockCf.generateCertificate(any(ByteArrayInputStream.class)))
+                .thenThrow(new RuntimeException("Test exception"));
+
+        try (MockedStatic<CertificateFactory> mockedFactory = Mockito.mockStatic(CertificateFactory.class)) {
+            mockedFactory.when(() -> CertificateFactory.getInstance("X.509")).thenReturn(mockCf);
+
+            Mono<String> result = remoteSignatureService.extractOrgFromX509(dummyBytes);
+            StepVerifier.create(result)
+                    .expectComplete()
+                    .verify();
+        }
+    }
+
 }

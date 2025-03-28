@@ -21,14 +21,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 import javax.naming.InvalidNameException;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.nio.charset.StandardCharsets;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeoutException;
@@ -258,6 +262,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
     public Mono<DetailedIssuer> extractIssuerFromCertificateInfo(String certificateInfo, String emailAdress) {
         try {
+            log.info("Starting extraction of issuer from certificate info");
             JsonNode certificateInfoNode = objectMapper.readTree(certificateInfo);
             String subjectDN = certificateInfoNode.get("cert").get("subjectDN").asText();
             String serialNumber = certificateInfoNode.get("cert").get("serialNumber").asText();
@@ -267,41 +272,42 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
             for (Rdn rdn : ldapDN.getRdns()) {
                 dnAttributes.put(rdn.getType(), rdn.getValue().toString());
             }
-
-            String organizationIdentifier = null;
             JsonNode certificatesArray = certificateInfoNode.get("cert").get(CERTIFICATES);
 
-            if (certificatesArray != null && certificatesArray.isArray()) {
-                for (JsonNode certNode : certificatesArray) {
-                    String base64Cert = certNode.asText();
-                    byte[] decodedBytes = Base64.getDecoder().decode(base64Cert);
-                    String decodedCert = new String(decodedBytes);
+            Mono<String> organizationIdentifierMono = (certificatesArray != null && certificatesArray.isArray())
+                    ? Flux.fromIterable(certificatesArray)
+                    .concatMap(certNode -> {
+                        String base64Cert = certNode.asText();
+                        byte[] decodedBytes = Base64.getDecoder().decode(base64Cert);
+                        String decodedCert = new String(decodedBytes, StandardCharsets.UTF_8);
+                        Pattern pattern = Pattern.compile("organizationIdentifier\\s*=\\s*([\\w\\-]+)");
+                        Matcher matcher = pattern.matcher(decodedCert);
+                        if (matcher.find()) {
+                            return Mono.just(matcher.group(1));
+                        } else {
+                            return extractOrgFromX509(decodedBytes);
+                        }
+                    })
+                    .next()
+                    : Mono.empty();
 
-                    Pattern pattern = Pattern.compile("organizationIdentifier\\s*=\\s*([\\w\\-]+)");
-                    Matcher matcher = pattern.matcher(decodedCert);
-
-                    if (matcher.find()) {
-                        organizationIdentifier = matcher.group(1);
-                        break;
-                    }
+            return organizationIdentifierMono
+                .switchIfEmpty(Mono.error(new OrganizationIdentifierNotFoundException("organizationIdentifier not found in the certificate.")))
+                .flatMap(orgId -> {
+                if (orgId == null || orgId.isEmpty()) {
+                    return Mono.error(new OrganizationIdentifierNotFoundException("organizationIdentifier not found in the certificate."));
                 }
-            }
-
-            if (organizationIdentifier == null) {
-                return Mono.error(new OrganizationIdentifierNotFoundException("organizationIdentifier not found in the certificate."));
-            }
-
-            String finalOrganizationIdentifier = organizationIdentifier;
-            return Mono.just(DetailedIssuer.builder()
-                    .id(DID_ELSI + finalOrganizationIdentifier)
-                    .organizationIdentifier(finalOrganizationIdentifier)
-                    .organization(dnAttributes.get("O"))
-                    .country(dnAttributes.get("C"))
-                    .commonName(dnAttributes.get("CN"))
-                    .emailAddress(emailAdress)
-                    .serialNumber(serialNumber)
-                    .build());
-
+                DetailedIssuer detailedIssuer = DetailedIssuer.builder()
+                        .id(DID_ELSI + orgId)
+                        .organizationIdentifier(orgId)
+                        .organization(dnAttributes.get("O"))
+                        .country(dnAttributes.get("C"))
+                        .commonName(dnAttributes.get("CN"))
+                        .emailAddress(emailAdress)
+                        .serialNumber(serialNumber)
+                        .build();
+                return Mono.just(detailedIssuer);
+            });
         } catch (JsonProcessingException e) {
             return Mono.error(new RuntimeException("Error parsing certificate info", e));
         } catch (InvalidNameException e) {
@@ -309,6 +315,27 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         } catch (Exception e) {
             return Mono.error(new RuntimeException("Unexpected error", e));
         }
+    }
+
+    public Mono<String> extractOrgFromX509(byte[] decodedBytes) {
+        return Mono.defer(() -> {
+            try {
+                CertificateFactory cf = CertificateFactory.getInstance("X.509");
+                X509Certificate x509Certificate = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(decodedBytes));
+                String certAsString = x509Certificate.toString();
+                Pattern certPattern = Pattern.compile("OID\\.2\\.5\\.4\\.97=([^,\\s]+)");
+                Matcher certMatcher = certPattern.matcher(certAsString);
+                if (certMatcher.find()) {
+                    String orgId = certMatcher.group(1);
+                    return Mono.just(orgId);
+                } else {
+                    return Mono.empty();
+                }
+            } catch (Exception e) {
+                log.debug("Error parsing certificate: {}", e.getMessage());
+                return Mono.empty();
+            }
+        });
     }
 
     //TODO Eliminar la función cuando el mail de Jesús no sea un problema
