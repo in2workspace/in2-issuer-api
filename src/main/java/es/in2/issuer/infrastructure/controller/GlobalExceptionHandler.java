@@ -278,4 +278,9 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
+
+    @ExceptionHandler(UnauthorizedRoleException.class)
+    public ResponseEntity<String> handleUnauthorizedRoleException(UnauthorizedRoleException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
 }

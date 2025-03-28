@@ -43,7 +43,7 @@ public class VerifiableCertificationFactory {
     public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token, String operationMode) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
         SignedJWT signedJWT = jwtService.parseJWT(token);
-        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc");
+        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)

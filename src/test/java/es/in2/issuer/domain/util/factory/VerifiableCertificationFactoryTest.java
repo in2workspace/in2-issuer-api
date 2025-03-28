@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.UUID;
 
 import static es.in2.issuer.domain.util.Constants.DID_ELSI;
-import static es.in2.issuer.domain.util.Constants.SIGNATURE_REMOTE_TYPE_SERVER;
 import static org.junit.jupiter.api.Assertions.*;
+import static es.in2.issuer.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -207,7 +207,8 @@ class VerifiableCertificationFactoryTest {
         when(signedJWT.getPayload()).thenReturn(jwtPayload);
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
-        when(jwtService.getClaimFromPayload(jwtPayload, "vc")).thenReturn("vcJson");
+        when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
+        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn("vcJson");
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 
