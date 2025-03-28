@@ -27,7 +27,7 @@ class PreAuthorizedCodeWorkflowImplTest {
     private PreAuthCodeCacheStore preAuthCodeCacheStore;
 
     @InjectMocks
-    PreAuthorizedCodeWorkflowImpl preAuthCodeWorkflow;
+    PreAuthorizedCodeWorkflowImpl preAuthorizedCodeWorkflow;
 
     @Test
     void itShouldReturnPreAuthCode() {
@@ -36,7 +36,7 @@ class PreAuthorizedCodeWorkflowImplTest {
         when(preAuthCodeCacheStore.save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin())))
                 .thenReturn(Mono.just(expected.grant().preAuthorizedCode()));
 
-        Mono<PreAuthorizedCodeResponse> resultMono = preAuthCodeWorkflow.generatePreAuthCodeResponse();
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse();
 
         StepVerifier
                 .create(resultMono)

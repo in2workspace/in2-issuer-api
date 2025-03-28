@@ -99,7 +99,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthorizedCodeWorkflow.generatePreAuthCodeResponse())
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse())
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
@@ -169,7 +169,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthorizedCodeWorkflow.generatePreAuthCodeResponse())
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse())
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));

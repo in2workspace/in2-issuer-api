@@ -19,7 +19,7 @@ public class PreAuthorizedCodeWorkflowImpl implements PreAuthorizedCodeWorkflow 
     private final PreAuthCodeCacheStore preAuthCodeCacheStore;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthCodeResponse() {
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse() {
         String processId = UUID.randomUUID().toString();
         log.info("ProcessId: {} AuthServer: Starting PreAuthCodeResponse generation", processId);
 

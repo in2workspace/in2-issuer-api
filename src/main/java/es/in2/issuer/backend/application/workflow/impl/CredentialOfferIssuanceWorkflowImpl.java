@@ -41,7 +41,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                 .flatMap(procedureId ->
                         credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                                 .flatMap(credentialType ->
-                                        preAuthorizedCodeWorkflow.generatePreAuthCodeResponse()
+                                        preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse()
                                                 .flatMap(preAuthCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,
