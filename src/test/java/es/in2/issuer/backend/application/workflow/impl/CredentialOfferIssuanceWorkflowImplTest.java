@@ -1,44 +1,32 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.domain.model.dto.*;
-import es.in2.issuer.backend.domain.service.*;
+import es.in2.issuer.authserver.application.workflow.PreAuthCodeWorkflow;
+import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
+import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.backend.domain.service.CredentialOfferCacheStorageService;
+import es.in2.issuer.backend.domain.service.CredentialProcedureService;
+import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.backend.domain.service.EmailService;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
-import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
-import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.ExchangeFunction;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE;
-import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE_APPLICATION_JSON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialOfferIssuanceWorkflowImplTest {
-
-    @Mock
-    private AuthServerConfig authServerConfig;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     @Mock
     private CredentialOfferServiceImpl credentialOfferService;
@@ -48,16 +36,15 @@ class CredentialOfferIssuanceWorkflowImplTest {
 
     @Mock
     private CredentialProcedureService credentialProcedureService;
-    @Mock
-    private DeferredCredentialMetadataService deferredCredentialMetadataService;
-    @Mock
-    private IssuerApiClientTokenService issuerApiClientTokenService;
 
     @Mock
-    private WebClientConfig webClientConfig;
+    private DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Mock
     private EmailService emailService;
+
+    @Mock
+    private PreAuthCodeWorkflow preAuthCodeWorkflow;
 
     @InjectMocks
     private CredentialOfferIssuanceWorkflowImpl credentialOfferIssuanceService;
@@ -75,35 +62,28 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .build();
 
         when(credentialOfferCacheStorageService.getCustomCredentialOffer(id)).thenReturn(Mono.just(credentialOfferData));
-        when(emailService.sendPin(credentialOfferData.employeeEmail(),"Pin Code", credentialOfferData.pin())).thenReturn(Mono.empty());
+        when(emailService.sendPin(credentialOfferData.employeeEmail(), "Pin Code", credentialOfferData.pin())).thenReturn(Mono.empty());
 
         Mono<CustomCredentialOffer> result = credentialOfferIssuanceService.getCustomCredentialOffer(id);
         assertEquals(credentialOffer, result.block());
     }
 
     @Test
-    void testBuildCredentialOfferUri() throws JsonProcessingException {
+    void testBuildCredentialOfferUri() {
         String processId = "1234";
         String transactionCode = "4321";
         String procedureId = "uuid1234";
         String credentialType = "VerifiableCredential";
-        String accessToken = "ey1234";
         String nonce = "nonce";
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
-                .grant(Grant.builder()
-                        .preAuthorizedCode("1234")
-                        .txCode(Grant.TxCode.builder()
-                                .length(4)
-                                .build())
-                        .build())
-                .build();
+        PreAuthCodeResponse preAuthCodeResponse =
+                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", transactionCode);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin("1234")
+                .pin(transactionCode)
                 .employeeEmail(mail)
                 .build();
 
@@ -117,23 +97,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .thenReturn(Mono.just(procedureId));
+        when(preAuthCodeWorkflow.generatePreAuthCodeResponse())
+                .thenReturn(Mono.just(preAuthCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
-        when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
-        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(accessToken));
-
-        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
-                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                .body("PreAuthorizedCode")
-                .build();
-        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
-        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
-        when(webClientConfig.commonWebClient()).thenReturn(webClient);
-
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
-                .thenReturn(preAuthCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                 transactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
@@ -165,29 +133,23 @@ class CredentialOfferIssuanceWorkflowImplTest {
 
 
     @Test
-    void testBuildNewCredentialOfferUri() throws JsonProcessingException {
+    void testBuildNewCredentialOfferUri() {
         String processId = "1234";
         String subTransactionCode = "9876";
         String originalTransactionCode = "4321";
         String procedureId = "uuid1234";
         String credentialType = "VerifiableCredential";
-        String accessToken = "ey1234";
+
         String nonce = "nonce";
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
-                .grant(Grant.builder()
-                        .preAuthorizedCode("1234")
-                        .txCode(Grant.TxCode.builder()
-                                .length(4)
-                                .build())
-                        .build())
-                .build();
+        PreAuthCodeResponse preAuthCodeResponse =
+                PreAuthCodeResponseMother.withPreAuthCodeAndPin("4567", subTransactionCode);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin("1234")
+                .pin(subTransactionCode)
                 .employeeEmail(mail)
                 .build();
 
@@ -203,23 +165,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode))
                 .thenReturn(Mono.just(procedureId));
+        when(preAuthCodeWorkflow.generatePreAuthCodeResponse())
+                .thenReturn(Mono.just(preAuthCodeResponse));
         when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
                 .thenReturn(Mono.just(credentialType));
 
-        when(authServerConfig.getPreAuthCodeUri()).thenReturn("https://example.com");
-        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just(accessToken));
-
-        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
-                .header(CONTENT_TYPE, CONTENT_TYPE_APPLICATION_JSON)
-                .body("PreAuthorizedCode")
-                .build();
-        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
-        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
-        when(webClientConfig.commonWebClient()).thenReturn(webClient);
-
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
-                .thenReturn(preAuthCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                 originalTransactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
