@@ -57,7 +57,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
             return Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + role + "'"));
         }
         return switch (role) {
-            case SYS_ADMIN, LER -> Mono.error(new UnauthorizedRoleException( "The request is invalid. " +
+            case SYS_ADMIN, LER -> Mono.error(new UnauthorizedRoleException("The request is invalid. " +
                     "The roles 'SYSADMIN' and 'LER' currently have no defined permissions."));
             case LEAR -> checkPolicies(token, schema, payload);
             default -> Mono.error(new UnauthorizedRoleException("Access denied: Unauthorized Role '" + role + "'"));
