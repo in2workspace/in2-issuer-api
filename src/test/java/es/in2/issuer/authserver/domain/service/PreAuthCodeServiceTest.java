@@ -1,7 +1,7 @@
 package es.in2.issuer.authserver.domain.service;
 
 import es.in2.issuer.authserver.domain.service.impl.PreAuthCodeServiceImpl;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,7 +36,7 @@ class PreAuthCodeServiceTest {
         int expectedPin = randomNextInt + 1000;
         String expectedPinStr = String.valueOf(expectedPin);
 
-        PreAuthCodeResponse expected =
+        PreAuthorizedCodeResponse expected =
                 PreAuthCodeResponseMother
                         .withPreAuthCodeAndPin(expectedPreAuthCode, expectedPinStr);
 
@@ -44,7 +44,7 @@ class PreAuthCodeServiceTest {
         when(preAuthCodeCacheStore.save(anyString(), anyString(), eq(expectedPinStr)))
                 .thenReturn(Mono.just(expectedPreAuthCode));
 
-        Mono<PreAuthCodeResponse> resultMono = preAuthCodeService.generatePreAuthCodeResponse("");
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthCodeService.generatePreAuthCodeResponse("");
 
         StepVerifier
                 .create(resultMono)

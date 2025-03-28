@@ -1,12 +1,12 @@
 package es.in2.issuer.backend.domain.model.dto;
 
 import es.in2.issuer.shared.domain.model.dto.Grant;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class PreAuthCodeResponseTest {
+class PreAuthorizedCodeResponseTest {
 
     @Test
     void testConstructorAndGetters() {
@@ -15,14 +15,14 @@ class PreAuthCodeResponseTest {
         String expectedPin = "1234";
 
         // Act
-        PreAuthCodeResponse preAuthCodeResponse = new PreAuthCodeResponse(
+        PreAuthorizedCodeResponse preAuthorizedCodeResponse = new PreAuthorizedCodeResponse(
                 grant,
                 expectedPin
         );
 
         // Assert
-        assertEquals(grant, preAuthCodeResponse.grant());
-        assertEquals(expectedPin, preAuthCodeResponse.pin());
+        assertEquals(grant, preAuthorizedCodeResponse.grant());
+        assertEquals(expectedPin, preAuthorizedCodeResponse.pin());
     }
 
     @Test
@@ -32,13 +32,13 @@ class PreAuthCodeResponseTest {
         String newPin = "5678";
 
         // Act
-        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
+        PreAuthorizedCodeResponse preAuthorizedCodeResponse = PreAuthorizedCodeResponse.builder()
                 .grant(grant)
                 .pin(newPin)
                 .build();
 
         // Assert
-        assertEquals(grant, preAuthCodeResponse.grant());
-        assertEquals(newPin, preAuthCodeResponse.pin());
+        assertEquals(grant, preAuthorizedCodeResponse.grant());
+        assertEquals(newPin, preAuthorizedCodeResponse.pin());
     }
 }

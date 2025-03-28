@@ -2,7 +2,7 @@ package es.in2.issuer.authserver.application.workflow.impl;
 
 import es.in2.issuer.authserver.domain.service.PreAuthCodeCacheStore;
 import es.in2.issuer.authserver.domain.service.PreAuthCodeService;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.objectmother.PreAuthCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,12 +31,12 @@ class PreAuthorizedCodeWorkflowImplTest {
 
     @Test
     void itShouldReturnPreAuthCode() {
-        PreAuthCodeResponse expected = PreAuthCodeResponseMother.dummy();
+        PreAuthorizedCodeResponse expected = PreAuthCodeResponseMother.dummy();
         when(preAuthCodeService.generatePreAuthCodeResponse(anyString())).thenReturn(Mono.just(expected));
         when(preAuthCodeCacheStore.save(anyString(), eq(expected.grant().preAuthorizedCode()), eq(expected.pin())))
                 .thenReturn(Mono.just(expected.grant().preAuthorizedCode()));
 
-        Mono<PreAuthCodeResponse> resultMono = preAuthCodeWorkflow.generatePreAuthCodeResponse();
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthCodeWorkflow.generatePreAuthCodeResponse();
 
         StepVerifier
                 .create(resultMono)

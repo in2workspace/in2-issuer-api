@@ -3,7 +3,7 @@ package es.in2.issuer.authserver.domain.service.impl;
 import es.in2.issuer.authserver.domain.service.PreAuthCodeCacheStore;
 import es.in2.issuer.authserver.domain.service.PreAuthCodeService;
 import es.in2.issuer.shared.domain.model.dto.Grant;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +22,7 @@ public class PreAuthCodeServiceImpl implements PreAuthCodeService {
     private final PreAuthCodeCacheStore preAuthCodeCacheStore;
 
     @Override
-    public Mono<PreAuthCodeResponse> generatePreAuthCodeResponse(String processId) {
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthCodeResponse(String processId) {
         return generatePreAuthCode()
                 .zipWith(generatePinTxCode())
                 .flatMap(tuple -> {
@@ -47,9 +47,9 @@ public class PreAuthCodeServiceImpl implements PreAuthCodeService {
         return Mono.just(String.valueOf(i));
     }
 
-    private Mono<PreAuthCodeResponse> buildPreAuthCodeResponse(String preAuthCode, String pinTxCode) {
+    private Mono<PreAuthorizedCodeResponse> buildPreAuthCodeResponse(String preAuthCode, String pinTxCode) {
         Grant.TxCode txCode = new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
         Grant grant = new Grant(preAuthCode, txCode);
-        return Mono.just(new PreAuthCodeResponse(grant, pinTxCode));
+        return Mono.just(new PreAuthorizedCodeResponse(grant, pinTxCode));
     }
 }

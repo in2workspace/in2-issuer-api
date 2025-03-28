@@ -1,8 +1,8 @@
 package es.in2.issuer.authserver.domain.service;
 
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import reactor.core.publisher.Mono;
 
 public interface PreAuthCodeService {
-    Mono<PreAuthCodeResponse> generatePreAuthCodeResponse(String processId);
+    Mono<PreAuthorizedCodeResponse> generatePreAuthCodeResponse(String processId);
 }
