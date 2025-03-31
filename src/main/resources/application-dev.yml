@@ -149,3 +149,11 @@ knowledge-base:
 cors:
   default-allowed-origins: "https://issuer.dome-marketplace-sbx.org"
   external-allowed-origins: ""
+
+hashicorp:
+  vault:
+    path: /kv
+    host: localhost
+    port: 8004
+    scheme: http
+    token: 
