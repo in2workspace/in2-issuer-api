@@ -15,6 +15,7 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
+// TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -280,6 +281,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CredentialOfferEmailException.class)
+    @ResponseStatus(HttpStatus.CREATED)
     public Mono<ResponseEntity<String>> handleCredentialOfferEmailException(CredentialOfferEmailException ex) {
 
         return Mono.just(ResponseEntity
@@ -289,6 +291,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(CredentialOfferNotificationException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public Mono<ResponseEntity<String>> handleCredentialOfferNotificationException(CredentialOfferNotificationException ex) {
 
         return Mono.just(ResponseEntity
