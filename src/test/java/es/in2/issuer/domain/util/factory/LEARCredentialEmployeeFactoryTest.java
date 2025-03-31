@@ -293,35 +293,39 @@ class LEARCredentialEmployeeFactoryTest {
     }
     @Test
     void mapStringToLEARCredentialEmployee_shouldCleanAndParseV2Successfully() throws Exception {
-        String credentialV2 = "{\n" +
-                "  \"@context\": \"https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2\",\n" +
-                "  \"credentialSubject\": {\n" +
-                "    \"mandate\": {\n" +
-                "      \"power\": [\n" +
-                "        {\n" +
-                "          \"tmf_function\": \"value1\",\n" +
-                "          \"tmf_type\": \"value2\",\n" +
-                "          \"tmf_domain\": \"value3\",\n" +
-                "          \"tmf_action\": \"value4\",\n" +
-                "          \"other_field\": \"keep\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "}";
+        String credentialV2 = """
+        {
+          "@context": "https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2",
+          "credentialSubject": {
+            "mandate": {
+              "power": [
+                {
+                  "tmf_function": "value1",
+                  "tmf_type": "value2",
+                  "tmf_domain": "value3",
+                  "tmf_action": "value4",
+                  "other_field": "keep"
+                }
+              ]
+            }
+          }
+        }
+        """;
 
-        JsonNode modifiedNode = new ObjectMapper().readTree("{\n" +
-                "  \"@context\": \"https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2\",\n" +
-                "  \"credentialSubject\": {\n" +
-                "    \"mandate\": {\n" +
-                "      \"power\": [\n" +
-                "        {\n" +
-                "          \"other_field\": \"keep\"\n" +
-                "        }\n" +
-                "      ]\n" +
-                "    }\n" +
-                "  }\n" +
-                "}");
+        JsonNode modifiedNode = new ObjectMapper().readTree("""
+        {
+          "@context": "https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2",
+          "credentialSubject": {
+            "mandate": {
+              "power": [
+                {
+                  "other_field": "keep"
+                }
+              ]
+            }
+          }
+        }
+        """);
 
         LEARCredentialEmployee expectedEmployee = mock(LEARCredentialEmployee.class);
 
