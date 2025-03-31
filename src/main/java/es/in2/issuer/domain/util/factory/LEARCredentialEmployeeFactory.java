@@ -3,6 +3,7 @@ package es.in2.issuer.domain.util.factory;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.exception.RemoteSignatureException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
@@ -65,9 +66,24 @@ public class LEARCredentialEmployeeFactory {
                 );
     }
 
+    //TODO Fix if else cuando se tenga la estructura final de los credenciales en el marketplace
     public LEARCredentialEmployee mapStringToLEARCredentialEmployee(String learCredential){
         try {
-            LEARCredentialEmployee employee = objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
+            LEARCredentialEmployee employee;
+            if(learCredential.contains("https://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1")){
+                employee = objectMapper.readValue(learCredential, LEARCredentialEmployee.class);
+            } else if(learCredential.contains("https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2")){
+                JsonNode learCredentialEmployee = objectMapper.readTree(learCredential);
+                learCredentialEmployee.get("credentialSubject").get("mandate").get("power").forEach(power -> {
+                    ((ObjectNode) power).remove("tmf_function");
+                    ((ObjectNode) power).remove("tmf_type");
+                    ((ObjectNode) power).remove("tmf_domain");
+                    ((ObjectNode) power).remove("tmf_action");
+                });
+                employee = objectMapper.readValue(learCredentialEmployee.toString(), LEARCredentialEmployee.class);
+            } else {
+                throw new InvalidCredentialFormatException("Invalid credential format");
+            }
             log.info(employee.toString());
             return employee;
         } catch (JsonProcessingException e) {
