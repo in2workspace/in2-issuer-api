@@ -15,7 +15,6 @@ import es.in2.issuer.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -29,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static es.in2.issuer.domain.util.Constants.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -53,11 +54,11 @@ class LEARCredentialEmployeeFactoryTest {
     @Mock
     private RemoteSignatureServiceImpl remoteSignatureServiceImpl;
 
-    @Disabled
+    
     @Test
     void testMapCredentialAndBindMandateeIdInToTheCredential() throws JsonProcessingException, InvalidCredentialFormatException {
         //Arrange
-        String learCredential = "validCredentialString";
+        String learCredential = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
         String mandateeId = "mandateeId";
         String expectedString = "expectedString";
         LEARCredentialEmployeeJwtPayload learCredentialEmployeeJwtPayload = mock(LEARCredentialEmployeeJwtPayload.class);
@@ -118,11 +119,11 @@ class LEARCredentialEmployeeFactoryTest {
                 .verifyComplete();
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_Server_Success() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "procedureId";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
         String expectedString = "expectedString";
 
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
@@ -144,11 +145,11 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl, never()).validateCredentials();
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_InvalidCredentials_Error() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
@@ -165,11 +166,11 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl).validateCredentials();
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_FailsAfterRetries_SwitchToAsync() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
@@ -190,11 +191,11 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl).handlePostRecoverError(procedureId);
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_SuccessOnSecondAttempt() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
         String expectedString = "expectedString";
 
 
@@ -223,11 +224,11 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl, times(2)).validateCredentials();
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_NonRecoverableError() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
@@ -250,11 +251,11 @@ class LEARCredentialEmployeeFactoryTest {
         verify(remoteSignatureServiceImpl, times(1)).handlePostRecoverError(procedureId);
     }
 
-    @Disabled
+    
     @Test
     void mapCredentialAndBindIssuerInToTheCredential_HandlePostRecoverErrorFails() throws JsonProcessingException, InvalidCredentialFormatException {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialString";
+        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
 
@@ -271,13 +272,80 @@ class LEARCredentialEmployeeFactoryTest {
         StepVerifier.create(learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId))
                 .expectErrorSatisfies(throwable -> {
                     Assertions.assertInstanceOf(RuntimeException.class, throwable);
-                    Assertions.assertEquals("Error in post-recovery handling", throwable.getMessage());
+                    assertEquals("Error in post-recovery handling", throwable.getMessage());
                 })
                 .verify();
 
         verify(remoteSignatureServiceImpl, times(4)).validateCredentials();
         verify(remoteSignatureServiceImpl).handlePostRecoverError(procedureId);
     }
+
+    @Test
+    void mapStringToLEARCredentialEmployee_shouldParseV1Successfully() throws Exception {
+        String credentialV1 = "{\"@context\": \"https://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1\"}";
+        LEARCredentialEmployee expectedEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readValue(credentialV1, LEARCredentialEmployee.class)).thenReturn(expectedEmployee);
+
+        LEARCredentialEmployee result = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(credentialV1);
+
+        assertEquals(expectedEmployee, result);
+    }
+    @Test
+    void mapStringToLEARCredentialEmployee_shouldCleanAndParseV2Successfully() throws Exception {
+        String credentialV2 = "{\n" +
+                "  \"@context\": \"https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2\",\n" +
+                "  \"credentialSubject\": {\n" +
+                "    \"mandate\": {\n" +
+                "      \"power\": [\n" +
+                "        {\n" +
+                "          \"tmf_function\": \"value1\",\n" +
+                "          \"tmf_type\": \"value2\",\n" +
+                "          \"tmf_domain\": \"value3\",\n" +
+                "          \"tmf_action\": \"value4\",\n" +
+                "          \"other_field\": \"keep\"\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  }\n" +
+                "}";
+
+        JsonNode modifiedNode = new ObjectMapper().readTree("{\n" +
+                "  \"@context\": \"https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2\",\n" +
+                "  \"credentialSubject\": {\n" +
+                "    \"mandate\": {\n" +
+                "      \"power\": [\n" +
+                "        {\n" +
+                "          \"other_field\": \"keep\"\n" +
+                "        }\n" +
+                "      ]\n" +
+                "    }\n" +
+                "  }\n" +
+                "}");
+
+        LEARCredentialEmployee expectedEmployee = mock(LEARCredentialEmployee.class);
+
+        when(objectMapper.readTree(credentialV2)).thenReturn(modifiedNode);
+        when(objectMapper.readValue(modifiedNode.toString(), LEARCredentialEmployee.class)).thenReturn(expectedEmployee);
+
+        LEARCredentialEmployee result = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(credentialV2);
+
+        assertEquals(expectedEmployee, result);
+    }
+
+    @Test
+    void mapStringToLEARCredentialEmployee_shouldThrowExceptionForInvalidFormat() {
+        String invalidCredential = "{\"@context\": \"https://invalid-url.org/credential/unknown\"}";
+
+        InvalidCredentialFormatException exception = assertThrows(
+                InvalidCredentialFormatException.class,
+                () -> learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(invalidCredential)
+        );
+
+        assertEquals("Invalid credential format", exception.getMessage());
+    }
+
+
 
 
 }
