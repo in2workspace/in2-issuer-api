@@ -94,19 +94,14 @@ public class SecurityConfig {
     public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
-                .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .oauth2ResourceServer(oauth2ResourceServer ->
-                        oauth2ResourceServer
-                                .jwt(jwtSpec -> jwtSpec
-                                        .jwtDecoder(internalJwtDecoder))
-
-                );
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(internalJwtDecoder)));
         return http.build();
     }
+
 
     // Helper method to get Swagger-related paths for permitting access
     private String[] getSwaggerPaths() {

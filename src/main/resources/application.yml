@@ -157,8 +157,11 @@ trust-framework:
   url: "http://localhost:8080"
 
 cors:
-  default-allowed-origins: "http://localhost:4201"
-  external-allowed-origins: "http://localhost:4201, http://localhost:4200"
+  default-allowed-origins:
+    - "http://localhost:4200"
+  external-allowed-origins:
+    - "http://localhost:4200"
+    - "http://localhost:4201"
 
 hashicorp:
   vault:

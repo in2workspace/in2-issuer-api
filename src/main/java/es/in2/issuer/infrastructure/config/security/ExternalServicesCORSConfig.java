@@ -34,6 +34,7 @@ public class ExternalServicesCORSConfig {
         source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
         source.registerCorsConfiguration(ISSUANCE, configuration);
         source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
+        source.registerCorsConfiguration(CONFIGURATION, configuration);
         source.registerCorsConfiguration(TOKEN, configuration);
         return source;
     }
