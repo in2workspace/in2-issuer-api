@@ -9,10 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added role claim and validations.
 - Modified authenticator to allow access exclusively with the "LEAR" role, returning a 401 error for any other role.
 
+## [v1.5.2](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.2)
+### Fixed
+- Fixed parsing learCredentialEmployee
+
 ## [v1.5.1](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.1)
 ### Fixed
 - Fixed parsing certificates
--
+
 ## [v1.5.0](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.5.0)
 ### Added
 - Added support to sign the credential with an external service.
