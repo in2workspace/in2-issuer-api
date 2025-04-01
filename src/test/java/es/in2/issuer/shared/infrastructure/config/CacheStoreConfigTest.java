@@ -57,8 +57,8 @@ class CacheStoreConfigTest {
     }
 
     @Test
-    void testCacheStoreForPinByPreAuthorizedCodeCacheStore() {
-        CacheStore<String> customCredentialOfferCacheStore = cacheStoreConfig.pinByPreAuthorizedCodeCacheStore();
+    void testCacheStoreForTxCodeByPreAuthorizedCodeCacheStore() {
+        CacheStore<String> customCredentialOfferCacheStore = cacheStoreConfig.txCodeByPreAuthorizedCodeCacheStore();
         assertNotNull(customCredentialOfferCacheStore);
     }
 }

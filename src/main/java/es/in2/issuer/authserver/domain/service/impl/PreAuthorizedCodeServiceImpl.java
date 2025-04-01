@@ -24,15 +24,15 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     @Override
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId) {
         return generatePreAuthorizedCode()
-                .zipWith(generatePinTxCode())
+                .zipWith(generateTxCode())
                 .flatMap(tuple -> {
                     String preAuthorizedCode = tuple.getT1();
-                    String pinTxCode = tuple.getT2();
-                    log.debug("ProcessId: {} AuthServer: Pre Auth Code and pin (TX Code) generated", processId);
+                    String txCode = tuple.getT2();
+                    log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId);
 
-                    return preAuthorizedCodeCacheStore.save(processId, preAuthorizedCode, pinTxCode)
+                    return preAuthorizedCodeCacheStore.save(processId, preAuthorizedCode, txCode)
                             .flatMap(preAuthorizedCodeSaved ->
-                                    buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, pinTxCode));
+                                    buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
                 });
     }
 
@@ -40,16 +40,16 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
         return generateCustomNonce();
     }
 
-    private Mono<String> generatePinTxCode() {
+    private Mono<String> generateTxCode() {
         double minValue = Math.pow(10, (double) TX_CODE_SIZE - 1);
         double maxValue = Math.pow(10, TX_CODE_SIZE) - 1;
         int i = random.nextInt((int) (maxValue - minValue + 1)) + (int) minValue;
         return Mono.just(String.valueOf(i));
     }
 
-    private Mono<PreAuthorizedCodeResponse> buildPreAuthorizedCodeResponse(String preAuthorizedCode, String pinTxCode) {
-        Grant.TxCode txCode = new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
-        Grant grant = new Grant(preAuthorizedCode, txCode);
-        return Mono.just(new PreAuthorizedCodeResponse(grant, pinTxCode));
+    private Mono<PreAuthorizedCodeResponse> buildPreAuthorizedCodeResponse(String preAuthorizedCode, String txCode) {
+        Grant.TxCode grantTxCode = new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
+        Grant grant = new Grant(preAuthorizedCode, grantTxCode);
+        return Mono.just(new PreAuthorizedCodeResponse(grant, txCode));
     }
 }

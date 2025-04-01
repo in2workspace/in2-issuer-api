@@ -33,15 +33,15 @@ class PreAuthorizedCodeServiceTest {
     void itShouldReturnPreAuthorizedCode() {
         String expectedPreAuthorizedCode = "1234";
         int randomNextInt = 5678;
-        int expectedPin = randomNextInt + 1000;
-        String expectedPinStr = String.valueOf(expectedPin);
+        int expectedTxCode = randomNextInt + 1000;
+        String expectedTxCodeStr = String.valueOf(expectedTxCode);
 
         PreAuthorizedCodeResponse expected =
                 PreAuthorizedCodeResponseMother
-                        .withPreAuthorizedCodeAndPin(expectedPreAuthorizedCode, expectedPinStr);
+                        .withPreAuthorizedCodeAndPin(expectedPreAuthorizedCode, expectedTxCodeStr);
 
         when(random.nextInt(anyInt())).thenReturn(randomNextInt);
-        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), eq(expectedPinStr)))
+        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), eq(expectedTxCodeStr)))
                 .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService.generatePreAuthorizedCodeResponse("");

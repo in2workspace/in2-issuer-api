@@ -11,11 +11,11 @@ import reactor.core.publisher.Mono;
 @Repository
 @RequiredArgsConstructor
 public class PreAuthorizedCodeCacheStoreImpl implements PreAuthorizedCodeCacheStore {
-    private final CacheStore<String> pinByPreAuthorizedCodeCacheStore;
+    private final CacheStore<String> txCodeByPreAuthorizedCodeCacheStore;
 
     @Override
-    public Mono<String> save(String processId, String preAuthorizeCode, String pin) {
-        log.debug("ProcessId: {} AuthServer: Saving pre auth code and pin", processId);
-        return pinByPreAuthorizedCodeCacheStore.add(preAuthorizeCode, pin);
+    public Mono<String> save(String processId, String preAuthorizeCode, String txCode) {
+        log.debug("ProcessId: {} AuthServer: Saving PreAuthorizedCode and TxCode", processId);
+        return txCodeByPreAuthorizedCodeCacheStore.add(preAuthorizeCode, txCode);
     }
 }

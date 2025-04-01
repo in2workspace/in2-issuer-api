@@ -25,11 +25,11 @@ class PreAuthorizedCodeCacheStoreImplTest {
     @Test
     void itShouldSave() {
         String expectedPreAuthorizedCode = "1234";
-        String pin = "5678";
+        String txCode = "5678";
 
-        when(cacheStore.add(expectedPreAuthorizedCode, pin)).thenReturn(Mono.just(expectedPreAuthorizedCode));
+        when(cacheStore.add(expectedPreAuthorizedCode, txCode)).thenReturn(Mono.just(expectedPreAuthorizedCode));
 
-        var resultMono = preAuthorizedCodeCacheStore.save("", expectedPreAuthorizedCode, pin);
+        var resultMono = preAuthorizedCodeCacheStore.save("", expectedPreAuthorizedCode, txCode);
 
         StepVerifier
                 .create(resultMono)

@@ -4,5 +4,5 @@ import reactor.core.publisher.Mono;
 
 public interface PreAuthorizedCodeCacheStore {
 
-    Mono<String> save(String processId, String preAuthorizeCode, String pin);
+    Mono<String> save(String processId, String preAuthorizeCode, String txCode);
 }
