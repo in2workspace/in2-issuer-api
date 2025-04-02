@@ -2,7 +2,7 @@ package es.in2.issuer.authserver.domain.service;
 
 import es.in2.issuer.authserver.domain.service.impl.PreAuthorizedCodeCacheStoreImpl;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
-import es.in2.issuer.shared.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -17,10 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class PreAuthorizedCodeCacheStoreImplTest {
+class PreAuthorizedCodeCacheStoreRepositoryImplTest {
 
     @Mock
-    CacheStore<CredentialIdAndTxCode> cacheStore;
+    CacheStoreRepository<CredentialIdAndTxCode> cacheStoreRepository;
 
     @InjectMocks
     PreAuthorizedCodeCacheStoreImpl preAuthorizedCodeCacheStore;
@@ -31,7 +31,7 @@ class PreAuthorizedCodeCacheStoreImplTest {
         String txCode = "5678";
 
         UUID credentialId = UUID.fromString("762a8cf7-a872-41fc-8674-80243da68251");
-        when(cacheStore.add(expectedPreAuthorizedCode,
+        when(cacheStoreRepository.add(expectedPreAuthorizedCode,
                 new CredentialIdAndTxCode(credentialId, txCode)))
                 .thenReturn(Mono.just(expectedPreAuthorizedCode));
 

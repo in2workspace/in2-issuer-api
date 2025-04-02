@@ -10,13 +10,13 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class CacheStore<T> {
+public class CacheStoreRepository<T> {
 
     private final Cache<String, T> cache;
     private final long expiryDuration;
     private final TimeUnit timeUnit;
 
-    public CacheStore(long expiryDuration, TimeUnit timeUnit) {
+    public CacheStoreRepository(long expiryDuration, TimeUnit timeUnit) {
         this.expiryDuration = expiryDuration;
         this.timeUnit = timeUnit;
         this.cache = CacheBuilder.newBuilder()

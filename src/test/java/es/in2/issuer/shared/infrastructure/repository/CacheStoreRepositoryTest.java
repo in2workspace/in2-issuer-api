@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.test.StepVerifier;
 
-class CacheStoreTest {
+class CacheStoreRepositoryTest {
 
-    private CacheStore<String> cacheStore;
+    private CacheStoreRepository<String> cacheStoreRepository;
     private Cache<String, String> cache;
 
     @BeforeEach
@@ -21,9 +21,9 @@ class CacheStoreTest {
         // Mock the cache since we are only testing the CacheStore logic, not the cache itself
         cache = mock(Cache.class);
         // Build the cache store with arbitrary expiry and TimeUnit
-        cacheStore = new CacheStore<>(1, TimeUnit.MINUTES);
+        cacheStoreRepository = new CacheStoreRepository<>(1, TimeUnit.MINUTES);
         // Inject the mocked cache into our CacheStore
-        ReflectionTestUtils.setField(cacheStore, "cache", cache);
+        ReflectionTestUtils.setField(cacheStoreRepository, "cache", cache);
     }
 
     @Test
@@ -32,7 +32,7 @@ class CacheStoreTest {
         String value = "value1";
         when(cache.getIfPresent(key)).thenReturn(value);
 
-        StepVerifier.create(cacheStore.add(key, value))
+        StepVerifier.create(cacheStoreRepository.add(key, value))
                 .expectSubscription()
                 .expectNext(key)
                 .verifyComplete();
@@ -46,7 +46,7 @@ class CacheStoreTest {
         String expectedValue = "value1";
         when(cache.getIfPresent(key)).thenReturn(expectedValue);
 
-        StepVerifier.create(cacheStore.get(key))
+        StepVerifier.create(cacheStoreRepository.get(key))
                 .expectSubscription()
                 .expectNext(expectedValue)
                 .verifyComplete();
@@ -59,7 +59,7 @@ class CacheStoreTest {
         String key = "key1";
         doNothing().when(cache).invalidate(key);
 
-        StepVerifier.create(cacheStore.delete(key))
+        StepVerifier.create(cacheStoreRepository.delete(key))
                 .expectSubscription()
                 .verifyComplete();
 
@@ -69,12 +69,12 @@ class CacheStoreTest {
     @Test
     void testAddNullKeyOrValue() {
         // Test with null key
-        StepVerifier.create(cacheStore.add(null, "value"))
+        StepVerifier.create(cacheStoreRepository.add(null, "value"))
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
         // Test with null value
-        StepVerifier.create(cacheStore.add("key", null))
+        StepVerifier.create(cacheStoreRepository.add("key", null))
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
@@ -87,7 +87,7 @@ class CacheStoreTest {
         String key = "nonExisting";
         when(cache.getIfPresent(key)).thenReturn(null);
 
-        StepVerifier.create(cacheStore.get(key))
+        StepVerifier.create(cacheStoreRepository.get(key))
                 .expectSubscription()
                 .expectError(NoSuchElementException.class)
                 .verify();
@@ -97,7 +97,7 @@ class CacheStoreTest {
 
     @Test
     void testGetCacheExpiryInSeconds_NormalCase() {
-        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
+        StepVerifier.create(cacheStoreRepository.getCacheExpiryInSeconds())
                 .expectSubscription()
                 .expectNext(60) // 1 MINUTE => 60 seconds
                 .verifyComplete();
@@ -105,10 +105,10 @@ class CacheStoreTest {
 
     @Test
     void testGetCacheExpiryInSeconds_ExceedMaxInteger() {
-        ReflectionTestUtils.setField(cacheStore, "expiryDuration", Long.MAX_VALUE);
-        ReflectionTestUtils.setField(cacheStore, "timeUnit", TimeUnit.SECONDS);
+        ReflectionTestUtils.setField(cacheStoreRepository, "expiryDuration", Long.MAX_VALUE);
+        ReflectionTestUtils.setField(cacheStoreRepository, "timeUnit", TimeUnit.SECONDS);
 
-        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
+        StepVerifier.create(cacheStoreRepository.getCacheExpiryInSeconds())
                 .expectSubscription()
                 .expectError(IllegalStateException.class)
                 .verify();
