@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 
 import static es.in2.issuer.authserver.domain.utils.Constants.*;
 import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
@@ -22,7 +23,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId) {
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId, UUID credentialId) {
         return generatePreAuthorizedCode()
                 .zipWith(generateTxCode())
                 .flatMap(tuple -> {
@@ -30,7 +31,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
                     String txCode = tuple.getT2();
                     log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId);
 
-                    return preAuthorizedCodeCacheStore.save(processId, preAuthorizedCode, txCode)
+                    return preAuthorizedCodeCacheStore.save(processId, preAuthorizedCode, credentialId, txCode)
                             .flatMap(preAuthorizedCodeSaved ->
                                     buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
                 });

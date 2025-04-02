@@ -1,6 +1,7 @@
 package es.in2.issuer.authserver.domain.service;
 
 import es.in2.issuer.authserver.domain.service.impl.PreAuthorizedCodeCacheStoreImpl;
+import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
@@ -17,7 +20,7 @@ import static org.mockito.Mockito.when;
 class PreAuthorizedCodeCacheStoreImplTest {
 
     @Mock
-    CacheStore<String> cacheStore;
+    CacheStore<CredentialIdAndTxCode> cacheStore;
 
     @InjectMocks
     PreAuthorizedCodeCacheStoreImpl preAuthorizedCodeCacheStore;
@@ -27,9 +30,16 @@ class PreAuthorizedCodeCacheStoreImplTest {
         String expectedPreAuthorizedCode = "1234";
         String txCode = "5678";
 
-        when(cacheStore.add(expectedPreAuthorizedCode, txCode)).thenReturn(Mono.just(expectedPreAuthorizedCode));
+        UUID credentialId = UUID.fromString("762a8cf7-a872-41fc-8674-80243da68251");
+        when(cacheStore.add(expectedPreAuthorizedCode,
+                new CredentialIdAndTxCode(credentialId, txCode)))
+                .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
-        var resultMono = preAuthorizedCodeCacheStore.save("", expectedPreAuthorizedCode, txCode);
+        var resultMono = preAuthorizedCodeCacheStore.save(
+                "",
+                expectedPreAuthorizedCode,
+                credentialId,
+                txCode);
 
         StepVerifier
                 .create(resultMono)

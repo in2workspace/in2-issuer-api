@@ -39,9 +39,9 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private Mono<CredentialOfferUriResponse> buildCredentialOfferUriInternal(String transactionCode) {
         return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                 .flatMap(procedureId ->
-                        credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
-                                .flatMap(credentialType ->
-                                        preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse()
+                        credentialProcedureService.getProcedureByProcedureId(procedureId)
+                                .flatMap(credentialProcedure ->
+                                        preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(Mono.just(credentialProcedure.getCredentialId()))
                                                 .flatMap(preAuthorizedCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,
@@ -52,7 +52,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                                 )
                                                                 .flatMap(email ->
                                                                         credentialOfferService.buildCustomCredentialOffer(
-                                                                                        credentialType,
+                                                                                        credentialProcedure.getCredentialType(),
                                                                                         preAuthorizedCodeResponse.grant(),
                                                                                         email,
                                                                                         preAuthorizedCodeResponse.pin()

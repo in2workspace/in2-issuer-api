@@ -236,4 +236,9 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .map(CredentialProcedures::new);
     }
 
+    @Override
+    public Mono<CredentialProcedure> getProcedureByProcedureId(String procedureId) {
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
+    }
+
 }

@@ -4,6 +4,7 @@ import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.backend.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.backend.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
@@ -21,8 +22,10 @@ import reactor.test.StepVerifier;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -89,6 +92,12 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        CredentialProcedure credentialProcedure = CredentialProcedure.builder()
+                .credentialId(UUID.fromString("871a85f6-e1dc-4b05-89c9-90914b59c843"))
+                .credentialType(credentialType)
+                .build();
+
+
         String cTransactionCode = "cTransactionCode";
         int expiry = 1000;
         Map<String, Object> cTransactionCodeMap = new HashMap<>();
@@ -99,10 +108,10 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.empty());
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse())
+        when(credentialProcedureService.getProcedureByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(any()))
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
-        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
-                .thenReturn(Mono.just(credentialType));
 
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                 transactionCode, preAuthorizedCodeResponse.grant().preAuthorizedCode()))
@@ -157,6 +166,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .employeeEmail(mail)
                 .build();
 
+        CredentialProcedure credentialProcedure = CredentialProcedure.builder()
+                .credentialId(UUID.fromString("871a85f6-e1dc-4b05-89c9-90914b59c843"))
+                .credentialType(credentialType)
+                .build();
+
         // Se simula el Map con los detalles de cTransactionCode
         String cTransactionCode = "cTransactionCode";
         int expiry = 1000;
@@ -169,10 +183,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(originalTransactionCode));
         when(deferredCredentialMetadataService.getProcedureIdByTransactionCode(originalTransactionCode))
                 .thenReturn(Mono.just(procedureId));
-        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse())
+        when(credentialProcedureService.getProcedureByProcedureId(procedureId))
+                .thenReturn(Mono.just(credentialProcedure));
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(
+                any()))
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
-        when(credentialProcedureService.getCredentialTypeByProcedureId(procedureId))
-                .thenReturn(Mono.just(credentialType));
 
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                 originalTransactionCode, preAuthorizedCodeResponse.grant().preAuthorizedCode()))

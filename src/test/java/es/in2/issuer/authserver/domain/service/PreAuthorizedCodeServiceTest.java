@@ -12,9 +12,11 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,15 +43,20 @@ class PreAuthorizedCodeServiceTest {
                         .withPreAuthorizedCodeAndPin(expectedPreAuthorizedCode, expectedTxCodeStr);
 
         when(random.nextInt(anyInt())).thenReturn(randomNextInt);
-        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), eq(expectedTxCodeStr)))
+        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), any(), eq(expectedTxCodeStr)))
                 .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
-        Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService.generatePreAuthorizedCodeResponse("");
+        UUID credentialId = UUID.fromString("2e10cbfc-b381-45ec-b987-0b1dd4ae4e10");
+        Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService
+                .generatePreAuthorizedCodeResponse("", credentialId);
 
         StepVerifier
                 .create(resultMono)
                 .assertNext(result ->
                         assertThat(result).isEqualTo(expected))
                 .verifyComplete();
+
+        verify(preAuthorizedCodeCacheStore)
+                .save(anyString(), anyString(), eq(credentialId), eq(expected.pin()));
     }
 }
