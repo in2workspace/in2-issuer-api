@@ -294,7 +294,6 @@ public class GlobalExceptionHandler {
         return Mono.just(
                 GlobalErrorMessage.builder()
                         .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                        .timestamp(LocalDateTime.now())
                         .message(ex.getMessage())
                         .error("EmailCommunicationException")
                         .build());
