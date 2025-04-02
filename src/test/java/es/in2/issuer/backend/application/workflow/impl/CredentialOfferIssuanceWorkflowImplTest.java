@@ -8,7 +8,7 @@ import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import es.in2.issuer.shared.domain.model.dto.Grant;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -92,7 +92,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
+        PreAuthorizedCodeResponse preAuthorizedCodeResponse = PreAuthorizedCodeResponse.builder()
                 .grant(Grant.builder()
                         .preAuthorizedCode("1234")
                         .txCode(Grant.TxCode.builder()
@@ -132,18 +132,18 @@ class CredentialOfferIssuanceWorkflowImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
-                .thenReturn(preAuthCodeResponse);
+        when(objectMapper.readValue("PreAuthorizedCode", PreAuthorizedCodeResponse.class))
+                .thenReturn(preAuthorizedCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
-                transactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
+                transactionCode, preAuthorizedCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(mail));
         when(credentialOfferService.buildCustomCredentialOffer(
                 credentialType,
-                preAuthCodeResponse.grant(),
+                preAuthorizedCodeResponse.grant(),
                 mail,
-                preAuthCodeResponse.pin()))
+                preAuthorizedCodeResponse.pin()))
                 .thenReturn(Mono.just(credentialOfferData));
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData))
                 .thenReturn(Mono.just(nonce));
@@ -176,7 +176,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        PreAuthCodeResponse preAuthCodeResponse = PreAuthCodeResponse.builder()
+        PreAuthorizedCodeResponse preAuthorizedCodeResponse = PreAuthorizedCodeResponse.builder()
                 .grant(Grant.builder()
                         .preAuthorizedCode("1234")
                         .txCode(Grant.TxCode.builder()
@@ -218,18 +218,18 @@ class CredentialOfferIssuanceWorkflowImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        when(objectMapper.readValue("PreAuthorizedCode", PreAuthCodeResponse.class))
-                .thenReturn(preAuthCodeResponse);
+        when(objectMapper.readValue("PreAuthorizedCode", PreAuthorizedCodeResponse.class))
+                .thenReturn(preAuthorizedCodeResponse);
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
-                originalTransactionCode, preAuthCodeResponse.grant().preAuthorizedCode()))
+                originalTransactionCode, preAuthorizedCodeResponse.grant().preAuthorizedCode()))
                 .thenReturn(Mono.empty());
         when(credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(mail));
         when(credentialOfferService.buildCustomCredentialOffer(
                 credentialType,
-                preAuthCodeResponse.grant(),
+                preAuthorizedCodeResponse.grant(),
                 mail,
-                preAuthCodeResponse.pin()))
+                preAuthorizedCodeResponse.pin()))
                 .thenReturn(Mono.just(credentialOfferData));
         when(credentialOfferCacheStorageService.saveCustomCredentialOffer(credentialOfferData))
                 .thenReturn(Mono.just(nonce));

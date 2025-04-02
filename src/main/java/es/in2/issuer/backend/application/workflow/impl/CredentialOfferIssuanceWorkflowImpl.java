@@ -6,7 +6,7 @@ import es.in2.issuer.backend.domain.exception.ParseErrorException;
 import es.in2.issuer.backend.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.backend.domain.service.*;
 import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
@@ -54,10 +54,10 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                         credentialProcedureService.getCredentialTypeByProcedureId(procedureId)
                                 .flatMap(credentialType ->
                                         getPreAuthorizationCodeFromIam()
-                                                .flatMap(preAuthCodeResponse ->
+                                                .flatMap(preAuthorizedCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,
-                                                                        preAuthCodeResponse.grant().preAuthorizedCode()
+                                                                        preAuthorizedCodeResponse.grant().preAuthorizedCode()
                                                                 )
                                                                 .then(
                                                                         credentialProcedureService.getMandateeEmailFromDecodedCredentialByProcedureId(procedureId)
@@ -65,9 +65,9 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                                                 .flatMap(email ->
                                                                         credentialOfferService.buildCustomCredentialOffer(
                                                                                         credentialType,
-                                                                                        preAuthCodeResponse.grant(),
+                                                                                        preAuthorizedCodeResponse.grant(),
                                                                                         email,
-                                                                                        preAuthCodeResponse.pin()
+                                                                                        preAuthorizedCodeResponse.pin()
                                                                                 )
                                                                                 .flatMap(credentialOfferCacheStorageService::saveCustomCredentialOffer)
                                                                                 .flatMap(credentialOfferService::createCredentialOfferUriResponse)
@@ -96,7 +96,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                 );
     }
 
-    private Mono<PreAuthCodeResponse> getPreAuthorizationCodeFromIam() {
+    private Mono<PreAuthorizedCodeResponse> getPreAuthorizationCodeFromIam() {
         String preAuthCodeUri = authServerConfig.getPreAuthCodeUri();
         String url = preAuthCodeUri + "?type=VerifiableId&format=jwt_vc_json";
 
@@ -120,7 +120,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                                         // Parsing response
                                         .flatMap(response -> {
                                             try {
-                                                return Mono.just(objectMapper.readValue(response, PreAuthCodeResponse.class));
+                                                return Mono.just(objectMapper.readValue(response, PreAuthorizedCodeResponse.class));
                                             } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
                                                 return Mono.error(new ParseErrorException("Error parsing JSON response"));
                                             }
