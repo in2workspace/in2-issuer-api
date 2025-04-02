@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.security.SecureRandom;
 import java.util.UUID;
 
-import static es.in2.issuer.authserver.domain.utils.Constants.*;
+import static es.in2.issuer.authserver.domain.util.Constants.*;
 import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Slf4j

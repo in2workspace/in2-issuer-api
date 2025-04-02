@@ -1,4 +1,4 @@
-package es.in2.issuer.authserver.domain.utils;
+package es.in2.issuer.authserver.domain.util;
 
 public final class Constants {
 
@@ -9,6 +9,4 @@ public final class Constants {
     public static final String TX_CODE_DESCRIPTION =
             "A PIN has been sent to your email. Check your inbox. Enter your PIN Code.";
     public static final String TX_INPUT_MODE = "numeric";
-
-    public static final long TX_CODE_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES = 5;
 }
