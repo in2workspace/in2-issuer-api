@@ -22,7 +22,11 @@ public class PreAuthorizedCodeWorkflowImpl implements PreAuthorizedCodeWorkflow 
 
         return credentialIdMono.flatMap(credentialId -> {
             log.info("ProcessId: {} AuthServer: Starting PreAuthorizedCode generation", processId);
-            return preAuthorizedCodeService.generatePreAuthorizedCodeResponse(processId, credentialId);
+            return preAuthorizedCodeService.generatePreAuthorizedCodeResponse(processId, credentialId)
+                    .doOnSuccess(preAuthorizedCodeResponse ->
+                            log.info(
+                                    "ProcessId: {} AuthServer: PreAuthorizedCode generation completed successfully",
+                                    processId));
         });
     }
 }
