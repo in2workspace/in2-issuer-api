@@ -3,7 +3,7 @@ package es.in2.issuer.backend.domain.service.impl;
 import es.in2.issuer.backend.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.service.CredentialOfferCacheStorageService;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

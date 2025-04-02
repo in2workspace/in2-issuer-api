@@ -2,12 +2,13 @@ package es.in2.issuer.backend.application.workflow.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.application.workflow.impl.CredentialOfferIssuanceWorkflowImpl;
 import es.in2.issuer.backend.domain.model.dto.*;
 import es.in2.issuer.backend.domain.service.*;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
+import es.in2.issuer.shared.domain.model.dto.Grant;
+import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

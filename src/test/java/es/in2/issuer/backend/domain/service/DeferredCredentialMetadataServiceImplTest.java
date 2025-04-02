@@ -4,7 +4,7 @@ import es.in2.issuer.backend.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.backend.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.backend.domain.service.impl.DeferredCredentialMetadataServiceImpl;
 import es.in2.issuer.backend.domain.util.Utils;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.backend.infrastructure.repository.DeferredCredentialMetadataRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -6,7 +6,7 @@ import es.in2.issuer.backend.domain.exception.ParseErrorException;
 import es.in2.issuer.backend.domain.exception.PreAuthorizationCodeGetException;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.backend.domain.model.dto.PreAuthCodeResponse;
+import es.in2.issuer.shared.domain.model.dto.PreAuthCodeResponse;
 import es.in2.issuer.backend.domain.service.*;
 import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;

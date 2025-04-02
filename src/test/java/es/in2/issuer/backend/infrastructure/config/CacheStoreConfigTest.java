@@ -2,9 +2,7 @@ package es.in2.issuer.backend.infrastructure.config;
 
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.model.dto.VerifiableCredentialJWT;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
-import es.in2.issuer.backend.infrastructure.config.CacheStoreConfig;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
