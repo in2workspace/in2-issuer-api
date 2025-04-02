@@ -74,4 +74,5 @@ public class Constants {
     public static final String CREDENTIAL_ID = "credentialID";
     // ERROR MESSAGES
     public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
+    public static final String MAIL_ERROR_COMMUNICATION_EXCEPTION = "Error during communication with the mail server";
 }

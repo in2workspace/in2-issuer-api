@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
-import es.in2.issuer.domain.exception.CredentialOfferNotificationException;
+import es.in2.issuer.domain.exception.EmailCommunicationException;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.model.enums.CredentialStatus.*;
+import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION;
 
 @Slf4j
 @Service
@@ -43,8 +44,8 @@ public class NotificationServiceImpl implements NotificationService {
                                                         completeName,
                                                         organization
                                                 ))
-                                                .onErrorMap(e -> new CredentialOfferNotificationException(
-                                                        "Error sending the reminder, please get in touch with the support team"));
+                                                .onErrorMap(e ->
+                                                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
                                     } else {

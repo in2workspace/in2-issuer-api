@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -410,59 +411,30 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleCredentialOfferEmailException_withMessage() {
-        String errorMessage = "Email sent successfully";
-        CredentialOfferEmailException exception = new CredentialOfferEmailException(errorMessage);
-
-        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferEmailException(exception);
-
-        StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-                    assertEquals(errorMessage, responseEntity.getBody());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void handleCredentialOfferEmailException_withoutMessage() {
-        CredentialOfferEmailException exception = new CredentialOfferEmailException(null);
-
-        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferEmailException(exception);
-
-        StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.CREATED, responseEntity.getStatusCode());
-                    assertNull(responseEntity.getBody());
-                })
-                .verifyComplete();
-    }
-
-    @Test
-    void handleCredentialOfferNotificationException_withMessage() {
+    void handleEmailCommunicationException_withMessage() {
         String errorMessage = "Notification service unavailable";
-        CredentialOfferNotificationException exception = new CredentialOfferNotificationException(errorMessage);
+        EmailCommunicationException exception = new EmailCommunicationException(errorMessage);
 
-        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferNotificationException(exception);
+        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, responseEntity.getStatusCode());
-                    assertEquals(errorMessage, responseEntity.getBody());
+                .assertNext(globalErrorMessage -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), globalErrorMessage.status());
+                    assertEquals(errorMessage, globalErrorMessage.message());
                 })
                 .verifyComplete();
     }
 
     @Test
-    void handleCredentialOfferNotificationException_withoutMessage() {
-        CredentialOfferNotificationException exception = new CredentialOfferNotificationException(null);
+    void handleEmailCommunicationException_withoutMessage() {
+        EmailCommunicationException exception = new EmailCommunicationException(null);
 
-        Mono<ResponseEntity<String>> result = globalExceptionHandler.handleCredentialOfferNotificationException(exception);
+        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE, responseEntity.getStatusCode());
-                    assertNull(responseEntity.getBody());
+                .assertNext(globalErrorMessage -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), globalErrorMessage.status());
+                    assertNull(globalErrorMessage.message());
                 })
                 .verifyComplete();
     }

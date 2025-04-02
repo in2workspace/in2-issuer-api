@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
-import es.in2.issuer.domain.exception.CredentialOfferEmailException;
+import es.in2.issuer.domain.exception.EmailCommunicationException;
 import es.in2.issuer.domain.exception.FormatUnsupportedException;
 import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.domain.model.dto.*;
@@ -266,8 +266,8 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
                 .expectErrorMatches(throwable ->
-                        throwable instanceof CredentialOfferEmailException &&
-                                throwable.getMessage().contains("The credential was created but there was an error sending the credential offer email"))
+                        throwable instanceof EmailCommunicationException &&
+                                throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION))
                 .verify();
     }
 

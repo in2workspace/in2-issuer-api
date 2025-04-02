@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 // TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant
@@ -280,23 +282,16 @@ public class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
 
-    @ExceptionHandler(CredentialOfferEmailException.class)
-    @ResponseStatus(HttpStatus.CREATED)
-    public Mono<ResponseEntity<String>> handleCredentialOfferEmailException(CredentialOfferEmailException ex) {
-
-        return Mono.just(ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ex.getMessage())
-        );
-    }
-
-    @ExceptionHandler(CredentialOfferNotificationException.class)
+    @ExceptionHandler(EmailCommunicationException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
-    public Mono<ResponseEntity<String>> handleCredentialOfferNotificationException(CredentialOfferNotificationException ex) {
+    public Mono<GlobalErrorMessage> handleEmailCommunicationException(EmailCommunicationException ex) {
 
-        return Mono.just(ResponseEntity
-                .status(HttpStatus.SERVICE_UNAVAILABLE)
-                .body(ex.getMessage())
-        );
+        return Mono.just(
+                GlobalErrorMessage.builder()
+                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                .timestamp(LocalDateTime.now())
+                .message(ex.getMessage())
+                .error("EmailCommunicationException")
+                .build());
     }
 }

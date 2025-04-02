@@ -1,6 +1,6 @@
 package es.in2.issuer.domain.service;
 
-import es.in2.issuer.domain.exception.CredentialOfferNotificationException;
+import es.in2.issuer.domain.exception.EmailCommunicationException;
 import es.in2.issuer.domain.model.enums.CredentialStatus;
 import es.in2.issuer.domain.service.impl.NotificationServiceImpl;
 import es.in2.issuer.infrastructure.config.AppConfig;
@@ -13,6 +13,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -97,8 +98,8 @@ class NotificationServiceImplTest {
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);
 
         StepVerifier.create(result)
-                .expectErrorMatches(throwable -> throwable instanceof CredentialOfferNotificationException &&
-                        throwable.getMessage().contains("Error sending the reminder, please get in touch with the support team"))
+                .expectErrorMatches(throwable -> throwable instanceof EmailCommunicationException &&
+                        throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION))
                 .verify();
     }
 

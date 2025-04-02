@@ -83,7 +83,8 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
         return emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, appConfig.getKnowledgebaseWalletUrl(), user, organization)
-                .onErrorMap(e -> new CredentialOfferEmailException("The credential was created but there was an error sending the credential offer email"));
+                .onErrorMap(e ->
+                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
     }
 
     private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {
