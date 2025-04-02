@@ -32,7 +32,6 @@ class GlobalErrorMessageTest {
     @Test
     void lombokGeneratedMethodsTest() {
         // Arrange
-        LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;
         String expectedError = "Internal Server Error";
         String expectedMessage = "Unexpected error occurred";
