@@ -1,8 +1,8 @@
 package es.in2.issuer.shared.infrastructure.config;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.backend.domain.model.dto.VerifiableCredentialJWT;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.config.CacheConfig;
+import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.shared.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ import static es.in2.issuer.shared.domain.util.Constants.TX_CODE_BY_PRE_AUTH_COD
 @RequiredArgsConstructor
 public class CacheStoreConfig {
 
-    private final AppConfig appConfig;
+    private final CacheConfig cacheConfig;
 
     @Bean
     public CacheStore<String> cacheStoreDefault() {
@@ -35,12 +35,12 @@ public class CacheStoreConfig {
 
     @Bean
     public CacheStore<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {
-        return new CacheStore<>(appConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
+        return new CacheStore<>(cacheConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
     }
 
     @Bean
     public CacheStore<CredentialOfferData> cacheStoreForCredentialOffer() {
-        return new CacheStore<>(appConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
+        return new CacheStore<>(cacheConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
     }
 
     @Bean

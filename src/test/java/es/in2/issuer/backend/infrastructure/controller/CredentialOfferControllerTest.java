@@ -2,7 +2,7 @@ package es.in2.issuer.backend.infrastructure.controller;
 
 import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
-import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.domain.service.impl;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.backend.domain.service.CredentialOfferService;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;

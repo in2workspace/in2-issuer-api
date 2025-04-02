@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.application.workflow;
 
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
-import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import reactor.core.publisher.Mono;
 
 public interface CredentialOfferIssuanceWorkflow {

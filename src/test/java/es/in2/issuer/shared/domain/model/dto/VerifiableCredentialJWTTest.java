@@ -1,6 +1,5 @@
-package es.in2.issuer.backend.domain.model.dto;
+package es.in2.issuer.shared.domain.model.dto;
 
-import es.in2.issuer.backend.domain.model.dto.VerifiableCredentialJWT;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

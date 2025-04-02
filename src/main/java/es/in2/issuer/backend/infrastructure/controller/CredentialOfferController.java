@@ -3,7 +3,7 @@ package es.in2.issuer.backend.infrastructure.controller;
 import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
-import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.backend.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;

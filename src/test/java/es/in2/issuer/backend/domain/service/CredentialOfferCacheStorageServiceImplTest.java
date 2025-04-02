@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.domain.service;
 
 import es.in2.issuer.backend.domain.exception.CustomCredentialOfferNotFoundException;
-import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
 import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
@@ -61,11 +61,9 @@ class CredentialOfferCacheStorageServiceImplTest {
         when(cacheStore.get(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
-                .expectErrorSatisfies(throwable -> {
-                    assertThat(throwable)
-                            .isInstanceOf(CustomCredentialOfferNotFoundException.class)
-                            .hasMessageContaining("CustomCredentialOffer not found for nonce: " + nonce);
-                })
+                .expectErrorSatisfies(throwable -> assertThat(throwable)
+                        .isInstanceOf(CustomCredentialOfferNotFoundException.class)
+                        .hasMessageContaining("CustomCredentialOffer not found for nonce: " + nonce))
                 .verify();
 
         verify(cacheStore, never()).delete(anyString());

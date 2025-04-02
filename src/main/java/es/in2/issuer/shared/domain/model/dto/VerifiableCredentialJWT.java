@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.domain.model.dto;
+package es.in2.issuer.shared.domain.model.dto;
 
 import lombok.Builder;
 

@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.infrastructure.repository;
+package es.in2.issuer.shared.infrastructure.repository;
 
 import static org.mockito.Mockito.*;
 import com.google.common.cache.Cache;
@@ -6,7 +6,6 @@ import com.google.common.cache.Cache;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeUnit;
 
-import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;

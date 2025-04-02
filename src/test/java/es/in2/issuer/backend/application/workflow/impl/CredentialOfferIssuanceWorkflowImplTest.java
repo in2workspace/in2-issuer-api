@@ -1,9 +1,9 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
 import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
-import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
-import es.in2.issuer.backend.domain.model.dto.CustomCredentialOffer;
+import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.backend.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.backend.domain.service.CredentialOfferCacheStorageService;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
