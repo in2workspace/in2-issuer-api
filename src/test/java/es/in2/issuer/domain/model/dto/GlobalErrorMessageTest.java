@@ -11,21 +11,18 @@ class GlobalErrorMessageTest {
     @Test
     void testConstructorAndGetters() {
         // Arrange
-        LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;
         String expectedError = "Internal Server Error";
         String expectedMessage = "Unexpected error occurred";
         String expectedPath = "/api/some-endpoint";
         // Act
         GlobalErrorMessage responseError = new GlobalErrorMessage(
-                expectedTimestamp,
                 expectedStatus,
                 expectedError,
                 expectedMessage,
                 expectedPath
         );
         // Assert
-        assertEquals(expectedTimestamp, responseError.timestamp());
         assertEquals(expectedStatus, responseError.status());
         assertEquals(expectedError, responseError.error());
         assertEquals(expectedMessage, responseError.message());
@@ -42,7 +39,6 @@ class GlobalErrorMessageTest {
         String expectedPath = "/api/some-endpoint";
         // Act
         GlobalErrorMessage error1 = new GlobalErrorMessage(
-                expectedTimestamp,
                 expectedStatus,
                 expectedError,
                 expectedMessage,
