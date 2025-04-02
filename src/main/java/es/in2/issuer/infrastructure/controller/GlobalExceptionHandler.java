@@ -282,16 +282,21 @@ public class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
     }
 
+    @ExceptionHandler(UnauthorizedRoleException.class)
+    public ResponseEntity<String> handleUnauthorizedRoleException(UnauthorizedRoleException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
     @ExceptionHandler(EmailCommunicationException.class)
     @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
     public Mono<GlobalErrorMessage> handleEmailCommunicationException(EmailCommunicationException ex) {
 
         return Mono.just(
                 GlobalErrorMessage.builder()
-                .status(HttpStatus.SERVICE_UNAVAILABLE.value())
-                .timestamp(LocalDateTime.now())
-                .message(ex.getMessage())
-                .error("EmailCommunicationException")
-                .build());
+                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                        .timestamp(LocalDateTime.now())
+                        .message(ex.getMessage())
+                        .error("EmailCommunicationException")
+                        .build());
     }
 }
