@@ -19,9 +19,10 @@ public class PreAuthorizedCodeWorkflowImpl implements PreAuthorizedCodeWorkflow 
     @Override
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(Mono<UUID> credentialIdMono) {
         String processId = UUID.randomUUID().toString();
-        log.info("ProcessId: {} AuthServer: Starting PreAuthorizedCodeResponse generation", processId);
 
-        return credentialIdMono.flatMap(credentialId ->
-                preAuthorizedCodeService.generatePreAuthorizedCodeResponse(processId, credentialId));
+        return credentialIdMono.flatMap(credentialId -> {
+            log.info("ProcessId: {} AuthServer: Starting PreAuthorizedCode generation", processId);
+            return preAuthorizedCodeService.generatePreAuthorizedCodeResponse(processId, credentialId);
+        });
     }
 }
