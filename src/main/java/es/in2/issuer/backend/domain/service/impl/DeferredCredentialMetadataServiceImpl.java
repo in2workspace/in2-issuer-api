@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 import java.util.UUID;
 
-import static es.in2.issuer.backend.domain.util.Utils.generateCustomNonce;
+import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Service
 @RequiredArgsConstructor
