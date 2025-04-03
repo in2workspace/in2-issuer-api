@@ -39,7 +39,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
                                     .doOnSuccess(preAuthorizedCodeSaved ->
                                             log.debug(
                                                     "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
-                                                            "PreAuthorizedCode",
+                                                            "PreAuthorizedCode in cache",
                                                     processId))
                                     .flatMap(preAuthorizedCodeSaved ->
                                             buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
