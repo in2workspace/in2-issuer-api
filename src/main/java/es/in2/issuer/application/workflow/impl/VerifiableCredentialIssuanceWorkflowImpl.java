@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -82,7 +83,17 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
-        return emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, appConfig.getKnowledgebaseWalletUrl(), user, organization);
+        // TODO we are only validating that the url its well formed, we should return the proper object not a string
+        String credentialOfferUrl = UriComponentsBuilder
+                .fromHttpUrl(appConfig.getIssuerUiExternalDomain())
+                .path("/credential-offer")
+                .queryParam("transaction_code", transactionCode)
+                .build()
+                .toUriString();
+
+        return emailService.sendCredentialActivationEmail(email, CREDENTIAL_ACTIVATION_EMAIL_SUBJECT, credentialOfferUrl, appConfig.getKnowledgebaseWalletUrl(), user, organization)
+                .onErrorMap(exception ->
+                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
     }
 
     private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {

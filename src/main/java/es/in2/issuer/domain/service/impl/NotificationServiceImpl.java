@@ -1,5 +1,6 @@
 package es.in2.issuer.domain.service.impl;
 
+import es.in2.issuer.domain.exception.EmailCommunicationException;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.model.enums.CredentialStatus.*;
+import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
 
 @Slf4j
 @Service
@@ -34,14 +36,16 @@ public class NotificationServiceImpl implements NotificationService {
                                     // TODO we need to remove the withdraw status from the condition since the v1.2.0 version is deprecated but in order to support retro compatibility issues we will keep it for now.
                                     if (status.equals(DRAFT.toString()) || status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
-                                                .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
+                                                .flatMap(newTransactionCode -> emailService.sendCredentialActivationEmail(
                                                         email,
                                                         "Activate your new credential",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
                                                         appConfig.getKnowledgebaseWalletUrl(),
                                                         completeName,
                                                         organization
-                                                ));
+                                                ))
+                                                .onErrorMap(exception ->
+                                                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
                                     } else {

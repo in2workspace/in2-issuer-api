@@ -2,8 +2,6 @@ package es.in2.issuer.domain.model.dto;
 
 import org.junit.jupiter.api.Test;
 
-import java.time.LocalDateTime;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class GlobalErrorMessageTest {
@@ -11,21 +9,18 @@ class GlobalErrorMessageTest {
     @Test
     void testConstructorAndGetters() {
         // Arrange
-        LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;
         String expectedError = "Internal Server Error";
         String expectedMessage = "Unexpected error occurred";
         String expectedPath = "/api/some-endpoint";
         // Act
         GlobalErrorMessage responseError = new GlobalErrorMessage(
-                expectedTimestamp,
                 expectedStatus,
                 expectedError,
                 expectedMessage,
                 expectedPath
         );
         // Assert
-        assertEquals(expectedTimestamp, responseError.timestamp());
         assertEquals(expectedStatus, responseError.status());
         assertEquals(expectedError, responseError.error());
         assertEquals(expectedMessage, responseError.message());
@@ -35,14 +30,12 @@ class GlobalErrorMessageTest {
     @Test
     void lombokGeneratedMethodsTest() {
         // Arrange
-        LocalDateTime expectedTimestamp = LocalDateTime.now();
         int expectedStatus = 500;
         String expectedError = "Internal Server Error";
         String expectedMessage = "Unexpected error occurred";
         String expectedPath = "/api/some-endpoint";
         // Act
         GlobalErrorMessage error1 = new GlobalErrorMessage(
-                expectedTimestamp,
                 expectedStatus,
                 expectedError,
                 expectedMessage,

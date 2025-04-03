@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +22,11 @@ import static org.mockito.Mockito.when;
 
 class GlobalExceptionHandlerTest {
     private GlobalExceptionHandler globalExceptionHandler;
-    private WebRequest mockWebRequest;
 
     @BeforeEach
     void setUp() {
         globalExceptionHandler = new GlobalExceptionHandler();
-        mockWebRequest = mock(WebRequest.class);
+        WebRequest mockWebRequest = mock(WebRequest.class);
         when(mockWebRequest.getDescription(false)).thenReturn("WebRequestDescription");
     }
 
@@ -344,9 +344,7 @@ class GlobalExceptionHandlerTest {
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleJWTVerificationException(exception);
 
         StepVerifier.create(result)
-                .assertNext(responseEntity -> {
-                    assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode());
-                })
+                .assertNext(responseEntity -> assertEquals(HttpStatus.UNAUTHORIZED, responseEntity.getStatusCode()))
                 .verifyComplete();
     }
 
@@ -412,4 +410,32 @@ class GlobalExceptionHandlerTest {
                 .verifyComplete();
     }
 
+    @Test
+    void handleEmailCommunicationException_withMessage() {
+        String errorMessage = "Notification service unavailable";
+        EmailCommunicationException exception = new EmailCommunicationException(errorMessage);
+
+        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(globalErrorMessage -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), globalErrorMessage.status());
+                    assertEquals(errorMessage, globalErrorMessage.message());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleEmailCommunicationException_withoutMessage() {
+        EmailCommunicationException exception = new EmailCommunicationException(null);
+
+        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
+
+        StepVerifier.create(result)
+                .assertNext(globalErrorMessage -> {
+                    assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), globalErrorMessage.status());
+                    assertNull(globalErrorMessage.message());
+                })
+                .verifyComplete();
+    }
 }

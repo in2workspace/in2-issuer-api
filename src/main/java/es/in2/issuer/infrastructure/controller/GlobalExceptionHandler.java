@@ -2,6 +2,7 @@ package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.exception.*;
 import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -13,8 +14,10 @@ import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+// TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -282,5 +285,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnauthorizedRoleException.class)
     public ResponseEntity<String> handleUnauthorizedRoleException(UnauthorizedRoleException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EmailCommunicationException.class)
+    @ResponseStatus(HttpStatus.SERVICE_UNAVAILABLE)
+    public Mono<GlobalErrorMessage> handleEmailCommunicationException(EmailCommunicationException ex) {
+
+        return Mono.just(
+                GlobalErrorMessage.builder()
+                        .status(HttpStatus.SERVICE_UNAVAILABLE.value())
+                        .message(ex.getMessage())
+                        .error("EmailCommunicationException")
+                        .build());
     }
 }
