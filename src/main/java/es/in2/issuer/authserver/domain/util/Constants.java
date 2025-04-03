@@ -3,6 +3,7 @@ package es.in2.issuer.authserver.domain.util;
 public final class Constants {
 
     private Constants() {
+        throw new IllegalStateException("Utility class");
     }
 
     public static final int TX_CODE_SIZE = 4;
