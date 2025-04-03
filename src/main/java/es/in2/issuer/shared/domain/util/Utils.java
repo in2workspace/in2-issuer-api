@@ -9,6 +9,7 @@ import java.util.UUID;
 public final class Utils {
 
     private Utils() {
+        throw new IllegalStateException("Utility class");
     }
 
     public static Mono<String> generateCustomNonce() {
