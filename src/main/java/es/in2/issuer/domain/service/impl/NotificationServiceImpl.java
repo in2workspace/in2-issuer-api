@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
 import static es.in2.issuer.domain.model.enums.CredentialStatus.*;
-import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION;
+import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
 
 @Slf4j
 @Service
@@ -45,7 +45,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                         organization
                                                 ))
                                                 .onErrorMap(exception ->
-                                                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
+                                                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
                                     } else {

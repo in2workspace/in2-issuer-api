@@ -267,7 +267,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, type, issuanceRequest, token))
                 .expectErrorMatches(throwable ->
                         throwable instanceof EmailCommunicationException &&
-                                throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION))
+                                throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE))
                 .verify();
     }
 

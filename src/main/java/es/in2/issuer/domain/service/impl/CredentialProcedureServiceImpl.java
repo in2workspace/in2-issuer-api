@@ -228,8 +228,8 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 .credential(objectMapper.readTree(credentialProcedure.getCredentialDecoded()))
                                 .build());
                     } catch (JsonProcessingException e) {
-                        log.warn(ERROR_PARSING_CREDENTIAL, e);
-                        return Mono.error(new JsonParseException(null, ERROR_PARSING_CREDENTIAL));
+                        log.warn(PARSING_CREDENTIAL_ERROR_MESSAGE, e);
+                        return Mono.error(new JsonParseException(null, PARSING_CREDENTIAL_ERROR_MESSAGE));
                     }
                 })
                 .doOnError(error -> log.error("Could not load credentials, error: {}", error.getMessage()));

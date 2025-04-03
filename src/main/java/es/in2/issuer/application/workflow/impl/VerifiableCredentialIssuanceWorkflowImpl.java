@@ -91,9 +91,9 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                 .build()
                 .toUriString();
 
-        return emailService.sendCredentialActivationEmail(email, SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT, credentialOfferUrl, appConfig.getKnowledgebaseWalletUrl(), user, organization)
-                .onErrorMap(e ->
-                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
+        return emailService.sendCredentialActivationEmail(email, CREDENTIAL_ACTIVATION_EMAIL_SUBJECT, credentialOfferUrl, appConfig.getKnowledgebaseWalletUrl(), user, organization)
+                .onErrorMap(exception ->
+                        new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
     }
 
     private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {

@@ -13,8 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION;
-import static es.in2.issuer.domain.util.Constants.SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT;
+import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
+import static es.in2.issuer.domain.util.Constants.CREDENTIAL_ACTIVATION_EMAIL_SUBJECT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -89,7 +89,7 @@ class NotificationServiceImplTest {
 
         when(emailService.sendCredentialActivationEmail(
                 email,
-                SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT,
+                CREDENTIAL_ACTIVATION_EMAIL_SUBJECT,
                 issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,
                 knowledgebaseWalletUrl,
                 user,
@@ -100,7 +100,7 @@ class NotificationServiceImplTest {
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable -> throwable instanceof EmailCommunicationException &&
-                        throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION))
+                        throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE))
                 .verify();
     }
 
