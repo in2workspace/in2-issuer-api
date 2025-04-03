@@ -1,23 +1,23 @@
-package es.in2.issuer.application.workflow.impl;
+package es.in2.issuer.backend.application.workflow.impl;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.application.workflow.CredentialSignerWorkflow;
-import es.in2.issuer.domain.exception.EmailCommunicationException;
-import es.in2.issuer.domain.exception.FormatUnsupportedException;
-import es.in2.issuer.domain.exception.InvalidOrMissingProofException;
-import es.in2.issuer.domain.model.dto.*;
-import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
-import es.in2.issuer.domain.model.dto.credential.lear.Signer;
-import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
-import es.in2.issuer.domain.model.enums.CredentialStatus;
-import es.in2.issuer.domain.service.*;
-import es.in2.issuer.domain.util.factory.LEARCredentialEmployeeFactory;
-import es.in2.issuer.infrastructure.config.AppConfig;
-import es.in2.issuer.infrastructure.config.WebClientConfig;
-import es.in2.issuer.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.backend.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.backend.domain.exception.EmailCommunicationException;
+import es.in2.issuer.backend.domain.exception.FormatUnsupportedException;
+import es.in2.issuer.backend.domain.exception.InvalidOrMissingProofException;
+import es.in2.issuer.backend.domain.model.dto.*;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.Mandator;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.Signer;
+import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
+import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
+import es.in2.issuer.backend.domain.service.*;
+import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
+import es.in2.issuer.backend.infrastructure.config.security.service.PolicyAuthorizationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,7 +32,7 @@ import reactor.test.StepVerifier;
 
 import javax.naming.OperationNotSupportedException;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.backend.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

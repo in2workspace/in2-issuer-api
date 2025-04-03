@@ -1,9 +1,10 @@
-package es.in2.issuer.infrastructure.controller;
+package es.in2.issuer.backend.infrastructure.controller;
 
-import es.in2.issuer.domain.exception.*;
-import es.in2.issuer.domain.model.dto.CredentialErrorResponse;
-import es.in2.issuer.domain.model.dto.GlobalErrorMessage;
-import es.in2.issuer.domain.util.CredentialResponseErrorCodes;
+
+import es.in2.issuer.backend.domain.exception.*;
+import es.in2.issuer.backend.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.backend.domain.model.dto.GlobalErrorMessage;
+import es.in2.issuer.backend.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,7 +15,6 @@ import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 // TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant

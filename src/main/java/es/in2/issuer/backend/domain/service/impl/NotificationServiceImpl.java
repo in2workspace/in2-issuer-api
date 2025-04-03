@@ -1,18 +1,19 @@
-package es.in2.issuer.domain.service.impl;
+package es.in2.issuer.backend.domain.service.impl;
 
-import es.in2.issuer.domain.exception.EmailCommunicationException;
-import es.in2.issuer.domain.service.CredentialProcedureService;
-import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.domain.service.NotificationService;
-import es.in2.issuer.infrastructure.config.AppConfig;
+
+import es.in2.issuer.backend.domain.exception.EmailCommunicationException;
+import es.in2.issuer.backend.domain.service.CredentialProcedureService;
+import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.backend.domain.service.EmailService;
+import es.in2.issuer.backend.domain.service.NotificationService;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.domain.model.enums.CredentialStatus.*;
-import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
+import static es.in2.issuer.backend.domain.model.enums.CredentialStatus.*;
+import static es.in2.issuer.backend.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
 
 @Slf4j
 @Service

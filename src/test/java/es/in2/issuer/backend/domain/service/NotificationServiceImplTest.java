@@ -1,9 +1,9 @@
-package es.in2.issuer.domain.service;
+package es.in2.issuer.backend.domain.service;
 
-import es.in2.issuer.domain.exception.EmailCommunicationException;
-import es.in2.issuer.domain.model.enums.CredentialStatus;
-import es.in2.issuer.domain.service.impl.NotificationServiceImpl;
-import es.in2.issuer.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.domain.exception.EmailCommunicationException;
+import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
+import es.in2.issuer.backend.domain.service.impl.NotificationServiceImpl;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,8 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
-import static es.in2.issuer.domain.util.Constants.CREDENTIAL_ACTIVATION_EMAIL_SUBJECT;
+import static es.in2.issuer.backend.domain.util.Constants.CREDENTIAL_ACTIVATION_EMAIL_SUBJECT;
+import static es.in2.issuer.backend.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 

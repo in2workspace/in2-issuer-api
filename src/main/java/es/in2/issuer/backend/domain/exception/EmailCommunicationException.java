@@ -1,4 +1,4 @@
-package es.in2.issuer.domain.exception;
+package es.in2.issuer.backend.domain.exception;
 
 import java.io.Serial;
 
