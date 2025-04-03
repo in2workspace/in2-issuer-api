@@ -78,7 +78,9 @@ public class SecurityConfig {
                         .pathMatchers(HttpMethod.GET, DEFERRED_CREDENTIALS).permitAll()
                         .pathMatchers(HttpMethod.POST, DEFERRED_CREDENTIALS).permitAll()
                         .pathMatchers(SIGNATURE_CONFIGURATION).permitAll()
-                        .pathMatchers(CONFIGURATION).permitAll()
+                        .pathMatchers(HttpMethod.GET,CONFIGURATION).permitAll()
+                        .pathMatchers(HttpMethod.POST,CONFIGURATION).permitAll()
+                        .pathMatchers(HttpMethod.PATCH,CONFIGURATION).permitAll()
                         .anyExchange().denyAll()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -94,13 +96,20 @@ public class SecurityConfig {
     public SecurityWebFilterChain defaultFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
+                .cors(cors -> defaultCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
-                .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtDecoder(internalJwtDecoder)));
+                .oauth2ResourceServer(oauth2ResourceServer ->
+                        oauth2ResourceServer
+                                .jwt(jwtSpec -> jwtSpec
+                                        .jwtDecoder(internalJwtDecoder))
+
+                );
         return http.build();
     }
+
 
 
     // Helper method to get Swagger-related paths for permitting access

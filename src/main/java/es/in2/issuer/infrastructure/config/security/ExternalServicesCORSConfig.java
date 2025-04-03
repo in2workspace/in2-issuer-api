@@ -24,7 +24,7 @@ public class ExternalServicesCORSConfig {
     public UrlBasedCorsConfigurationSource externalCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(appConfig.getExternalCorsAllowedOrigins());
-        configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS", "PATCH", "DELETE"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(1800L);
@@ -34,8 +34,6 @@ public class ExternalServicesCORSConfig {
         source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
         source.registerCorsConfiguration(ISSUANCE, configuration);
         source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
-        source.registerCorsConfiguration(CONFIGURATION, configuration);
-        source.registerCorsConfiguration(SIGNATURE_CONFIGURATION, configuration);
         source.registerCorsConfiguration(TOKEN, configuration);
         return source;
     }

@@ -10,7 +10,7 @@ import java.util.UUID;
 public record CompleteSignatureConfiguration(
         UUID id,
         String organizationIdentifier,
-        boolean enableRemoteSignature,
+        Boolean enableRemoteSignature,
         SignatureMode signatureMode,
         UUID cloudProviderId,
         String clientId,

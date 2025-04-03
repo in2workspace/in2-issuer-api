@@ -141,18 +141,11 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     @Override
     public Mono<Void> updateSignatureConfiguration(String id, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
         UUID configId = UUID.fromString(id);
-
         return getCompleteConfigurationById(id)
                 .flatMap(oldConfig ->
                         repository.findById(configId)
                                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")))
                                 .flatMap(existing -> {
-                                    // Actualizar solo los campos no nulos
-                                    if (newConfig.clientId() != null) existing.setClientId(newConfig.clientId());
-                                    if (newConfig.credentialId() != null) existing.setCredentialId(newConfig.credentialId());
-                                    if (newConfig.credentialName() != null) existing.setCredentialName(newConfig.credentialName());
-                                    if (newConfig.cloudProviderId() != null) existing.setCloudProviderId(newConfig.cloudProviderId());
-
                                     Mono<Void> secretUpdate = Mono.empty();
                                     if (newConfig.clientSecret() != null || newConfig.credentialPassword() != null || newConfig.secret() != null) {
                                         Map<String, String> partialSecrets = new java.util.HashMap<>();
@@ -162,30 +155,15 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
                                         secretUpdate = vaultService.patchSecrets(existing.getSecretRelativePath(), partialSecrets);
                                     }
-
                                     return secretUpdate
                                             .then(repository.save(existing))
-                                            .then(saveAudit(oldConfig, existing, newConfig, rationale, userEmail));
+                                            .then(saveAudit(oldConfig, newConfig, rationale, userEmail));
                                 })
                 );
     }
 
-    private Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, SignatureConfiguration updatedEntity, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
-        CompleteSignatureConfiguration newCofig = new CompleteSignatureConfiguration(
-                updatedEntity.getId(),
-                updatedEntity.getOrganizationIdentifier(),
-                updatedEntity.isEnableRemoteSignature(),
-                updatedEntity.getSignatureMode(),
-                updatedEntity.getCloudProviderId(),
-                updatedEntity.getClientId(),
-                updatedEntity.getCredentialId(),
-                updatedEntity.getCredentialName(),
-                updatedEntity.getSecretRelativePath(),
-                newConfig.clientSecret(),
-                newConfig.credentialPassword(),
-                newConfig.secret()
-        );
-        return signatureConfigurationAuditService.saveAudit(oldConfig, newCofig, rationale, userEmail);
+    private Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
+        return signatureConfigurationAuditService.saveAudit(oldConfig, newConfig, rationale, userEmail);
     }
 
     private SignatureConfigWithProviderName mapToWithProviderName(SignatureConfiguration config, String providerName) {
@@ -219,15 +197,11 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
     private Mono<SignatureVaultSecret> getSecretsFromVault(String secretRelativePath) {
         return vaultService.getSecrets(secretRelativePath)
-                .map(secretsMap -> {
-                    System.out.println("🔐 Secrets obtenidos: " + secretsMap);
-
-                    return new SignatureVaultSecret(
-                            toStringOrNull(secretsMap.get("clientSecret")),
-                            toStringOrNull(secretsMap.get("credentialPassword")),
-                            toStringOrNull(secretsMap.get("secret"))
-                    );
-                });
+                .map(secretsMap -> new SignatureVaultSecret(
+                        toStringOrNull(secretsMap.get("clientSecret")),
+                        toStringOrNull(secretsMap.get("credentialPassword")),
+                        toStringOrNull(secretsMap.get("secret"))
+                ));
     }
 
     private String toStringOrNull(Object value) {

@@ -3,6 +3,7 @@ package es.in2.issuer.infrastructure.controller;
 import es.in2.issuer.domain.model.dto.CompleteSignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureConfigWithProviderName;
 import es.in2.issuer.domain.model.dto.SignatureConfigurationResponse;
+import es.in2.issuer.domain.model.dto.UpdateSignatureConfigurationRequest;
 import es.in2.issuer.domain.model.entities.SignatureConfiguration;
 import es.in2.issuer.domain.model.enums.SignatureMode;
 import es.in2.issuer.domain.service.AccessTokenService;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -117,12 +119,14 @@ public class SignatureConfigurationController {
     public Mono<Void> updateSignatureConfiguration(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable String id,
-            @RequestBody CompleteSignatureConfiguration config
+            @RequestBody UpdateSignatureConfigurationRequest updateRequest
 
     ) {
-        log.debug("Updating signature configuration with ID: {}", id);
+        if (updateRequest.rationale() == null || updateRequest.rationale().isBlank()) {
+            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "'rationale' must be provided"));
+        }
         return accessTokenService.getMandateeEmail(authorizationHeader)
-                .flatMap(userEmail ->signatureConfigurationService.updateSignatureConfiguration( id, config,"esta hardcodeada", userEmail));
+                .flatMap(userEmail ->signatureConfigurationService.updateSignatureConfiguration( id, updateRequest.toCompleteSignatureConfiguration(),updateRequest.rationale(), userEmail));
 
     }
 
@@ -140,7 +144,7 @@ public class SignatureConfigurationController {
     public Mono<Void> deleteSignatureConfiguration(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable String id,
-            @RequestParam(required = false) String rationale
+            @RequestParam() String rationale
     ) {
         log.debug("Deleting signature configuration with ID: {} and rationale: {}", id, rationale);
         return accessTokenService.getMandateeEmail(authorizationHeader)
