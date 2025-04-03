@@ -3,7 +3,7 @@ package es.in2.issuer.shared.objectmother;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 
-import static es.in2.issuer.authserver.domain.util.Constants.*;
+import static es.in2.issuer.oidc4vci.domain.util.Constants.*;
 
 public final class PreAuthorizedCodeResponseMother {
 

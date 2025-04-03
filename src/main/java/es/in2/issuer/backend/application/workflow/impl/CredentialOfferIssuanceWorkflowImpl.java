@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
+import es.in2.issuer.oidc4vci.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflow;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
@@ -41,7 +41,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
                 .flatMap(procedureId ->
                         credentialProcedureService.getCredentialProcedureById(procedureId)
                                 .flatMap(credentialProcedure ->
-                                        preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(Mono.just(credentialProcedure.getCredentialId()))
+                                        preAuthorizedCodeWorkflow.generatePreAuthorizedCode(Mono.just(credentialProcedure.getCredentialId()))
                                                 .flatMap(preAuthorizedCodeResponse ->
                                                         deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
                                                                         transactionCode,

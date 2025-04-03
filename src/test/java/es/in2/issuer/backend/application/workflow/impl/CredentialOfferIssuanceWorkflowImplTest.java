@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
+import es.in2.issuer.oidc4vci.application.workflow.PreAuthorizedCodeWorkflow;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
@@ -110,7 +110,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(procedureId));
         when(credentialProcedureService.getCredentialProcedureById(procedureId))
                 .thenReturn(Mono.just(credentialProcedure));
-        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(any()))
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCode(any()))
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
 
         when(deferredCredentialMetadataService.updateAuthServerNonceByTransactionCode(
@@ -185,7 +185,7 @@ class CredentialOfferIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(procedureId));
         when(credentialProcedureService.getCredentialProcedureById(procedureId))
                 .thenReturn(Mono.just(credentialProcedure));
-        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(
+        when(preAuthorizedCodeWorkflow.generatePreAuthorizedCode(
                 any()))
                 .thenReturn(Mono.just(preAuthorizedCodeResponse));
 

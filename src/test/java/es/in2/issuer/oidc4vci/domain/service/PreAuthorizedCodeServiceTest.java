@@ -1,6 +1,6 @@
-package es.in2.issuer.authserver.domain.service;
+package es.in2.issuer.oidc4vci.domain.service;
 
-import es.in2.issuer.authserver.domain.service.impl.PreAuthorizedCodeServiceImpl;
+import es.in2.issuer.oidc4vci.domain.service.impl.PreAuthorizedCodeServiceImpl;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
@@ -48,7 +48,7 @@ class PreAuthorizedCodeServiceTest {
                 .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService
-                .generatePreAuthorizedCodeResponse("", Mono.just(credentialId));
+                .generatePreAuthorizedCode("", Mono.just(credentialId));
 
         StepVerifier
                 .create(resultMono)

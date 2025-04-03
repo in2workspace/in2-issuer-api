@@ -1,4 +1,4 @@
-package es.in2.issuer.authserver.domain.util;
+package es.in2.issuer.oidc4vci.domain.util;
 
 public final class Constants {
 

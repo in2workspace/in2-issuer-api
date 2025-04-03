@@ -1,6 +1,6 @@
-package es.in2.issuer.authserver.domain.service.impl;
+package es.in2.issuer.oidc4vci.domain.service.impl;
 
-import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
+import es.in2.issuer.oidc4vci.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.security.SecureRandom;
 import java.util.UUID;
 
-import static es.in2.issuer.authserver.domain.util.Constants.*;
+import static es.in2.issuer.oidc4vci.domain.util.Constants.*;
 import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Slf4j
@@ -25,7 +25,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(
             String processId,
             Mono<UUID> credentialIdMono) {
         return Mono.zip(generatePreAuthorizedCode(), generateTxCode())

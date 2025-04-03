@@ -1,7 +1,7 @@
-package es.in2.issuer.authserver.application.workflow;
+package es.in2.issuer.oidc4vci.application.workflow;
 
-import es.in2.issuer.authserver.application.workflow.impl.PreAuthorizedCodeWorkflowImpl;
-import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
+import es.in2.issuer.oidc4vci.application.workflow.impl.PreAuthorizedCodeWorkflowImpl;
+import es.in2.issuer.oidc4vci.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
@@ -36,11 +36,11 @@ class PreAuthorizedCodeWorkflowTest {
         PreAuthorizedCodeResponse expected = PreAuthorizedCodeResponseMother.dummy();
         UUID credentialId = UUID.fromString("cfcd6d7c-5cc2-4601-a992-86f96afb0706");
 
-        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString(), any()))
+        when(preAuthorizedCodeService.generatePreAuthorizedCode(anyString(), any()))
                 .thenReturn(Mono.just(expected));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow
-                .generatePreAuthorizedCodeResponse(
+                .generatePreAuthorizedCode(
                         Mono.just(credentialId));
 
         StepVerifier
@@ -50,7 +50,7 @@ class PreAuthorizedCodeWorkflowTest {
                 .verifyComplete();
 
         verify(preAuthorizedCodeService, times(1))
-                .generatePreAuthorizedCodeResponse(anyString(), credentialIdCaptor.capture());
+                .generatePreAuthorizedCode(anyString(), credentialIdCaptor.capture());
         verifyNoMoreInteractions(preAuthorizedCodeService);
         StepVerifier
                 .create(credentialIdCaptor.getValue())

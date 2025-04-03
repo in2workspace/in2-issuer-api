@@ -1,7 +1,7 @@
-package es.in2.issuer.authserver.application.workflow.impl;
+package es.in2.issuer.oidc4vci.application.workflow.impl;
 
-import es.in2.issuer.authserver.application.workflow.PreAuthorizedCodeWorkflow;
-import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
+import es.in2.issuer.oidc4vci.application.workflow.PreAuthorizedCodeWorkflow;
+import es.in2.issuer.oidc4vci.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,10 +17,10 @@ public class PreAuthorizedCodeWorkflowImpl implements PreAuthorizedCodeWorkflow 
     private final PreAuthorizedCodeService preAuthorizedCodeService;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(Mono<UUID> credentialIdMono) {
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(Mono<UUID> credentialIdMono) {
         String processId = UUID.randomUUID().toString();
 
-        return preAuthorizedCodeService.generatePreAuthorizedCodeResponse(processId, credentialIdMono)
+        return preAuthorizedCodeService.generatePreAuthorizedCode(processId, credentialIdMono)
                 .doFirst(() -> log.info("ProcessId: {} AuthServer: Starting PreAuthorizedCode generation", processId))
                 .doOnSuccess(preAuthorizedCodeResponse ->
                         log.info(
