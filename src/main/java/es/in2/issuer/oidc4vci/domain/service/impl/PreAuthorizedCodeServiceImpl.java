@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
 
 import java.security.SecureRandom;
 import java.util.UUID;
@@ -28,7 +29,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(
             String processId,
             Mono<UUID> credentialIdMono) {
-        return Mono.zip(generatePreAuthorizedCode(), generateTxCode())
+        return generateCodes()
                 .doFirst(() ->
                         log.debug("ProcessId: {} AuthServer: Generating PreAuthorizedCode response", processId))
                 .flatMap(tuple -> credentialIdMono
@@ -43,6 +44,10 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
                         log.debug(
                                 "ProcessId: {} AuthServer: Generated PreAuthorizedCode response successfully",
                                 processId));
+    }
+
+    private @NotNull Mono<Tuple2<String, String>> generateCodes() {
+        return Mono.zip(generatePreAuthorizedCode(), generateTxCode());
     }
 
     private @NotNull Mono<String> storeInCache(String processId, UUID credentialId, String preAuthorizedCode, String txCode) {
