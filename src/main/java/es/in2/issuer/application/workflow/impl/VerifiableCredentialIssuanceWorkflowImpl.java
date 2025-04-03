@@ -83,6 +83,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
+        // TODO we are only validating that the url its well formed, we should return the proper object not a string
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerUiExternalDomain())
                 .path("/credential-offer")
