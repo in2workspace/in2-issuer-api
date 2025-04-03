@@ -1,31 +1,31 @@
 package es.in2.issuer.backend.domain.service.impl;
 
 import es.in2.issuer.backend.domain.exception.CustomCredentialOfferNotFoundException;
-import es.in2.issuer.backend.domain.model.dto.CredentialOfferData;
+import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backend.domain.service.CredentialOfferCacheStorageService;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.backend.domain.util.Utils.generateCustomNonce;
+import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCacheStorageService {
 
-    private final CacheStore<CredentialOfferData> cacheStore;
+    private final CacheStoreRepository<CredentialOfferData> cacheStoreRepository;
 
     @Override
     public Mono<String> saveCustomCredentialOffer(CredentialOfferData credentialOfferData) {
-        return generateCustomNonce().flatMap(nonce -> cacheStore.add(nonce, credentialOfferData));
+        return generateCustomNonce().flatMap(nonce -> cacheStoreRepository.add(nonce, credentialOfferData));
     }
 
     @Override
     public Mono<CredentialOfferData> getCustomCredentialOffer(String nonce) {
-        return cacheStore.get(nonce)
+        return cacheStoreRepository.get(nonce)
                 .switchIfEmpty(Mono.error(
                         new CustomCredentialOfferNotFoundException(
                                 "CustomCredentialOffer not found for nonce: " + nonce))
@@ -34,7 +34,7 @@ public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCa
                         log.debug("CustomCredentialOffer found for nonce: {}", nonce)
                 )
                 .flatMap(customCredentialOffer ->
-                        cacheStore.delete(nonce).thenReturn(customCredentialOffer)
+                        cacheStoreRepository.delete(nonce).thenReturn(customCredentialOffer)
                 );
     }
 }

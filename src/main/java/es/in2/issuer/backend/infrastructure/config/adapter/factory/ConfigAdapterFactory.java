@@ -3,7 +3,7 @@ package es.in2.issuer.backend.infrastructure.config.adapter.factory;
 import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.AzureConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.YamlConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.properties.ApiProperties;
+import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

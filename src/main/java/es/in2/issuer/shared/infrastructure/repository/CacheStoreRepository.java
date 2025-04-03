@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.infrastructure.repository;
+package es.in2.issuer.shared.infrastructure.repository;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -10,13 +10,13 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 @RequiredArgsConstructor
-public class CacheStore<T> {
+public class CacheStoreRepository<T> {
 
     private final Cache<String, T> cache;
     private final long expiryDuration;
     private final TimeUnit timeUnit;
 
-    public CacheStore(long expiryDuration, TimeUnit timeUnit) {
+    public CacheStoreRepository(long expiryDuration, TimeUnit timeUnit) {
         this.expiryDuration = expiryDuration;
         this.timeUnit = timeUnit;
         this.cache = CacheBuilder.newBuilder()

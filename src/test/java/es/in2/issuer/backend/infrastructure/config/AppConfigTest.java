@@ -1,9 +1,12 @@
 package es.in2.issuer.backend.infrastructure.config;
 
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
-import es.in2.issuer.backend.infrastructure.config.properties.*;
+import es.in2.issuer.backend.infrastructure.config.properties.CorsProperties;
+import es.in2.issuer.backend.infrastructure.config.properties.IssuerIdentityProperties;
+import es.in2.issuer.backend.infrastructure.config.properties.IssuerUiProperties;
+import es.in2.issuer.backend.infrastructure.config.properties.KnowledgeBaseProperties;
+import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +18,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -103,36 +105,6 @@ class AppConfigTest {
 
         // Assert
         assertEquals(expectedConfigSource, actualConfigSource);
-    }
-
-    @Test
-    void testGetCacheLifetimeForCredentialOffer() {
-        // Arrange
-        long expectedLifetime = 3600L;
-        ApiProperties.MemoryCache memoryCache = mock(ApiProperties.MemoryCache.class);
-        when(apiProperties.cacheLifetime()).thenReturn(memoryCache);
-        when(memoryCache.credentialOffer()).thenReturn(expectedLifetime);
-
-        // Act
-        long actualLifetime = appConfig.getCacheLifetimeForCredentialOffer();
-
-        // Assert
-        assertEquals(expectedLifetime, actualLifetime);
-    }
-
-    @Test
-    void testGetCacheLifetimeForVerifiableCredential() {
-        // Arrange
-        long expectedLifetime = 7200L;
-        ApiProperties.MemoryCache memoryCache = mock(ApiProperties.MemoryCache.class);
-        when(apiProperties.cacheLifetime()).thenReturn(memoryCache);
-        when(memoryCache.verifiableCredential()).thenReturn(expectedLifetime);
-
-        // Act
-        long actualLifetime = appConfig.getCacheLifetimeForVerifiableCredential();
-
-        // Assert
-        assertEquals(expectedLifetime, actualLifetime);
     }
 
     @Test
