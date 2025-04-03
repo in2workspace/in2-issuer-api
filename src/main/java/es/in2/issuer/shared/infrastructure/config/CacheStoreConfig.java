@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.concurrent.TimeUnit;
 
-import static es.in2.issuer.shared.domain.util.Constants.TX_CODE_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES;
+import static es.in2.issuer.shared.domain.util.Constants.PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES;
 
 @Configuration
 @RequiredArgsConstructor
@@ -44,6 +44,6 @@ public class CacheStoreConfig {
 
     @Bean
     public CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore() {
-        return new CacheStoreRepository<>(TX_CODE_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
+        return new CacheStoreRepository<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
     }
 }

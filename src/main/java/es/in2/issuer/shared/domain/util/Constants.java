@@ -5,5 +5,5 @@ public final class Constants {
         throw new IllegalStateException("Utility class");
     }
 
-    public static final long TX_CODE_BY_PRE_AUTH_CODE_CACHE_STORAGE_EXPIRY_DURATION_MINUTES = 5;
+    public static final long PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES = 5;
 }
