@@ -56,11 +56,11 @@ class CredentialOfferIssuanceWorkflowImplTest {
     void testGetCredentialOffer() {
         String id = "dummyId";
         String email = "example@example.com";
-        String pin = "1234";
+        String txCode = "1234";
         CustomCredentialOffer credentialOffer = CustomCredentialOffer.builder().build();
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(credentialOffer)
-                .pin(pin)
+                .pin(txCode)
                 .employeeEmail(email)
                 .build();
 
@@ -81,14 +81,14 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        String pin = "1234";
+        String txCode = "1234";
 
         PreAuthorizedCodeResponse preAuthorizedCodeResponse =
-                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", pin);
+                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", txCode);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin(pin)
+                .pin(txCode)
                 .employeeEmail(mail)
                 .build();
 
@@ -155,14 +155,14 @@ class CredentialOfferIssuanceWorkflowImplTest {
         String credentialOfferUri = "https://example.com/1234";
         String mail = "user@gmail.com";
 
-        String pin = "1234";
+        String txCode = "1234";
 
         PreAuthorizedCodeResponse preAuthorizedCodeResponse =
-                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", pin);
+                PreAuthorizedCodeResponseMother.withPreAuthorizedCodeAndPin("4567", txCode);
 
         CredentialOfferData credentialOfferData = CredentialOfferData.builder()
                 .credentialOffer(CustomCredentialOffer.builder().build())
-                .pin(pin)
+                .pin(txCode)
                 .employeeEmail(mail)
                 .build();
 
