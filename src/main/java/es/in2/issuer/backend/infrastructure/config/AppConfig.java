@@ -34,10 +34,6 @@ public class AppConfig {
         this.corsProperties = corsProperties;
     }
 
-    public String getIssuerApiExternalDomain() {
-        return configAdapter.getConfiguration(apiProperties.externalDomain());
-    }
-
     public String getIssuerUiExternalDomain() {
         return configAdapter.getConfiguration(issuerUiProperties.externalDomain());
     }

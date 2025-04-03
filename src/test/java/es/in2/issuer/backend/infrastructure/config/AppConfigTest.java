@@ -53,20 +53,6 @@ class AppConfigTest {
     }
 
     @Test
-    void testGetIssuerApiExternalDomain() {
-        // Arrange
-        String expectedDomain = "https://api.example.com";
-        when(apiProperties.externalDomain()).thenReturn("api.external.domain");
-        when(configAdapter.getConfiguration("api.external.domain")).thenReturn(expectedDomain);
-
-        // Act
-        String actualDomain = appConfig.getIssuerApiExternalDomain();
-
-        // Assert
-        assertEquals(expectedDomain, actualDomain);
-    }
-
-    @Test
     void testGetKnowledgeBaseUploadCertificationGuideUrl() {
         // Arrange
         String expectedUrl = "https://knowledge.example.com";

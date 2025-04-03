@@ -2,7 +2,7 @@ package es.in2.issuer.backend.domain.service;
 
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.backend.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

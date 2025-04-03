@@ -6,7 +6,7 @@ import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.oidc4vci.domain.service.impl.CredentialIssuerMetadataServiceImpl;
 import es.in2.issuer.shared.domain.util.Constants;
 import es.in2.issuer.shared.domain.util.EndpointsConstants;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
