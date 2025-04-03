@@ -31,4 +31,9 @@ public class CloudProviderServiceImpl implements CloudProviderService {
                 .map(CloudProvider::isRequiresTOTP)
                 .defaultIfEmpty(false);
     }
+
+    @Override
+    public Mono<CloudProvider> findById(UUID id) {
+        return repository.findById(id);
+    }
 }

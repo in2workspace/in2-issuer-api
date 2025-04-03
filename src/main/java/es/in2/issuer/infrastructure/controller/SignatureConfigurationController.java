@@ -1,6 +1,8 @@
 package es.in2.issuer.infrastructure.controller;
 
 import es.in2.issuer.domain.model.dto.CompleteSignatureConfiguration;
+import es.in2.issuer.domain.model.dto.SignatureConfigWithProviderName;
+import es.in2.issuer.domain.model.dto.SignatureConfigurationResponse;
 import es.in2.issuer.domain.model.entities.SignatureConfiguration;
 import es.in2.issuer.domain.model.enums.SignatureMode;
 import es.in2.issuer.domain.service.AccessTokenService;
@@ -25,7 +27,7 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/api/v1/signatures/configs")
 @RequiredArgsConstructor
-public class signatureConfigurationController {
+public class SignatureConfigurationController {
 
     private final SignatureConfigurationService signatureConfigurationService;
     private final AccessTokenService accessTokenService;
@@ -69,7 +71,7 @@ public class signatureConfigurationController {
             }
     )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public Flux<SignatureConfiguration> getAllSignatureConfigurations(
+    public Flux<SignatureConfigWithProviderName> getAllSignatureConfigurations(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestParam(name = "signatureMode", required = false) SignatureMode signatureMode) {
         return accessTokenService.getOrganizationId(authorizationHeader)
@@ -90,7 +92,7 @@ public class signatureConfigurationController {
             }
     )
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Mono<ResponseEntity<CompleteSignatureConfiguration>> getCompleteConfigurationById(
+    public Mono<ResponseEntity<SignatureConfigurationResponse>> getCompleteConfigurationById(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable String id) {
 

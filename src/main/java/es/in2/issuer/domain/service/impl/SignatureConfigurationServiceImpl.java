@@ -1,6 +1,8 @@
 package es.in2.issuer.domain.service.impl;
 
 import es.in2.issuer.domain.model.dto.CompleteSignatureConfiguration;
+import es.in2.issuer.domain.model.dto.SignatureConfigWithProviderName;
+import es.in2.issuer.domain.model.dto.SignatureConfigurationResponse;
 import es.in2.issuer.domain.model.dto.SignatureVaultSecret;
 import es.in2.issuer.domain.model.entities.SignatureConfiguration;
 import es.in2.issuer.domain.model.entities.SignatureConfigurationAudit;
@@ -105,14 +107,22 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     }
 
     @Override
-    public Flux<SignatureConfiguration> findAllByOrganizationIdentifierAndMode(String organizationIdentifier, SignatureMode signatureMode) {
-        if (signatureMode != null) {
-            return repository.findAllByOrganizationIdentifierAndSignatureMode(organizationIdentifier, signatureMode);
-        }
-        return repository.findAllByOrganizationIdentifier(organizationIdentifier);
+    public Flux<SignatureConfigWithProviderName> findAllByOrganizationIdentifierAndMode(String organizationIdentifier, SignatureMode signatureMode) {
+        Flux<SignatureConfiguration> configs = (signatureMode != null)
+                ? repository.findAllByOrganizationIdentifierAndSignatureMode(organizationIdentifier, signatureMode)
+                : repository.findAllByOrganizationIdentifier(organizationIdentifier);
+
+        return configs.flatMap(config -> {
+            if (config.getCloudProviderId() == null) {
+                return Mono.just(mapToWithProviderName(config, null));
+            }
+
+            return cloudProviderService.findById(config.getCloudProviderId())
+                    .map(provider -> mapToWithProviderName(config, provider.getProvider()));
+        });
     }
 
-    public Mono<CompleteSignatureConfiguration> getCompleteConfigurationById(String id) {
+    public Mono<SignatureConfigurationResponse> getCompleteConfigurationById(String id) {
         UUID uuid;
         try {
             uuid = UUID.fromString(id);
@@ -124,19 +134,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         return repository.findById(uuid)
                 .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No config found for ID: " + id)))
                 .flatMap(config -> {
-                    // Si no es CLOUD, no se accede al Vault
-                    if (config.getSignatureMode() != SignatureMode.CLOUD) {
-                        return Mono.just(mapToCompleteConfig(config, null));
-                    }
-
-                    // Si es CLOUD, obtener secretos del Vault
-                    return getSecretsFromVault(config.getSecretRelativePath())
-                            .doOnNext(secrets -> log.debug("Secrets from vault for path '{}': {}", config.getSecretRelativePath(), secrets))
-                            .map(secrets -> {
-                                CompleteSignatureConfiguration mapped = mapToCompleteConfig(config, secrets);
-                                log.debug("Mapped CompleteSignatureConfiguration: {}", mapped);
-                                return mapped;
-                            });
+                    return Mono.just(mapToSignatureConfigurationResponse(config));
                 });
     }
 
@@ -172,7 +170,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 );
     }
 
-    private Mono<Void> saveAudit(CompleteSignatureConfiguration oldConfig, SignatureConfiguration updatedEntity, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
+    private Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, SignatureConfiguration updatedEntity, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
         CompleteSignatureConfiguration newCofig = new CompleteSignatureConfiguration(
                 updatedEntity.getId(),
                 updatedEntity.getOrganizationIdentifier(),
@@ -190,6 +188,18 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         return signatureConfigurationAuditService.saveAudit(oldConfig, newCofig, rationale, userEmail);
     }
 
+    private SignatureConfigWithProviderName mapToWithProviderName(SignatureConfiguration config, String providerName) {
+        return new SignatureConfigWithProviderName(
+                config.getId(),
+                config.getOrganizationIdentifier(),
+                config.isEnableRemoteSignature(),
+                config.getSignatureMode(),
+                providerName,
+                config.getClientId(),
+                config.getCredentialId(),
+                config.getCredentialName()
+        );
+    }
 
 
     @Override
@@ -224,8 +234,8 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         return value != null ? value.toString() : null;
     }
 
-    private CompleteSignatureConfiguration mapToCompleteConfig(SignatureConfiguration config, SignatureVaultSecret secrets) {
-        return new CompleteSignatureConfiguration(
+    private SignatureConfigurationResponse mapToSignatureConfigurationResponse(SignatureConfiguration config) {
+        return new SignatureConfigurationResponse(
                 config.getId(),
                 config.getOrganizationIdentifier(),
                 config.isEnableRemoteSignature(),
@@ -233,12 +243,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 config.getCloudProviderId(),
                 config.getClientId(),
                 config.getCredentialId(),
-                config.getCredentialName(),
-                config.getSecretRelativePath(),
-
-                secrets != null ? secrets.clientSecret() : null,
-                secrets != null ? secrets.credentialPassword() : null,
-                secrets != null ? secrets.secret() : null
+                config.getCredentialName()
         );
     }
 

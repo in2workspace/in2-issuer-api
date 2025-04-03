@@ -10,4 +10,5 @@ public interface CloudProviderService {
     Mono<CloudProvider> save(CloudProvider provider);
     Flux<CloudProvider> findAll();
     Mono<Boolean> requiresTOTP(UUID cloudProviderId);
+    Mono<CloudProvider> findById(UUID id);
 }

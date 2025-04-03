@@ -151,8 +151,8 @@ cors:
 
 hashicorp:
   vault:
-    path: /kv
-    host: localhost
-    port: 8004
-    scheme: http
+    path:
+    host:
+    port:
+    scheme:
     token: 

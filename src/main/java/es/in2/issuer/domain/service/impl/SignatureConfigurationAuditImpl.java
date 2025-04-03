@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.domain.model.dto.CompleteSignatureConfiguration;
 import es.in2.issuer.domain.model.dto.SignatureConfigAudit;
+import es.in2.issuer.domain.model.dto.SignatureConfigurationResponse;
 import es.in2.issuer.domain.model.entities.SignatureConfigurationAudit;
 import es.in2.issuer.domain.service.AccessTokenService;
 import es.in2.issuer.domain.service.SignatureConfigurationAuditService;
@@ -27,7 +28,7 @@ public class SignatureConfigurationAuditImpl implements SignatureConfigurationAu
 
 
     @Override
-    public Mono<Void> saveAudit(CompleteSignatureConfiguration oldConfig,
+    public Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig,
                                 CompleteSignatureConfiguration newConfig,
                                 String rationale,
                                 String userEmail) {
@@ -54,7 +55,7 @@ public class SignatureConfigurationAuditImpl implements SignatureConfigurationAu
     }
 
     @Override
-    public Mono<Void> saveDeletionAudit(CompleteSignatureConfiguration oldConfig, String rationale, String userEmail) {
+    public Mono<Void> saveDeletionAudit(SignatureConfigurationResponse oldConfig, String rationale, String userEmail) {
         try {
             String oldJson = objectMapper.writeValueAsString(oldConfig);
 
