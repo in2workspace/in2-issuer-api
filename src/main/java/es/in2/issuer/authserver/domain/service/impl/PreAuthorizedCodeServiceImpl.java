@@ -28,17 +28,26 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
             String processId,
             Mono<UUID> credentialIdMono) {
         return Mono.zip(generatePreAuthorizedCode(), generateTxCode())
-                .doOnNext(tuple ->
-                        log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId))
+                .doFirst(() ->
+                        log.debug("ProcessId: {} AuthServer: Generating PreAuthorizedCode response", processId))
                 .flatMap(tuple -> credentialIdMono
                         .flatMap(credentialId -> {
                             String preAuthorizedCode = tuple.getT1();
                             String txCode = tuple.getT2();
                             return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
                                     .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
+                                    .doOnSuccess(preAuthorizedCodeSaved ->
+                                            log.debug(
+                                                    "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
+                                                            "PreAuthorizedCode",
+                                                    processId))
                                     .flatMap(preAuthorizedCodeSaved ->
                                             buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
-                        }));
+                        }))
+                .doOnSuccess(preAuthorizedCodeResponse ->
+                        log.debug(
+                                "ProcessId: {} AuthServer: Generated PreAuthorizedCode response successfully",
+                                processId));
     }
 
     private Mono<String> generatePreAuthorizedCode() {
