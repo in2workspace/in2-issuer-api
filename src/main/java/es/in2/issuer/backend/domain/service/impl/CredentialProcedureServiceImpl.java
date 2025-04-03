@@ -291,4 +291,9 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 .collectList()
                 .map(CredentialProcedures::new);
     }
+
+    @Override
+    public Mono<CredentialProcedure> getCredentialProcedureById(String procedureId) {
+        return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
+    }
 }

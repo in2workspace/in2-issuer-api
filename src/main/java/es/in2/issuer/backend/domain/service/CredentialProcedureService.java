@@ -3,6 +3,7 @@ package es.in2.issuer.backend.domain.service;
 import es.in2.issuer.backend.domain.model.dto.CredentialDetails;
 import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.backend.domain.model.dto.CredentialProcedures;
+import es.in2.issuer.backend.domain.model.entities.CredentialProcedure;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -38,4 +39,6 @@ public interface CredentialProcedureService {
     Mono<String> updatedEncodedCredentialByCredentialId(String encodedCredential, String credentialId);
 
     Mono<String> getMandatorOrganizationFromDecodedCredentialByProcedureId(String procedureId);
+
+    Mono<CredentialProcedure> getCredentialProcedureById(String procedureId);
 }

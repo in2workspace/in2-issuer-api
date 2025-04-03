@@ -3,6 +3,7 @@ package es.in2.issuer.backend.infrastructure.config;
 import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.backend.infrastructure.config.properties.*;
+import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -51,14 +52,6 @@ public class AppConfig {
 
     public String getApiConfigSource() {
         return configAdapter.getConfiguration(apiProperties.configSource());
-    }
-
-    public long getCacheLifetimeForCredentialOffer() {
-        return apiProperties.cacheLifetime().credentialOffer();
-    }
-
-    public long getCacheLifetimeForVerifiableCredential() {
-        return apiProperties.cacheLifetime().verifiableCredential();
     }
 
     public String getCredentialSubjectDidKey() {

@@ -3,8 +3,8 @@ package es.in2.issuer.backend.domain.service;
 import es.in2.issuer.backend.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.backend.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.backend.domain.service.impl.DeferredCredentialMetadataServiceImpl;
-import es.in2.issuer.backend.domain.util.Utils;
-import es.in2.issuer.backend.infrastructure.repository.CacheStore;
+import es.in2.issuer.shared.domain.util.Utils;
+import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import es.in2.issuer.backend.infrastructure.repository.DeferredCredentialMetadataRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class DeferredCredentialMetadataServiceImplTest {
     private DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
 
     @Mock
-    private CacheStore<String> cacheStore;
+    private CacheStoreRepository<String> cacheStoreRepository;
 
     @InjectMocks
     private DeferredCredentialMetadataServiceImpl deferredCredentialMetadataService;
@@ -36,16 +36,16 @@ class DeferredCredentialMetadataServiceImplTest {
     void testValidateTransactionCode_Success() {
         // Arrange
         String transactionCode = "transaction-code";
-        when(cacheStore.get(transactionCode)).thenReturn(Mono.just(transactionCode));
-        when(cacheStore.delete(transactionCode)).thenReturn(Mono.empty());
+        when(cacheStoreRepository.get(transactionCode)).thenReturn(Mono.just(transactionCode));
+        when(cacheStoreRepository.delete(transactionCode)).thenReturn(Mono.empty());
 
         // Act
         StepVerifier.create(deferredCredentialMetadataService.validateTransactionCode(transactionCode))
                 .verifyComplete();
 
         // Assert
-        verify(cacheStore, times(1)).get(transactionCode);
-        verify(cacheStore, times(1)).delete(transactionCode);
+        verify(cacheStoreRepository, times(1)).get(transactionCode);
+        verify(cacheStoreRepository, times(1)).delete(transactionCode);
     }
 
     @Test
@@ -76,7 +76,7 @@ class DeferredCredentialMetadataServiceImplTest {
         try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
             mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(nonce));
         }
-        when(cacheStore.add(anyString(), anyString())).thenReturn(Mono.just(transactionCode));
+        when(cacheStoreRepository.add(anyString(), anyString())).thenReturn(Mono.just(transactionCode));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(new DeferredCredentialMetadata()));
 
         // Act
@@ -85,7 +85,7 @@ class DeferredCredentialMetadataServiceImplTest {
                 .verifyComplete();
 
         // Assert
-        verify(cacheStore, times(1)).add(anyString(), anyString());
+        verify(cacheStoreRepository, times(1)).add(anyString(), anyString());
         verify(deferredCredentialMetadataRepository, times(1)).save(any(DeferredCredentialMetadata.class));
     }
 
@@ -99,7 +99,7 @@ class DeferredCredentialMetadataServiceImplTest {
         try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
             mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(nonce));
         }
-        when(cacheStore.add(anyString(), anyString())).thenReturn(Mono.just(nonce));
+        when(cacheStoreRepository.add(anyString(), anyString())).thenReturn(Mono.just(nonce));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(deferredCredentialMetadata));
 
         // Act
@@ -109,7 +109,7 @@ class DeferredCredentialMetadataServiceImplTest {
 
         // Assert
         verify(deferredCredentialMetadataRepository, times(1)).findByProcedureId(UUID.fromString(procedureId));
-        verify(cacheStore, times(1)).add(anyString(), anyString());
+        verify(cacheStoreRepository, times(1)).add(anyString(), anyString());
         verify(deferredCredentialMetadataRepository, times(1)).save(any(DeferredCredentialMetadata.class));
     }
 
@@ -288,42 +288,42 @@ class DeferredCredentialMetadataServiceImplTest {
     void validateCTransactionCode_whenCTransactionCodeExists_returnsTransactionCode() {
         String cTransactionCode = "c-transaction-code";
         String transactionCode = "transaction-code";
-        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
-        when(cacheStore.delete(cTransactionCode)).thenReturn(Mono.empty());
+        when(cacheStoreRepository.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
+        when(cacheStoreRepository.delete(cTransactionCode)).thenReturn(Mono.empty());
 
         StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
                 .expectNext(transactionCode)
                 .verifyComplete();
 
-        verify(cacheStore, times(1)).get(cTransactionCode);
-        verify(cacheStore, times(1)).delete(cTransactionCode);
+        verify(cacheStoreRepository, times(1)).get(cTransactionCode);
+        verify(cacheStoreRepository, times(1)).delete(cTransactionCode);
     }
 
     @Test
     void validateCTransactionCode_whenCTransactionCodeDoesNotExist_returnsEmpty() {
         String cTransactionCode = "c-transaction-code";
-        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.empty());
+        when(cacheStoreRepository.get(cTransactionCode)).thenReturn(Mono.empty());
 
         StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
                 .verifyComplete();
 
-        verify(cacheStore, times(1)).get(cTransactionCode);
-        verify(cacheStore, never()).delete(cTransactionCode);
+        verify(cacheStoreRepository, times(1)).get(cTransactionCode);
+        verify(cacheStoreRepository, never()).delete(cTransactionCode);
     }
 
     @Test
     void validateCTransactionCode_whenDeleteFails_throwsException() {
         String cTransactionCode = "c-transaction-code";
         String transactionCode = "transaction-code";
-        when(cacheStore.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
-        when(cacheStore.delete(cTransactionCode)).thenReturn(Mono.error(new RuntimeException("Delete failed")));
+        when(cacheStoreRepository.get(cTransactionCode)).thenReturn(Mono.just(transactionCode));
+        when(cacheStoreRepository.delete(cTransactionCode)).thenReturn(Mono.error(new RuntimeException("Delete failed")));
 
         StepVerifier.create(deferredCredentialMetadataService.validateCTransactionCode(cTransactionCode))
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException && throwable.getMessage().equals("Delete failed"))
                 .verify();
 
-        verify(cacheStore, times(1)).get(cTransactionCode);
-        verify(cacheStore, times(1)).delete(cTransactionCode);
+        verify(cacheStoreRepository, times(1)).get(cTransactionCode);
+        verify(cacheStoreRepository, times(1)).delete(cTransactionCode);
     }
 
     @Test
@@ -334,8 +334,8 @@ class DeferredCredentialMetadataServiceImplTest {
 
         try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
             mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(cTransactionCode));
-            when(cacheStore.add(cTransactionCode, transactionCode)).thenReturn(Mono.empty());
-            when(cacheStore.getCacheExpiryInSeconds()).thenReturn(Mono.just(expiry));
+            when(cacheStoreRepository.add(cTransactionCode, transactionCode)).thenReturn(Mono.empty());
+            when(cacheStoreRepository.getCacheExpiryInSeconds()).thenReturn(Mono.just(expiry));
 
             StepVerifier.create(deferredCredentialMetadataService.updateCacheStoreForCTransactionCode(transactionCode))
                     .expectNextMatches(map ->
@@ -345,8 +345,8 @@ class DeferredCredentialMetadataServiceImplTest {
                     .verifyComplete();
         }
 
-        verify(cacheStore, times(1)).add(cTransactionCode, transactionCode);
-        verify(cacheStore, times(1)).getCacheExpiryInSeconds();
+        verify(cacheStoreRepository, times(1)).add(cTransactionCode, transactionCode);
+        verify(cacheStoreRepository, times(1)).getCacheExpiryInSeconds();
     }
 
 
