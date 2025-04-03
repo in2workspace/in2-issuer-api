@@ -1,4 +1,4 @@
-package es.in2.issuer.shared.config;
+package es.in2.issuer.shared.infrastructure.config;
 
 import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import lombok.RequiredArgsConstructor;

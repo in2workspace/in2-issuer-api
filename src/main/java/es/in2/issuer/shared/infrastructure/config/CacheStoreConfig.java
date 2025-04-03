@@ -1,6 +1,5 @@
 package es.in2.issuer.shared.infrastructure.config;
 
-import es.in2.issuer.shared.config.CacheConfig;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.shared.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
