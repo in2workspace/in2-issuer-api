@@ -7,6 +7,7 @@ import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -34,19 +35,23 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
                         .flatMap(credentialId -> {
                             String preAuthorizedCode = tuple.getT1();
                             String txCode = tuple.getT2();
-                            return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
-                                    .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
-                                    .doOnSuccess(preAuthorizedCodeSaved ->
-                                            log.debug(
-                                                    "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
-                                                            "PreAuthorizedCode in cache",
-                                                    processId))
+                            return storeInCache(processId, credentialId, preAuthorizedCode, txCode)
                                     .flatMap(preAuthorizedCodeSaved ->
                                             buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
                         }))
                 .doOnSuccess(preAuthorizedCodeResponse ->
                         log.debug(
                                 "ProcessId: {} AuthServer: Generated PreAuthorizedCode response successfully",
+                                processId));
+    }
+
+    private @NotNull Mono<String> storeInCache(String processId, UUID credentialId, String preAuthorizedCode, String txCode) {
+        return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
+                .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
+                .doOnSuccess(preAuthorizedCodeSaved ->
+                        log.debug(
+                                "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
+                                        "PreAuthorizedCode in cache",
                                 processId));
     }
 
