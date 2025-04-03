@@ -15,9 +15,8 @@ import reactor.test.StepVerifier;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PreAuthorizedCodeWorkflowTest {
@@ -30,8 +29,9 @@ class PreAuthorizedCodeWorkflowTest {
     @Test
     void itShouldReturnPreAuthorizedCode() {
         PreAuthorizedCodeResponse expected = PreAuthorizedCodeResponseMother.dummy();
-        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString(), any())).thenReturn(Mono.just(expected));
         UUID credentialId = UUID.fromString("cfcd6d7c-5cc2-4601-a992-86f96afb0706");
+        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString(), eq(credentialId)))
+                .thenReturn(Mono.just(expected));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow
                 .generatePreAuthorizedCodeResponse(
@@ -42,5 +42,8 @@ class PreAuthorizedCodeWorkflowTest {
                 .assertNext(result ->
                         assertThat(result).isEqualTo(expected))
                 .verifyComplete();
+
+        verify(preAuthorizedCodeService, times(1))
+                .generatePreAuthorizedCodeResponse(anyString(), eq(credentialId));
     }
 }

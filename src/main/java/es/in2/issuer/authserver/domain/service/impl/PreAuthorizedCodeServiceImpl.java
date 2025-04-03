@@ -1,9 +1,10 @@
 package es.in2.issuer.authserver.domain.service.impl;
 
-import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeCacheStore;
 import es.in2.issuer.authserver.domain.service.PreAuthorizedCodeService;
+import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
+import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 @RequiredArgsConstructor
 public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final SecureRandom random;
-    private final PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
+    private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Override
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId, UUID credentialId) {
@@ -31,7 +32,8 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
                     String txCode = tuple.getT2();
                     log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId);
 
-                    return preAuthorizedCodeCacheStore.save(processId, preAuthorizedCode, credentialId, txCode)
+                    return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
+                            .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
                             .flatMap(preAuthorizedCodeSaved ->
                                     buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
                 });

@@ -1,7 +1,9 @@
 package es.in2.issuer.authserver.domain.service;
 
 import es.in2.issuer.authserver.domain.service.impl.PreAuthorizedCodeServiceImpl;
+import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
+import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,8 +18,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PreAuthorizedCodeServiceTest {
@@ -26,7 +27,7 @@ class PreAuthorizedCodeServiceTest {
     private SecureRandom random;
 
     @Mock
-    private PreAuthorizedCodeCacheStore preAuthorizedCodeCacheStore;
+    private CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @InjectMocks
     private PreAuthorizedCodeServiceImpl preAuthorizedCodeService;
@@ -43,10 +44,10 @@ class PreAuthorizedCodeServiceTest {
                         .withPreAuthorizedCodeAndPin(expectedPreAuthorizedCode, expectedTxCodeStr);
 
         when(random.nextInt(anyInt())).thenReturn(randomNextInt);
-        when(preAuthorizedCodeCacheStore.save(anyString(), anyString(), any(), eq(expectedTxCodeStr)))
+        UUID credentialId = UUID.fromString("2e10cbfc-b381-45ec-b987-0b1dd4ae4e10");
+        when(credentialIdAndTxCodeByPreAuthorizedCodeCacheStore.add(anyString(), eq(new CredentialIdAndTxCode(credentialId, expectedTxCodeStr))))
                 .thenReturn(Mono.just(expectedPreAuthorizedCode));
 
-        UUID credentialId = UUID.fromString("2e10cbfc-b381-45ec-b987-0b1dd4ae4e10");
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeService
                 .generatePreAuthorizedCodeResponse("", credentialId);
 
@@ -56,7 +57,7 @@ class PreAuthorizedCodeServiceTest {
                         assertThat(result).isEqualTo(expected))
                 .verifyComplete();
 
-        verify(preAuthorizedCodeCacheStore)
-                .save(anyString(), anyString(), eq(credentialId), eq(expected.pin()));
+        verify(credentialIdAndTxCodeByPreAuthorizedCodeCacheStore, times(1))
+                .add(anyString(), eq(new CredentialIdAndTxCode(credentialId, expectedTxCodeStr)));
     }
 }
