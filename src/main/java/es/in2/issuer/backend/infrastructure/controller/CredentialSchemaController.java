@@ -3,7 +3,7 @@ package es.in2.issuer.backend.infrastructure.controller;
 import es.in2.issuer.backend.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.domain.model.dto.VcTemplate;
 import es.in2.issuer.backend.domain.service.CredentialSchemaService;
-import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
+import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;

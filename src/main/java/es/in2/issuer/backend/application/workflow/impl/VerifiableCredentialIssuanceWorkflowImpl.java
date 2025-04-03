@@ -12,6 +12,7 @@ import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import es.in2.issuer.backend.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -48,7 +49,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     @Override
     public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
         // Check if the format is not "json_vc_jwt"
-        if (!JWT_VC_JSON.equals(preSubmittedCredentialRequest.format())) {
+        if (!Constants.JWT_VC_JSON.equals(preSubmittedCredentialRequest.format())) {
             return Mono.error(new FormatUnsupportedException("Format: " + preSubmittedCredentialRequest.format() + " is not supported"));
         }
         // Check if operation_mode is different to sync
@@ -59,7 +60,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         // Validate user policy before proceeding
         return policyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload())
                 .then(Mono.defer(() -> {
-                    if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                    if (preSubmittedCredentialRequest.schema().equals(Constants.LEAR_CREDENTIAL_EMPLOYEE)) {
                         return verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedCredentialRequest));
                     } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {

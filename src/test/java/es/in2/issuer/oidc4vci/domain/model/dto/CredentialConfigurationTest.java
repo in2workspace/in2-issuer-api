@@ -1,7 +1,6 @@
-package es.in2.issuer.backend.domain.model.dto;
+package es.in2.issuer.oidc4vci.domain.model.dto;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.backend.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

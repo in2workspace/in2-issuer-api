@@ -5,6 +5,7 @@ import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.backend.domain.service.CredentialOfferService;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,9 @@ import java.util.List;
 import java.util.Map;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.CREDENTIAL_OFFER;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.OPENID_CREDENTIAL_OFFER;
-import static es.in2.issuer.backend.domain.util.HttpUtils.ensureUrlHasProtocol;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.CREDENTIAL_OFFER;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.OPENID_CREDENTIAL_OFFER;
+import static es.in2.issuer.shared.domain.util.HttpUtils.ensureUrlHasProtocol;
 
 @Slf4j
 @Service
@@ -35,11 +36,11 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         .credentialOffer(CustomCredentialOffer.builder()
                                         .credentialIssuer(appConfig.getIssuerApiExternalDomain())
                                         .credentials(List.of(CustomCredentialOffer.Credential.builder()
-                                                .format(JWT_VC_JSON)
+                                                .format(Constants.JWT_VC_JSON)
                                                 .types(List.of(credentialType))
                                                 .build()
                                         ))
-                                        .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
+                                        .credentialConfigurationIds(List.of(Constants.LEAR_CREDENTIAL_EMPLOYEE))
                                         .grants(Map.of(GRANT_TYPE, grant))
                                 .build()
                         )

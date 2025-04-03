@@ -1,11 +1,11 @@
-package es.in2.issuer.backend.domain.service;
+package es.in2.issuer.oidc4vci.domain.service;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.backend.domain.model.dto.CredentialDefinition;
-import es.in2.issuer.backend.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.backend.domain.service.impl.CredentialIssuerMetadataServiceImpl;
-import es.in2.issuer.backend.domain.util.Constants;
-import es.in2.issuer.backend.domain.util.EndpointsConstants;
+import es.in2.issuer.oidc4vci.domain.model.dto.CredentialConfiguration;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.oidc4vci.domain.service.impl.CredentialIssuerMetadataServiceImpl;
+import es.in2.issuer.shared.domain.util.Constants;
+import es.in2.issuer.shared.domain.util.EndpointsConstants;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,13 +50,13 @@ class CredentialIssuerMetadataServiceImplTest {
 
                     CredentialConfiguration config = metadata.credentialConfigurationsSupported().get(Constants.LEAR_CREDENTIAL_EMPLOYEE);
                     assertNotNull(config);
-                    assertEquals(Constants.JWT_VC_JSON, config.format(), "Format");
+                    assertEquals(es.in2.issuer.shared.domain.util.Constants.JWT_VC_JSON, config.format(), "Format");
                     assertTrue(config.cryptographicBindingMethodsSupported().isEmpty(), "Cryptographic Binding Methods Supported");
                     assertTrue(config.credentialSigningAlgValuesSupported().isEmpty(), "Credential Signing Alg Values Supported");
 
                     CredentialDefinition definition = config.credentialDefinition();
                     assertNotNull(definition);
-                    assertEquals(List.of(Constants.LEAR_CREDENTIAL, Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
+                    assertEquals(List.of(es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL, es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
                 })
                 .verifyComplete();
     }

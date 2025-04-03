@@ -15,6 +15,7 @@ import es.in2.issuer.backend.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.infrastructure.repository.CredentialProcedureRepository;
+import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
 
         for (JsonNode type : typeNode) {
             String typeText = type.asText();
-            if (!typeText.equals(VERIFIABLE_CREDENTIAL) && !typeText.equals(VERIFIABLE_ATTESTATION)) {
+            if (!typeText.equals(Constants.VERIFIABLE_CREDENTIAL) && !typeText.equals(VERIFIABLE_ATTESTATION)) {
                 return Optional.of(typeText);
             }
         }

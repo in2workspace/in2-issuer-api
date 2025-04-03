@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.infrastructure.config;
+package es.in2.issuer.shared.infrastructure.config;
 
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;

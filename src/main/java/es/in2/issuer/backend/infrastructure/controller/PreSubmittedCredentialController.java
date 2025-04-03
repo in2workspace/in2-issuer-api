@@ -3,7 +3,7 @@ package es.in2.issuer.backend.infrastructure.controller;
 import es.in2.issuer.backend.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.backend.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.backend.domain.service.AccessTokenService;
-import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
+import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

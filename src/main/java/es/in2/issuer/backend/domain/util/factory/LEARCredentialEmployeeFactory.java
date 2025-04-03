@@ -17,6 +17,7 @@ import es.in2.issuer.backend.domain.service.AccessTokenService;
 import es.in2.issuer.backend.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.backend.infrastructure.config.RemoteSignatureConfig;
+import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -113,7 +114,7 @@ public class LEARCredentialEmployeeFactory {
         LEARCredentialEmployee credentialEmployee = LEARCredentialEmployee.builder()
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
-                .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
+                .type(List.of(Constants.LEAR_CREDENTIAL_EMPLOYEE, Constants.VERIFIABLE_CREDENTIAL))
                 .description(LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION)
                 .credentialSubject(credentialSubject)
                 .validFrom(validFrom)
@@ -161,7 +162,7 @@ public class LEARCredentialEmployeeFactory {
                     }
 
                     return switch (credentialType) {
-                        case LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
+                        case Constants.LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
                                 .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
                                         .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
                                         .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
@@ -283,7 +284,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployee> bindIssuerToLearCredentialEmployee(LEARCredentialEmployee decodedCredential, String procedureId) {
-        return createIssuer(procedureId, LEAR_CREDENTIAL_EMPLOYEE)
+        return createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE)
                 .map(issuer -> LEARCredentialEmployee.builder()
                     .context(decodedCredential.context())
                     .id(decodedCredential.id())

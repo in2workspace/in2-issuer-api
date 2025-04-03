@@ -15,7 +15,7 @@ import reactor.test.StepVerifier;
 import java.util.List;
 
 import static es.in2.issuer.backend.domain.util.Constants.GRANT_TYPE;
-import static es.in2.issuer.backend.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)

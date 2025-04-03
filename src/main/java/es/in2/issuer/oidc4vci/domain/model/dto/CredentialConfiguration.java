@@ -1,6 +1,7 @@
-package es.in2.issuer.backend.domain.model.dto;
+package es.in2.issuer.oidc4vci.domain.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import lombok.Builder;
 
 import java.util.List;

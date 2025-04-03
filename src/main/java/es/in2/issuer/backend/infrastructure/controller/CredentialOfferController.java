@@ -4,8 +4,8 @@ import es.in2.issuer.backend.application.workflow.CredentialOfferIssuanceWorkflo
 import es.in2.issuer.backend.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
-import es.in2.issuer.backend.domain.model.dto.GlobalErrorMessage;
-import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
+import es.in2.issuer.shared.domain.model.dto.GlobalErrorMessage;
+import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -24,7 +24,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-import static es.in2.issuer.backend.domain.util.Constants.ENGLISH;
+import static es.in2.issuer.shared.domain.util.Constants.ENGLISH;
 
 @Slf4j
 @RestController

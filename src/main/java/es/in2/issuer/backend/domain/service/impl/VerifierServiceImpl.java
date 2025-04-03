@@ -26,7 +26,7 @@ import java.util.Date;
 
 import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE;
 import static es.in2.issuer.backend.domain.util.Constants.CONTENT_TYPE_URL_ENCODED_FORM;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.PUBLIC_DISCOVERY_AUTH_SERVER;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.PUBLIC_DISCOVERY_AUTH_SERVER;
 
 @Service
 @Slf4j

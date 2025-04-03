@@ -19,6 +19,7 @@ import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.domain.util.factory.LEARCredentialMachineFactory;
 import es.in2.issuer.backend.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.backend.infrastructure.config.security.service.impl.PolicyAuthorizationServiceImpl;
+import es.in2.issuer.shared.domain.util.Constants;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -102,7 +103,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -132,7 +133,7 @@ class PolicyAuthorizationServiceImplTest {
         when(objectMapper.readTree(vcClaim)).thenReturn(vcJsonNode);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -187,7 +188,7 @@ class PolicyAuthorizationServiceImplTest {
         when(jwtService.parseJWT(token)).thenThrow(new ParseErrorException("Invalid token"));
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -222,7 +223,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -330,7 +331,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -383,7 +384,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -433,7 +434,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim)).thenReturn(learCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -470,7 +471,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -502,7 +503,7 @@ class PolicyAuthorizationServiceImplTest {
         when(learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim)).thenReturn(machineCredential);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
@@ -582,7 +583,7 @@ class PolicyAuthorizationServiceImplTest {
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -610,7 +611,7 @@ class PolicyAuthorizationServiceImplTest {
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)
@@ -637,7 +638,7 @@ class PolicyAuthorizationServiceImplTest {
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(roleClaim);
 
         // Act
-        Mono<Void> result = policyAuthorizationService.authorize(token, LEAR_CREDENTIAL_EMPLOYEE, payload);
+        Mono<Void> result = policyAuthorizationService.authorize(token, Constants.LEAR_CREDENTIAL_EMPLOYEE, payload);
 
         // Assert
         StepVerifier.create(result)

@@ -13,6 +13,7 @@ import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCrede
 import es.in2.issuer.backend.domain.service.JWTService;
 import es.in2.issuer.backend.domain.util.factory.CredentialFactory;
 import es.in2.issuer.backend.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -70,7 +71,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
                 String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
                 return mapVcToLEARCredential(vcClaim, schema)
                     .flatMap(learCredential -> switch (schema) {
-                        case LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);
+                        case Constants.LEAR_CREDENTIAL_EMPLOYEE -> authorizeLearCredentialEmployee(learCredential, payload);
                         case VERIFIABLE_CERTIFICATION -> authorizeVerifiableCertification(learCredential);
                         default -> Mono.error(new InsufficientPermissionException("Unauthorized: Unsupported schema"));
                     });
@@ -85,16 +86,16 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
         return Mono.fromCallable(() -> {
             if (VERIFIABLE_CERTIFICATION.equals(schema)) {
                 // For verifiable certification, only LEARCredentialEmployee is allowed.
-                if (types.contains(LEAR_CREDENTIAL_EMPLOYEE)) {
-                    return LEAR_CREDENTIAL_EMPLOYEE;
+                if (types.contains(Constants.LEAR_CREDENTIAL_EMPLOYEE)) {
+                    return Constants.LEAR_CREDENTIAL_EMPLOYEE;
                 } else {
                     throw new InsufficientPermissionException(
                             "Unauthorized: Credential type 'LEARCredentialEmployee' is required for verifiable certification.");
                 }
             } else {
                 // For LEAR_CREDENTIAL_EMPLOYEE schema, allow either employee or machine.
-                if (types.contains(LEAR_CREDENTIAL_EMPLOYEE)) {
-                    return LEAR_CREDENTIAL_EMPLOYEE;
+                if (types.contains(Constants.LEAR_CREDENTIAL_EMPLOYEE)) {
+                    return Constants.LEAR_CREDENTIAL_EMPLOYEE;
                 } else if (types.contains(LEAR_CREDENTIAL_MACHINE)) {
                     return LEAR_CREDENTIAL_MACHINE;
                 } else {
@@ -108,7 +109,7 @@ public class PolicyAuthorizationServiceImpl implements PolicyAuthorizationServic
     private Mono<LEARCredential> mapVcToLEARCredential(String vcClaim, String schema) {
         return checkIfCredentialTypeIsAllowedToIssue(vcClaim, schema)
                 .flatMap(credentialType -> {
-                    if (LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)) {
+                    if (Constants.LEAR_CREDENTIAL_EMPLOYEE.equals(credentialType)) {
                         return Mono.fromCallable(() -> credentialFactory.learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim));
                     } else if (LEAR_CREDENTIAL_MACHINE.equals(credentialType)) {
                         return Mono.fromCallable(() -> credentialFactory.learCredentialMachineFactory.mapStringToLEARCredentialMachine(vcClaim));

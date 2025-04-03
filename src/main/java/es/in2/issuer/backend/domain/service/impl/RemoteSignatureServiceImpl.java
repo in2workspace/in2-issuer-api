@@ -9,7 +9,7 @@ import es.in2.issuer.backend.domain.model.dto.SignedData;
 import es.in2.issuer.backend.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
 import es.in2.issuer.backend.domain.service.*;
-import es.in2.issuer.backend.domain.util.HttpUtils;
+import es.in2.issuer.shared.domain.util.HttpUtils;
 import es.in2.issuer.backend.domain.util.JwtUtils;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.RemoteSignatureConfig;
