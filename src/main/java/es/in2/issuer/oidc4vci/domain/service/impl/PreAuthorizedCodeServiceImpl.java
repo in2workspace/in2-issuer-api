@@ -26,20 +26,10 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(
-            String processId,
-            Mono<UUID> credentialIdMono) {
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(String processId, Mono<UUID> credentialIdMono) {
         return generateCodes()
-                .doFirst(() ->
-                        log.debug("ProcessId: {} AuthServer: Generating PreAuthorizedCode response", processId))
-                .flatMap(tuple -> credentialIdMono
-                        .flatMap(credentialId -> {
-                            String preAuthorizedCode = tuple.getT1();
-                            String txCode = tuple.getT2();
-                            return storeInCache(processId, credentialId, preAuthorizedCode, txCode)
-                                    .flatMap(preAuthorizedCodeSaved ->
-                                            buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
-                        }))
+                .doFirst(() -> log.debug("ProcessId: {} AuthServer: Generating PreAuthorizedCode response", processId))
+                .flatMap(tuple -> storeInCache(processId, credentialIdMono, tuple))
                 .doOnSuccess(preAuthorizedCodeResponse ->
                         log.debug(
                                 "ProcessId: {} AuthServer: Generated PreAuthorizedCode response successfully",
@@ -50,14 +40,22 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
         return Mono.zip(generatePreAuthorizedCode(), generateTxCode());
     }
 
-    private @NotNull Mono<String> storeInCache(String processId, UUID credentialId, String preAuthorizedCode, String txCode) {
-        return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
-                .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
-                .doOnSuccess(preAuthorizedCodeSaved ->
-                        log.debug(
-                                "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
-                                        "PreAuthorizedCode in cache",
-                                processId));
+    private @NotNull Mono<PreAuthorizedCodeResponse> storeInCache(String processId, Mono<UUID> credentialIdMono, Tuple2<String, String> codes) {
+        String preAuthorizedCode = codes.getT1();
+        String txCode = codes.getT2();
+
+        return credentialIdMono
+                .flatMap(credentialId ->
+                        credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
+                                .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
+                                .doOnSuccess(preAuthorizedCodeSaved ->
+                                        log.debug(
+                                                "ProcessId: {} AuthServer: Saved TxCode and CredentialId by " +
+                                                        "PreAuthorizedCode in cache",
+                                                processId))
+                                .flatMap(preAuthorizedCodeSaved -> buildPreAuthorizedCodeResponse(
+                                        preAuthorizedCodeSaved,
+                                        txCode)));
     }
 
     private Mono<String> generatePreAuthorizedCode() {
