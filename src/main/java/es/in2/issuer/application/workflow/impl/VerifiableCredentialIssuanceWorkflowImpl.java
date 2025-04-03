@@ -19,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -82,7 +83,14 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
-        return emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential", appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + transactionCode, appConfig.getKnowledgebaseWalletUrl(), user, organization)
+        String credentialOfferUrl = UriComponentsBuilder
+                .fromHttpUrl(appConfig.getIssuerUiExternalDomain())
+                .path("/credential-offer")
+                .queryParam("transaction_code", transactionCode)
+                .build()
+                .toUriString();
+
+        return emailService.sendCredentialActivationEmail(email, SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT, credentialOfferUrl, appConfig.getKnowledgebaseWalletUrl(), user, organization)
                 .onErrorMap(e ->
                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
     }

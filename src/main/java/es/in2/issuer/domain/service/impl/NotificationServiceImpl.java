@@ -36,7 +36,7 @@ public class NotificationServiceImpl implements NotificationService {
                                     // TODO we need to remove the withdraw status from the condition since the v1.2.0 version is deprecated but in order to support retro compatibility issues we will keep it for now.
                                     if (status.equals(DRAFT.toString()) || status.equals(WITHDRAWN.toString())) {
                                         return deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId)
-                                                .flatMap(newTransactionCode -> emailService.sendTransactionCodeForCredentialOffer(
+                                                .flatMap(newTransactionCode -> emailService.sendCredentialActivationEmail(
                                                         email,
                                                         "Activate your new credential",
                                                         appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
@@ -44,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                         completeName,
                                                         organization
                                                 ))
-                                                .onErrorMap(e ->
+                                                .onErrorMap(exception ->
                                                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
                                         return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);

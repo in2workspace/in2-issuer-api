@@ -76,6 +76,7 @@ public class Constants {
     public static final String SIGNATURE_REMOTE_SCOPE_SERVICE = "service";
     public static final String SIGNATURE_REMOTE_SCOPE_CREDENTIAL = "credential";
     public static final String CREDENTIAL_ID = "credentialID";
+    public static final String SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT = "Activate your new credential";
     // ERROR MESSAGES
     public static final String ERROR_PARSING_CREDENTIAL = "Error parsing credential";
     public static final String MAIL_ERROR_COMMUNICATION_EXCEPTION = "Error during communication with the mail server";

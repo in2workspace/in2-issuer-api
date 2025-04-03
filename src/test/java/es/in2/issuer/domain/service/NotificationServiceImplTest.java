@@ -14,6 +14,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import static es.in2.issuer.domain.util.Constants.MAIL_ERROR_COMMUNICATION_EXCEPTION;
+import static es.in2.issuer.domain.util.Constants.SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -58,7 +59,7 @@ class NotificationServiceImplTest {
         when(deferredCredentialMetadataService.updateTransactionCodeInDeferredCredentialMetadata(procedureId))
                 .thenReturn(Mono.just(transactionCode));
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
-        when(emailService.sendTransactionCodeForCredentialOffer(email, "Activate your new credential",
+        when(emailService.sendCredentialActivationEmail(email, "Activate your new credential",
                 issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,knowledgebaseWalletUrl, user,organization))
                 .thenReturn(Mono.empty());
 
@@ -67,7 +68,7 @@ class NotificationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, times(1)).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(emailService, times(1)).sendCredentialActivationEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
     }
 
     @Test
@@ -86,9 +87,9 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(transactionCode));
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
 
-        when(emailService.sendTransactionCodeForCredentialOffer(
+        when(emailService.sendCredentialActivationEmail(
                 email,
-                "Activate your new credential",
+                SEND_CREDENTIAL_ACTIVATION_EMAIL_SUBJECT,
                 issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,
                 knowledgebaseWalletUrl,
                 user,
@@ -141,7 +142,7 @@ class NotificationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
-        verify(emailService, never()).sendTransactionCodeForCredentialOffer(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+        verify(emailService, never()).sendCredentialActivationEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
         verify(emailService, never()).sendCredentialSignedNotification(anyString(), anyString(), anyString());
     }
 }

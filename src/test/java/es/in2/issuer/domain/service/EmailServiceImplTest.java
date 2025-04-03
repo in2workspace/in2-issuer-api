@@ -49,13 +49,13 @@ class EmailServiceImplTest {
     }
 
     @Test
-    void testSendTransactionCodeForCredentialOffer() {
+    void testSendCredentialActivationEmail() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("activate-credential-email"), any(Context.class))).thenReturn("htmlContent");
         when(mailProperties.getUsername()).thenReturn("user@example.com");
 
-        Mono<Void> result = emailService.sendTransactionCodeForCredentialOffer("to@example.com", "subject", "link", "knowledgebaseUrl","user","organization");
+        Mono<Void> result = emailService.sendCredentialActivationEmail("to@example.com", "subject", "link", "knowledgebaseUrl","user","organization");
 
         StepVerifier.create(result)
                 .verifyComplete();
