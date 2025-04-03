@@ -6,6 +6,8 @@ import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -26,11 +28,15 @@ class PreAuthorizedCodeWorkflowTest {
     @InjectMocks
     PreAuthorizedCodeWorkflowImpl preAuthorizedCodeWorkflow;
 
+    @Captor
+    private ArgumentCaptor<Mono<UUID>> credentialIdCaptor;
+
     @Test
     void itShouldReturnPreAuthorizedCode() {
         PreAuthorizedCodeResponse expected = PreAuthorizedCodeResponseMother.dummy();
         UUID credentialId = UUID.fromString("cfcd6d7c-5cc2-4601-a992-86f96afb0706");
-        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString(), eq(credentialId)))
+
+        when(preAuthorizedCodeService.generatePreAuthorizedCodeResponse(anyString(), any()))
                 .thenReturn(Mono.just(expected));
 
         Mono<PreAuthorizedCodeResponse> resultMono = preAuthorizedCodeWorkflow
@@ -44,6 +50,12 @@ class PreAuthorizedCodeWorkflowTest {
                 .verifyComplete();
 
         verify(preAuthorizedCodeService, times(1))
-                .generatePreAuthorizedCodeResponse(anyString(), eq(credentialId));
+                .generatePreAuthorizedCodeResponse(anyString(), credentialIdCaptor.capture());
+        verifyNoMoreInteractions(preAuthorizedCodeService);
+        StepVerifier
+                .create(credentialIdCaptor.getValue())
+                .assertNext(passedCredentialId -> assertThat(passedCredentialId)
+                        .isEqualTo(credentialId))
+                .verifyComplete();
     }
 }

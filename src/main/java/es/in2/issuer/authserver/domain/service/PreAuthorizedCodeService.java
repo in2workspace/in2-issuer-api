@@ -6,5 +6,5 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 public interface PreAuthorizedCodeService {
-    Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId, UUID credentialId);
+    Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId, Mono<UUID> credentialIdMono);
 }

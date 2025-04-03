@@ -24,19 +24,21 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Override
-    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(String processId, UUID credentialId) {
-        return generatePreAuthorizedCode()
-                .zipWith(generateTxCode())
-                .flatMap(tuple -> {
-                    String preAuthorizedCode = tuple.getT1();
-                    String txCode = tuple.getT2();
-                    log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId);
-
-                    return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
-                            .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
-                            .flatMap(preAuthorizedCodeSaved ->
-                                    buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
-                });
+    public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCodeResponse(
+            String processId,
+            Mono<UUID> credentialIdMono) {
+        return Mono.zip(generatePreAuthorizedCode(), generateTxCode())
+                .doOnNext(tuple ->
+                        log.debug("ProcessId: {} AuthServer: PreAuthorizedCode and TxCode generated", processId))
+                .flatMap(tuple -> credentialIdMono
+                        .flatMap(credentialId -> {
+                            String preAuthorizedCode = tuple.getT1();
+                            String txCode = tuple.getT2();
+                            return credentialIdAndTxCodeByPreAuthorizedCodeCacheStore
+                                    .add(preAuthorizedCode, new CredentialIdAndTxCode(credentialId, txCode))
+                                    .flatMap(preAuthorizedCodeSaved ->
+                                            buildPreAuthorizedCodeResponse(preAuthorizedCodeSaved, txCode));
+                        }));
     }
 
     private Mono<String> generatePreAuthorizedCode() {
