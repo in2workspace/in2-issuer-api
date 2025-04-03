@@ -73,6 +73,11 @@ class CacheStoreRepositoryTest {
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
+        // Test with empty key
+        StepVerifier.create(cacheStoreRepository.add("", "value"))
+                .expectSubscription()
+                .verifyComplete(); // Verify that it completes without emitting any value
+
         // Test with null value
         StepVerifier.create(cacheStoreRepository.add("key", null))
                 .expectSubscription()
