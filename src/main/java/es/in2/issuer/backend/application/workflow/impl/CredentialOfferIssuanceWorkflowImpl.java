@@ -39,7 +39,7 @@ public class CredentialOfferIssuanceWorkflowImpl implements CredentialOfferIssua
     private Mono<CredentialOfferUriResponse> buildCredentialOfferUriInternal(String transactionCode) {
         return deferredCredentialMetadataService.getProcedureIdByTransactionCode(transactionCode)
                 .flatMap(procedureId ->
-                        credentialProcedureService.getCredentialProcedureByProcedureId(procedureId)
+                        credentialProcedureService.getCredentialProcedureById(procedureId)
                                 .flatMap(credentialProcedure ->
                                         preAuthorizedCodeWorkflow.generatePreAuthorizedCodeResponse(Mono.just(credentialProcedure.getCredentialId()))
                                                 .flatMap(preAuthorizedCodeResponse ->

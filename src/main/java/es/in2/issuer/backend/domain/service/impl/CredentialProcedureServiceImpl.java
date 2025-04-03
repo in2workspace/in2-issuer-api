@@ -293,7 +293,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
     }
 
     @Override
-    public Mono<CredentialProcedure> getCredentialProcedureByProcedureId(String procedureId) {
+    public Mono<CredentialProcedure> getCredentialProcedureById(String procedureId) {
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId));
     }
 }
