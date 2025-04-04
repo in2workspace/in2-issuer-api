@@ -18,7 +18,6 @@ import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import es.in2.issuer.backend.infrastructure.config.security.service.PolicyAuthorizationService;
-import es.in2.issuer.shared.domain.util.Constants;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -34,6 +33,7 @@ import reactor.test.StepVerifier;
 import javax.naming.OperationNotSupportedException;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -169,7 +169,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(Constants.JWT_VC_JSON).operationMode("S").build();
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
@@ -245,7 +245,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         PreSubmittedCredentialRequest issuanceRequest = PreSubmittedCredentialRequest.builder()
                 .payload(jsonNode)
                 .schema("LEARCredentialEmployee")
-                .format(Constants.JWT_VC_JSON)
+                .format(JWT_VC_JSON)
                 .operationMode("S")
                 .build();
         String transactionCode = "4321";
@@ -318,13 +318,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
         JsonNode jsonNode = objectMapper.readTree(json);
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(Constants.JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(policyAuthorizationService.authorize(token, type, jsonNode)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId,type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
-        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+"internalToken", procedureId, Constants.JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX+"internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
 
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
