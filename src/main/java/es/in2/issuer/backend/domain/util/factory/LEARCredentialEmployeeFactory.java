@@ -7,31 +7,35 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.backend.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.backend.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.backend.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.backend.domain.model.dto.SignatureRequest;
 import es.in2.issuer.backend.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
-import es.in2.issuer.backend.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.backend.domain.model.enums.CredentialType;
 import es.in2.issuer.backend.domain.service.AccessTokenService;
 import es.in2.issuer.backend.domain.service.impl.RemoteSignatureServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.backend.infrastructure.config.RemoteSignatureConfig;
-import es.in2.issuer.shared.domain.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
 
 @Slf4j
 @Component
@@ -114,7 +118,7 @@ public class LEARCredentialEmployeeFactory {
         LEARCredentialEmployee credentialEmployee = LEARCredentialEmployee.builder()
                 .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
-                .type(List.of(Constants.LEAR_CREDENTIAL_EMPLOYEE, Constants.VERIFIABLE_CREDENTIAL))
+                .type(List.of(LEAR_CREDENTIAL_EMPLOYEE, VERIFIABLE_CREDENTIAL))
                 .description(LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION)
                 .credentialSubject(credentialSubject)
                 .validFrom(validFrom)
@@ -162,7 +166,7 @@ public class LEARCredentialEmployeeFactory {
                     }
 
                     return switch (credentialType) {
-                        case Constants.LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
+                        case LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
                                 .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
                                         .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
                                         .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
@@ -284,7 +288,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployee> bindIssuerToLearCredentialEmployee(LEARCredentialEmployee decodedCredential, String procedureId) {
-        return createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE)
+        return createIssuer(procedureId, LEAR_CREDENTIAL_EMPLOYEE)
                 .map(issuer -> LEARCredentialEmployee.builder()
                     .context(decodedCredential.context())
                     .id(decodedCredential.id())
