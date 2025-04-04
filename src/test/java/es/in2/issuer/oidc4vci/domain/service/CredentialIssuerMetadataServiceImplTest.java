@@ -1,9 +1,9 @@
 package es.in2.issuer.oidc4vci.domain.service;
 
 import es.in2.issuer.oidc4vci.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
 import es.in2.issuer.oidc4vci.domain.service.impl.CredentialIssuerMetadataServiceImpl;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import es.in2.issuer.shared.domain.util.Constants;
 import es.in2.issuer.shared.domain.util.EndpointsConstants;
 import es.in2.issuer.shared.infrastructure.config.AppConfig;
@@ -18,6 +18,7 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
+import static es.in2.issuer.shared.domain.util.Constants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 
@@ -50,13 +51,13 @@ class CredentialIssuerMetadataServiceImplTest {
 
                     CredentialConfiguration config = metadata.credentialConfigurationsSupported().get(Constants.LEAR_CREDENTIAL_EMPLOYEE);
                     assertNotNull(config);
-                    assertEquals(es.in2.issuer.shared.domain.util.Constants.JWT_VC_JSON, config.format(), "Format");
+                    assertEquals(JWT_VC_JSON, config.format(), "Format");
                     assertTrue(config.cryptographicBindingMethodsSupported().isEmpty(), "Cryptographic Binding Methods Supported");
                     assertTrue(config.credentialSigningAlgValuesSupported().isEmpty(), "Credential Signing Alg Values Supported");
 
                     CredentialDefinition definition = config.credentialDefinition();
                     assertNotNull(definition);
-                    assertEquals(List.of(es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL, es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
+                    assertEquals(List.of(LEAR_CREDENTIAL, VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
                 })
                 .verifyComplete();
     }
