@@ -2,6 +2,8 @@ package es.in2.issuer.backend.domain.util;
 
 import java.util.List;
 
+import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
+
 public class Constants {
 
     private Constants() {
@@ -61,7 +63,7 @@ public class Constants {
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
     public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";
-    public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL);
+    public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
     public static final long MSB = 0x80L;
     public static final long MSBALL = 0xFFFFFF80L;
     public static final String IN2_ORGANIZATION_IDENTIFIER = "VATES-B60645900";
