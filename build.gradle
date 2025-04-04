@@ -148,7 +148,6 @@ dependencies {
     testImplementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.1'
     testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.0'
 
-
     // Integration Test
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.testcontainers:junit-jupiter'
