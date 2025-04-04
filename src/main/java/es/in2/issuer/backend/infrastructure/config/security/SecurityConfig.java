@@ -15,7 +15,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.*;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
 
 @Slf4j
 @Configuration

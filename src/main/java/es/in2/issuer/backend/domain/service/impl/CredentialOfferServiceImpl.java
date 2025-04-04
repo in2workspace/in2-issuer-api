@@ -1,10 +1,10 @@
 package es.in2.issuer.backend.domain.service.impl;
 
+import es.in2.issuer.backend.domain.service.CredentialOfferService;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.shared.domain.model.dto.Grant;
-import es.in2.issuer.backend.domain.service.CredentialOfferService;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,10 +15,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static es.in2.issuer.backend.domain.util.Constants.*;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.CREDENTIAL_OFFER;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.OPENID_CREDENTIAL_OFFER;
-import static es.in2.issuer.backend.domain.util.HttpUtils.ensureUrlHasProtocol;
+import static es.in2.issuer.backend.domain.util.Constants.GRANT_TYPE;
+import static es.in2.issuer.shared.domain.util.Constants.JWT_VC_JSON;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.CREDENTIAL_OFFER;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.OPENID_CREDENTIAL_OFFER;
+import static es.in2.issuer.shared.domain.util.HttpUtils.ensureUrlHasProtocol;
 
 @Slf4j
 @Service

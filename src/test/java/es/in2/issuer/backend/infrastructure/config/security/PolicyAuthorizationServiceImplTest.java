@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

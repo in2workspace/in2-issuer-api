@@ -2,18 +2,17 @@ package es.in2.issuer.backend.domain.util;
 
 import java.util.List;
 
+import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
+
 public class Constants {
 
     private Constants() {
         throw new IllegalStateException("Utility class");
     }
 
-    public static final String LEAR_CREDENTIAL = "LEARCredential";
-    public static final String VERIFIABLE_CREDENTIAL = "VerifiableCredential";
     public static final String VERIFIABLE_ATTESTATION = "VerifiableAttestation";
     public static final String JWT_VC = "jwt_vc_json";
     public static final String CWT_VC = "cwt_vc";
-    public static final String JWT_VC_JSON = "jwt_vc_json";
     public static final String CWT_VC_JSON = "cwt_vc_json";
     public static final String PRE_AUTHORIZATION_CODE = "pre-authorization_code";
     public static final String CLIENT_CREDENTIALS_GRANT_TYPE_VALUE = "client_credentials";
@@ -44,7 +43,6 @@ public class Constants {
     public static final String MANDATOR = "mandator";
     public static final String LEAR_CREDENTIAL_JWT = "LEARCredentialJWT";
     public static final String LEAR_CREDENTIAL_CWT = "LEARCredentialCWT";
-    public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
     public static final String LEAR_CREDENTIAL_MACHINE = "LEARCredentialMachine";
     public static final String SUPPORTED_PROOF_ALG = "ES256";
     public static final String SUPPORTED_PROOF_TYP = "openid4vci-proof+jwt";
@@ -55,7 +53,6 @@ public class Constants {
     public static final String EXPIRATION_DATE = "expirationDate";
     public static final String ID = "id";
     public static final String BEARER_PREFIX = "Bearer ";
-    public static final String ENGLISH = "en";
     public static final String UTF_8 = "UTF-8";
     public static final String CONTENT_TYPE = "Content-Type";
     public static final String CONTENT_TYPE_APPLICATION_JSON = "application/json";

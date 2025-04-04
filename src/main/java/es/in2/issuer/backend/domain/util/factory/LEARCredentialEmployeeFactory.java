@@ -7,11 +7,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.backend.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.backend.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest;
+import es.in2.issuer.backend.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.backend.domain.model.dto.SignatureRequest;
 import es.in2.issuer.backend.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
-import es.in2.issuer.backend.domain.model.dto.LEARCredentialEmployeeJwtPayload;
 import es.in2.issuer.backend.domain.model.enums.CredentialType;
 import es.in2.issuer.backend.domain.service.AccessTokenService;
 import es.in2.issuer.backend.domain.service.impl.RemoteSignatureServiceImpl;
@@ -22,15 +22,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
+
 import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 
 @Slf4j
 @Component

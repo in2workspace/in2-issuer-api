@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.TRUST_FRAMEWORK_ISSUER;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.TRUST_FRAMEWORK_ISSUER;
 
 @Slf4j
 @Service

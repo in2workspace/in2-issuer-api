@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.infrastructure.config;
 
-import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
+import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.backend.infrastructure.config.properties.*;
 import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import org.springframework.context.annotation.Configuration;
@@ -32,10 +32,6 @@ public class AppConfig {
         this.issuerIdentityProperties = issuerIdentityProperties;
         this.knowledgeBaseProperties = knowledgeBaseProperties;
         this.corsProperties = corsProperties;
-    }
-
-    public String getIssuerApiExternalDomain() {
-        return configAdapter.getConfiguration(apiProperties.externalDomain());
     }
 
     public String getIssuerUiExternalDomain() {

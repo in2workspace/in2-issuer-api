@@ -1,9 +1,9 @@
-package es.in2.issuer.backend.infrastructure.controller;
+package es.in2.issuer.oidc4vci.infrastructure.controller;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.backend.domain.model.dto.GlobalErrorMessage;
-import es.in2.issuer.backend.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.backend.infrastructure.config.SwaggerConfig;
+import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.shared.domain.model.dto.GlobalErrorMessage;
+import es.in2.issuer.oidc4vci.domain.service.CredentialIssuerMetadataService;
+import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import static es.in2.issuer.backend.domain.util.Constants.ENGLISH;
+import static es.in2.issuer.shared.domain.util.Constants.ENGLISH;
 
 @RestController
 @RequestMapping("/.well-known/openid-credential-issuer")

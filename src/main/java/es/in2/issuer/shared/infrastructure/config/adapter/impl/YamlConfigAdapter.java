@@ -1,6 +1,6 @@
-package es.in2.issuer.backend.infrastructure.config.adapter.impl;
+package es.in2.issuer.shared.infrastructure.config.adapter.impl;
 
-import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
 import org.springframework.stereotype.Component;
 
 @Component

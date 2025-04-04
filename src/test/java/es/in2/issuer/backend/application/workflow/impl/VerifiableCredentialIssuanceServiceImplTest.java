@@ -33,6 +33,7 @@ import reactor.test.StepVerifier;
 import javax.naming.OperationNotSupportedException;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;

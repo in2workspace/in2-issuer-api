@@ -9,7 +9,7 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.*;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
 
 @Configuration
 @RequiredArgsConstructor

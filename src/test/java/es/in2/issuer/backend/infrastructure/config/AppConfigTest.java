@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.infrastructure.config;
 
-import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
+import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.backend.infrastructure.config.properties.CorsProperties;
 import es.in2.issuer.backend.infrastructure.config.properties.IssuerIdentityProperties;
 import es.in2.issuer.backend.infrastructure.config.properties.IssuerUiProperties;
@@ -50,20 +50,6 @@ class AppConfigTest {
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
         appConfig = new AppConfig(configAdapterFactory, apiProperties, issuerUiProperties, issuerIdentityProperties, knowledgeBaseProperties, corsProperties);
-    }
-
-    @Test
-    void testGetIssuerApiExternalDomain() {
-        // Arrange
-        String expectedDomain = "https://api.example.com";
-        when(apiProperties.externalDomain()).thenReturn("api.external.domain");
-        when(configAdapter.getConfiguration("api.external.domain")).thenReturn(expectedDomain);
-
-        // Act
-        String actualDomain = appConfig.getIssuerApiExternalDomain();
-
-        // Assert
-        assertEquals(expectedDomain, actualDomain);
     }
 
     @Test

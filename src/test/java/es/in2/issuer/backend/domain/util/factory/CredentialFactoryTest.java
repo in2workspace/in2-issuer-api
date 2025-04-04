@@ -6,8 +6,6 @@ import es.in2.issuer.backend.domain.model.dto.CredentialProcedureCreationRequest
 import es.in2.issuer.backend.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.domain.util.factory.CredentialFactory;
-import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import static es.in2.issuer.backend.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)

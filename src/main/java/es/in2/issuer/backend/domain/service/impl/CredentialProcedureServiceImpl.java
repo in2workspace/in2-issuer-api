@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
 
 @Service
 @RequiredArgsConstructor

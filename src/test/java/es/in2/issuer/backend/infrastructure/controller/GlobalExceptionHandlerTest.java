@@ -3,7 +3,7 @@ package es.in2.issuer.backend.infrastructure.controller;
 
 import es.in2.issuer.backend.domain.exception.*;
 import es.in2.issuer.backend.domain.model.dto.CredentialErrorResponse;
-import es.in2.issuer.backend.domain.model.dto.GlobalErrorMessage;
+import es.in2.issuer.shared.domain.model.dto.GlobalErrorMessage;
 import es.in2.issuer.backend.domain.util.CredentialResponseErrorCodes;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

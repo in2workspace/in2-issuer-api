@@ -1,9 +1,6 @@
 package es.in2.issuer.backend.domain.model.dto;
 
-import es.in2.issuer.backend.domain.model.dto.BatchCredentialRequest;
-import es.in2.issuer.backend.domain.model.dto.CredentialDefinition;
-import es.in2.issuer.backend.domain.model.dto.CredentialRequest;
-import es.in2.issuer.backend.domain.model.dto.Proof;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

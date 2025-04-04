@@ -24,6 +24,7 @@ import java.util.stream.StreamSupport;
 import static es.in2.issuer.backend.domain.util.Constants.*;
 import static es.in2.issuer.backend.domain.util.Utils.extractMandator;
 import static es.in2.issuer.backend.domain.util.Utils.extractPowers;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 
 @Service
 @Slf4j

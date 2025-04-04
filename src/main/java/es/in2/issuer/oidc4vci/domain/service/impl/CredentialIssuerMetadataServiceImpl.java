@@ -1,10 +1,10 @@
-package es.in2.issuer.backend.domain.service.impl;
+package es.in2.issuer.oidc4vci.domain.service.impl;
 
-import es.in2.issuer.backend.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.backend.domain.model.dto.CredentialDefinition;
-import es.in2.issuer.backend.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.backend.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.backend.infrastructure.config.AppConfig;
+import es.in2.issuer.oidc4vci.domain.model.dto.CredentialConfiguration;
+import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
+import es.in2.issuer.oidc4vci.domain.service.CredentialIssuerMetadataService;
+import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,9 +13,9 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
-import static es.in2.issuer.backend.domain.util.Constants.*;
-import static es.in2.issuer.backend.domain.util.EndpointsConstants.*;
-import static es.in2.issuer.backend.domain.util.HttpUtils.ensureUrlHasProtocol;
+import static es.in2.issuer.shared.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
+import static es.in2.issuer.shared.domain.util.HttpUtils.ensureUrlHasProtocol;
 
 @Slf4j
 @Service

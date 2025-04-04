@@ -2,9 +2,9 @@ package es.in2.issuer.backend.infrastructure.config.adapter;
 
 import com.azure.data.appconfiguration.ConfigurationClient;
 import com.azure.data.appconfiguration.models.ConfigurationSetting;
-import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.adapter.impl.AzureConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.properties.AzureProperties;
+import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.impl.AzureConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.properties.AzureProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
