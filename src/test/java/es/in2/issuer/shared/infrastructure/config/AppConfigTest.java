@@ -1,7 +1,7 @@
 package es.in2.issuer.shared.infrastructure.config;
 
-import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.adapter.factory.ConfigAdapterFactory;
+import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

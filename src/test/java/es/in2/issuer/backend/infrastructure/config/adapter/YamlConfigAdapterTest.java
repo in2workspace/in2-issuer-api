@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.infrastructure.config.adapter;
 
-import es.in2.issuer.backend.infrastructure.config.adapter.impl.YamlConfigAdapter;
+import es.in2.issuer.shared.infrastructure.config.adapter.impl.YamlConfigAdapter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

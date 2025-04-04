@@ -24,7 +24,7 @@ class ArchUnitTest {
                     BASE_PACKAGE + ".shared.infrastructure.config.SwaggerConfig");
 
     @ArchTest
-    static final ArchRule layer_dependencies_are_respected = layeredArchitecture()
+    static final ArchRule packageDependenciesAreRespected = layeredArchitecture()
             .consideringOnlyDependenciesInLayers()
             // Define layers
             .layer("Backend").definedBy(BASE_PACKAGE + ".backend..")
@@ -37,7 +37,7 @@ class ArchUnitTest {
             .whereLayer("Shared").mayNotAccessAnyLayer();
 
     @Test
-    void classesInSharedMustBeUsedByBothBackendAndOidc4vci() {
+    void classesInSharedMustBeUsedBySharedOrByBothBackendAndOidc4vci() {
         var classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
 
         Set<JavaClass> sharedClasses = classes.stream()
