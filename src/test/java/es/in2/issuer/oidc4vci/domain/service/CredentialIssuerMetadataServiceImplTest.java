@@ -18,7 +18,6 @@ import reactor.test.StepVerifier;
 
 import java.util.List;
 
-import static es.in2.issuer.shared.domain.util.Constants.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.lenient;
 
@@ -51,13 +50,13 @@ class CredentialIssuerMetadataServiceImplTest {
 
                     CredentialConfiguration config = metadata.credentialConfigurationsSupported().get(Constants.LEAR_CREDENTIAL_EMPLOYEE);
                     assertNotNull(config);
-                    assertEquals(JWT_VC_JSON, config.format(), "Format");
+                    assertEquals(Constants.JWT_VC_JSON, config.format(), "Format");
                     assertTrue(config.cryptographicBindingMethodsSupported().isEmpty(), "Cryptographic Binding Methods Supported");
                     assertTrue(config.credentialSigningAlgValuesSupported().isEmpty(), "Credential Signing Alg Values Supported");
 
                     CredentialDefinition definition = config.credentialDefinition();
                     assertNotNull(definition);
-                    assertEquals(List.of(LEAR_CREDENTIAL, VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
+                    assertEquals(List.of(Constants.LEAR_CREDENTIAL, Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
                 })
                 .verifyComplete();
     }
