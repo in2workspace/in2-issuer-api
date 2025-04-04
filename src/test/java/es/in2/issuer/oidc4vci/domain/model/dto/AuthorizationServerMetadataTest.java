@@ -1,6 +1,5 @@
-package es.in2.issuer.backend.domain.model.dto;
+package es.in2.issuer.oidc4vci.domain.model.dto;
 
-import es.in2.issuer.backend.domain.model.dto.AuthorizationServerMetadata;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
