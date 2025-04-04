@@ -34,8 +34,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static es.in2.issuer.backend.domain.util.Constants.*;
-import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
-import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 
 @Slf4j
 @Component
