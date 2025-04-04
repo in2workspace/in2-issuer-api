@@ -36,6 +36,11 @@ class ArchUnitTest {
             .whereLayer("OIDC4VCI").mayOnlyAccessLayers("Shared")
             .whereLayer("Shared").mayNotAccessAnyLayer();
 
+    // TODO: Enable this test when the test classes are moved to the same package as the implementation
+    /*@ArchTest
+    static final ArchRule testClassesShouldResideInTheSamePackageAsImplementation =
+            GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation();*/
+
     @Test
     void classesInSharedMustBeUsedBySharedOrByBothBackendAndOidc4vci() {
         var classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
