@@ -13,7 +13,7 @@ import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCrede
 import es.in2.issuer.backend.domain.model.dto.credential.lear.machine.LEARCredentialMachine;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.domain.util.factory.CredentialFactory;
 import es.in2.issuer.backend.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.domain.util.factory.LEARCredentialMachineFactory;

@@ -46,4 +46,9 @@ public class CacheStoreConfig {
     public CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore() {
         return new CacheStoreRepository<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
     }
+
+    @Bean
+    public CacheStoreRepository<String> nonceCacheStore() {
+        return new CacheStoreRepository<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
+    }
 }

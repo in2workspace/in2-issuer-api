@@ -3,7 +3,7 @@ package es.in2.issuer.backend.domain.service.impl;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.backend.domain.model.dto.VerifierOauth2AccessToken;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.domain.service.M2MTokenService;
 import es.in2.issuer.backend.domain.service.VerifierService;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;

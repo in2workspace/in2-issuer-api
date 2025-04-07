@@ -13,7 +13,7 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.backend.domain.exception.JWTClaimMissingException;
 import es.in2.issuer.backend.domain.exception.JWTCreationException;
 import es.in2.issuer.backend.domain.exception.JWTParsingException;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.infrastructure.crypto.CryptoComponent;
 import io.github.novacrypto.base58.Base58;
 import lombok.RequiredArgsConstructor;

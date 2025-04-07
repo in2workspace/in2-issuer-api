@@ -13,7 +13,7 @@ import es.in2.issuer.backend.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.backend.domain.model.dto.VerifiableCertificationJwtPayload;
 import es.in2.issuer.backend.domain.model.enums.CredentialType;
 import es.in2.issuer.backend.domain.service.CredentialProcedureService;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.infrastructure.config.DefaultSignerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,8 +1,7 @@
-package es.in2.issuer.oidc4vci.domain.service;
+package es.in2.issuer.oidc4vci.domain.service.impl;
 
 import es.in2.issuer.oidc4vci.domain.model.dto.CredentialConfiguration;
 import es.in2.issuer.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.oidc4vci.domain.service.impl.CredentialIssuerMetadataServiceImpl;
 import es.in2.issuer.shared.domain.model.dto.CredentialDefinition;
 import es.in2.issuer.shared.domain.util.Constants;
 import es.in2.issuer.shared.domain.util.EndpointsConstants;
