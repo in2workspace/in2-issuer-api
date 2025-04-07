@@ -8,17 +8,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import static es.in2.issuer.shared.domain.util.EndpointsConstants.TOKEN;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthorizationServerMetadataServiceImpl implements AuthorizationServerMetadataService {
 
-    private static final String TOKEN_ENDPOINT_PATTERN = "%s/token";
     private final AppConfig appConfig;
 
     @Override
     public Mono<AuthorizationServerMetadata> generateOpenIdAuthorizationServerMetadata() {
-        return Mono.just(new AuthorizationServerMetadata(
-                String.format(TOKEN_ENDPOINT_PATTERN, appConfig.getIssuerApiExternalDomain())));
+        return Mono.just(new AuthorizationServerMetadata(appConfig.getIssuerApiExternalDomain() + TOKEN));
     }
 }
