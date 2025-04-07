@@ -6,7 +6,7 @@ import es.in2.issuer.backend.domain.exception.NonceValidationException;
 import es.in2.issuer.backend.domain.exception.ParseErrorException;
 import es.in2.issuer.backend.domain.exception.ProofValidationException;
 import es.in2.issuer.backend.domain.model.dto.NonceValidationResponse;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.domain.service.ProofValidationService;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.AuthServerConfig;

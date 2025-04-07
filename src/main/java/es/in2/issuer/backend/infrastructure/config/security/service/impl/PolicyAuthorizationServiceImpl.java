@@ -10,7 +10,7 @@ import es.in2.issuer.backend.domain.model.dto.credential.lear.LEARCredential;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.Mandator;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.backend.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backend.domain.util.factory.CredentialFactory;
 import es.in2.issuer.backend.infrastructure.config.security.service.PolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;

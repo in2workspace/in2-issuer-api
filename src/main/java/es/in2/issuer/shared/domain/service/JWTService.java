@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.domain.service;
+package es.in2.issuer.shared.domain.service;
 
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;

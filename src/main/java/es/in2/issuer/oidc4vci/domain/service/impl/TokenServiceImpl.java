@@ -1,7 +1,7 @@
 package es.in2.issuer.oidc4vci.domain.service.impl;
 
 import com.nimbusds.jose.Payload;
-import es.in2.issuer.backend.domain.service.JWTService;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.oidc4vci.domain.model.dto.TokenResponse;
 import es.in2.issuer.oidc4vci.domain.service.TokenService;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
