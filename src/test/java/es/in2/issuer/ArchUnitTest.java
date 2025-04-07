@@ -27,12 +27,12 @@ class ArchUnitTest {
     static final ArchRule packageDependenciesAreRespected = layeredArchitecture()
             .consideringOnlyDependenciesInLayers()
             // Define layers
-            .layer("Backend").definedBy(BASE_PACKAGE + ".backend..")
+            .layer("Backoffice").definedBy(BASE_PACKAGE + ".backoffice..")
             .layer("OIDC4VCI").definedBy(BASE_PACKAGE + ".oidc4vci..")
             .layer("OIDC4VCI-Workflow").definedBy(BASE_PACKAGE + ".oidc4vci.application.workflow..")
             .layer("Shared").definedBy(BASE_PACKAGE + ".shared..")
             // Add constraints
-            .whereLayer("Backend").mayOnlyAccessLayers("OIDC4VCI-Workflow", "Shared")
+            .whereLayer("Backoffice").mayOnlyAccessLayers("OIDC4VCI-Workflow", "Shared")
             .whereLayer("OIDC4VCI").mayOnlyAccessLayers("Shared")
             .whereLayer("Shared").mayNotAccessAnyLayer();
 
@@ -42,7 +42,7 @@ class ArchUnitTest {
             GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation();*/
 
     @Test
-    void classesInSharedMustBeUsedBySharedOrByBothBackendAndOidc4vci() {
+    void classesInSharedMustBeUsedBySharedOrByBothBackofficeAndOidc4vci() {
         var classes = new ClassFileImporter().importPackages(BASE_PACKAGE);
 
         Set<JavaClass> sharedClasses = classes.stream()
@@ -55,16 +55,16 @@ class ArchUnitTest {
                 .filter(this::isNotTestClass)
                 .collect(Collectors.toSet());
 
-        Set<JavaClass> backendClasses = filterClassesByPackage(classes, ".backend");
+        Set<JavaClass> backofficeClasses = filterClassesByPackage(classes, ".backoffice");
         Set<JavaClass> oidcClasses = filterClassesByPackage(classes, ".oidc4vci");
 
 
         for (JavaClass sharedClass : sharedClassesToCheck) {
-            boolean usedByBackend = backendClasses.stream().anyMatch(user -> usesClass(user, sharedClass));
+            boolean usedByBackoffice = backofficeClasses.stream().anyMatch(user -> usesClass(user, sharedClass));
             boolean usedByOidc4vci = oidcClasses.stream().anyMatch(user -> usesClass(user, sharedClass));
             boolean usedByShared = sharedClasses.stream().anyMatch(user -> usesClass(user, sharedClass));
 
-            boolean isShared = ((usedByBackend && usedByOidc4vci) || usedByShared);
+            boolean isShared = ((usedByBackoffice && usedByOidc4vci) || usedByShared);
             assertThat(isShared)
                     .withFailMessage("The class " + sharedClass.getName() +
                             " is not used by both packages nor shared.")
