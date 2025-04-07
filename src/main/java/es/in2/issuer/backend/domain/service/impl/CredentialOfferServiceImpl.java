@@ -15,9 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import static es.in2.issuer.backend.domain.util.Constants.GRANT_TYPE;
-import static es.in2.issuer.shared.domain.util.Constants.JWT_VC_JSON;
-import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.shared.domain.util.Constants.*;
 import static es.in2.issuer.shared.domain.util.EndpointsConstants.CREDENTIAL_OFFER;
 import static es.in2.issuer.shared.domain.util.EndpointsConstants.OPENID_CREDENTIAL_OFFER;
 import static es.in2.issuer.shared.domain.util.HttpUtils.ensureUrlHasProtocol;
@@ -35,14 +33,14 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
                 CredentialOfferData.builder()
                         .credentialOffer(CustomCredentialOffer.builder()
-                                        .credentialIssuer(appConfig.getIssuerApiExternalDomain())
-                                        .credentials(List.of(CustomCredentialOffer.Credential.builder()
-                                                .format(JWT_VC_JSON)
-                                                .types(List.of(credentialType))
-                                                .build()
-                                        ))
-                                        .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
-                                        .grants(Map.of(GRANT_TYPE, grant))
+                                .credentialIssuer(appConfig.getIssuerApiExternalDomain())
+                                .credentials(List.of(CustomCredentialOffer.Credential.builder()
+                                        .format(JWT_VC_JSON)
+                                        .types(List.of(credentialType))
+                                        .build()
+                                ))
+                                .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
+                                .grants(Map.of(GRANT_TYPE, grant))
                                 .build()
                         )
                         .employeeEmail(employeeEmail)

@@ -5,6 +5,7 @@ public final class Constants {
     public static final String VERIFIABLE_CREDENTIAL = "VerifiableCredential";
     public static final String JWT_VC_JSON = "jwt_vc_json";
     public static final String LEAR_CREDENTIAL_EMPLOYEE = "LEARCredentialEmployee";
+    public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
 
     private Constants() {
         throw new IllegalStateException("Utility class");

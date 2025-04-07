@@ -18,7 +18,6 @@ public class Constants {
     public static final String CLIENT_CREDENTIALS_GRANT_TYPE_VALUE = "client_credentials";
     public static final String CLIENT_ASSERTION_TYPE_VALUE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     public static final String AUTHORIZATION_CODE = "authorization_code";
-    public static final String GRANT_TYPE = "urn:ietf:params:oauth:grant-type:pre-authorized_code";
     public static final String CREDENTIAL_SUBJECT = "credentialSubject";
     public static final String COMPANY = "company";
     public static final String MANDATE = "mandate";
