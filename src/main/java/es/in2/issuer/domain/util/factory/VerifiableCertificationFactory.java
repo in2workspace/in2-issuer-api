@@ -7,15 +7,14 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.domain.exception.ParseErrorException;
 import es.in2.issuer.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
-import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.domain.model.enums.CredentialType;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.JWTService;
 import es.in2.issuer.infrastructure.config.DefaultSignerConfig;
-import es.in2.issuer.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.domain.util.Constants.*;
+import static es.in2.issuer.domain.util.Constants.CREDENTIAL_CONTEXT;
+import static es.in2.issuer.domain.util.Constants.VERIFIABLE_CERTIFICATION_TYPE;
 
 @Component
 @RequiredArgsConstructor
@@ -40,13 +40,21 @@ public class VerifiableCertificationFactory {
     private final JWTService jwtService;
     private final CredentialProcedureService credentialProcedureService;
 
-    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String token, String operationMode) {
+    public Mono<CredentialProcedureCreationRequest> mapAndBuildVerifiableCertification(JsonNode credential, String idToken, String operationMode) {
         VerifiableCertification verifiableCertification = objectMapper.convertValue(credential, VerifiableCertification.class);
-        SignedJWT signedJWT = jwtService.parseJWT(token);
-        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), VC);
-        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
-        return
-                buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
+        SignedJWT signedJWT = jwtService.parseJWT(idToken);
+        // The claim is called vc_json because we use the id_token from the VCVerifier that return the vc in json string format
+        String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
+        String processedVc;
+
+        try {
+            processedVc = objectMapper.readValue(vcClaim, String.class);
+        } catch (JsonProcessingException e) {
+            return Mono.error(new ParseErrorException("Error parsing id_token credential: " + e));
+        }
+        LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(processedVc);
+
+        return buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
                 .flatMap(verifiableCertificationDecoded ->
                         convertVerifiableCertificationInToString(verifiableCertificationDecoded)
                                 .flatMap(decodedCredential ->
@@ -121,7 +129,7 @@ public class VerifiableCertificationFactory {
                 .organization(issuer.organization())
                 .build();
 
-        return Mono.just( VerifiableCertification.builder()
+        return Mono.just(VerifiableCertification.builder()
                 .context(verifiableCertification.context())
                 .id(verifiableCertification.id())
                 .type(verifiableCertification.type())
@@ -134,7 +142,7 @@ public class VerifiableCertificationFactory {
                 .build());
     }
 
-    public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
+    public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential) {
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())

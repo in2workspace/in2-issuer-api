@@ -1,6 +1,5 @@
 package es.in2.issuer.infrastructure.config.security;
 
-import es.in2.issuer.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,26 +8,30 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
+import static es.in2.issuer.domain.util.EndpointsConstants.*;
+
 @Configuration
 @RequiredArgsConstructor
-
-public class DefaultCORSConfig {
-    private final AppConfig appConfig;
+public class PublicCORSConfig {
 
     /**
-     * Default CORS configuration source.
+     * Public CORS configuration source.
      */
     @Bean
-    public UrlBasedCorsConfigurationSource defaultCorsConfigurationSource() {
+    public UrlBasedCorsConfigurationSource publicCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(appConfig.getDefaultCorsAllowedOrigins());
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration(PUBLIC_CREDENTIAL_OFFER, configuration);
+        source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
+        source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
+        source.registerCorsConfiguration(TOKEN, configuration);
+        source.registerCorsConfiguration(PROMETHEUS, configuration);
         return source;
     }
 }

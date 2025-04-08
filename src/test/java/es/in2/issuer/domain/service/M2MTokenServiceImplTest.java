@@ -1,7 +1,5 @@
 package es.in2.issuer.domain.service;
 
-import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.domain.service.impl.M2MTokenServiceImpl;
 import es.in2.issuer.infrastructure.config.AppConfig;
@@ -63,19 +61,11 @@ class M2MTokenServiceImplTest {
     }
 
     @Test
-    void getM2MToken_shouldReturnVerifierOauth2AccessToken(){
+    void getM2MToken_shouldReturnVerifierOauth2AccessToken() {
         // Arrange
         String vcMachineString = "vc_jwt_content";
 
-        // Mock del método getVCinJWTDecodedFromBase64()
         when(appConfig.getJwtCredential()).thenReturn(Base64.getEncoder().encodeToString(vcMachineString.getBytes()));
-
-        // Mock de JWTService
-        SignedJWT signedJWT = mock(SignedJWT.class);
-        Payload vcMachinePayload = mock(Payload.class);
-        when(jwtService.parseJWT(vcMachineString)).thenReturn(signedJWT);
-        when(jwtService.getPayloadFromSignedJWT(signedJWT)).thenReturn(vcMachinePayload);
-        when(jwtService.getClaimFromPayload(vcMachinePayload, "sub")).thenReturn(clientId);
 
         // Mock de jwtService.generateJWT()
         String vpTokenJWTString = "vp_token_jwt_string";
@@ -104,15 +94,12 @@ class M2MTokenServiceImplTest {
 
         // Verificar interacciones
         verify(appConfig).getJwtCredential();
-        verify(appConfig).getCredentialSubjectDidKey();
+        verify(appConfig, times(2)).getCredentialSubjectDidKey();
         verify(appConfig).getClientAssertionExpiration();
         verify(appConfig).getClientAssertionExpirationUnitTime();
 
         verify(verifierConfig).getVerifierExternalDomain();
 
-        verify(jwtService).parseJWT(vcMachineString);
-        verify(jwtService).getPayloadFromSignedJWT(signedJWT);
-        verify(jwtService).getClaimFromPayload(vcMachinePayload, "sub");
         verify(jwtService, times(2)).generateJWT(anyString());
 
         verify(verifierService).performTokenRequest(expectedFormUrlEncodedBody);
@@ -125,15 +112,7 @@ class M2MTokenServiceImplTest {
         // Arrange
         String vcMachineString = "vc_jwt_content";
 
-        // Mock del método getVCinJWTDecodedFromBase64()
         when(appConfig.getJwtCredential()).thenReturn(Base64.getEncoder().encodeToString(vcMachineString.getBytes()));
-
-        // Mock de JWTService
-        SignedJWT signedJWT = mock(SignedJWT.class);
-        Payload vcMachinePayload = mock(Payload.class);
-        when(jwtService.parseJWT(vcMachineString)).thenReturn(signedJWT);
-        when(jwtService.getPayloadFromSignedJWT(signedJWT)).thenReturn(vcMachinePayload);
-        when(jwtService.getClaimFromPayload(vcMachinePayload, "sub")).thenReturn(clientId);
 
         // Mock de jwtService.generateJWT()
         String vpTokenJWTString = "vp_token_jwt_string";
@@ -163,16 +142,11 @@ class M2MTokenServiceImplTest {
 
         // Verificar interacciones (similar a la prueba anterior)
         verify(appConfig).getJwtCredential();
-        verify(appConfig).getCredentialSubjectDidKey();
+        verify(appConfig, times(2)).getCredentialSubjectDidKey();
         verify(appConfig).getClientAssertionExpiration();
         verify(appConfig).getClientAssertionExpirationUnitTime();
 
         verify(verifierConfig).getVerifierExternalDomain();
-
-        verify(jwtService).parseJWT(vcMachineString);
-        verify(jwtService).getPayloadFromSignedJWT(signedJWT);
-        verify(jwtService).getClaimFromPayload(vcMachinePayload, "sub");
-        verify(jwtService, times(2)).generateJWT(anyString());
 
         verify(verifierService).performTokenRequest(expectedFormUrlEncodedBody);
 
