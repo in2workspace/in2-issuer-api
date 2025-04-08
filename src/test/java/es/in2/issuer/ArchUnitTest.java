@@ -3,15 +3,21 @@ package es.in2.issuer;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.domain.JavaType;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
+import com.tngtech.archunit.library.GeneralCodingRules;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,6 +41,40 @@ class ArchUnitTest {
             .whereLayer("Backoffice").mayOnlyAccessLayers("OIDC4VCI-Workflow", "Shared")
             .whereLayer("OIDC4VCI").mayOnlyAccessLayers("Shared")
             .whereLayer("Shared").mayNotAccessAnyLayer();
+
+    @ArchTest
+    static final ArchRule implementationsShouldBeInSameLayerAsInterfaces =
+            classes()
+                    .that().areNotInterfaces()
+                    .and().resideInAPackage(BASE_PACKAGE + "..")
+                    .and().haveNameMatching(".*(?i)(service|workflow).*")
+                    .should(new ArchCondition<>("reside in the same layer as the interfaces they implement") {
+                        @Override
+                        public void check(JavaClass clazz, ConditionEvents events) {
+                            String implLayer = getLayerForPackage(clazz.getPackageName());
+
+                            for (JavaType javaType : clazz.getInterfaces()) {
+                                JavaClass implementedInterface = javaType.toErasure();
+                                String interfaceLayer = getLayerForPackage(implementedInterface.getPackageName());
+
+                                if (implLayer != null && interfaceLayer != null && !implLayer.equals(interfaceLayer)) {
+                                    String message = String.format(
+                                            "Class %s (layer: %s) implements %s (layer: %s)",
+                                            clazz.getName(), implLayer, implementedInterface.getName(), interfaceLayer
+                                    );
+                                    events.add(SimpleConditionEvent.violated(clazz, message));
+                                }
+                            }
+                        }
+                    });
+
+    private static String getLayerForPackage(String packageName) {
+        if (packageName.startsWith(BASE_PACKAGE + ".backoffice")) return "Backoffice";
+        if (packageName.startsWith(BASE_PACKAGE + ".oidc4vci.application.workflow")) return "OIDC4VCI-Workflow";
+        if (packageName.startsWith(BASE_PACKAGE + ".oidc4vci")) return "OIDC4VCI";
+        if (packageName.startsWith(BASE_PACKAGE + ".shared")) return "Shared";
+        return null;
+    }
 
     // TODO: Enable this test when the test classes are moved to the same package as the implementation
     /*@ArchTest

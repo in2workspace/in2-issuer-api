@@ -1,7 +1,7 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.backoffice.domain.model.dto.AuthServerNonceRequest;
+import es.in2.issuer.shared.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.shared.domain.model.dto.AuthServerNonceRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

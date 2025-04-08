@@ -1,5 +1,8 @@
 package es.in2.issuer.shared.infrastructure.config;
 
+import es.in2.issuer.shared.infrastructure.config.properties.IssuerIdentityProperties;
+import es.in2.issuer.shared.infrastructure.config.properties.IssuerUiProperties;
+import es.in2.issuer.shared.infrastructure.config.properties.KnowledgeBaseProperties;
 import es.in2.issuer.shared.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.shared.infrastructure.config.adapter.factory.ConfigAdapterFactory;
 import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
@@ -24,13 +27,22 @@ class AppConfigTest {
     @Mock
     private ApiProperties apiProperties;
 
+    @Mock
+    private KnowledgeBaseProperties knowledgeBaseProperties;
+
+    @Mock
+    private IssuerUiProperties issuerUiProperties;
+
+    @Mock
+    private IssuerIdentityProperties issuerIdentityProperties;
+
     @InjectMocks
     private AppConfig appConfig;
 
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, apiProperties);
+        appConfig = new AppConfig(configAdapterFactory, apiProperties, knowledgeBaseProperties, issuerUiProperties, issuerIdentityProperties);
     }
 
     @Test
@@ -42,6 +54,34 @@ class AppConfigTest {
 
         // Act
         String actualDomain = appConfig.getIssuerApiExternalDomain();
+
+        // Assert
+        assertEquals(expectedDomain, actualDomain);
+    }
+
+    @Test
+    void testGetKnowledgeBaseUploadCertificationGuideUrl() {
+        // Arrange
+        String expectedUrl = "https://knowledge.example.com";
+        when(knowledgeBaseProperties.uploadCertificationGuideUrl()).thenReturn("knowledge.base.wallet.url");
+        when(configAdapter.getConfiguration("knowledge.base.wallet.url")).thenReturn(expectedUrl);
+
+        // Act
+        String actualUrl = appConfig.getKnowledgeBaseUploadCertificationGuideUrl();
+
+        // Assert
+        assertEquals(expectedUrl, actualUrl);
+    }
+
+    @Test
+    void testGetIssuerUiExternalDomain() {
+        // Arrange
+        String expectedDomain = "https://ui.example.com";
+        when(issuerUiProperties.externalDomain()).thenReturn("ui.external.domain");
+        when(configAdapter.getConfiguration("ui.external.domain")).thenReturn(expectedDomain);
+
+        // Act
+        String actualDomain = appConfig.getIssuerUiExternalDomain();
 
         // Assert
         assertEquals(expectedDomain, actualDomain);

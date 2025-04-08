@@ -14,7 +14,7 @@ import es.in2.issuer.backoffice.domain.exception.WellKnownInfoFetchException;
 import es.in2.issuer.backoffice.domain.model.dto.OpenIDProviderMetadata;
 import es.in2.issuer.backoffice.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.backoffice.domain.service.VerifierService;
-import es.in2.issuer.backoffice.infrastructure.config.VerifierConfig;
+import es.in2.issuer.shared.infrastructure.config.VerifierConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

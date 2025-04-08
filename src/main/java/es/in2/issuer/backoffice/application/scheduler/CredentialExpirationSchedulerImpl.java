@@ -1,8 +1,8 @@
 package es.in2.issuer.backoffice.application.scheduler;
 
-import es.in2.issuer.backoffice.domain.model.entities.CredentialProcedure;
-import es.in2.issuer.backoffice.domain.model.enums.CredentialStatus;
-import es.in2.issuer.backoffice.infrastructure.repository.CredentialProcedureRepository;
+import es.in2.issuer.shared.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.shared.domain.model.enums.CredentialStatus;
+import es.in2.issuer.shared.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.EnableScheduling;

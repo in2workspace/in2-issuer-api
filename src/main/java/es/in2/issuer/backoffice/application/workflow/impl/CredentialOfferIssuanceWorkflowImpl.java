@@ -5,6 +5,9 @@ import es.in2.issuer.backoffice.application.workflow.CredentialOfferIssuanceWork
 import es.in2.issuer.backoffice.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.backoffice.domain.service.*;
+import es.in2.issuer.shared.domain.service.CredentialProcedureService;
+import es.in2.issuer.shared.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.shared.domain.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

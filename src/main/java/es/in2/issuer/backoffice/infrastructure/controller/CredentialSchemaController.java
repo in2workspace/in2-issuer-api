@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backoffice.domain.model.dto.VcTemplate;
 import es.in2.issuer.backoffice.domain.service.CredentialSchemaService;
 import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;

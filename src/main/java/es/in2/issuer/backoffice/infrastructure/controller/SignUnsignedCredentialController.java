@@ -7,7 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
-import es.in2.issuer.backoffice.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.shared.application.workflow.CredentialSignerWorkflow;
 
 @Slf4j
 @RestController

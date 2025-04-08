@@ -1,8 +1,8 @@
 package es.in2.issuer.backoffice.application.scheduler;
 
-import es.in2.issuer.backoffice.domain.model.entities.CredentialProcedure;
-import es.in2.issuer.backoffice.domain.model.enums.CredentialStatus;
-import es.in2.issuer.backoffice.infrastructure.repository.CredentialProcedureRepository;
+import es.in2.issuer.shared.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.shared.domain.model.enums.CredentialStatus;
+import es.in2.issuer.shared.infrastructure.repository.CredentialProcedureRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
