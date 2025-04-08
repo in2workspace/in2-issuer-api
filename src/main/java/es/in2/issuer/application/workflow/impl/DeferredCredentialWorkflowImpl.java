@@ -46,7 +46,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         String jwt = signedCredential.credential();
                         SignedJWT signedJWT = SignedJWT.parse(jwt);
                         String payload = signedJWT.getPayload().toString();
-                        log.debug(payload);
+                        log.debug("Credential payload: {}", payload);
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get(VC).get("id").asText();
