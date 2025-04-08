@@ -1,9 +1,9 @@
 package es.in2.issuer.backoffice.domain.service;
 
-import es.in2.issuer.backoffice.domain.model.dto.ProcedureBasicInfo;
-import es.in2.issuer.backoffice.domain.model.dto.PendingCredentials;
-import es.in2.issuer.backoffice.domain.model.dto.SignedCredentials;
-import es.in2.issuer.backoffice.domain.model.entities.CredentialProcedure;
+import es.in2.issuer.shared.domain.model.dto.ProcedureBasicInfo;
+import es.in2.issuer.shared.domain.model.dto.PendingCredentials;
+import es.in2.issuer.shared.domain.model.dto.SignedCredentials;
+import es.in2.issuer.shared.domain.model.entities.CredentialProcedure;
 import org.springframework.data.domain.Sort;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;

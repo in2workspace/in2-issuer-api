@@ -1,7 +1,7 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
 import es.in2.issuer.backoffice.application.workflow.CredentialOfferIssuanceWorkflow;
-import es.in2.issuer.backoffice.domain.model.dto.CredentialErrorResponse;
+import es.in2.issuer.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backoffice.domain.model.dto.CredentialOfferUriResponse;
 import es.in2.issuer.shared.domain.model.dto.CustomCredentialOffer;
 import es.in2.issuer.shared.domain.model.dto.GlobalErrorMessage;

@@ -1,8 +1,8 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.backoffice.domain.model.dto.PreSubmittedCredentialRequest;
-import es.in2.issuer.backoffice.domain.service.AccessTokenService;
+import es.in2.issuer.shared.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.shared.domain.model.dto.PreSubmittedCredentialRequest;
+import es.in2.issuer.shared.domain.service.AccessTokenService;
 import es.in2.issuer.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backoffice.domain.model.dto.ProcedureIdRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

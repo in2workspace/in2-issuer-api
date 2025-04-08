@@ -1,10 +1,10 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.domain.model.dto.CredentialDetails;
-import es.in2.issuer.backoffice.domain.model.dto.CredentialProcedures;
-import es.in2.issuer.backoffice.domain.model.dto.ProcedureBasicInfo;
-import es.in2.issuer.backoffice.domain.service.AccessTokenService;
-import es.in2.issuer.backoffice.domain.service.CredentialProcedureService;
+import es.in2.issuer.shared.domain.model.dto.CredentialDetails;
+import es.in2.issuer.shared.domain.model.dto.CredentialProcedures;
+import es.in2.issuer.shared.domain.model.dto.ProcedureBasicInfo;
+import es.in2.issuer.shared.domain.service.AccessTokenService;
+import es.in2.issuer.shared.domain.service.CredentialProcedureService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

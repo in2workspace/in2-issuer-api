@@ -6,7 +6,7 @@ import es.in2.issuer.backoffice.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.backoffice.domain.service.impl.M2MTokenServiceImpl;
 import es.in2.issuer.backoffice.infrastructure.config.AppConfig;
-import es.in2.issuer.backoffice.infrastructure.config.VerifierConfig;
+import es.in2.issuer.shared.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

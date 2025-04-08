@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.infrastructure.config.security;
 
-import es.in2.issuer.backoffice.infrastructure.config.AuthServerConfig;
+import es.in2.issuer.shared.infrastructure.config.AuthServerConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;

@@ -1,9 +1,5 @@
 package es.in2.issuer.backoffice.domain.util;
 
-import java.util.List;
-
-import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
-
 public class Constants {
 
     private Constants() {
@@ -58,11 +54,9 @@ public class Constants {
     public static final String CONTENT_TYPE_URL_ENCODED_FORM = "application/x-www-form-urlencoded";
     public static final String DID_ELSI = "did:elsi:";
     public static final String DID_KEY = "did:key:";
-    public static final List<String> CREDENTIAL_CONTEXT = List.of("https://www.w3.org/ns/credentials/v2","https://www.dome-marketplace.eu/2025/credentials/learcredentialemployee/v2");
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
     public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";
-    public static final List<String> VERIFIABLE_CERTIFICATION_TYPE = List.of(VERIFIABLE_CERTIFICATION, VERIFIABLE_CREDENTIAL);
     public static final long MSB = 0x80L;
     public static final long MSBALL = 0xFFFFFF80L;
     public static final String IN2_ORGANIZATION_IDENTIFIER = "VATES-B60645900";

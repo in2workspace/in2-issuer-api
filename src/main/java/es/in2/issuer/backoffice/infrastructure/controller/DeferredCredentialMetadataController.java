@@ -1,7 +1,7 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.VerifiableCredentialIssuanceWorkflow;
-import es.in2.issuer.backoffice.domain.model.dto.AuthServerNonceRequest;
+import es.in2.issuer.shared.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.shared.domain.model.dto.AuthServerNonceRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -1,9 +1,12 @@
 package es.in2.issuer.backoffice.domain.service;
 
-import es.in2.issuer.backoffice.domain.exception.EmailCommunicationException;
-import es.in2.issuer.backoffice.domain.model.enums.CredentialStatus;
+import es.in2.issuer.shared.domain.exception.EmailCommunicationException;
+import es.in2.issuer.shared.domain.model.enums.CredentialStatus;
 import es.in2.issuer.backoffice.domain.service.impl.NotificationServiceImpl;
-import es.in2.issuer.backoffice.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.domain.service.CredentialProcedureService;
+import es.in2.issuer.shared.domain.service.DeferredCredentialMetadataService;
+import es.in2.issuer.shared.domain.service.EmailService;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

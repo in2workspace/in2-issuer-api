@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.shared.application.workflow.CredentialSignerWorkflow;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

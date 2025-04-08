@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.domain.service.impl;
 
-import es.in2.issuer.backoffice.domain.service.AccessTokenService;
+import es.in2.issuer.shared.domain.service.AccessTokenService;
 import es.in2.issuer.backoffice.domain.service.CertificateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

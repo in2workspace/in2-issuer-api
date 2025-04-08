@@ -1,8 +1,8 @@
 package es.in2.issuer.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backoffice.application.workflow.DeferredCredentialWorkflow;
-import es.in2.issuer.backoffice.domain.model.dto.PendingCredentials;
-import es.in2.issuer.backoffice.domain.model.dto.SignedCredentials;
+import es.in2.issuer.shared.application.workflow.DeferredCredentialWorkflow;
+import es.in2.issuer.shared.domain.model.dto.PendingCredentials;
+import es.in2.issuer.shared.domain.model.dto.SignedCredentials;
 import es.in2.issuer.backoffice.domain.service.CertificateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
