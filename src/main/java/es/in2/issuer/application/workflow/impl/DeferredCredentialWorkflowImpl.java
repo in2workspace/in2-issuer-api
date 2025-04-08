@@ -9,7 +9,6 @@ import es.in2.issuer.domain.model.dto.SignedCredentials;
 import es.in2.issuer.domain.service.CredentialProcedureService;
 import es.in2.issuer.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.domain.service.EmailService;
-import es.in2.issuer.infrastructure.repository.CredentialProcedureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final ObjectMapper objectMapper;
     private final EmailService emailService;
-    private final CredentialProcedureRepository credentialProcedureRepository;
 
     @Override
     public Mono<PendingCredentials> getPendingCredentialsByOrganizationId(String organizationId) {
@@ -48,6 +46,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                         String jwt = signedCredential.credential();
                         SignedJWT signedJWT = SignedJWT.parse(jwt);
                         String payload = signedJWT.getPayload().toString();
+                        log.debug("Credential payload: {}", payload);
                         // Parse the credential and extract the ID
                         JsonNode credentialNode = objectMapper.readTree(payload);
                         String credentialId = credentialNode.get(VC).get("id").asText();
