@@ -59,7 +59,8 @@ public class SecurityConfig {
                         PUBLIC_CREDENTIAL_OFFER,
                         PUBLIC_DISCOVERY_ISSUER,
                         TOKEN,
-                        DEFERRED_CREDENTIALS
+                        DEFERRED_CREDENTIALS,
+                        PROMETHEUS
                 ))
                 .cors(cors -> cors.configurationSource(publicCORSConfig.publicCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
