@@ -50,7 +50,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             .flatMap(credentialProcedure -> {
                 try{
                     //TODO eliminar este if en Junio aprox cuando ya no queden credenciales sin vc sin firmar
-                    if(credentialProcedure.getCredentialDecoded().contains("vc")){
+                    if(credentialProcedure.getCredentialDecoded().contains("\"vc\"")){
                         log.info("JWT Payload already created");
                         return signCredentialOnRequestedFormat(credentialProcedure.getCredentialDecoded(), format, authorizationHeader, procedureId);
                     }
@@ -99,7 +99,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private Mono<String> signCredentialOnRequestedFormat(String unsignedCredential, String format, String token, String procedureId) {
         return Mono.defer(() -> {
             if (format.equals(JWT_VC)) {
-                log.info("Credential Payload {}", unsignedCredential);
+                log.debug("Credential Payload {}", unsignedCredential);
                 log.info("Signing credential in JADES remotely ...");
                 SignatureRequest signatureRequest = new SignatureRequest(
                         new SignatureConfiguration(SignatureType.JADES, Collections.emptyMap()),
