@@ -7,14 +7,13 @@ import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.shared.domain.exception.InvalidCredentialFormatException;
 import es.in2.issuer.shared.domain.exception.ParseErrorException;
 import es.in2.issuer.shared.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.shared.domain.model.dto.credential.DetailedIssuer;
-import es.in2.issuer.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.shared.domain.model.dto.VerifiableCertification;
 import es.in2.issuer.shared.domain.model.dto.VerifiableCertificationJwtPayload;
+import es.in2.issuer.shared.domain.model.dto.credential.DetailedIssuer;
+import es.in2.issuer.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.shared.domain.model.enums.CredentialType;
 import es.in2.issuer.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.shared.domain.service.JWTService;
-import es.in2.issuer.shared.domain.util.Constants;
 import es.in2.issuer.shared.infrastructure.config.DefaultSignerConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +27,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.backoffice.domain.util.Constants.VC;
+import static es.in2.issuer.shared.domain.util.Constants.CREDENTIAL_CONTEXT;
+import static es.in2.issuer.shared.domain.util.Constants.VERIFIABLE_CERTIFICATION_TYPE;
 
 @Component
 @RequiredArgsConstructor
@@ -47,12 +48,12 @@ public class VerifiableCertificationFactory {
         LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee(vcClaim);
         return
                 buildVerifiableCertification(verifiableCertification, learCredentialEmployee)
-                .flatMap(verifiableCertificationDecoded ->
-                        convertVerifiableCertificationInToString(verifiableCertificationDecoded)
-                                .flatMap(decodedCredential ->
-                                        buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationDecoded, operationMode)
-                                )
-                );
+                        .flatMap(verifiableCertificationDecoded ->
+                                convertVerifiableCertificationInToString(verifiableCertificationDecoded)
+                                        .flatMap(decodedCredential ->
+                                                buildCredentialProcedureCreationRequest(decodedCredential, verifiableCertificationDecoded, operationMode)
+                                        )
+                        );
     }
 
     private Mono<VerifiableCertification> buildVerifiableCertification(VerifiableCertification credential, LEARCredentialEmployee learCredentialEmployee) {
@@ -77,9 +78,9 @@ public class VerifiableCertificationFactory {
 
         // Build the VerifiableCertification object
         return Mono.just(VerifiableCertification.builder()
-                .context(Constants.CREDENTIAL_CONTEXT)
+                .context(CREDENTIAL_CONTEXT)
                 .id(UUID.randomUUID().toString())
-                .type(Constants.VERIFIABLE_CERTIFICATION_TYPE)
+                .type(VERIFIABLE_CERTIFICATION_TYPE)
                 .credentialSubject(VerifiableCertification.CredentialSubject.builder()
                         .company(credential.credentialSubject().company())
                         .product(credential.credentialSubject().product())
@@ -121,7 +122,7 @@ public class VerifiableCertificationFactory {
                 .organization(issuer.organization())
                 .build();
 
-        return Mono.just( VerifiableCertification.builder()
+        return Mono.just(VerifiableCertification.builder()
                 .context(verifiableCertification.context())
                 .id(verifiableCertification.id())
                 .type(verifiableCertification.type())
@@ -134,7 +135,7 @@ public class VerifiableCertificationFactory {
                 .build());
     }
 
-    public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential){
+    public Mono<VerifiableCertificationJwtPayload> buildVerifiableCertificationJwtPayload(VerifiableCertification credential) {
         return Mono.just(
                 VerifiableCertificationJwtPayload.builder()
                         .JwtId(UUID.randomUUID().toString())
