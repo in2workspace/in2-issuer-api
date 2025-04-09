@@ -3,6 +3,7 @@ package es.in2.issuer.shared.infrastructure.config.security.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backoffice.domain.service.VerifierService;
 import es.in2.issuer.shared.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.shared.domain.exception.ParseErrorException;
 import es.in2.issuer.shared.domain.exception.UnauthorizedRoleException;
@@ -12,18 +13,7 @@ import es.in2.issuer.shared.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.shared.domain.util.factory.CredentialFactory;
-import es.in2.issuer.shared.infrastructure.config.security.service.PolicyAuthorizationService;
-import es.in2.issuer.domain.exception.InsufficientPermissionException;
-import es.in2.issuer.domain.exception.ParseErrorException;
-import es.in2.issuer.domain.exception.UnauthorizedRoleException;
-import es.in2.issuer.domain.model.dto.credential.lear.LEARCredential;
-import es.in2.issuer.domain.model.dto.credential.lear.Mandator;
-import es.in2.issuer.domain.model.dto.credential.lear.Power;
-import es.in2.issuer.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
-import es.in2.issuer.domain.service.JWTService;
-import es.in2.issuer.domain.service.VerifierService;
-import es.in2.issuer.domain.util.factory.CredentialFactory;
-import es.in2.issuer.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
+import es.in2.issuer.shared.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,9 +23,9 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static es.in2.issuer.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 import static es.in2.issuer.shared.domain.util.Utils.extractMandator;
 import static es.in2.issuer.shared.domain.util.Utils.extractPowers;
-import static es.in2.issuer.shared.domain.util.Constants.*;
 
 @Service
 @Slf4j

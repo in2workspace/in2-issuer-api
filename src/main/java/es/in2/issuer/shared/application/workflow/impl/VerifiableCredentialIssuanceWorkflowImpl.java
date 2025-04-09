@@ -1,17 +1,18 @@
 package es.in2.issuer.shared.application.workflow.impl;
 
 import com.nimbusds.jose.JWSObject;
-import es.in2.issuer.shared.domain.exception.*;
-import es.in2.issuer.shared.domain.model.dto.*;
+import es.in2.issuer.backoffice.domain.service.M2MTokenService;
 import es.in2.issuer.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.shared.application.workflow.VerifiableCredentialIssuanceWorkflow;
+import es.in2.issuer.shared.domain.exception.*;
+import es.in2.issuer.shared.domain.model.dto.*;
 import es.in2.issuer.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.shared.domain.model.enums.CredentialStatus;
 import es.in2.issuer.shared.domain.service.*;
 import es.in2.issuer.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import es.in2.issuer.shared.infrastructure.config.WebClientConfig;
-import es.in2.issuer.shared.infrastructure.config.security.service.PolicyAuthorizationService;
+import es.in2.issuer.shared.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +28,8 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 
 import static es.in2.issuer.backoffice.domain.util.Constants.*;
-import static es.in2.issuer.shared.domain.util.Constants.*;
+import static es.in2.issuer.shared.domain.util.Constants.JWT_VC_JSON;
+import static es.in2.issuer.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 
 @Slf4j
 @Service

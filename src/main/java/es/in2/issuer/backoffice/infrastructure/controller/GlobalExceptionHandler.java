@@ -2,10 +2,10 @@ package es.in2.issuer.backoffice.infrastructure.controller;
 
 
 import es.in2.issuer.backoffice.domain.exception.*;
+import es.in2.issuer.backoffice.domain.util.CredentialResponseErrorCodes;
 import es.in2.issuer.shared.domain.exception.*;
 import es.in2.issuer.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.shared.domain.model.dto.GlobalErrorMessage;
-import es.in2.issuer.backoffice.domain.util.CredentialResponseErrorCodes;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
