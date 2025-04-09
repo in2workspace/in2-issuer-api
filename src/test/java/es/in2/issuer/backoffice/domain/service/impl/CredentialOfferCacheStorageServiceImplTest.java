@@ -1,8 +1,7 @@
-package es.in2.issuer.backoffice.domain.service;
+package es.in2.issuer.backoffice.domain.service.impl;
 
 import es.in2.issuer.backoffice.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.backoffice.domain.service.impl.CredentialOfferCacheStorageServiceImpl;
 import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

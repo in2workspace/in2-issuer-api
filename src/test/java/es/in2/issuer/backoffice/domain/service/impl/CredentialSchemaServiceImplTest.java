@@ -1,7 +1,6 @@
-package es.in2.issuer.backoffice.domain.service;
+package es.in2.issuer.backoffice.domain.service.impl;
 
 import es.in2.issuer.backoffice.domain.model.dto.VcTemplate;
-import es.in2.issuer.backoffice.domain.service.impl.CredentialSchemaServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

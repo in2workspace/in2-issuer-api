@@ -2,7 +2,7 @@ package es.in2.issuer.backoffice.infrastructure.config.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backoffice.domain.service.VerifierService;
+import es.in2.issuer.shared.domain.service.VerifierService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;

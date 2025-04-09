@@ -1,8 +1,7 @@
-package es.in2.issuer.backoffice.domain.service;
+package es.in2.issuer.backoffice.domain.service.impl;
 
 import es.in2.issuer.shared.domain.exception.EmailCommunicationException;
 import es.in2.issuer.shared.domain.model.enums.CredentialStatus;
-import es.in2.issuer.backoffice.domain.service.impl.NotificationServiceImpl;
 import es.in2.issuer.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.shared.domain.service.EmailService;

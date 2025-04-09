@@ -49,4 +49,20 @@ public class AppConfig {
     public String getCryptoPrivateKey() {
         return issuerIdentityProperties.crypto().privateKey();
     }
+
+    public String getCredentialSubjectDidKey() {
+        return issuerIdentityProperties.credentialSubjectDidKey();
+    }
+
+    public String getClientAssertionExpiration() {
+        return issuerIdentityProperties.clientAssertion().expiration();
+    }
+
+    public String getClientAssertionExpirationUnitTime() {
+        return issuerIdentityProperties.clientAssertion().expirationUnitTime();
+    }
+
+    public String getJwtCredential() {
+        return issuerIdentityProperties.jwtCredential();
+    }
 }

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.backoffice.domain.service.VerifierService;
+import es.in2.issuer.shared.domain.service.VerifierService;
 import es.in2.issuer.shared.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.shared.domain.exception.ParseErrorException;
 import es.in2.issuer.shared.domain.exception.UnauthorizedRoleException;

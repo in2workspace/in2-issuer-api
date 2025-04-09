@@ -1,4 +1,4 @@
-package es.in2.issuer.backoffice.domain.exception;
+package es.in2.issuer.shared.domain.exception;
 
 public class JWTVerificationException extends RuntimeException {
 

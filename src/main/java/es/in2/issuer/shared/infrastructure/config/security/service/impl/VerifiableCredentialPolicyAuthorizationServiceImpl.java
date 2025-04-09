@@ -3,7 +3,7 @@ package es.in2.issuer.shared.infrastructure.config.security.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backoffice.domain.service.VerifierService;
+import es.in2.issuer.shared.domain.service.VerifierService;
 import es.in2.issuer.shared.domain.exception.InsufficientPermissionException;
 import es.in2.issuer.shared.domain.exception.ParseErrorException;
 import es.in2.issuer.shared.domain.exception.UnauthorizedRoleException;

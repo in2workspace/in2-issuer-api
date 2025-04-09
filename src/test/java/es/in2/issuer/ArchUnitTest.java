@@ -76,10 +76,9 @@ class ArchUnitTest {
         return null;
     }
 
-    // TODO: Enable this test when the test classes are moved to the same package as the implementation
-    /*@ArchTest
+    @ArchTest
     static final ArchRule testClassesShouldResideInTheSamePackageAsImplementation =
-            GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation();*/
+            GeneralCodingRules.testClassesShouldResideInTheSamePackageAsImplementation();
 
     @Test
     void classesInSharedMustBeUsedBySharedOrByBothBackofficeAndOidc4vci() {

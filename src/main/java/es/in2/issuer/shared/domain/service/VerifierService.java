@@ -1,7 +1,7 @@
-package es.in2.issuer.backoffice.domain.service;
+package es.in2.issuer.shared.domain.service;
 
-import es.in2.issuer.backoffice.domain.model.dto.OpenIDProviderMetadata;
-import es.in2.issuer.backoffice.domain.model.dto.VerifierOauth2AccessToken;
+import es.in2.issuer.shared.domain.model.dto.OpenIDProviderMetadata;
+import es.in2.issuer.shared.domain.model.dto.VerifierOauth2AccessToken;
 import reactor.core.publisher.Mono;
 
 public interface VerifierService {

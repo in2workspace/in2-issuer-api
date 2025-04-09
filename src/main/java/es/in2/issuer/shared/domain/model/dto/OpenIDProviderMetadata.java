@@ -1,4 +1,4 @@
-package es.in2.issuer.backoffice.domain.model.dto;
+package es.in2.issuer.shared.domain.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;

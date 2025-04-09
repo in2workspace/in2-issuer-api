@@ -1,7 +1,6 @@
-package es.in2.issuer.backoffice.domain.service;
+package es.in2.issuer.shared.domain.service.impl;
 
-import es.in2.issuer.backoffice.domain.model.dto.OpenIDProviderMetadata;
-import es.in2.issuer.backoffice.domain.service.impl.VerifierServiceImpl;
+import es.in2.issuer.shared.domain.model.dto.OpenIDProviderMetadata;
 import es.in2.issuer.shared.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

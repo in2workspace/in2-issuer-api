@@ -1,7 +1,7 @@
 package es.in2.issuer.shared.application.workflow.impl;
 
 import com.nimbusds.jose.JWSObject;
-import es.in2.issuer.backoffice.domain.service.M2MTokenService;
+import es.in2.issuer.shared.domain.service.M2MTokenService;
 import es.in2.issuer.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.shared.application.workflow.VerifiableCredentialIssuanceWorkflow;
 import es.in2.issuer.shared.domain.exception.*;

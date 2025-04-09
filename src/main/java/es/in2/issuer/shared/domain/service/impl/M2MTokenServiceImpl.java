@@ -1,12 +1,11 @@
-package es.in2.issuer.backoffice.domain.service.impl;
+package es.in2.issuer.shared.domain.service.impl;
 
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jwt.SignedJWT;
-import es.in2.issuer.backoffice.domain.model.dto.VerifierOauth2AccessToken;
+import es.in2.issuer.shared.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.shared.domain.service.JWTService;
-import es.in2.issuer.backoffice.domain.service.M2MTokenService;
-import es.in2.issuer.backoffice.domain.service.VerifierService;
-import es.in2.issuer.backoffice.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.domain.service.M2MTokenService;
+import es.in2.issuer.shared.domain.service.VerifierService;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import es.in2.issuer.shared.infrastructure.config.VerifierConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
