@@ -114,32 +114,32 @@ class VerifiableCertificationFactoryTest {
         // Given: A mocked JsonNode input representing the VerifiableCertification
         String credentialJson = """
                 {
-                  "@context": ["https://www.w3.org/2018/credentials/v1"],
-                  "id": "urn:uuid:%s",
-                  "type": ["VerifiableCertification"],
-                  "credentialSubject": {
-                    "company": {
-                      "address": "1234 Example St.",
-                      "commonName": "Company Name",
-                      "country": "Country",
-                      "email": "company@example.com",
-                      "id": "company-id",
-                      "organization": "Company Organization"
+                    "@context": ["https://www.w3.org/2018/credentials/v1"],
+                    "id": "urn:uuid:%s",
+                    "type": ["VerifiableCertification"],
+                    "credentialSubject": {
+                        "company": {
+                            "address": "1234 Example St.",
+                            "commonName": "Company Name",
+                            "country": "Country",
+                            "email": "company@example.com",
+                            "id": "company-id",
+                            "organization": "Company Organization"
+                        },
+                        "compliance": [{
+                            "id": "compliance-id",
+                            "hash": "1234",
+                            "scope": "compliance-scope",
+                            "standard": "compliance-standard"
+                        }],
+                        "product": {
+                            "productId": "product-id",
+                            "productName": "Product Name",
+                            "productVersion": "1.0"
+                        }
                     },
-                    "compliance": [{
-                      "id": "compliance-id",
-                      "hash": "1234",
-                      "scope": "compliance-scope",
-                      "standard": "compliance-standard"
-                    }],
-                    "product": {
-                      "productId": "product-id",
-                      "productName": "Product Name",
-                      "productVersion": "1.0"
-                    }
-                  },
-                  "validFrom": "2023-09-07T00:00:00Z",
-                  "validUntil": "2024-09-07T00:00:00Z"
+                    "validFrom": "2023-09-07T00:00:00Z",
+                    "validUntil": "2024-09-07T00:00:00Z"
                 }
                 """.formatted(UUID.randomUUID().toString());
 
@@ -208,12 +208,15 @@ class VerifiableCertificationFactoryTest {
 
         when(jwtService.parseJWT(token)).thenReturn(signedJWT);
         when(jwtService.getClaimFromPayload(jwtPayload, ROLE)).thenReturn(LEAR);
-        when(jwtService.getClaimFromPayload(jwtPayload, VC)).thenReturn("vcJson");
+        // We return a valid JSON string so that when parsed, we get "vcJson"
+        when(jwtService.getClaimFromPayload(jwtPayload, "vc_json")).thenReturn("\"vcJson\"");
+        // In this case, we simulate the behavior of objectMapper.readValue:
+        when(objectMapper.readValue("\"vcJson\"", String.class)).thenReturn("vcJson");
+
         LEARCredentialEmployee learCredential = getLEARCredentialEmployee();
         when(learCredentialEmployeeFactory.mapStringToLEARCredentialEmployee("vcJson")).thenReturn(learCredential);
 
         when(objectMapper.convertValue(credentialNode, VerifiableCertification.class)).thenReturn(verifiableCertificationBuild);
-
         when(objectMapper.writeValueAsString(any(VerifiableCertification.class))).thenReturn("expectedString");
 
         // When: Calling mapAndBuildVerifiableCertification
@@ -221,9 +224,10 @@ class VerifiableCertificationFactoryTest {
 
         // Then: Verify the result
         StepVerifier.create(resultMono)
-                .expectNextMatches(credentialProcedureCreationRequest -> credentialProcedureCreationRequest.credentialId() != null &&
-                        credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
-                        credentialProcedureCreationRequest.credentialDecoded() != null)
+                .expectNextMatches(credentialProcedureCreationRequest ->
+                        credentialProcedureCreationRequest.credentialId() != null &&
+                                credentialProcedureCreationRequest.organizationIdentifier().equals("OrgIdentifier") &&
+                                credentialProcedureCreationRequest.credentialDecoded() != null)
                 .verifyComplete();
     }
 

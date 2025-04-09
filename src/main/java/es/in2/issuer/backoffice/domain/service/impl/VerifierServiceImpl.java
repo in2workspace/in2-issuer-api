@@ -42,15 +42,26 @@ public class VerifierServiceImpl implements VerifierService {
 
     @Override
     public Mono<Void> verifyToken(String accessToken) {
-        return parseAndValidateJwt(accessToken)
-                .doOnSuccess(unused -> log.info("VerifyToken -- IS VALID"))
+        return parseAndValidateJwt(accessToken, true)
+                .doOnSuccess(unused -> log.info("The verification of the token is valid"))
                 .onErrorResume(e -> {
                     log.error("Error while verifying token", e);
                     return Mono.error(e);
                 });
     }
 
-    private Mono<Void> parseAndValidateJwt(String accessToken) {
+    @Override
+    public Mono<Void> verifyTokenWithoutExpiration(String accessToken) {
+        // This method will not validate the expiration
+        return parseAndValidateJwt(accessToken, false)
+                .doOnSuccess(unused -> log.info("The verification of the token without expiration is valid"))
+                .onErrorResume(e -> {
+                    log.error("Error while verifying token (without expiration)", e);
+                    return Mono.error(e);
+                });
+    }
+
+    private Mono<Void> parseAndValidateJwt(String accessToken, boolean checkExpiration) {
         return getWellKnownInfo()
                 .flatMap(metadata -> fetchJWKSet(metadata.jwksUri()))
                 .flatMap(jwkSet -> {
@@ -63,8 +74,8 @@ public class VerifierServiceImpl implements VerifierService {
                             return Mono.error(new JWTVerificationException("Invalid issuer"));
                         }
 
-                        // Validate expiration time
-                        if (claims.getExpirationTime() == null || new Date().after(claims.getExpirationTime())) {
+                        // Validate expiration time if requested
+                        if (checkExpiration && (claims.getExpirationTime() == null || new Date().after(claims.getExpirationTime()))) {
                             return Mono.error(new JWTVerificationException("Token has expired"));
                         }
 
@@ -148,4 +159,3 @@ public class VerifierServiceImpl implements VerifierService {
                         .onErrorMap(e -> new TokenFetchException("Error fetching the token", e)));
     }
 }
-

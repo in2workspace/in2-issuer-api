@@ -4,7 +4,7 @@ import es.in2.issuer.shared.domain.model.dto.*;
 import reactor.core.publisher.Mono;
 
 public interface VerifiableCredentialIssuanceWorkflow {
-    Mono<Void> completeIssuanceCredentialProcess(String processId, String type, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token);
+    Mono<Void> completeIssuanceCredentialProcess(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken);
 
     Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId, CredentialRequest credentialRequest, String token);
 

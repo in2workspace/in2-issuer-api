@@ -9,28 +9,26 @@ import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
-
 @Configuration
 @RequiredArgsConstructor
-public class ExternalServicesCORSConfig {
 
+public class InternalCORSConfig {
     private final AppConfig appConfig;
 
     /**
-     * External CORS configuration source.
+     * Default CORS configuration source.
      */
     @Bean
-    public UrlBasedCorsConfigurationSource externalCorsConfigurationSource() {
+    public UrlBasedCorsConfigurationSource defaultCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(appConfig.getExternalCorsAllowedOrigins());
-        configuration.setAllowedMethods(List.of("POST", "OPTIONS"));
+        configuration.setAllowedOrigins(appConfig.getDefaultCorsAllowedOrigins());
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(EXTERNAL_ISSUANCE, configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }

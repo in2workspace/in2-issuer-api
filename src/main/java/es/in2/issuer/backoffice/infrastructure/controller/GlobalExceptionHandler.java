@@ -299,4 +299,20 @@ public class GlobalExceptionHandler {
                         .error("EmailCommunicationException")
                         .build());
     }
+
+    @ExceptionHandler(MissingIdTokenHeaderException.class)
+    public Mono<ResponseEntity<CredentialErrorResponse>> handleMissingIdTokenHeaderException(Exception ex) {
+        String description = "The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification";
+
+        if (ex.getMessage() != null) {
+            log.error(ex.getMessage());
+            description = ex.getMessage();
+        }
+
+        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
+                CredentialResponseErrorCodes.MISSING_HEADER,
+                description);
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+    }
 }

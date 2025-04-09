@@ -36,18 +36,20 @@ class CredentialFactoryTest {
     void testMapCredentialIntoACredentialProcedureRequest_Success() {
         //Arrange
         String processId = "processId";
-        String credentialType = "LEARCredentialEmployee";
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = mock(PreSubmittedCredentialRequest.class);
-        when(preSubmittedCredentialRequest.operationMode()).thenReturn("S");
         JsonNode jsonNode = mock(JsonNode.class);
-        when(preSubmittedCredentialRequest.payload()).thenReturn(jsonNode);
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
+                .operationMode("S")
+                .schema("LEARCredentialEmployee")
+                .payload(jsonNode)
+                .build();
+
         CredentialProcedureCreationRequest credentialProcedureCreationRequest = mock(CredentialProcedureCreationRequest.class);
 
         when(learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(jsonNode, preSubmittedCredentialRequest.operationMode()))
                 .thenReturn(Mono.just(credentialProcedureCreationRequest));
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, preSubmittedCredentialRequest, "token"))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, "token"))
                 .expectNext(credentialProcedureCreationRequest)
                 .verifyComplete();
 
@@ -58,11 +60,12 @@ class CredentialFactoryTest {
     void testMapCredentialIntoACredentialProcedureRequest_Failure() {
         //Arrange
         String processId = "processId";
-        String credentialType = "UNSUPPORTED_CREDENTIAL";
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = mock(PreSubmittedCredentialRequest.class);
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
+                .schema("UNSUPPORTED_CREDENTIAL")
+                .build();
 
         //Act & Assert
-        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, credentialType, preSubmittedCredentialRequest, "token"))
+        StepVerifier.create(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, "token"))
                 .expectError(CredentialTypeUnsupportedException.class)
                 .verify();
 

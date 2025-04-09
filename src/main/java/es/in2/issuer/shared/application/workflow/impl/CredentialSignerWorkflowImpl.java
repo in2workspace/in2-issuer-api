@@ -49,7 +49,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             .flatMap(credentialProcedure -> {
                 try{
                     //TODO eliminar este if en Junio aprox cuando ya no queden credenciales sin vc sin firmar
-                    if(credentialProcedure.getCredentialDecoded().contains("vc")){
+                    if(credentialProcedure.getCredentialDecoded().contains("\"vc\"")){
                         log.info("JWT Payload already created");
                         return signCredentialOnRequestedFormat(credentialProcedure.getCredentialDecoded(), format, authorizationHeader, procedureId);
                     }

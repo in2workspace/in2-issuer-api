@@ -42,12 +42,14 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final WebClientConfig webClient;
-    private final PolicyAuthorizationService policyAuthorizationService;
+    private final VerifiableCredentialPolicyAuthorizationService verifiableCredentialPolicyAuthorizationService;
     private final TrustFrameworkService trustFrameworkService;
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
+    private final M2MTokenService m2mTokenService;
+
     @Override
-    public Mono<Void> completeIssuanceCredentialProcess(String processId, String type, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
+    public Mono<Void> completeIssuanceCredentialProcess(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken) {
         // Check if the format is not "json_vc_jwt"
         if (!JWT_VC_JSON.equals(preSubmittedCredentialRequest.format())) {
             return Mono.error(new FormatUnsupportedException("Format: " + preSubmittedCredentialRequest.format() + " is not supported"));
@@ -57,30 +59,39 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
             return Mono.error(new OperationNotSupportedException("operation_mode: " + preSubmittedCredentialRequest.operationMode() + " with schema: " + preSubmittedCredentialRequest.schema()));
         }
 
+        // Validate idToken header for VerifiableCertification schema
+        if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
+            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
+        }
+
         // Validate user policy before proceeding
-        return policyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload())
+        return verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload(), idToken)
                 .then(Mono.defer(() -> {
                     if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                        return verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)
+                        return verifiableCredentialService.generateVc(processId, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest, token)
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedCredentialRequest));
                     } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
                         // Check if responseUri is null, empty, or only contains whitespace
                         if (preSubmittedCredentialRequest.responseUri() == null || preSubmittedCredentialRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedCredentialRequest.schema() + " response_uri is required"));
                         }
-                        return verifiableCredentialService.generateVerifiableCertification(processId, type, preSubmittedCredentialRequest, token)
+                        return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                    .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
+                                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
                                         // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
                                         .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                        .then(sendVcToResponseUri(preSubmittedCredentialRequest, encodedVc, token))
-                                ));
+                                                .then(m2mTokenService.getM2MToken()
+                                                        .flatMap(m2mAccessToken ->
+                                                                sendVcToResponseUri(
+                                                                        preSubmittedCredentialRequest,
+                                                                        encodedVc,
+                                                                        m2mAccessToken.accessToken())))));
                     }
-                    return Mono.error(new CredentialTypeUnsupportedException(type));
+                    return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
                 }));
     }
 
-    private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedCredentialRequest preSubmittedCredentialRequest){
+    private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
@@ -181,13 +192,13 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                             .thenReturn(credentialResponse));
             case SYNC -> deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
                     .flatMap(id -> credentialProcedureService.getCredentialStatusByProcedureId(id)
-                                    .flatMap(status -> {
-                                        Mono<Void> updateMono = !CredentialStatus.PEND_SIGNATURE.toString().equals(status)
-                                                ? credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
-                                                : Mono.empty();
-                                        return updateMono.then(credentialProcedureService.getDecodedCredentialByProcedureId(id));
-                                    })
-                                    .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
+                            .flatMap(status -> {
+                                Mono<Void> updateMono = !CredentialStatus.PEND_SIGNATURE.toString().equals(status)
+                                        ? credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(id)
+                                        : Mono.empty();
+                                return updateMono.then(credentialProcedureService.getDecodedCredentialByProcedureId(id));
+                            })
+                            .flatMap(decodedCredential -> processDecodedCredential(processId, decodedCredential))
                     )
                     .thenReturn(credentialResponse);
             default -> Mono.error(new IllegalArgumentException("Unknown operation mode: " + operationMode));
@@ -215,7 +226,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
 
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialDeferredResponse(String processId, DeferredCredentialRequest deferredCredentialRequest) {
-                return verifiableCredentialService.generateDeferredCredentialResponse(processId,deferredCredentialRequest)
+        return verifiableCredentialService.generateDeferredCredentialResponse(processId, deferredCredentialRequest)
                 .onErrorResume(e -> Mono.error(new RuntimeException("Failed to process the credential for the next processId: " + processId, e)));
     }
 
