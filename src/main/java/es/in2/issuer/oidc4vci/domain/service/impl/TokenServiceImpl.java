@@ -97,7 +97,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
 
-    private Mono<Void>  ensureGrantTypeIsPreAuthorizedCode(String grantType) {
+    private Mono<Void> ensureGrantTypeIsPreAuthorizedCode(String grantType) {
         return GRANT_TYPE.equals(grantType)
                 ? Mono.empty()
                 : Mono.error(new IllegalArgumentException("Invalid grant type"));
