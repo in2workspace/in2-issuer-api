@@ -1,5 +1,6 @@
 package es.in2.issuer.shared.infrastructure.config;
 
+import es.in2.issuer.shared.infrastructure.config.properties.CorsProperties;
 import es.in2.issuer.shared.infrastructure.config.properties.IssuerIdentityProperties;
 import es.in2.issuer.shared.infrastructure.config.properties.IssuerUiProperties;
 import es.in2.issuer.shared.infrastructure.config.properties.KnowledgeBaseProperties;
@@ -8,6 +9,8 @@ import es.in2.issuer.shared.infrastructure.config.adapter.factory.ConfigAdapterF
 import es.in2.issuer.shared.infrastructure.config.properties.ApiProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class AppConfig {
     private final ConfigAdapter configAdapter;
@@ -15,19 +18,22 @@ public class AppConfig {
     private final KnowledgeBaseProperties knowledgeBaseProperties;
     private final IssuerUiProperties issuerUiProperties;
     private final IssuerIdentityProperties issuerIdentityProperties;
+    private final CorsProperties corsProperties;
 
     public AppConfig(
             ConfigAdapterFactory configAdapterFactory,
             ApiProperties apiProperties,
             KnowledgeBaseProperties knowledgeBaseProperties,
             IssuerUiProperties issuerUiProperties,
-            IssuerIdentityProperties issuerIdentityProperties
+            IssuerIdentityProperties issuerIdentityProperties,
+            CorsProperties corsProperties
     ) {
         this.configAdapter = configAdapterFactory.getAdapter();
         this.apiProperties = apiProperties;
         this.knowledgeBaseProperties = knowledgeBaseProperties;
         this.issuerUiProperties = issuerUiProperties;
         this.issuerIdentityProperties = issuerIdentityProperties;
+        this.corsProperties = corsProperties;
     }
 
     public String getIssuerApiExternalDomain() {
@@ -64,5 +70,17 @@ public class AppConfig {
 
     public String getJwtCredential() {
         return issuerIdentityProperties.jwtCredential();
+    }
+
+    public String getApiConfigSource() {
+        return configAdapter.getConfiguration(apiProperties.configSource());
+    }
+
+    public List<String> getExternalCorsAllowedOrigins() {
+        return corsProperties.externalAllowedOrigins();
+    }
+
+    public List<String> getDefaultCorsAllowedOrigins() {
+        return corsProperties.defaultAllowedOrigins();
     }
 }

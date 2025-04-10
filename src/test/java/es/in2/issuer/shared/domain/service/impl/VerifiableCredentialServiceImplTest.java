@@ -10,7 +10,6 @@ import es.in2.issuer.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.shared.domain.service.EmailService;
 import es.in2.issuer.backoffice.domain.util.Constants;
 import es.in2.issuer.shared.domain.util.factory.CredentialFactory;
-import es.in2.issuer.backoffice.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

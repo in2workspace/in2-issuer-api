@@ -1,4 +1,4 @@
-package es.in2.issuer.backoffice.infrastructure.config.properties;
+package es.in2.issuer.shared.infrastructure.config.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.ConstructorBinding;

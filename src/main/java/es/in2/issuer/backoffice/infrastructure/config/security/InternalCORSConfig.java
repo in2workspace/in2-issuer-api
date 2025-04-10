@@ -1,6 +1,6 @@
 package es.in2.issuer.backoffice.infrastructure.config.security;
 
-import es.in2.issuer.backoffice.infrastructure.config.AppConfig;
+import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

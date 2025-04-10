@@ -1,4 +1,4 @@
-package es.in2.issuer.backoffice.infrastructure.config.properties;
+package es.in2.issuer.shared.infrastructure.config.properties;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
