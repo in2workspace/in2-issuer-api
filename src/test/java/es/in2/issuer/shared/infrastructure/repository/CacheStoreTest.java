@@ -11,9 +11,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 import reactor.test.StepVerifier;
 
-class CacheStoreRepositoryTest {
+class CacheStoreTest {
 
-    private CacheStoreRepository<String> cacheStoreRepository;
+    private CacheStore<String> cacheStore;
     private Cache<String, String> cache;
 
     @BeforeEach
@@ -21,9 +21,9 @@ class CacheStoreRepositoryTest {
         // Mock the cache since we are only testing the CacheStore logic, not the cache itself
         cache = mock(Cache.class);
         // Build the cache store with arbitrary expiry and TimeUnit
-        cacheStoreRepository = new CacheStoreRepository<>(1, TimeUnit.MINUTES);
+        cacheStore = new CacheStore<>(1, TimeUnit.MINUTES);
         // Inject the mocked cache into our CacheStore
-        ReflectionTestUtils.setField(cacheStoreRepository, "cache", cache);
+        ReflectionTestUtils.setField(cacheStore, "cache", cache);
     }
 
     @Test
@@ -32,7 +32,7 @@ class CacheStoreRepositoryTest {
         String value = "value1";
         when(cache.getIfPresent(key)).thenReturn(value);
 
-        StepVerifier.create(cacheStoreRepository.add(key, value))
+        StepVerifier.create(cacheStore.add(key, value))
                 .expectSubscription()
                 .expectNext(key)
                 .verifyComplete();
@@ -46,7 +46,7 @@ class CacheStoreRepositoryTest {
         String expectedValue = "value1";
         when(cache.getIfPresent(key)).thenReturn(expectedValue);
 
-        StepVerifier.create(cacheStoreRepository.get(key))
+        StepVerifier.create(cacheStore.get(key))
                 .expectSubscription()
                 .expectNext(expectedValue)
                 .verifyComplete();
@@ -59,7 +59,7 @@ class CacheStoreRepositoryTest {
         String key = "key1";
         doNothing().when(cache).invalidate(key);
 
-        StepVerifier.create(cacheStoreRepository.delete(key))
+        StepVerifier.create(cacheStore.delete(key))
                 .expectSubscription()
                 .verifyComplete();
 
@@ -69,17 +69,17 @@ class CacheStoreRepositoryTest {
     @Test
     void testAddNullKeyOrValue() {
         // Test with null key
-        StepVerifier.create(cacheStoreRepository.add(null, "value"))
+        StepVerifier.create(cacheStore.add(null, "value"))
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
         // Test with empty key
-        StepVerifier.create(cacheStoreRepository.add("", "value"))
+        StepVerifier.create(cacheStore.add("", "value"))
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
         // Test with null value
-        StepVerifier.create(cacheStoreRepository.add("key", null))
+        StepVerifier.create(cacheStore.add("key", null))
                 .expectSubscription()
                 .verifyComplete(); // Verify that it completes without emitting any value
 
@@ -92,7 +92,7 @@ class CacheStoreRepositoryTest {
         String key = "nonExisting";
         when(cache.getIfPresent(key)).thenReturn(null);
 
-        StepVerifier.create(cacheStoreRepository.get(key))
+        StepVerifier.create(cacheStore.get(key))
                 .expectSubscription()
                 .expectError(NoSuchElementException.class)
                 .verify();
@@ -102,7 +102,7 @@ class CacheStoreRepositoryTest {
 
     @Test
     void testGetCacheExpiryInSeconds_NormalCase() {
-        StepVerifier.create(cacheStoreRepository.getCacheExpiryInSeconds())
+        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
                 .expectSubscription()
                 .expectNext(60) // 1 MINUTE => 60 seconds
                 .verifyComplete();
@@ -110,10 +110,10 @@ class CacheStoreRepositoryTest {
 
     @Test
     void testGetCacheExpiryInSeconds_ExceedMaxInteger() {
-        ReflectionTestUtils.setField(cacheStoreRepository, "expiryDuration", Long.MAX_VALUE);
-        ReflectionTestUtils.setField(cacheStoreRepository, "timeUnit", TimeUnit.SECONDS);
+        ReflectionTestUtils.setField(cacheStore, "expiryDuration", Long.MAX_VALUE);
+        ReflectionTestUtils.setField(cacheStore, "timeUnit", TimeUnit.SECONDS);
 
-        StepVerifier.create(cacheStoreRepository.getCacheExpiryInSeconds())
+        StepVerifier.create(cacheStore.getCacheExpiryInSeconds())
                 .expectSubscription()
                 .expectError(IllegalStateException.class)
                 .verify();

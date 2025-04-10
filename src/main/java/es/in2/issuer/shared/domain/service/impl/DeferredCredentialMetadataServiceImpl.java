@@ -4,7 +4,7 @@ import es.in2.issuer.shared.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.shared.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
 import es.in2.issuer.shared.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.shared.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.shared.infrastructure.repository.DeferredCredentialMetadataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,20 +21,20 @@ import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 @Slf4j
 public class DeferredCredentialMetadataServiceImpl implements DeferredCredentialMetadataService {
     private final DeferredCredentialMetadataRepository deferredCredentialMetadataRepository;
-    private final CacheStoreRepository<String> cacheStoreRepositoryForTransactionCode;
-    private final CacheStoreRepository<String> cacheStoreRepositoryForCTransactionCode;
+    private final CacheStore<String> cacheStoreForTransactionCode;
+    private final CacheStore<String> cacheStoreForCTransactionCode;
 
     @Override
     public Mono<Void> validateTransactionCode(String transactionCode) {
         log.debug("Validating transactionCode: " + transactionCode);
-        return cacheStoreRepositoryForTransactionCode.get(transactionCode).flatMap(cacheStoreRepositoryForTransactionCode::delete);
+        return cacheStoreForTransactionCode.get(transactionCode).flatMap(cacheStoreForTransactionCode::delete);
     }
 
     @Override
     public Mono<String> validateCTransactionCode(String cTransactionCode) {
         log.debug("Validating cTransactionCode: " + cTransactionCode);
-        return cacheStoreRepositoryForCTransactionCode.get(cTransactionCode)
-                .flatMap(transactionCode -> cacheStoreRepositoryForCTransactionCode.delete(cTransactionCode)
+        return cacheStoreForCTransactionCode.get(cTransactionCode)
+                .flatMap(transactionCode -> cacheStoreForCTransactionCode.delete(cTransactionCode)
                         .then(Mono.just(transactionCode)));
     }
 
@@ -53,7 +53,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     @Override
     public Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri) {
         return generateCustomNonce()
-                .flatMap(nonce -> cacheStoreRepositoryForTransactionCode.add(nonce, nonce))
+                .flatMap(nonce -> cacheStoreForTransactionCode.add(nonce, nonce))
                 .flatMap(transactionCode -> {
                     DeferredCredentialMetadata deferredCredentialMetadata = DeferredCredentialMetadata
                             .builder()
@@ -71,9 +71,9 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     public Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode) {
         return generateCustomNonce()
                 .flatMap(cTransactionCode ->
-                        cacheStoreRepositoryForCTransactionCode.add(cTransactionCode, transactionCode)
+                        cacheStoreForCTransactionCode.add(cTransactionCode, transactionCode)
                                 .then(
-                                        cacheStoreRepositoryForCTransactionCode.getCacheExpiryInSeconds()
+                                        cacheStoreForCTransactionCode.getCacheExpiryInSeconds()
                                                 .map(expiry -> Map.of(
                                                         "cTransactionCode", cTransactionCode,
                                                         "cTransactionCodeExpiresIn", expiry
@@ -87,7 +87,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     public Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId) {
         return deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .flatMap(existingDeferredCredentialMetadata -> generateCustomNonce()
-                        .flatMap(nonce -> cacheStoreRepositoryForTransactionCode.add(nonce, nonce)
+                        .flatMap(nonce -> cacheStoreForTransactionCode.add(nonce, nonce)
                                 .then(Mono.just(nonce))
                                 .doOnNext(existingDeferredCredentialMetadata::setTransactionCode))
                         .flatMap(newNonce -> deferredCredentialMetadataRepository.save(existingDeferredCredentialMetadata)

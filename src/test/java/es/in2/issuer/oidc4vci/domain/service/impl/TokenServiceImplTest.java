@@ -4,7 +4,7 @@ import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.oidc4vci.domain.model.dto.TokenResponse;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.infrastructure.config.AppConfig;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,10 +26,10 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class TokenServiceImplTest {
     @Mock
-    private CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
+    private CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Mock
-    private CacheStoreRepository<String> nonceCacheStore;
+    private CacheStore<String> nonceCacheStore;
 
     @Mock
     private JWTService jwtService;

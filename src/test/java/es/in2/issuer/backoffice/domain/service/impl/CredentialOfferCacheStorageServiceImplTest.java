@@ -2,7 +2,7 @@ package es.in2.issuer.backoffice.domain.service.impl;
 
 import es.in2.issuer.backoffice.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
 class CredentialOfferCacheStorageServiceImplTest {
 
     @Mock
-    private CacheStoreRepository<CredentialOfferData> cacheStoreRepository;
+    private CacheStore<CredentialOfferData> cacheStore;
 
     @InjectMocks
     private CredentialOfferCacheStorageServiceImpl service;
@@ -30,13 +30,13 @@ class CredentialOfferCacheStorageServiceImplTest {
         CredentialOfferData credentialOfferData = CredentialOfferData.builder().build(); // You should populate it as necessary
         String expectedNonce = "testNonce";
 
-        when(cacheStoreRepository.add(any(String.class), eq(credentialOfferData))).thenReturn(Mono.just(expectedNonce));
+        when(cacheStore.add(any(String.class), eq(credentialOfferData))).thenReturn(Mono.just(expectedNonce));
 
         StepVerifier.create(service.saveCustomCredentialOffer(credentialOfferData))
                 .expectNext(expectedNonce)
                 .verifyComplete();
 
-        verify(cacheStoreRepository, times(1)).add(any(String.class), eq(credentialOfferData));
+        verify(cacheStore, times(1)).add(any(String.class), eq(credentialOfferData));
     }
 
     @Test
@@ -44,20 +44,20 @@ class CredentialOfferCacheStorageServiceImplTest {
         String nonce = "testNonce";
         CredentialOfferData credentialOfferData = CredentialOfferData.builder().build(); // You should populate it as necessary
 
-        when(cacheStoreRepository.get(nonce)).thenReturn(Mono.just(credentialOfferData));
-        when(cacheStoreRepository.delete(nonce)).thenReturn(Mono.empty());
+        when(cacheStore.get(nonce)).thenReturn(Mono.just(credentialOfferData));
+        when(cacheStore.delete(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
                 .expectNextMatches(retrievedOffer -> retrievedOffer.equals(credentialOfferData))
                 .verifyComplete();
 
-        verify(cacheStoreRepository, times(1)).delete(nonce);
+        verify(cacheStore, times(1)).delete(nonce);
     }
 
     @Test
     void testGetCustomCredentialOfferNotFound() {
         String nonce = "testNonce";
-        when(cacheStoreRepository.get(nonce)).thenReturn(Mono.empty());
+        when(cacheStore.get(nonce)).thenReturn(Mono.empty());
 
         StepVerifier.create(service.getCustomCredentialOffer(nonce))
                 .expectErrorSatisfies(throwable -> assertThat(throwable)
@@ -65,7 +65,7 @@ class CredentialOfferCacheStorageServiceImplTest {
                         .hasMessageContaining("CustomCredentialOffer not found for nonce: " + nonce))
                 .verify();
 
-        verify(cacheStoreRepository, never()).delete(anyString());
+        verify(cacheStore, never()).delete(anyString());
     }
 
 }

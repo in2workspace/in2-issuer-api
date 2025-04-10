@@ -4,7 +4,7 @@ import es.in2.issuer.oidc4vci.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.Grant;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +23,7 @@ import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 @RequiredArgsConstructor
 public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final SecureRandom random;
-    private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
+    private final CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @Override
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(String processId, Mono<UUID> credentialIdMono) {

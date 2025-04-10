@@ -3,7 +3,7 @@ package es.in2.issuer.backoffice.domain.service.impl;
 import es.in2.issuer.backoffice.domain.exception.CustomCredentialOfferNotFoundException;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.backoffice.domain.service.CredentialOfferCacheStorageService;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -16,16 +16,16 @@ import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 @RequiredArgsConstructor
 public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCacheStorageService {
 
-    private final CacheStoreRepository<CredentialOfferData> cacheStoreRepository;
+    private final CacheStore<CredentialOfferData> cacheStore;
 
     @Override
     public Mono<String> saveCustomCredentialOffer(CredentialOfferData credentialOfferData) {
-        return generateCustomNonce().flatMap(nonce -> cacheStoreRepository.add(nonce, credentialOfferData));
+        return generateCustomNonce().flatMap(nonce -> cacheStore.add(nonce, credentialOfferData));
     }
 
     @Override
     public Mono<CredentialOfferData> getCustomCredentialOffer(String nonce) {
-        return cacheStoreRepository.get(nonce)
+        return cacheStore.get(nonce)
                 .switchIfEmpty(Mono.error(
                         new CustomCredentialOfferNotFoundException(
                                 "CustomCredentialOffer not found for nonce: " + nonce))
@@ -34,7 +34,7 @@ public class CredentialOfferCacheStorageServiceImpl implements CredentialOfferCa
                         log.debug("CustomCredentialOffer found for nonce: {}", nonce)
                 )
                 .flatMap(customCredentialOffer ->
-                        cacheStoreRepository.delete(nonce).thenReturn(customCredentialOffer)
+                        cacheStore.delete(nonce).thenReturn(customCredentialOffer)
                 );
     }
 }

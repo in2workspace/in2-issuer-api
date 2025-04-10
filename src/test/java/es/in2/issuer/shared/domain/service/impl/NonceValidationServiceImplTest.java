@@ -1,6 +1,6 @@
 package es.in2.issuer.shared.domain.service.impl;
 
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class NonceValidationServiceImplTest {
 
     @Mock
-    private CacheStoreRepository<String> nonceCacheStore;
+    private CacheStore<String> nonceCacheStore;
 
     @InjectMocks
     private NonceValidationServiceImpl nonceValidationService;

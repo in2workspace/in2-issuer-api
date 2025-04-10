@@ -3,7 +3,7 @@ package es.in2.issuer.shared.infrastructure.config;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.shared.domain.model.dto.VerifiableCredentialJWT;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,36 +19,36 @@ public class CacheStoreConfig {
     private final CacheConfig cacheConfig;
 
     @Bean
-    public CacheStoreRepository<String> cacheStoreDefault() {
-        return new CacheStoreRepository<>(10, TimeUnit.MINUTES);
+    public CacheStore<String> cacheStoreDefault() {
+        return new CacheStore<>(10, TimeUnit.MINUTES);
     }
 
     @Bean
-    public CacheStoreRepository<String> cacheStoreForTransactionCode() {
-        return new CacheStoreRepository<>(72, TimeUnit.HOURS);
+    public CacheStore<String> cacheStoreForTransactionCode() {
+        return new CacheStore<>(72, TimeUnit.HOURS);
     }
     @Bean
-    public CacheStoreRepository<String> cacheStoreForCTransactionCode() {
-        return new CacheStoreRepository<>(10, TimeUnit.MINUTES);
-    }
-
-    @Bean
-    public CacheStoreRepository<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {
-        return new CacheStoreRepository<>(cacheConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
+    public CacheStore<String> cacheStoreForCTransactionCode() {
+        return new CacheStore<>(10, TimeUnit.MINUTES);
     }
 
     @Bean
-    public CacheStoreRepository<CredentialOfferData> cacheStoreForCredentialOffer() {
-        return new CacheStoreRepository<>(cacheConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
+    public CacheStore<VerifiableCredentialJWT> cacheStoreForVerifiableCredentialJwt() {
+        return new CacheStore<>(cacheConfig.getCacheLifetimeForVerifiableCredential(), TimeUnit.MINUTES);
     }
 
     @Bean
-    public CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore() {
-        return new CacheStoreRepository<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
+    public CacheStore<CredentialOfferData> cacheStoreForCredentialOffer() {
+        return new CacheStore<>(cacheConfig.getCacheLifetimeForCredentialOffer(), TimeUnit.MINUTES);
     }
 
     @Bean
-    public CacheStoreRepository<String> nonceCacheStore() {
-        return new CacheStoreRepository<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
+    public CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore() {
+        return new CacheStore<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
+    }
+
+    @Bean
+    public CacheStore<String> nonceCacheStore() {
+        return new CacheStore<>(PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES, TimeUnit.MINUTES);
     }
 }

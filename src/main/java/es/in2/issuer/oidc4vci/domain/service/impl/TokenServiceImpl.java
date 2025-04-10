@@ -6,7 +6,7 @@ import es.in2.issuer.oidc4vci.domain.model.dto.TokenResponse;
 import es.in2.issuer.oidc4vci.domain.service.TokenService;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.infrastructure.config.AppConfig;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,8 +29,8 @@ import static es.in2.issuer.shared.domain.util.Utils.generateCustomNonce;
 @RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
 
-    private final CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
-    private final CacheStoreRepository<String> nonceCacheStore;
+    private final CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
+    private final CacheStore<String> nonceCacheStore;
     private final JWTService jwtService;
     private final AppConfig appConfig;
 

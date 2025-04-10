@@ -3,7 +3,7 @@ package es.in2.issuer.oidc4vci.domain.service;
 import es.in2.issuer.oidc4vci.domain.service.impl.PreAuthorizedCodeServiceImpl;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.PreAuthorizedCodeResponse;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.shared.objectmother.PreAuthorizedCodeResponseMother;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class PreAuthorizedCodeServiceTest {
     private SecureRandom random;
 
     @Mock
-    private CacheStoreRepository<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
+    private CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
     @InjectMocks
     private PreAuthorizedCodeServiceImpl preAuthorizedCodeService;

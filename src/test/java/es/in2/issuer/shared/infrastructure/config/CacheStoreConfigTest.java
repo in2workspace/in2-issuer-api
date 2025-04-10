@@ -3,7 +3,7 @@ package es.in2.issuer.shared.infrastructure.config;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.shared.domain.model.dto.CredentialOfferData;
 import es.in2.issuer.shared.domain.model.dto.VerifiableCredentialJWT;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class CacheStoreRepositoryConfigTest {
+class CacheStoreConfigTest {
 
     @Mock
     private CacheConfig cacheConfig;
@@ -28,20 +28,20 @@ class CacheStoreRepositoryConfigTest {
 
     @Test
     void testCacheStoreDefault() {
-        CacheStoreRepository<String> stringCacheStoreRepository = cacheStoreConfig.cacheStoreDefault();
-        assertNotNull(stringCacheStoreRepository);
+        CacheStore<String> stringCacheStore = cacheStoreConfig.cacheStoreDefault();
+        assertNotNull(stringCacheStore);
     }
 
     @Test
     void testCacheStoreForTransactionCode() {
-        CacheStoreRepository<String> cacheStoreRepositoryForTransactionCode = cacheStoreConfig.cacheStoreForTransactionCode();
-        assertNotNull(cacheStoreRepositoryForTransactionCode);
+        CacheStore<String> cacheStoreForTransactionCode = cacheStoreConfig.cacheStoreForTransactionCode();
+        assertNotNull(cacheStoreForTransactionCode);
     }
 
     @Test
     void testCacheStoreForCTransactionCode() {
-        CacheStoreRepository<String> cacheStoreRepositoryForTransactionCode = cacheStoreConfig.cacheStoreForCTransactionCode();
-        assertNotNull(cacheStoreRepositoryForTransactionCode);
+        CacheStore<String> cacheStoreForTransactionCode = cacheStoreConfig.cacheStoreForCTransactionCode();
+        assertNotNull(cacheStoreForTransactionCode);
     }
 
     @Test
@@ -49,8 +49,8 @@ class CacheStoreRepositoryConfigTest {
         long cacheLifetime = 30;
         when(cacheConfig.getCacheLifetimeForVerifiableCredential()).thenReturn(cacheLifetime);
 
-        CacheStoreRepository<VerifiableCredentialJWT> verifiableCredentialJWTCacheStoreRepository = cacheStoreConfig.cacheStoreForVerifiableCredentialJwt();
-        assertNotNull(verifiableCredentialJWTCacheStoreRepository);
+        CacheStore<VerifiableCredentialJWT> verifiableCredentialJWTCacheStore = cacheStoreConfig.cacheStoreForVerifiableCredentialJwt();
+        assertNotNull(verifiableCredentialJWTCacheStore);
     }
 
     @Test
@@ -58,14 +58,14 @@ class CacheStoreRepositoryConfigTest {
         long cacheLifetime = 60;
         when(cacheConfig.getCacheLifetimeForCredentialOffer()).thenReturn(cacheLifetime);
 
-        CacheStoreRepository<CredentialOfferData> customCredentialOfferCacheStoreRepository = cacheStoreConfig.cacheStoreForCredentialOffer();
-        assertNotNull(customCredentialOfferCacheStoreRepository);
+        CacheStore<CredentialOfferData> customCredentialOfferCacheStore = cacheStoreConfig.cacheStoreForCredentialOffer();
+        assertNotNull(customCredentialOfferCacheStore);
     }
 
     @Test
     void testCacheStoreForCredentialIdAndTxCodeByPreAuthorizedCodeCacheStore() {
-        CacheStoreRepository<CredentialIdAndTxCode> customCredentialOfferCacheStoreRepository =
+        CacheStore<CredentialIdAndTxCode> customCredentialOfferCacheStore =
                 cacheStoreConfig.credentialIdAndTxCodeByPreAuthorizedCodeCacheStore();
-        assertNotNull(customCredentialOfferCacheStoreRepository);
+        assertNotNull(customCredentialOfferCacheStore);
     }
 }

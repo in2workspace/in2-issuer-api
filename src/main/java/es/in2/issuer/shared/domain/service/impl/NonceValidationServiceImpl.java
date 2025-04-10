@@ -1,7 +1,7 @@
 package es.in2.issuer.shared.domain.service.impl;
 
 import es.in2.issuer.shared.domain.service.NonceValidationService;
-import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
+import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class NonceValidationServiceImpl implements NonceValidationService {
-    private final CacheStoreRepository<String> nonceCacheStore;
+    private final CacheStore<String> nonceCacheStore;
 
     @Override
     public Mono<Boolean> isValid(String processId, Mono<String> nonceMono) {
