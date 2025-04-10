@@ -1,4 +1,4 @@
-package es.in2.issuer.oidc4vci.domain.service.impl;
+package es.in2.issuer.shared.domain.service.impl;
 
 import es.in2.issuer.shared.infrastructure.repository.CacheStoreRepository;
 import org.junit.jupiter.api.Test;
@@ -29,12 +29,12 @@ class NonceValidationServiceImplTest {
         when(nonceCacheStore.get(nonce))
                 .thenReturn(Mono.just(nonce));
 
-        var resultMono = nonceValidationService.validate(nonce);
+        var resultMono = nonceValidationService.isValid("", Mono.just(nonce));
 
         StepVerifier
                 .create(resultMono)
                 .assertNext(result ->
-                        assertThat(result.isNonceValid()).isTrue())
+                        assertThat(result).isTrue())
                 .verifyComplete();
     }
 
@@ -44,12 +44,12 @@ class NonceValidationServiceImplTest {
         when(nonceCacheStore.get(nonce))
                 .thenReturn(Mono.error(new NoSuchElementException()));
 
-        var resultMono = nonceValidationService.validate(nonce);
+        var resultMono = nonceValidationService.isValid("", Mono.just(nonce));
 
         StepVerifier
                 .create(resultMono)
                 .assertNext(result ->
-                        assertThat(result.isNonceValid()).isFalse())
+                        assertThat(result).isFalse())
                 .verifyComplete();
     }
 
@@ -59,7 +59,7 @@ class NonceValidationServiceImplTest {
         when(nonceCacheStore.get(nonce))
                 .thenReturn(Mono.error(new RuntimeException()));
 
-        var resultMono = nonceValidationService.validate(nonce);
+        var resultMono = nonceValidationService.isValid("", Mono.just(nonce));
 
         StepVerifier
                 .create(resultMono)

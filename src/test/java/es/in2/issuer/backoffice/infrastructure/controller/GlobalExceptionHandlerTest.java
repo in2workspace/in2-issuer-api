@@ -312,17 +312,6 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleNonceValidationException() {
-        NonceValidationException exception = new NonceValidationException(null);
-
-        Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleNonceValidationException(exception);
-
-        StepVerifier.create(result)
-                .assertNext(responseEntity -> assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode()))
-                .verifyComplete();
-    }
-
-    @Test
     void handleOperationNotSupportedException_withMessage() {
         String errorMessage = "Error message for testing";
         OperationNotSupportedException operationNotSupportedException = new OperationNotSupportedException(errorMessage);
