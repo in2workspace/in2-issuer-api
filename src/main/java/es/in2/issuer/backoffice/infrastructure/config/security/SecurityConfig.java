@@ -58,6 +58,7 @@ public class SecurityConfig {
                         PUBLIC_HEALTH,
                         PUBLIC_CREDENTIAL_OFFER,
                         PUBLIC_DISCOVERY_ISSUER,
+                        PUBLIC_DISCOVERY_AUTH_SERVER,
                         TOKEN,
                         DEFERRED_CREDENTIALS,
                         PROMETHEUS
