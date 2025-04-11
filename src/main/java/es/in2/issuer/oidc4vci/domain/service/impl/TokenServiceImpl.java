@@ -48,6 +48,9 @@ public class TokenServiceImpl implements TokenService {
                             String accessToken = generateAccessToken(expirationTimeEpochMillis);
                             String tokenType = "bearer";
                             long expiresIn = expirationTimeEpochMillis - Instant.now().toEpochMilli();
+                            System.out.println("expiresIn = " + expiresIn);
+                            System.out.println("expirationTimeEpochMillis = " + expirationTimeEpochMillis);
+                            System.out.println("Instant.now().toEpochMilli() = " + Instant.now().toEpochMilli());
                             long nonceExpiresIn = (int) TimeUnit.SECONDS.convert(
                                     PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES,
                                     TimeUnit.MINUTES);
