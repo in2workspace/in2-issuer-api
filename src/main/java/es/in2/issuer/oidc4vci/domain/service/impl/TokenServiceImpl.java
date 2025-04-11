@@ -1,10 +1,10 @@
 package es.in2.issuer.oidc4vci.domain.service.impl;
 
 import com.nimbusds.jose.Payload;
-import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.oidc4vci.domain.model.dto.TokenResponse;
 import es.in2.issuer.oidc4vci.domain.service.TokenService;
 import es.in2.issuer.shared.domain.model.dto.CredentialIdAndTxCode;
+import es.in2.issuer.shared.domain.service.JWTService;
 import es.in2.issuer.shared.infrastructure.config.AppConfig;
 import es.in2.issuer.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -48,9 +48,6 @@ public class TokenServiceImpl implements TokenService {
                             String accessToken = generateAccessToken(expirationTimeEpochSeconds);
                             String tokenType = "bearer";
                             long expiresIn = expirationTimeEpochSeconds - Instant.now().getEpochSecond();
-                            System.out.println("expiresIn = " + expiresIn);
-                            System.out.println("expirationTimeEpochSeconds = " + expirationTimeEpochSeconds);
-                            System.out.println("Instant.now().getEpochSeconds() = " + Instant.now().getEpochSecond());
                             long nonceExpiresIn = (int) TimeUnit.SECONDS.convert(
                                     PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES,
                                     TimeUnit.MINUTES);
