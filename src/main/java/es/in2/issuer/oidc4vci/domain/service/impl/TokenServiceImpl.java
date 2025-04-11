@@ -44,13 +44,13 @@ public class TokenServiceImpl implements TokenService {
                 .then(Mono.defer(() -> ensurePreAuthorizedCodeAndTxCodeAreCorrect(preAuthorizedCode, txCode)))
                 .then(Mono.defer(this::generateAndSaveNonce)
                         .map(nonce -> {
-                            long expirationTimeEpochMillis = generateAccessTokenExpirationTime();
-                            String accessToken = generateAccessToken(expirationTimeEpochMillis);
+                            long expirationTimeEpochSeconds = generateAccessTokenExpirationTime();
+                            String accessToken = generateAccessToken(expirationTimeEpochSeconds);
                             String tokenType = "bearer";
-                            long expiresIn = expirationTimeEpochMillis - Instant.now().toEpochMilli();
+                            long expiresIn = expirationTimeEpochSeconds - Instant.now().getEpochSecond();
                             System.out.println("expiresIn = " + expiresIn);
-                            System.out.println("expirationTimeEpochMillis = " + expirationTimeEpochMillis);
-                            System.out.println("Instant.now().toEpochMilli() = " + Instant.now().toEpochMilli());
+                            System.out.println("expirationTimeEpochSeconds = " + expirationTimeEpochSeconds);
+                            System.out.println("Instant.now().getEpochSeconds() = " + Instant.now().getEpochSecond());
                             long nonceExpiresIn = (int) TimeUnit.SECONDS.convert(
                                     PRE_AUTH_CODE_EXPIRY_DURATION_MINUTES,
                                     TimeUnit.MINUTES);
@@ -76,14 +76,14 @@ public class TokenServiceImpl implements TokenService {
         return issueTime.plus(
                         ACCESS_TOKEN_EXPIRATION_TIME_DAYS,
                         ChronoUnit.DAYS)
-                .toEpochMilli();
+                .getEpochSecond();
     }
 
-    private String generateAccessToken(long expirationTimeEpochMillis) {
+    private String generateAccessToken(long expirationTimeEpochSeconds) {
         Payload payload = new Payload(Map.of(
                 "iss", appConfig.getIssuerApiExternalDomain(),
-                "iat", expirationTimeEpochMillis,
-                "exp", expirationTimeEpochMillis,
+                "iat", expirationTimeEpochSeconds,
+                "exp", expirationTimeEpochSeconds,
                 "jti", UUID.randomUUID()
         ));
         return jwtService.generateJWT(payload.toString());
