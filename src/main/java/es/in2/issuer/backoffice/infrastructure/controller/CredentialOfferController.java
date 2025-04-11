@@ -28,7 +28,7 @@ import static es.in2.issuer.shared.domain.util.Constants.ENGLISH;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/credential-offer")
+@RequestMapping("/oidc4vci/api/v1/credential-offer")
 @RequiredArgsConstructor
 public class CredentialOfferController {
 
