@@ -126,7 +126,8 @@ backend:
   config-source:  yaml
 
 issuer-frontend:
-  url: "http://localhost:4201"
+  # The URL of the issuer frontend (REQUIRED)
+  url:
 
 azure:
   endpoint: "https://myappconfig.azconfig.io"
@@ -160,17 +161,17 @@ auth-server:
 
 default-signer:
   # The common name of the default signer certificate (REQUIRED)
-  common-name: "ZEUS OLIMPOS"
+  common-name:
   # The country of the default signer certificate (REQUIRED)
-  country: "EU"
+  country:
   # The email of the default signer certificate (REQUIRED)
-  email: "domesupport@in2.es"
+  email:
   # The organization identifier of the default signer certificate (REQUIRED)
-  organization-identifier: "VATEU-B99999999"
+  organization-identifier:
   # The organization of the default signer certificate (REQUIRED)
-  organization: "IN2"
+  organization:
   # The serial number of the default signer certificate (REQUIRED)
-  serial-number: "IDCEU-99999999P"
+  serial-number:
 
 verifier:
   # The URL of the verifier service used for external services (REQUIRED)
@@ -193,21 +194,26 @@ remote-signature:
   paths:
     sign-path: "/signature/sign"
   # The client ID used for remote signature (REQUIRED)
-  client-id: "client-id"
+  client-id:
   # The client secret used for remote signature (REQUIRED)
-  client-secret: "client-secret"
+  client-secret:
   # The credential ID used for remote signature (REQUIRED)
-  credential-id: "credential-id"
+  credential-id:
   # The credential password used for remote signature (REQUIRED)
-  credential-password: "credential-password"
+  credential-password:
 
 knowledge-base:
-  upload-certification-guide-url: "https://knowledgebase.dome-marketplace-prd.org"
-  wallet-url: "https://knowledgebase.dome-marketplace-prd.org/books/dome-digital-wallet-user-guide"
+  # The URL of the upload certification guide (REQUIRED)
+  upload-certification-guide-url:
+  # The URL of the wallet guide (REQUIRED)
+  wallet-guide-url:
 
 trust-framework:
-  url: "http://localhost:8080"
+  # The URL of the trust framework (REQUIRED
+  url:
 
 cors:
-  default-allowed-origins: "http://localhost:4201"
-  external-allowed-origins: "http://localhost:4201, http://localhost:4200"
+  # The allowed origins for CORS requests coming from the frontend issuer (REQUIRED)
+  default-allowed-origins:
+  # The allowed origins for CORS requests coming from the external services (REQUIRED)
+  external-allowed-origins:

@@ -42,7 +42,7 @@ public class AppConfig {
     }
 
     public String getKnowledgebaseWalletUrl() {
-        return configAdapter.getConfiguration(knowledgeBaseProperties.walletUrl());
+        return configAdapter.getConfiguration(knowledgeBaseProperties.walletGuideUrl());
     }
 
     public String getKnowledgeBaseUploadCertificationGuideUrl() {
