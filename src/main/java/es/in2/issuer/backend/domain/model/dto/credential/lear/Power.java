@@ -10,7 +10,7 @@ import lombok.Builder;
 public record Power(
         @JsonProperty("id") String id,
         @JsonProperty("action") @JsonAlias("tmf_action") Object action,
-        @JsonProperty("url") @JsonAlias("tmf_domain") String domain,
+        @JsonProperty("domain") @JsonAlias("tmf_domain") String domain,
         @JsonProperty("function") @JsonAlias("tmf_function") String function,
         @JsonProperty("type") @JsonAlias("tmf_type") String type
 ) { }

@@ -42,7 +42,7 @@ public record LEARCredentialMachine(
                     @JsonProperty("serviceName") String serviceName,
                     @JsonProperty("serviceType") String serviceType,
                     @JsonProperty("version") String version,
-                    @JsonProperty("url") String domain,
+                    @JsonProperty("domain") String domain,
                     @JsonProperty("ipAddress") String ipAddress,
                     @JsonProperty("description") String description,
                     @JsonProperty("contact") Contact contact
