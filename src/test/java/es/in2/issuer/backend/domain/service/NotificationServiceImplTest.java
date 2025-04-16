@@ -2,9 +2,6 @@ package es.in2.issuer.backend.domain.service;
 
 import es.in2.issuer.backend.domain.exception.EmailCommunicationException;
 import es.in2.issuer.backend.domain.model.enums.CredentialStatus;
-import es.in2.issuer.backend.domain.service.CredentialProcedureService;
-import es.in2.issuer.backend.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.domain.service.EmailService;
 import es.in2.issuer.backend.domain.service.impl.NotificationServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +42,7 @@ class NotificationServiceImplTest {
 
     @BeforeEach
     void setup() {
-        lenient().when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
+        lenient().when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
     }
 
     @Test

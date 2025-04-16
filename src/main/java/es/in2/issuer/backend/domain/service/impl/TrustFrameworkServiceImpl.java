@@ -2,7 +2,7 @@ package es.in2.issuer.backend.domain.service.impl;
 
 import es.in2.issuer.backend.domain.model.dto.ParticipantDidRequest;
 import es.in2.issuer.backend.domain.service.TrustFrameworkService;
-import es.in2.issuer.backend.infrastructure.config.TrustFrameworkConfig;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,14 +20,14 @@ import static es.in2.issuer.backend.domain.util.EndpointsConstants.TRUST_FRAMEWO
 public class TrustFrameworkServiceImpl implements TrustFrameworkService {
 
     private final WebClientConfig webClient;
-    private final TrustFrameworkConfig trustFrameworkConfig;
+    private final AppConfig appConfig;
 
     @Override
     public Mono<Void> registerDid(String processId, String did) {
         ParticipantDidRequest request = ParticipantDidRequest.builder().did(did).build();
         return webClient.commonWebClient()
                 .post()
-                .uri(trustFrameworkConfig.getTrustFrameworkUrl() + TRUST_FRAMEWORK_ISSUER)
+                .uri(appConfig.getTrustFrameworkUrl() + TRUST_FRAMEWORK_ISSUER)
                 .body(Mono.just(request), ParticipantDidRequest.class)
                 .exchangeToMono(response -> {
                     if (response.statusCode().value() == 409) {

@@ -1,9 +1,9 @@
 package es.in2.issuer.backend.infrastructure.config.adapter.factory;
 
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.AzureConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.YamlConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.properties.BackendProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 class ConfigAdapterFactoryTest {
 
     @Mock
-    private BackendProperties backendProperties;
+    private AppConfig appConfig;
 
     @Mock
     private AzureConfigAdapter azureConfigAdapter;
@@ -32,7 +32,7 @@ class ConfigAdapterFactoryTest {
     @Test
     void getAdapter_AzureConfig() {
         //Arrange
-        when(backendProperties.configSource()).thenReturn("azure");
+        when(appConfig.getConfigSource()).thenReturn("azure");
 
         // Act
         ConfigAdapter configAdapter = configAdapterFactory.getAdapter();
@@ -44,7 +44,7 @@ class ConfigAdapterFactoryTest {
     @Test
     void getAdapter_YamlConfig() {
         //Arrange
-        when(backendProperties.configSource()).thenReturn("yaml");
+        when(appConfig.getConfigSource()).thenReturn("yaml");
 
         // Act
         ConfigAdapter configAdapter = configAdapterFactory.getAdapter();
@@ -56,7 +56,7 @@ class ConfigAdapterFactoryTest {
     @Test
     void getAdapter_InvalidConfig() {
         //Arrange
-        when(backendProperties.configSource()).thenReturn("invalid");
+        when(appConfig.getConfigSource()).thenReturn("invalid");
 
         // Act & Assert
         IllegalArgumentException illegalArgumentException = assertThrows(

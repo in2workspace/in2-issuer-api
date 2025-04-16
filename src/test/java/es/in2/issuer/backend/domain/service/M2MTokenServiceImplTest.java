@@ -3,7 +3,6 @@ package es.in2.issuer.backend.domain.service;
 import es.in2.issuer.backend.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.backend.domain.service.impl.M2MTokenServiceImpl;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
-import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,9 +27,6 @@ class M2MTokenServiceImplTest {
     private JWTService jwtService;
 
     @Mock
-    private VerifierConfig verifierConfig;
-
-    @Mock
     private AppConfig appConfig;
 
     @Mock
@@ -45,7 +41,7 @@ class M2MTokenServiceImplTest {
     void setUp() {
         // Valores comunes para las pruebas
         clientId = "did:example:123456789";
-        String verifierExternalDomain = "https://verifier.example.com";
+        String verifierUrl = "https://verifier.example.com";
         String jwtCredential = Base64.getEncoder().encodeToString("vc_jwt_content".getBytes());
 
         // Configurar AppConfig
@@ -53,7 +49,7 @@ class M2MTokenServiceImplTest {
         when(appConfig.getJwtCredential()).thenReturn(jwtCredential);
 
         // Configurar VerifierConfig
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn(verifierExternalDomain);
+        when(appConfig.getVerifierUrl()).thenReturn(verifierUrl);
     }
 
     @Test
@@ -92,13 +88,13 @@ class M2MTokenServiceImplTest {
         verify(appConfig).getJwtCredential();
         verify(appConfig, times(2)).getCredentialSubjectDidKey();
 
-        verify(verifierConfig).getVerifierExternalDomain();
+        verify(appConfig).getVerifierUrl();
 
         verify(jwtService, times(2)).generateJWT(anyString());
 
         verify(verifierService).performTokenRequest(expectedFormUrlEncodedBody);
 
-        verifyNoMoreInteractions(appConfig, verifierConfig, jwtService, verifierService);
+        verifyNoMoreInteractions(appConfig, jwtService, verifierService);
     }
 
     @Test
@@ -138,11 +134,11 @@ class M2MTokenServiceImplTest {
         verify(appConfig).getJwtCredential();
         verify(appConfig, times(2)).getCredentialSubjectDidKey();
 
-        verify(verifierConfig).getVerifierExternalDomain();
+        verify(appConfig).getVerifierUrl();
 
         verify(verifierService).performTokenRequest(expectedFormUrlEncodedBody);
 
-        verifyNoMoreInteractions(appConfig, verifierConfig, jwtService, verifierService);
+        verifyNoMoreInteractions(appConfig, jwtService, verifierService);
     }
 }
 

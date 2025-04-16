@@ -11,46 +11,40 @@ import java.util.List;
 public class AppConfig {
 
     private final ConfigAdapter configAdapter;
-    private final BackendProperties backendProperties;
-    private final IssuerFrontendProperties issuerFrontendProperties;
+    private final AppProperties appProperties;
     private final IssuerIdentityProperties issuerIdentityProperties;
-    private final KnowledgeBaseProperties knowledgeBaseProperties;
     private final CorsProperties corsProperties;
 
     public AppConfig(
                         ConfigAdapterFactory configAdapterFactory,
-                        BackendProperties backendProperties,
-                        IssuerFrontendProperties issuerFrontendProperties,
+                        AppProperties appProperties,
                         IssuerIdentityProperties issuerIdentityProperties,
-                        KnowledgeBaseProperties knowledgeBaseProperties,
                         CorsProperties corsProperties
     ) {
         this.configAdapter = configAdapterFactory.getAdapter();
-        this.backendProperties = backendProperties;
-        this.issuerFrontendProperties = issuerFrontendProperties;
+        this.appProperties = appProperties;
         this.issuerIdentityProperties = issuerIdentityProperties;
-        this.knowledgeBaseProperties = knowledgeBaseProperties;
         this.corsProperties = corsProperties;
     }
 
-    public String getIssuerApiExternalDomain() {
-        return configAdapter.getConfiguration(backendProperties.url());
+    public String getIssuerBackendUrl() {
+        return configAdapter.getConfiguration(appProperties.url());
     }
 
-    public String getIssuerUiExternalDomain() {
-        return configAdapter.getConfiguration(issuerFrontendProperties.url());
+    public String getIssuerFrontendUrl() {
+        return configAdapter.getConfiguration(appProperties.issuerFrontendUrl());
     }
 
     public String getKnowledgebaseWalletUrl() {
-        return configAdapter.getConfiguration(knowledgeBaseProperties.walletGuideUrl());
+        return configAdapter.getConfiguration(appProperties.knowledgeBase().walletGuideUrl());
     }
 
     public String getKnowledgeBaseUploadCertificationGuideUrl() {
-        return configAdapter.getConfiguration(knowledgeBaseProperties.uploadCertificationGuideUrl());
+        return configAdapter.getConfiguration(appProperties.knowledgeBase().uploadCertificationGuideUrl());
     }
 
-    public String getApiConfigSource() {
-        return configAdapter.getConfiguration(backendProperties.configSource());
+    public String getConfigSource() {
+        return configAdapter.getConfiguration(appProperties.configSource());
     }
 
     public String getCredentialSubjectDidKey() {
@@ -72,4 +66,11 @@ public class AppConfig {
         return corsProperties.defaultAllowedOrigins();
     }
 
+    public String getTrustFrameworkUrl() {
+        return configAdapter.getConfiguration(appProperties.trustFrameworkUrl());
+    }
+
+    public String getVerifierUrl() {
+        return configAdapter.getConfiguration(appProperties.verifierUrl());
+    }
 }

@@ -1,9 +1,9 @@
 package es.in2.issuer.backend.infrastructure.config.adapter.factory;
 
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.adapter.ConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.AzureConfigAdapter;
 import es.in2.issuer.backend.infrastructure.config.adapter.impl.YamlConfigAdapter;
-import es.in2.issuer.backend.infrastructure.config.properties.BackendProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -11,16 +11,16 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ConfigAdapterFactory {
 
-    private final BackendProperties backendProperties;
+    private final AppConfig appConfig;
     private final AzureConfigAdapter azureConfigAdapter;
     private final YamlConfigAdapter yamlConfigAdapter;
 
     public ConfigAdapter getAdapter() {
-        return switch (backendProperties.configSource()) {
+        return switch (appConfig.getConfigSource()) {
             case "azure" -> azureConfigAdapter;
             case "yaml" -> yamlConfigAdapter;
             default ->
-                    throw new IllegalArgumentException("Invalid Config Adapter Provider: " + backendProperties.configSource());
+                    throw new IllegalArgumentException("Invalid Config Adapter Provider: " + appConfig.getConfigSource());
         };
     }
 

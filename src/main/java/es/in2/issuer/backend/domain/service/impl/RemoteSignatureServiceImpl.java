@@ -482,7 +482,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                             .then();
                 });
 
-        String domain = appConfig.getIssuerUiExternalDomain();
+        String domain = appConfig.getIssuerFrontendUrl();
         Mono<Void> sendEmail = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)
                 .flatMap(signerEmail ->
                         emailService.sendPendingSignatureCredentialNotification(

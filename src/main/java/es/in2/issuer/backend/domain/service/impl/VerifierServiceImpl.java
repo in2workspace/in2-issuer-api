@@ -14,7 +14,7 @@ import es.in2.issuer.backend.domain.exception.WellKnownInfoFetchException;
 import es.in2.issuer.backend.domain.model.dto.OpenIDProviderMetadata;
 import es.in2.issuer.backend.domain.model.dto.VerifierOauth2AccessToken;
 import es.in2.issuer.backend.domain.service.VerifierService;
-import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +33,7 @@ import static es.in2.issuer.backend.domain.util.EndpointsConstants.PUBLIC_DISCOV
 @RequiredArgsConstructor
 public class VerifierServiceImpl implements VerifierService {
 
-    private final VerifierConfig verifierConfig;
+    private final AppConfig appConfig;
     private final WebClient oauth2VerifierWebClient;
 
     // Cache to store JWKs and avoid multiple endpoint calls
@@ -70,7 +70,7 @@ public class VerifierServiceImpl implements VerifierService {
                         JWTClaimsSet claims = signedJWT.getJWTClaimsSet();
 
                         // Validate the issuer
-                        if (!verifierConfig.getVerifierExternalDomain().equals(claims.getIssuer())) {
+                        if (!appConfig.getVerifierUrl().equals(claims.getIssuer())) {
                             return Mono.error(new JWTVerificationException("Invalid issuer"));
                         }
 
@@ -138,7 +138,7 @@ public class VerifierServiceImpl implements VerifierService {
 
     @Override
     public Mono<OpenIDProviderMetadata> getWellKnownInfo() {
-        String wellKnownInfoEndpoint = verifierConfig.getVerifierExternalDomain() + PUBLIC_DISCOVERY_AUTH_SERVER;
+        String wellKnownInfoEndpoint = appConfig.getVerifierUrl() + PUBLIC_DISCOVERY_AUTH_SERVER;
 
         return oauth2VerifierWebClient.get()
                 .uri(wellKnownInfoEndpoint)

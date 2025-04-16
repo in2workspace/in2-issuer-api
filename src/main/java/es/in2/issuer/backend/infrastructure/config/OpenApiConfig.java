@@ -33,7 +33,7 @@ public class OpenApiConfig {
 
     public OpenApiConfig(OpenApiProperties openApiProperties, AppConfig appConfig) {
         this.openApiProperties = openApiProperties;
-        this.openApiServerUrl = appConfig.getIssuerApiExternalDomain();
+        this.openApiServerUrl = appConfig.getIssuerBackendUrl();
     }
 
     @Bean

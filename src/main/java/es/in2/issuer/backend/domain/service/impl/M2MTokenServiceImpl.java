@@ -6,7 +6,6 @@ import es.in2.issuer.backend.domain.service.JWTService;
 import es.in2.issuer.backend.domain.service.M2MTokenService;
 import es.in2.issuer.backend.domain.service.VerifierService;
 import es.in2.issuer.backend.infrastructure.config.AppConfig;
-import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames;
@@ -27,7 +26,6 @@ import static es.in2.issuer.backend.domain.util.Constants.*;
 public class M2MTokenServiceImpl implements M2MTokenService {
 
     private final JWTService jwtService;
-    private final VerifierConfig verifierConfig;
     private final AppConfig appConfig;
     private final VerifierService verifierService;
 
@@ -70,7 +68,7 @@ public class M2MTokenServiceImpl implements M2MTokenService {
         Payload payload = new Payload(Map.of(
                 "sub", clientId,
                 "iss", clientId,
-                "aud", verifierConfig.getVerifierExternalDomain(),
+                "aud", appConfig.getVerifierUrl(),
                 "iat", iat,
                 "exp", exp,
                 "jti", UUID.randomUUID(),

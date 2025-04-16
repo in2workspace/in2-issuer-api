@@ -306,7 +306,7 @@ class RemoteSignatureServiceImplTest {
                 .thenReturn(Mono.just(deferredProcedure));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
                 .thenAnswer(invocation -> Mono.just(invocation.getArgument(0)));
-        when(appConfig.getIssuerUiExternalDomain()).thenReturn("http://issuer-ui.com");
+        when(appConfig.getIssuerFrontendUrl()).thenReturn("http://issuer-ui.com");
         when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureUUID.toString()))
                 .thenReturn(Mono.just(""));
         when(emailService.sendPendingSignatureCredentialNotification(anyString(), anyString(), eq(procedureUUID.toString()), eq("http://issuer-ui.com")))
@@ -488,7 +488,7 @@ class RemoteSignatureServiceImplTest {
                 .thenReturn(Mono.just(deferredMetadata));
         when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class)))
                 .thenReturn(Mono.just(deferredMetadata));
-        when(appConfig.getIssuerUiExternalDomain()).thenReturn("http://issuer-ui.com");
+        when(appConfig.getIssuerFrontendUrl()).thenReturn("http://issuer-ui.com");
         when(credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureUUID.toString()))
                 .thenReturn(Mono.just(""));
         when(emailService.sendPendingSignatureCredentialNotification(anyString(), anyString(), eq(procedureUUID.toString()), eq("http://issuer-ui.com")))

@@ -96,7 +96,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
         // TODO we are only validating that the url its well formed, we should return the proper object not a string
         String credentialOfferUrl = UriComponentsBuilder
-                .fromHttpUrl(appConfig.getIssuerUiExternalDomain())
+                .fromHttpUrl(appConfig.getIssuerFrontendUrl())
                 .path("/credential-offer")
                 .queryParam("transaction_code", transactionCode)
                 .build()

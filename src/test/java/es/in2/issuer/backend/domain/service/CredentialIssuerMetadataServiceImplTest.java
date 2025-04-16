@@ -34,7 +34,7 @@ class CredentialIssuerMetadataServiceImplTest {
 
     @BeforeEach
     void setup() {
-        lenient().when(appConfig.getIssuerApiExternalDomain()).thenReturn(issuerApiExternalDomain);
+        lenient().when(appConfig.getIssuerBackendUrl()).thenReturn(issuerApiExternalDomain);
     }
 
     @Test

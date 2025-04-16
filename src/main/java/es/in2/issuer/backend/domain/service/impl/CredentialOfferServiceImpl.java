@@ -33,7 +33,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
                 CredentialOfferData.builder()
                         .credentialOffer(CustomCredentialOffer.builder()
-                                        .credentialIssuer(appConfig.getIssuerApiExternalDomain())
+                                        .credentialIssuer(appConfig.getIssuerBackendUrl())
                                         .credentials(List.of(CustomCredentialOffer.Credential.builder()
                                                 .format(JWT_VC_JSON)
                                                 .types(List.of(credentialType))
@@ -50,7 +50,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
 
     @Override
     public Mono<String> createCredentialOfferUriResponse(String nonce) {
-        String url = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain() + CREDENTIAL_OFFER + "/" + nonce);
+        String url = ensureUrlHasProtocol(appConfig.getIssuerBackendUrl() + CREDENTIAL_OFFER + "/" + nonce);
         String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
         return Mono.just(OPENID_CREDENTIAL_OFFER + encodedUrl);
     }

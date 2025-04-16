@@ -2,7 +2,7 @@ package es.in2.issuer.backend.domain.service;
 
 
 import es.in2.issuer.backend.domain.service.impl.TrustFrameworkServiceImpl;
-import es.in2.issuer.backend.infrastructure.config.TrustFrameworkConfig;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -27,7 +27,7 @@ class TrustFrameworkServiceImplTest {
     private WebClientConfig webClientConfig;
 
     @Mock
-    private TrustFrameworkConfig trustFrameworkConfig;
+    private AppConfig appConfig;
 
     @InjectMocks
     private TrustFrameworkServiceImpl service;
@@ -36,7 +36,7 @@ class TrustFrameworkServiceImplTest {
     void registerDid() {
         String did = "did:key:1234";
         String processId= "1234";
-        Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
+        Mockito.when(appConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
         ClientResponse clientResponse = ClientResponse.create(HttpStatus.CREATED)
@@ -55,7 +55,7 @@ class TrustFrameworkServiceImplTest {
         String did = "did:key:1234";
         String processId= "1234";
 
-        Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
+        Mockito.when(appConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
         ClientResponse clientResponse = ClientResponse.create(HttpStatus.CONFLICT).build();
@@ -75,7 +75,7 @@ class TrustFrameworkServiceImplTest {
         String did = "did:key:1234";
         String processId= "1234";
 
-        Mockito.when(trustFrameworkConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
+        Mockito.when(appConfig.getTrustFrameworkUrl()).thenReturn("trust-framework-url");
 
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
         ClientResponse clientResponse = ClientResponse.create(HttpStatus.INTERNAL_SERVER_ERROR).build();

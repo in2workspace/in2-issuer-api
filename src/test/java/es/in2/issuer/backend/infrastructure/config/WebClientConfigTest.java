@@ -1,7 +1,5 @@
 package es.in2.issuer.backend.infrastructure.config;
 
-import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
-import es.in2.issuer.backend.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -12,19 +10,19 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 class WebClientConfigTest {
 
-    private VerifierConfig verifierConfig;
+    private AppConfig appConfig;
 
     ApplicationContextRunner context;
 
     @BeforeEach
     void setUp() {
         // Mocking the VerifierConfig
-        verifierConfig = Mockito.mock(VerifierConfig.class);
-        Mockito.when(verifierConfig.getVerifierExternalDomain()).thenReturn("https://mocked-domain.com");
+        appConfig = Mockito.mock(AppConfig.class);
+        Mockito.when(appConfig.getVerifierUrl()).thenReturn("https://mocked-domain.com");
 
         // Provide the WebClientConfig class and the mock VerifierConfig in the context
         context = new ApplicationContextRunner()
-                .withBean(VerifierConfig.class, () -> verifierConfig)
+                .withBean(AppConfig.class, () -> appConfig)
                 .withUserConfiguration(WebClientConfig.class);
     }
 

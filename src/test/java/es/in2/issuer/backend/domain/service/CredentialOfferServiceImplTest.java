@@ -29,7 +29,7 @@ class CredentialOfferServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
+        when(appConfig.getIssuerBackendUrl()).thenReturn("https://example.com");
     }
 
     @Test
@@ -39,7 +39,7 @@ class CredentialOfferServiceImplTest {
         String email = "example@exmple.com";
         String pin = "1234";
         Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
-        when(appConfig.getIssuerApiExternalDomain()).thenReturn("https://example.com");
+        when(appConfig.getIssuerBackendUrl()).thenReturn("https://example.com");
         StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant, email, pin))
                 .expectNextMatches(offer ->
                         offer.credentialOffer().credentialIssuer().equals("https://example.com") &&

@@ -39,7 +39,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                 .flatMap(newTransactionCode -> emailService.sendCredentialActivationEmail(
                                                         email,
                                                         "Activate your new credential",
-                                                        appConfig.getIssuerUiExternalDomain() + "/credential-offer?transaction_code=" + newTransactionCode,
+                                                        appConfig.getIssuerFrontendUrl() + "/credential-offer?transaction_code=" + newTransactionCode,
                                                         appConfig.getKnowledgebaseWalletUrl(),
                                                         completeName,
                                                         organization

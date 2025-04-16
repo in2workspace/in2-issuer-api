@@ -29,13 +29,7 @@ class AppConfigTest {
     private ConfigAdapter configAdapter;
 
     @Mock
-    private BackendProperties backendProperties;
-
-    @Mock
-    private IssuerFrontendProperties issuerFrontendProperties;
-
-    @Mock
-    private KnowledgeBaseProperties knowledgeBaseProperties;
+    private AppProperties appProperties;
 
     @Mock
     private IssuerIdentityProperties issuerIdentityProperties;
@@ -48,18 +42,18 @@ class AppConfigTest {
     @BeforeEach
     void setUp() {
         when(configAdapterFactory.getAdapter()).thenReturn(configAdapter);
-        appConfig = new AppConfig(configAdapterFactory, backendProperties, issuerFrontendProperties, issuerIdentityProperties, knowledgeBaseProperties, corsProperties);
+        appConfig = new AppConfig(configAdapterFactory, appProperties, issuerIdentityProperties, corsProperties);
     }
 
     @Test
-    void testGetIssuerApiExternalDomain() {
+    void testGetIssuerBackendUrl() {
         // Arrange
         String expectedDomain = "https://api.example.com";
-        when(backendProperties.url()).thenReturn("api.external.url");
+        when(appProperties.url()).thenReturn("api.external.url");
         when(configAdapter.getConfiguration("api.external.url")).thenReturn(expectedDomain);
 
         // Act
-        String actualDomain = appConfig.getIssuerApiExternalDomain();
+        String actualDomain = appConfig.getIssuerBackendUrl();
 
         // Assert
         assertEquals(expectedDomain, actualDomain);
@@ -69,7 +63,9 @@ class AppConfigTest {
     void testGetKnowledgeBaseUploadCertificationGuideUrl() {
         // Arrange
         String expectedUrl = "https://knowledge.example.com";
-        when(knowledgeBaseProperties.uploadCertificationGuideUrl()).thenReturn("knowledge.base.wallet.url");
+        AppProperties.KnowledgeBase knowledgeBase = mock(AppProperties.KnowledgeBase.class);
+        when(appProperties.knowledgeBase()).thenReturn(knowledgeBase);
+        when(knowledgeBase.uploadCertificationGuideUrl()).thenReturn("knowledge.base.wallet.url");
         when(configAdapter.getConfiguration("knowledge.base.wallet.url")).thenReturn(expectedUrl);
 
         // Act
@@ -79,28 +75,28 @@ class AppConfigTest {
         assertEquals(expectedUrl, actualUrl);
     }
     @Test
-    void testGetIssuerUiExternalDomain() {
+    void testGetIssuerFrontendUrl() {
         // Arrange
         String expectedDomain = "https://ui.example.com";
-        when(issuerFrontendProperties.url()).thenReturn("ui.external.url");
+        when(appProperties.issuerFrontendUrl()).thenReturn("ui.external.url");
         when(configAdapter.getConfiguration("ui.external.url")).thenReturn(expectedDomain);
 
         // Act
-        String actualDomain = appConfig.getIssuerUiExternalDomain();
+        String actualDomain = appConfig.getIssuerFrontendUrl();
 
         // Assert
         assertEquals(expectedDomain, actualDomain);
     }
 
     @Test
-    void testGetApiConfigSource() {
+    void testGetConfigSource() {
         // Arrange
         String expectedConfigSource = "configSourceValue";
-        when(backendProperties.configSource()).thenReturn("api.config.source");
+        when(appProperties.configSource()).thenReturn("api.config.source");
         when(configAdapter.getConfiguration("api.config.source")).thenReturn(expectedConfigSource);
 
         // Act
-        String actualConfigSource = appConfig.getApiConfigSource();
+        String actualConfigSource = appConfig.getConfigSource();
 
         // Assert
         assertEquals(expectedConfigSource, actualConfigSource);

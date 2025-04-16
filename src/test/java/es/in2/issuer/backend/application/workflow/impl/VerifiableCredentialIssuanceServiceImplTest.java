@@ -180,7 +180,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(transactionCode));
-        when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
+        when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
         when(emailService.sendCredentialActivationEmail("example@in2.es", "Activate your new credential", issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, idToken))
@@ -258,7 +258,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, null)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(transactionCode));
-        when(appConfig.getIssuerUiExternalDomain()).thenReturn(issuerUiExternalDomain);
+        when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
 
         // Simulación de fallo en el envío del email

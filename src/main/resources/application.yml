@@ -55,18 +55,12 @@ management:
     web:
       exposure:
         # Specifies the enabled management endpoints
-        include: health, info, loggers, metrics, prometheus
+        include: health, prometheus
       # Sets the base path for management endpoints
       base-path: /
       path-mapping:
         # Maps the health endpoint to /health
         health: health
-        # Maps the info endpoint to /info
-        info: info
-        # Maps the loggers endpoint to /loggers
-        loggers: loggers
-        # Maps the metrics endpoint to /metrics
-        metrics: metrics
         # Maps the Prometheus metrics endpoint to /prometheus
         prometheus: prometheus
   endpoint:
@@ -75,12 +69,6 @@ management:
       enabled: true
       # Always show detailed health information
       show-details: always
-    loggers:
-      # Enables the loggers endpoint
-      enabled: true
-    metrics:
-      # Enables the metrics endpoint
-      enabled: true
     prometheus:
       # Enables the Prometheus metrics endpoint
       enabled: true
@@ -119,15 +107,22 @@ openapi:
       name: "Test Name"
       url: "https://example.com"
 
-backend:
+app:
   # The base URL for the API (REQUIRED)
   url:
+  # The URL of the issuer frontend (REQUIRED)
+  issuer-frontend-url:
+  # The URL of the trust framework (REQUIRED
+  trust-framework-url:
+  knowledge-base:
+    # The URL of the upload certification guide (REQUIRED)
+    upload-certification-guide-url:
+    # The URL of the wallet guide (REQUIRED)
+    wallet-guide-url:
+  # The URL of the verifier service used for external services (REQUIRED)
+  verifier-url:
   # The configuration source for the application (OPTIONAL) by default is yaml
   config-source:  yaml
-
-issuer-frontend:
-  # The URL of the issuer frontend (REQUIRED)
-  url:
 
 azure:
   endpoint: "https://myappconfig.azconfig.io"
@@ -173,10 +168,6 @@ default-signer:
   # The serial number of the default signer certificate (REQUIRED)
   serial-number:
 
-verifier:
-  # The URL of the verifier service used for external services (REQUIRED)
-  url:
-
 issuer-identity:
   # The did:key from the credential subject (REQUIRED)
   credential-subject-did-key:
@@ -201,16 +192,6 @@ remote-signature:
   credential-id:
   # The credential password used for remote signature (REQUIRED)
   credential-password:
-
-knowledge-base:
-  # The URL of the upload certification guide (REQUIRED)
-  upload-certification-guide-url:
-  # The URL of the wallet guide (REQUIRED)
-  wallet-guide-url:
-
-trust-framework:
-  # The URL of the trust framework (REQUIRED
-  url:
 
 cors:
   # The allowed origins for CORS requests coming from the frontend issuer (REQUIRED)

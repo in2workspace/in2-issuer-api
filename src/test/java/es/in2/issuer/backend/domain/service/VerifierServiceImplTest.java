@@ -2,7 +2,7 @@ package es.in2.issuer.backend.domain.service;
 
 import es.in2.issuer.backend.domain.model.dto.OpenIDProviderMetadata;
 import es.in2.issuer.backend.domain.service.impl.VerifierServiceImpl;
-import es.in2.issuer.backend.infrastructure.config.VerifierConfig;
+import es.in2.issuer.backend.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,7 +29,7 @@ import static org.mockito.Mockito.*;
 class VerifierServiceImplTest {
 
     @Mock
-    private VerifierConfig verifierConfig;
+    private AppConfig appConfig;
 
     @InjectMocks
     private VerifierServiceImpl verifierService;
@@ -37,11 +37,11 @@ class VerifierServiceImplTest {
     @Test
     void getWellKnownInfo_shouldReturnOpenIDProviderMetadata() {
         // Arrange
-        String verifierExternalDomain = "https://verifier.example.com";
+        String verifierExternalUrl = "https://verifier.example.com";
         String verifierWellKnownPath = "/.well-known/openid-configuration";
-        String wellKnownInfoEndpoint = verifierExternalDomain + verifierWellKnownPath;
+        String wellKnownInfoEndpoint = verifierExternalUrl + verifierWellKnownPath;
 
-        when(verifierConfig.getVerifierExternalDomain()).thenReturn(verifierExternalDomain);
+        when(appConfig.getVerifierUrl()).thenReturn(verifierExternalUrl);
 
         OpenIDProviderMetadata metadata = OpenIDProviderMetadata.builder()
                 .issuer("https://verifier.example.com")
@@ -67,7 +67,7 @@ class VerifierServiceImplTest {
                 .build();
 
         // Inject the WebClient into the service
-        verifierService = new VerifierServiceImpl(verifierConfig, webClient);
+        verifierService = new VerifierServiceImpl(appConfig, webClient);
 
         // Act
         Mono<OpenIDProviderMetadata> result = verifierService.getWellKnownInfo();
@@ -78,8 +78,8 @@ class VerifierServiceImplTest {
                 .verifyComplete();
 
         // Verify interactions
-        verify(verifierConfig).getVerifierExternalDomain();
-        verifyNoMoreInteractions(verifierConfig);
+        verify(appConfig).getVerifierUrl();
+        verifyNoMoreInteractions(appConfig);
 
         // Capture the request made
         ArgumentCaptor<ClientRequest> requestCaptor = ArgumentCaptor.forClass(ClientRequest.class);
