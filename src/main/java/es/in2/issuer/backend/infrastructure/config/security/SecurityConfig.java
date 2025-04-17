@@ -49,22 +49,42 @@ public class SecurityConfig {
     @Order(1)
     public SecurityWebFilterChain publicFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
-                        SWAGGER_UI,
-                        SWAGGER_RESOURCES,
-                        SWAGGER_API_DOCS,
-                        SWAGGER_SPRING_UI,
-                        SWAGGER_WEBJARS,
-                        PUBLIC_HEALTH,
-                        PUBLIC_CREDENTIAL_OFFER,
-                        PUBLIC_DISCOVERY_ISSUER,
-                        TOKEN,
-                        DEFERRED_CREDENTIALS,
-                        PROMETHEUS
-                ))
+                .securityMatcher(
+                        ServerWebExchangeMatchers.matchers(
+                                ServerWebExchangeMatchers.pathMatchers(
+                                        HttpMethod.GET,
+                                        SWAGGER_UI,
+                                        SWAGGER_RESOURCES,
+                                        SWAGGER_API_DOCS,
+                                        SWAGGER_SPRING_UI,
+                                        SWAGGER_WEBJARS,
+                                        PUBLIC_HEALTH,
+                                        PUBLIC_CREDENTIAL_OFFER,
+                                        PUBLIC_DISCOVERY_ISSUER,
+                                        PROMETHEUS
+                                ),
+                                ServerWebExchangeMatchers.pathMatchers(
+                                        HttpMethod.POST,
+                                        TOKEN,
+                                        DEFERRED_CREDENTIALS
+                                )
+                        )
+                )
                 .cors(cors -> cors.configurationSource(publicCORSConfig.publicCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
-                        .anyExchange().permitAll()
+                        .pathMatchers(
+                                HttpMethod.GET,
+                                SWAGGER_UI,
+                                SWAGGER_RESOURCES,
+                                SWAGGER_API_DOCS,
+                                SWAGGER_SPRING_UI,
+                                SWAGGER_WEBJARS,
+                                PUBLIC_HEALTH,
+                                PUBLIC_CREDENTIAL_OFFER,
+                                PUBLIC_DISCOVERY_ISSUER,
+                                PROMETHEUS
+                        ).permitAll()
+                        .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
