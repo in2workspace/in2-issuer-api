@@ -84,6 +84,11 @@ public class SecurityConfig {
                                 PUBLIC_DISCOVERY_ISSUER,
                                 PROMETHEUS
                         ).permitAll()
+                        .pathMatchers(
+                                HttpMethod.POST,
+                                TOKEN,
+                                DEFERRED_CREDENTIALS
+                        ).permitAll()
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable);
