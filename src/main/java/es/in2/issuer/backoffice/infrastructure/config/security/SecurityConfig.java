@@ -56,22 +56,6 @@ public class SecurityConfig {
         return authenticationWebFilter;
     }
 
-    /*@Bean
-    public AuthenticationWebFilter oid4vciBearerAuthenticationFilter() {
-        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
-
-        // Set the path for which the filter will be applied
-        ServerWebExchangeMatcher excludedPaths = ServerWebExchangeMatchers.pathMatchers(TOKEN, CREDENTIAL_OFFER);
-        authenticationWebFilter.setRequiresAuthenticationMatcher(
-                new NegatedServerWebExchangeMatcher(excludedPaths)
-        );
-        // Configure the Bearer token authentication converter
-        ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
-        authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
-
-        return authenticationWebFilter;
-    }*/
-
     // Public filter chain for public endpoints
     @Bean
     @Order(1)
@@ -149,5 +133,20 @@ public class SecurityConfig {
 
                 );
         return http.build();
+    }
+
+    private AuthenticationWebFilter oid4vciBearerAuthenticationFilter() {
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
+
+        // Set the path for which the filter will be applied
+        ServerWebExchangeMatcher excludedPaths = ServerWebExchangeMatchers.pathMatchers(TOKEN, CREDENTIAL_OFFER);
+        authenticationWebFilter.setRequiresAuthenticationMatcher(
+                new NegatedServerWebExchangeMatcher(excludedPaths)
+        );
+        // Configure the Bearer token authentication converter
+        ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
+        authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
+
+        return authenticationWebFilter;
     }
 }
