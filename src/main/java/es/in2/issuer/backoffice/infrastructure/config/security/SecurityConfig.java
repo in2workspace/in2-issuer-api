@@ -56,7 +56,7 @@ public class SecurityConfig {
         return authenticationWebFilter;
     }
 
-    @Bean
+    /*@Bean
     public AuthenticationWebFilter oid4vciBearerAuthenticationFilter() {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
 
@@ -70,7 +70,7 @@ public class SecurityConfig {
         authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
 
         return authenticationWebFilter;
-    }
+    }*/
 
     // Public filter chain for public endpoints
     @Bean
