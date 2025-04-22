@@ -30,7 +30,7 @@ public class SecurityConfig {
     private final InternalCORSConfig internalCORSConfig;
     private final ExternalServicesCORSConfig externalServicesCORSConfig;
     private final PublicCORSConfig publicCORSConfig;
-    private final Oidc4vciCORSConfig oidc4vciCORSConfig;
+    private final Oid4vciCORSConfig oid4VciCORSConfig;
     private final Oidc4vciAuthenticationManager oidc4vciAuthenticationManager;
 
 
@@ -113,7 +113,7 @@ public class SecurityConfig {
     public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OID4VCI))
-                .cors(cors -> oidc4vciCORSConfig.defaultCorsConfigurationSource())
+                .cors(cors -> oid4VciCORSConfig.oid4vciCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(TOKEN, CREDENTIAL_OFFER).permitAll()
                         .anyExchange().authenticated()

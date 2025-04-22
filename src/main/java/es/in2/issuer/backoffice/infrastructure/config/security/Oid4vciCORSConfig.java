@@ -14,14 +14,14 @@ import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
 @Configuration
 @RequiredArgsConstructor
 
-public class Oidc4vciCORSConfig {
+public class Oid4vciCORSConfig {
     private final AppConfig appConfig;
 
     /**
      * Default CORS configuration source.
      */
     @Bean
-    public UrlBasedCorsConfigurationSource defaultCorsConfigurationSource() {
+    public UrlBasedCorsConfigurationSource oid4vciCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(appConfig.getDefaultCorsAllowedOrigins());
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
