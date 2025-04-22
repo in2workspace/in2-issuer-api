@@ -44,6 +44,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationWebFilter customAuthenticationWebFilter() {
+        System.out.println("Holaaa 1");
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
         // Set the path for which the filter will be applied
         authenticationWebFilter.setRequiresAuthenticationMatcher(
@@ -58,6 +59,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationWebFilter oid4vciBearerAuthenticationFilter() {
+        System.out.println("Holaaa 2");
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
 
         // Set the path for which the filter will be applied
@@ -76,6 +78,7 @@ public class SecurityConfig {
     @Bean
     @Order(1)
     public SecurityWebFilterChain publicFilterChain(ServerHttpSecurity http) {
+        System.out.println("Hello 1");
         http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(
                         SWAGGER_UI,
@@ -104,6 +107,7 @@ public class SecurityConfig {
     @Bean
     @Order(2)
     public SecurityWebFilterChain externalFilterChain(ServerHttpSecurity http) {
+        System.out.println("Hello 2");
         http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE))
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
@@ -119,6 +123,7 @@ public class SecurityConfig {
     @Bean
     @Order(3)
     public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
+        System.out.println("Hello 3");
         http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OID4VCI))
                 .cors(cors -> oid4VciCORSConfig.oid4vciCorsConfigurationSource())
@@ -135,6 +140,7 @@ public class SecurityConfig {
     @Bean
     @Order(4)
     public SecurityWebFilterChain internalFilterChain(ServerHttpSecurity http) {
+        System.out.println("Hello 4");
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
                 .cors(cors -> internalCORSConfig.defaultCorsConfigurationSource())
