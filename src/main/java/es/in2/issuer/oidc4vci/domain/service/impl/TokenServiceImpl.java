@@ -44,8 +44,10 @@ public class TokenServiceImpl implements TokenService {
                 .then(Mono.defer(() -> ensurePreAuthorizedCodeAndTxCodeAreCorrect(preAuthorizedCode, txCode)))
                 .then(Mono.defer(this::generateAndSaveNonce)
                         .map(nonce -> {
-                            long expirationTimeEpochSeconds = generateAccessTokenExpirationTime();
-                            String accessToken = generateAccessToken(expirationTimeEpochSeconds);
+                            Instant issueTime = Instant.now();
+                            long issueTimeEpochSeconds = issueTime.getEpochSecond();
+                            long expirationTimeEpochSeconds = generateAccessTokenExpirationTime(issueTime);
+                            String accessToken = generateAccessToken(issueTimeEpochSeconds, expirationTimeEpochSeconds);
                             String tokenType = "bearer";
                             long expiresIn = expirationTimeEpochSeconds - Instant.now().getEpochSecond();
                             long nonceExpiresIn = (int) TimeUnit.SECONDS.convert(
@@ -68,18 +70,17 @@ public class TokenServiceImpl implements TokenService {
                         nonceCacheStore.add(nonce, nonce));
     }
 
-    private long generateAccessTokenExpirationTime() {
-        Instant issueTime = Instant.now();
+    private long generateAccessTokenExpirationTime(Instant issueTime) {
         return issueTime.plus(
                         ACCESS_TOKEN_EXPIRATION_TIME_DAYS,
                         ChronoUnit.DAYS)
                 .getEpochSecond();
     }
 
-    private String generateAccessToken(long expirationTimeEpochSeconds) {
+    private String generateAccessToken(long issueTimeEpochSeconds, long expirationTimeEpochSeconds) {
         Payload payload = new Payload(Map.of(
                 "iss", appConfig.getIssuerApiExternalDomain(),
-                "iat", expirationTimeEpochSeconds,
+                "iat", issueTimeEpochSeconds,
                 "exp", expirationTimeEpochSeconds,
                 "jti", UUID.randomUUID()
         ));
