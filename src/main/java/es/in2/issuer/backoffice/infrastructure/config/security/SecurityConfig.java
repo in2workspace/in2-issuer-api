@@ -100,7 +100,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    /*@Bean
+    @Bean
     @Order(3)
     public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
         http
@@ -113,7 +113,7 @@ public class SecurityConfig {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .addFilterAt(oid4vciBearerAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
         return http.build();
-    }*/
+    }
 
     // Internal security configuration for internal endpoints
     @Bean
