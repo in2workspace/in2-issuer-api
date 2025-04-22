@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/oidc4vci/token")
+@RequestMapping("/oauth/token")
 @RequiredArgsConstructor
 public class TokenController {
 

@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/oidc4vci/api/v1/credentials")
+@RequestMapping("/oid4vci/v1/credentials")
 @RequiredArgsConstructor
 public class CredentialController {
 

@@ -48,7 +48,7 @@ class TokenControllerTest {
         webTestClient
                 .mutateWith(csrf())
                 .post()
-                .uri("/oidc4vci/token")
+                .uri("/oauth/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(BodyInserters
                         .fromFormData("grant_type", grantType)

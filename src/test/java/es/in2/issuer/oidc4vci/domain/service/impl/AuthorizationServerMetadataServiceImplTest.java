@@ -25,7 +25,7 @@ class AuthorizationServerMetadataServiceImplTest {
     void itShouldGenerateOpenIdAuthorizationServerMetadata() {
         String expectedUrl = "https://example.com";
         AuthorizationServerMetadata expectedAuthorizationServerMetadata =
-                new AuthorizationServerMetadata(expectedUrl + "/oidc4vci/token");
+                new AuthorizationServerMetadata(expectedUrl + "/oauth/token");
 
         when(appConfig.getIssuerApiExternalDomain()).thenReturn(expectedUrl);
 

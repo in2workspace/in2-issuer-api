@@ -6,14 +6,14 @@ public class EndpointsConstants {
         throw new IllegalStateException("Utility class");
     }
     public static final String TRUST_FRAMEWORK_ISSUER = "/issuer";
-    public static final String CREDENTIAL_OFFER = "/oidc4vci/api/v1/credential-offer";
-    public static final String LEAR_CREDENTIAL_URI = "/oidc4vci/api/v1/credential-offer?credential_offer_uri=";
+    public static final String CREDENTIAL_OFFER = "/oid4vci/v1/credential-offer";
+    public static final String LEAR_CREDENTIAL_URI = "/oid4vci/v1/credential-offer?credential_offer_uri=";
     public static final String OPENID_CREDENTIAL_OFFER = "openid-credential-offer://?credential_offer_uri=";
-    public static final String CREDENTIAL = "/oidc4vci/api/v1/credentials/request-credential";
-    public static final String CREDENTIAL_BATCH = "/oidc4vci/api/v1/credentials/request-batch-credential";
-    public static final String CREDENTIAL_DEFERRED = "/oidc4vci/api/v1/credentials/request-deferred-credential";
+    public static final String CREDENTIAL = "/oid4vci/v1/credentials/request-credential";
+    public static final String CREDENTIAL_BATCH = "/oid4vci/v1/credentials/request-batch-credential";
+    public static final String CREDENTIAL_DEFERRED = "/oid4vci/v1/credentials/request-deferred-credential";
     public static final String PUBLIC_HEALTH = "/health";
-    public static final String PUBLIC_CREDENTIAL_OFFER = "/oidc4vci/api/v1/credential-offer/**";
+    public static final String PUBLIC_CREDENTIAL_OFFER = "/oid4vci/v1/credential-offer/**";
     public static final String PUBLIC_DISCOVERY_ISSUER = "/.well-known/openid-credential-issuer";
     public static final String PUBLIC_DISCOVERY_AUTH_SERVER = "/.well-known/openid-configuration";
     public static final String LOCAL_ISSUER_UI = "http://localhost:4201";
@@ -24,7 +24,8 @@ public class EndpointsConstants {
     public static final String SWAGGER_WEBJARS = "/webjars/swagger-ui/**";
     public static final String EXTERNAL_ISSUANCE = "/vci/v1/issuances/external";
     public static final String DEFERRED_CREDENTIALS = "/api/v1/deferred-credentials";
-    public static final String TOKEN = "/oidc4vci/token";
+    public static final String OIDC4VCI = "/oid4vci/**";
+    public static final String TOKEN = "/oauth/token";
     public static final String PROMETHEUS = "/prometheus";
 
 }

@@ -13,6 +13,8 @@ import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 import org.springframework.security.oauth2.server.resource.web.server.authentication.ServerBearerTokenAuthenticationConverter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
+import org.springframework.security.web.server.util.matcher.NegatedServerWebExchangeMatcher;
+import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatcher;
 import org.springframework.security.web.server.util.matcher.ServerWebExchangeMatchers;
 
 import static es.in2.issuer.shared.domain.util.EndpointsConstants.*;
@@ -28,6 +30,8 @@ public class SecurityConfig {
     private final InternalCORSConfig internalCORSConfig;
     private final ExternalServicesCORSConfig externalServicesCORSConfig;
     private final PublicCORSConfig publicCORSConfig;
+    private final Oidc4vciCORSConfig oidc4vciCORSConfig;
+    private final Oidc4vciAuthenticationManager oidc4vciAuthenticationManager;
 
 
     @Bean
@@ -36,6 +40,22 @@ public class SecurityConfig {
         // Set the path for which the filter will be applied
         authenticationWebFilter.setRequiresAuthenticationMatcher(
                 ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE)
+        );
+        // Configure the Bearer token authentication converter
+        ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
+        authenticationWebFilter.setServerAuthenticationConverter(bearerConverter);
+
+        return authenticationWebFilter;
+    }
+
+    @Bean
+    public AuthenticationWebFilter oid4vciBearerAuthenticationFilter() {
+        AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
+
+        // Set the path for which the filter will be applied
+        ServerWebExchangeMatcher excludedPaths = ServerWebExchangeMatchers.pathMatchers(TOKEN, CREDENTIAL_OFFER);
+        authenticationWebFilter.setRequiresAuthenticationMatcher(
+                new NegatedServerWebExchangeMatcher(excludedPaths)
         );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
@@ -88,9 +108,24 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // Internal security configuration for internal endpoints
     @Bean
     @Order(3)
+    public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
+        http
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OIDC4VCI))
+                .cors(cors -> oidc4vciCORSConfig.defaultCorsConfigurationSource())
+                .authorizeExchange(exchanges -> exchanges
+                        .pathMatchers(TOKEN, CREDENTIAL_OFFER).permitAll()
+                        .anyExchange().authenticated()
+                )
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .addFilterAt(oid4vciBearerAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION);
+        return http.build();
+    }
+
+    // Internal security configuration for internal endpoints
+    @Bean
+    @Order(4)
     public SecurityWebFilterChain internalFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.anyExchange())
