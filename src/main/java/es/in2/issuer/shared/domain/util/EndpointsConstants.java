@@ -24,7 +24,7 @@ public class EndpointsConstants {
     public static final String SWAGGER_WEBJARS = "/webjars/swagger-ui/**";
     public static final String EXTERNAL_ISSUANCE = "/vci/v1/issuances/external";
     public static final String DEFERRED_CREDENTIALS = "/api/v1/deferred-credentials";
-    public static final String OIDC4VCI = "/oid4vci/**";
+    public static final String OID4VCI = "/oid4vci/**";
     public static final String TOKEN = "/oauth/token";
     public static final String PROMETHEUS = "/prometheus";
 

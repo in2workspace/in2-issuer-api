@@ -112,7 +112,7 @@ public class SecurityConfig {
     @Order(3)
     public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OIDC4VCI))
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OID4VCI))
                 .cors(cors -> oidc4vciCORSConfig.defaultCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(TOKEN, CREDENTIAL_OFFER).permitAll()
