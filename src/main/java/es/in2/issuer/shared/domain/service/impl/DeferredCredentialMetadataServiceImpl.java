@@ -62,6 +62,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                             .operationMode(operationMode)
                             .responseUri(responseUri)
                             .build();
+                    System.out.println("Creating DeferredCredentialMetadata: " + deferredCredentialMetadata);
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then(Mono.just(transactionCode));
                 });
