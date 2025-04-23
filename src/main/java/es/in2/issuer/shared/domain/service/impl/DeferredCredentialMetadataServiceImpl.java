@@ -44,6 +44,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                 .flatMap(deferredCredentialMetadata -> {
                     log.debug("Entity with: " + preAuthCode + "found");
                     deferredCredentialMetadata.setAuthServerNonce(accessToken);
+                    System.out.println("The 1 credentialmetadata nonce: " + deferredCredentialMetadata.getAuthServerNonce());
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then();
                 })
@@ -136,6 +137,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
                 .flatMap(deferredCredentialMetadata -> {
                     deferredCredentialMetadata.setAuthServerNonce(authServerNonce);
+                    System.out.println("The 2 credentialmetadata nonce: " + deferredCredentialMetadata.getAuthServerNonce());
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then();
                 });
