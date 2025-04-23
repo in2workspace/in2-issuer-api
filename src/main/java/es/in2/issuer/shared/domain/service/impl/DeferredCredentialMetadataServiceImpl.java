@@ -137,7 +137,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
         return deferredCredentialMetadataRepository.findByTransactionCode(transactionCode)
                 .flatMap(deferredCredentialMetadata -> {
                     deferredCredentialMetadata.setAuthServerNonce(authServerNonce);
-                    System.out.println("The 2 credentialmetadata nonce: " + deferredCredentialMetadata.getAuthServerNonce());
+                    System.out.println("The other credentialmetadata nonce: " + deferredCredentialMetadata.getAuthServerNonce());
                     return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
                             .then();
                 });
