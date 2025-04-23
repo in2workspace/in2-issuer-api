@@ -170,21 +170,13 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                     .flatMap(isValid -> Boolean.TRUE.equals(isValid)
                             ? extractDidFromJwtProof(credentialRequest.proof().jwt())
                             : Mono.error(new InvalidOrMissingProofException("Invalid proof")))
-                    .flatMap(subjectDid -> {
-                        System.out.println("subjectDid: " + subjectDid);
-                                return deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
-                                        .flatMap(operationMode -> {
-                                            System.out.println("operationMode: " + operationMode);
-                                                    return verifiableCredentialService.buildCredentialResponse(
-                                                                    processId, subjectDid, authServerNonce, credentialRequest.format(), token)
-                                                            .flatMap(credentialResponse -> {
-                                                                System.out.println("credentialResponse: " + credentialResponse);
-                                                                        return handleOperationMode(operationMode, processId, authServerNonce, credentialResponse);
-                                                                    }
-                                                            );
-                                                }
-                                        );
-                            }
+                    .flatMap(subjectDid -> deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
+                            .flatMap(operationMode -> verifiableCredentialService.buildCredentialResponse(
+                                            processId, subjectDid, authServerNonce, credentialRequest.format(), token)
+                                    .flatMap(credentialResponse ->
+                                            handleOperationMode(operationMode, processId, authServerNonce, credentialResponse)
+                                    )
+                            )
                     );
         } catch (ParseException e) {
             log.error("Error parsing the accessToken", e);
