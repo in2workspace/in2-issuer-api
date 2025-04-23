@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static es.in2.issuer.oidc4vci.domain.util.Constants.ACCESS_TOKEN_EXPIRATION_TIME_DAYS;
@@ -47,7 +46,7 @@ public class TokenServiceImpl implements TokenService {
                             Instant issueTime = Instant.now();
                             long issueTimeEpochSeconds = issueTime.getEpochSecond();
                             long expirationTimeEpochSeconds = generateAccessTokenExpirationTime(issueTime);
-                            String accessToken = generateAccessToken(issueTimeEpochSeconds, expirationTimeEpochSeconds);
+                            String accessToken = generateAccessToken(preAuthorizedCode, issueTimeEpochSeconds, expirationTimeEpochSeconds);
                             String tokenType = "bearer";
                             long expiresIn = expirationTimeEpochSeconds - Instant.now().getEpochSecond();
                             long nonceExpiresIn = (int) TimeUnit.SECONDS.convert(
@@ -77,12 +76,12 @@ public class TokenServiceImpl implements TokenService {
                 .getEpochSecond();
     }
 
-    private String generateAccessToken(long issueTimeEpochSeconds, long expirationTimeEpochSeconds) {
+    private String generateAccessToken(String preAuthorizedCode, long issueTimeEpochSeconds, long expirationTimeEpochSeconds) {
         Payload payload = new Payload(Map.of(
                 "iss", appConfig.getIssuerApiExternalDomain(),
                 "iat", issueTimeEpochSeconds,
                 "exp", expirationTimeEpochSeconds,
-                "jti", UUID.randomUUID()
+                "jti", preAuthorizedCode
         ));
         return jwtService.generateJWT(payload.toString());
     }
