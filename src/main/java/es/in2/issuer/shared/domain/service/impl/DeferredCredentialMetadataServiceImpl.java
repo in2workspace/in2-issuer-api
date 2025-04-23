@@ -116,7 +116,12 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     @Override
     public Mono<String> getOperationModeByAuthServerNonce(String authServerNonce) {
         return deferredCredentialMetadataRepository.findByAuthServerNonce(authServerNonce)
-                .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getOperationMode()));
+                .doFirst(() -> System.out.println("Before fetching DeferredCredentialMetadata"))
+                .flatMap(deferredCredentialMetadata -> {
+                    System.out.println("DeferredCredentialMetadata: " + deferredCredentialMetadata);
+                    return Mono.just(deferredCredentialMetadata.getOperationMode());
+                })
+                .doOnTerminate(() -> System.out.println("After fetching DeferredCredentialMetadata"));
     }
 
     @Override
