@@ -93,6 +93,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
 
     @Override
     public Mono<VerifiableCredentialResponse> buildCredentialResponse(String processId, String subjectDid, String authServerNonce, String format, String token) {
+        // todo: getProcedureIdByPreAuthorizedCode
         return deferredCredentialMetadataService.getProcedureIdByAuthServerNonce(authServerNonce)
             .flatMap(procedureId -> {
                 log.info("Procedure ID obtained: {}", procedureId);

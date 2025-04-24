@@ -7,5 +7,6 @@ import reactor.core.publisher.Mono;
 public interface CredentialOfferIssuanceWorkflow {
     Mono<CredentialOfferUriResponse> buildCredentialOfferUri(String processId, String transactionCode);
     Mono<CredentialOfferUriResponse> buildNewCredentialOfferUri(String processId, String cTransactionCode);
+    // todo: change by retrieve(String id)
     Mono<CustomCredentialOffer> getCustomCredentialOffer(String nonce);
 }

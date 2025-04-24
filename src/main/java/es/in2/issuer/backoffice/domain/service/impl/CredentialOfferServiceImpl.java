@@ -28,17 +28,19 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final AppConfig appConfig;
 
     @Override
+    // Grant no es singular sino plural Grants
     public Mono<CredentialOfferData> buildCustomCredentialOffer(String credentialType, Grant grant, String employeeEmail, String pin) {
         return Mono.just(
-
                 CredentialOfferData.builder()
                         .credentialOffer(CustomCredentialOffer.builder()
                                 .credentialIssuer(appConfig.getIssuerApiExternalDomain())
+                                // todo: delete .credentials()
                                 .credentials(List.of(CustomCredentialOffer.Credential.builder()
                                         .format(JWT_VC_JSON)
                                         .types(List.of(credentialType))
                                         .build()
                                 ))
+                                // todo: utilizar credentialType en el List.of()
                                 .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
                                 .grants(Map.of(GRANT_TYPE, grant))
                                 .build()
@@ -49,7 +51,11 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     }
 
     @Override
+    // todo: cambier el nonce por el CredentialOffer credentialOffer
     public Mono<String> createCredentialOfferUriResponse(String nonce) {
+        // Generate UUID que es la referencia al objeto CredentialOffer
+        // Store en cache el UUId (key) y el CredentialOffer (value)
+        // el nonce es el UUID
         String url = ensureUrlHasProtocol(appConfig.getIssuerApiExternalDomain() + CREDENTIAL_OFFER + "/" + nonce);
         String encodedUrl = URLEncoder.encode(url, StandardCharsets.UTF_8);
         return Mono.just(OPENID_CREDENTIAL_OFFER + encodedUrl);

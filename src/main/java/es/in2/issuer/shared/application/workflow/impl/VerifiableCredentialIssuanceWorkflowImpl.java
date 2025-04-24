@@ -164,6 +164,7 @@ public class VerifiableCredentialIssuanceWorkflowImpl implements VerifiableCrede
                                                                                    String token) {
         try {
             JWSObject jwsObject = JWSObject.parse(token);
+            // este authServerNonce es el jti del accessToken es el pre-authorized_code
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
 
             return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)

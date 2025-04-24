@@ -24,12 +24,15 @@ public record CustomCredentialOffer(
         @JsonProperty("credential_configuration_ids")
         List<String> credentialConfigurationIds,
         @Schema(example = "[\"UniversityDegree\"]")
+        // todo: delete credentials
         @JsonProperty("credentials")
         List<Credential> credentials, // Remove for DOME profile
         @Schema(implementation = Grant.class)
         @JsonProperty("grants")
         Map<String, Grant> grants
 ) {
+
+        // todo: delete Credential
         @Builder
         @JsonIgnoreProperties(ignoreUnknown = true)
         public record Credential(

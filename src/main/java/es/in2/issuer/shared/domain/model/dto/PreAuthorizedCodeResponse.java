@@ -6,6 +6,6 @@ import lombok.Builder;
 @Builder
 public record PreAuthorizedCodeResponse(
         @JsonProperty("grant") Grant grant,
-        @JsonProperty("pin") String pin
+        @JsonProperty("pin") String pin //todo: cambiar por tx_code y txCode
 ) {
 }
