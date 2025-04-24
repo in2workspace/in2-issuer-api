@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/vci/v1/issuances")
+@RequestMapping
 @RequiredArgsConstructor
 public class PreSubmittedCredentialController {
     private final VerifiableCredentialIssuanceWorkflow verifiableCredentialIssuanceWorkflow;
@@ -37,7 +37,7 @@ public class PreSubmittedCredentialController {
                     @ApiResponse(responseCode = "500", description = "This response is returned when an unexpected server error occurs.")
             }
     )
-    @PostMapping
+    @PostMapping("/backoffice/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> internalIssueCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
@@ -47,11 +47,11 @@ public class PreSubmittedCredentialController {
                 token -> verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, null));
     }
 
-    @PostMapping("/external")
+    @PostMapping("/vci/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> externalIssueCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
-            @RequestHeader(name = "X-ID-TOKEN", required = false) String idToken,
+            @RequestHeader(name = "X-Id-Token", required = false) String idToken,
             @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(authorizationHeader).flatMap(

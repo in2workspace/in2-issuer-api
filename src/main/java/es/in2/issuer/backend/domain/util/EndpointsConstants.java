@@ -22,7 +22,7 @@ public class EndpointsConstants {
     public static final String SWAGGER_API_DOCS = "/api-docs/**";
     public static final String SWAGGER_SPRING_UI = "/spring-ui/**";
     public static final String SWAGGER_WEBJARS = "/webjars/swagger-ui/**";
-    public static final String EXTERNAL_ISSUANCE = "/vci/v1/issuances/external";
+    public static final String EXTERNAL_ISSUANCE = "/vci/v1/issuances";
     public static final String DEFERRED_CREDENTIALS = "/api/v1/deferred-credentials";
     public static final String TOKEN = "/token";
     public static final String PROMETHEUS = "/prometheus";
