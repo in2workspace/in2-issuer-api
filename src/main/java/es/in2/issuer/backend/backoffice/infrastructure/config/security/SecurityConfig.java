@@ -35,7 +35,6 @@ public class SecurityConfig {
     private final Oid4vciCORSConfig oid4VciCORSConfig;
     private final Oidc4vciAuthenticationManager oidc4vciAuthenticationManager;
 
-
     @Bean
     @Primary
     public ReactiveAuthenticationManager primaryAuthenticationManager() {
@@ -125,7 +124,7 @@ public class SecurityConfig {
 
     @Bean
     @Order(3)
-    public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
+    public SecurityWebFilterChain oid4vciFilterChain(ServerHttpSecurity http) {
         http
                 .securityMatcher(ServerWebExchangeMatchers.pathMatchers(CORS_OID4VCI_PATH))
                 .cors(cors -> oid4VciCORSConfig.oid4vciCorsConfigurationSource())
@@ -172,4 +171,5 @@ public class SecurityConfig {
 
         return authenticationWebFilter;
     }
+
 }
