@@ -29,6 +29,7 @@ public class AccessTokenServiceImpl implements AccessTokenService {
         return Mono.just(authorizationHeader)
                 .flatMap(header -> {
                     if (header.startsWith(BEARER_PREFIX)) {
+                        log.debug(header.replace(BEARER_PREFIX, "").trim());
                         return Mono.just(header.replace(BEARER_PREFIX, "").trim());
                     } else {
                         return Mono.just(header);

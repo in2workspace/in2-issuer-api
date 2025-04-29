@@ -26,6 +26,7 @@ public class IssuanceController {
     public Mono<Void> internalIssueCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
                                               @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
+        log.debug("Bearer token: {}", bearerToken);
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
                 token -> credentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, bearerToken, null));
     }
