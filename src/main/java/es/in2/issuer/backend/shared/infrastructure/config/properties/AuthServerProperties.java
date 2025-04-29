@@ -16,7 +16,7 @@ public record AuthServerProperties(
         @NotBlank @URL String externalUrl,
         @NotBlank @URL String internalUrl,
         @NotBlank String realm,
-        @NotBlank Paths paths,
+        @NotNull Paths paths,
         @NotNull Client client
 
 ) {
