@@ -33,7 +33,7 @@ public class IssuanceController {
     @PostMapping("/vci/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> externalIssueCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
-                                              @RequestHeader(name = "X-ID-TOKEN", required = false) String idToken,
+                                              @RequestHeader(name = "X-Id-Token", required = false) String idToken,
                                               @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
