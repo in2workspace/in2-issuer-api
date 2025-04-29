@@ -26,4 +26,5 @@ public class CredentialSignerController {
             @RequestBody ProcedureIdRequest procedureIdRequest) {
         return credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureIdRequest.procedureId(), JWT_VC).then();
     }
+
 }

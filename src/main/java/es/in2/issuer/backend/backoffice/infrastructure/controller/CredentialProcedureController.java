@@ -12,15 +12,16 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+@Deprecated
 @Slf4j
 @RestController
-//fixme: change to /backoffice/v1/procedures
 @RequestMapping("/api/v1/procedures")
 @RequiredArgsConstructor
 public class CredentialProcedureController {
 
     private final CredentialProcedureService credentialProcedureService;
     private final AccessTokenService accessTokenService;
+
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
@@ -30,7 +31,6 @@ public class CredentialProcedureController {
                 .doOnNext(result -> log.info("CredentialManagementController - getAllProcedures()"));
     }
 
-    //fixme: change to /{procedure_id}
     @GetMapping(value = "/{procedure_id}/credential-decoded", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialDetails> getCredentialByProcedureId(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,

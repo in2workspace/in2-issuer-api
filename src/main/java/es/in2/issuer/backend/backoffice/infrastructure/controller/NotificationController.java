@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
+@Deprecated
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/notifications")
