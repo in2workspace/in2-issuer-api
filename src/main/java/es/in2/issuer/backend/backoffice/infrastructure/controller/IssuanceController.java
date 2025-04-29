@@ -26,9 +26,8 @@ public class IssuanceController {
     public Mono<Void> internalIssueCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
                                               @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        log.debug("Bearer token: {}", bearerToken);
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
-                token -> credentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, bearerToken, null));
+                token -> credentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, null));
     }
 
     @PostMapping("/vci/v1/issuances")
@@ -38,7 +37,7 @@ public class IssuanceController {
                                               @RequestBody PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String processId = UUID.randomUUID().toString();
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
-                token -> credentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, bearerToken, idToken));
+                token -> credentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken));
     }
 
 }

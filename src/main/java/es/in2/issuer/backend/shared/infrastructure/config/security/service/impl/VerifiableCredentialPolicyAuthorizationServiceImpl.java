@@ -39,7 +39,6 @@ public class VerifiableCredentialPolicyAuthorizationServiceImpl implements Verif
 
     @Override
     public Mono<Void> authorize(String token, String schema, JsonNode payload, String idToken) {
-        log.debug("Token: {}", token);
         return Mono.fromCallable(() -> jwtService.parseJWT(token))
                 .flatMap(signedJWT -> {
                     String payloadStr = signedJWT.getPayload().toString();
