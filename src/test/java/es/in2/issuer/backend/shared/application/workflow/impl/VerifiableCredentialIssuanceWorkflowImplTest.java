@@ -80,13 +80,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
     private M2MTokenService m2MTokenService;
 
     @InjectMocks
-    private VerifiableCredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
+    private CredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
 
     @Test
     void unsupportedFormatErrorExceptionTest() {
         String processId = "1234";
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(null).schema("LEARCredentialEmployee").format("json_ldp").operationMode("S").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, "token", null))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, "token", null))
                 .expectError(FormatUnsupportedException.class)
                 .verify();
     }
@@ -95,7 +95,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
     void unsupportedOperationModeExceptionTest() {
         String processId = "1234";
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(null).schema("LEARCredentialEmployee").format(JWT_VC).operationMode("F").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, "token", null))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, "token", null))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
@@ -110,7 +110,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, idToken))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .expectError(OperationNotSupportedException.class)
                 .verify();
     }
@@ -185,7 +185,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
         when(emailService.sendCredentialActivationEmail("example@in2.es", "Activate your new credential", issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, idToken))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .verifyComplete();
     }
 
@@ -273,7 +273,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 "IN2, Ingeniería de la Información, S.L."))
                 .thenReturn(Mono.error(new RuntimeException("Email sending failed")));
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, null))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, null))
                 .expectErrorMatches(throwable ->
                         throwable instanceof EmailCommunicationException &&
                                 throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE))
@@ -347,7 +347,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.completeIssuanceCredentialProcess(processId, preSubmittedCredentialRequest, token, idToken))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .verifyComplete();
     }
 

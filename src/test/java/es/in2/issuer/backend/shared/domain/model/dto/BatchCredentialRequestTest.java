@@ -1,12 +1,10 @@
 package es.in2.issuer.backend.shared.domain.model.dto;
 
-import es.in2.issuer.backend.shared.domain.model.dto.BatchCredentialRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.CredentialDefinition;
-import es.in2.issuer.backend.shared.domain.model.dto.CredentialRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.Proof;
+import es.in2.issuer.backend.oidc4vci.domain.model.CredentialIssuerMetadata;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -17,7 +15,7 @@ class BatchCredentialRequestTest {
         // Arrange
         String expectedFormat = "sampleFormat";
         Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
-        CredentialDefinition expectedCredentialDefinition = new CredentialDefinition(List.of("type"));
+        CredentialRequest.CredentialDefinition expectedCredentialDefinition = new CredentialRequest.CredentialDefinition(Set.of("type"));
         List<CredentialRequest> expectedCredentialRequests = List.of(
                 new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof),
                 new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof)
@@ -35,7 +33,7 @@ class BatchCredentialRequestTest {
         // Arrange
         String expectedFormat = "sampleFormat";
         Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
-        CredentialDefinition expectedCredentialDefinition = new CredentialDefinition(List.of("type"));
+        CredentialRequest.CredentialDefinition expectedCredentialDefinition = new CredentialRequest.CredentialDefinition(Set.of("type"));
         List<CredentialRequest> newCredentialRequests = List.of(
                 new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof),
                 new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof)

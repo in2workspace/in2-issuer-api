@@ -1,15 +1,9 @@
 package es.in2.issuer.backend.oidc4vci.infrastructure.controller;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage;
-import es.in2.issuer.backend.oidc4vci.domain.service.CredentialIssuerMetadataService;
-import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import es.in2.issuer.backend.oidc4vci.application.workflow.GetCredentialIssuerMetadataWorkflow;
+import es.in2.issuer.backend.oidc4vci.domain.model.CredentialIssuerMetadata;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,38 +15,29 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 import static es.in2.issuer.backend.shared.domain.util.Constants.ENGLISH;
 
+@Slf4j
 @RestController
 @RequestMapping("/.well-known/openid-credential-issuer")
 @RequiredArgsConstructor
 public class CredentialIssuerMetadataController {
 
-    private final CredentialIssuerMetadataService credentialIssuerMetadataService;
+    private final GetCredentialIssuerMetadataWorkflow getCredentialIssuerMetadataWorkflow;
 
-    @Operation(
-            summary = "Retrieve OpenID Connect Credential Issuer Metadata",
-            description = "Provides access to OpenID Connect (OIDC) Credential Issuer Metadata, which includes essential information about the OIDC credential issuer. The metadata offers details such as the issuer's URL, supported authentication methods, and other relevant information. Clients can use this metadata to configure their OIDC integration with the credential issuer. The response is in JSON format",
-            tags = SwaggerConfig.TAG_PRIVATE
-    )
-    @ApiResponses(
-            value = {
-                    @ApiResponse(
-                            responseCode = "200",
-                            description = "Returns OpenID Connect (OIDC) Credential Issuer Metadata",
-                            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = String.class))
-                    ),
-                    @ApiResponse(
-                            responseCode = "500", description = "This response is returned when an unexpected server error occurs. It includes an error message if one is available.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = GlobalErrorMessage.class))
-                    )
-            }
-    )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialIssuerMetadata> getCredentialIssuerMetadata(ServerWebExchange exchange) {
+        String processId = UUID.randomUUID().toString();
         ServerHttpResponse response = exchange.getResponse();
         response.getHeaders().add(HttpHeaders.CONTENT_LANGUAGE, ENGLISH);
-        return credentialIssuerMetadataService.generateOpenIdCredentialIssuer();
+        return getCredentialIssuerMetadataWorkflow.execute(processId)
+                .doFirst(() ->
+                        log.info("Process ID: {} - Getting Credential Issuer Metadata...", processId))
+                .doOnSuccess(credentialOffer ->
+                        log.info("Process ID: {} - Credential Issuer Metadata generated successfully.", processId));
     }
 
 }

@@ -28,11 +28,11 @@ public class PublicCORSConfig {
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(PUBLIC_CREDENTIAL_OFFER, configuration);
-        source.registerCorsConfiguration(PUBLIC_DISCOVERY_ISSUER, configuration);
+        source.registerCorsConfiguration(CORS_CREDENTIAL_OFFER_PATH, configuration);
+        source.registerCorsConfiguration(CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH, configuration);
         source.registerCorsConfiguration(DEFERRED_CREDENTIALS, configuration);
-        source.registerCorsConfiguration(TOKEN, configuration);
-        source.registerCorsConfiguration(PROMETHEUS, configuration);
+        source.registerCorsConfiguration(OAUTH_TOKEN_PATH, configuration);
+        source.registerCorsConfiguration(PROMETHEUS_PATH, configuration);
         return source;
     }
 }

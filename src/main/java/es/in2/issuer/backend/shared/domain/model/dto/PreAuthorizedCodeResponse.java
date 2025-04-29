@@ -5,7 +5,7 @@ import lombok.Builder;
 
 @Builder
 public record PreAuthorizedCodeResponse(
-        @JsonProperty("grant") Grant grant,
+        @JsonProperty("grant") Grants grants,
         @JsonProperty("pin") String pin
 ) {
 }

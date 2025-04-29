@@ -26,7 +26,7 @@ import java.util.Date;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.CONTENT_TYPE;
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.CONTENT_TYPE_URL_ENCODED_FORM;
-import static es.in2.issuer.backend.shared.domain.util.EndpointsConstants.PUBLIC_DISCOVERY_AUTH_SERVER;
+import static es.in2.issuer.backend.shared.domain.util.EndpointsConstants.AUTHORIZATION_SERVER_METADATA_WELL_KNOWN_PATH;
 
 @Service
 @Slf4j
@@ -138,7 +138,7 @@ public class VerifierServiceImpl implements VerifierService {
 
     @Override
     public Mono<OpenIDProviderMetadata> getWellKnownInfo() {
-        String wellKnownInfoEndpoint = appConfig.getVerifierUrl() + PUBLIC_DISCOVERY_AUTH_SERVER;
+        String wellKnownInfoEndpoint = appConfig.getVerifierUrl() + AUTHORIZATION_SERVER_METADATA_WELL_KNOWN_PATH;
 
         return oauth2VerifierWebClient.get()
                 .uri(wellKnownInfoEndpoint)

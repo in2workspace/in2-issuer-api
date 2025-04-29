@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.oidc4vci.infrastructure.controller;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.TokenRequest;
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.TokenResponse;
+import es.in2.issuer.backend.oidc4vci.domain.model.TokenRequest;
+import es.in2.issuer.backend.oidc4vci.domain.model.TokenResponse;
 import es.in2.issuer.backend.oidc4vci.domain.service.TokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

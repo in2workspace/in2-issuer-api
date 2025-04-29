@@ -5,27 +5,37 @@ public class EndpointsConstants {
     private EndpointsConstants() {
         throw new IllegalStateException("Utility class");
     }
+
+    // Management Endpoints
+    public static final String SWAGGER_UI_PATH = "/swagger-ui/**";
+    public static final String SWAGGER_RESOURCES_PATH = "/swagger-resources/**";
+    public static final String SWAGGER_API_DOCS_PATH = "/api-docs/**";
+    public static final String SWAGGER_SPRING_UI_PATH = "/spring-ui/**";
+    public static final String SWAGGER_WEBJARS_PATH = "/webjars/swagger-ui/**";
+    public static final String HEALTH_PATH = "/health";
+    public static final String PROMETHEUS_PATH = "/prometheus";
+
+    // VCI API Endpoints
+    public static final String VCI_ISSUANCES_PATH = "/vci/v1/issuances";
+
+    // OIDC4VCI Endpoints
+    public static final String OID4VCI_CREDENTIAL_OFFER_PATH = "/oid4vci/v1/credential-offer";
+    public static final String OID4VCI_CREDENTIAL_PATH = "/oid4vci/v1/credential";
+    public static final String OID4VCI_DEFERRED_CREDENTIAL_PATH = "/oid4vci/v1/deferred-credential";
+
+    // Well-Known Endpoints
+    public static final String CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH = "/.well-known/openid-credential-issuer";
+    public static final String AUTHORIZATION_SERVER_METADATA_WELL_KNOWN_PATH = "/.well-known/openid-configuration";
+
+    // OIDC Endpoints
+    public static final String OAUTH_TOKEN_PATH = "/oauth/token";
+
+    // CORS Configuration
+    public static final String CORS_OID4VCI_PATH = "/oid4vci/**";
+    public static final String CORS_CREDENTIAL_OFFER_PATH = "/oid4vci/v1/credential-offer/**";
+
+    // todo: remove these constants if not needed
     public static final String TRUST_FRAMEWORK_ISSUER = "/issuer";
-    public static final String CREDENTIAL_OFFER = "/oid4vci/v1/credential-offer";
-    public static final String LEAR_CREDENTIAL_URI = "/oid4vci/v1/credential-offer?credential_offer_uri=";
-    public static final String OPENID_CREDENTIAL_OFFER = "openid-credential-offer://?credential_offer_uri=";
-    public static final String CREDENTIAL = "/oid4vci/v1/credentials/request-credential";
-    public static final String CREDENTIAL_BATCH = "/oid4vci/v1/credentials/request-batch-credential";
-    public static final String CREDENTIAL_DEFERRED = "/oid4vci/v1/credentials/request-deferred-credential";
-    public static final String PUBLIC_HEALTH = "/health";
-    public static final String PUBLIC_CREDENTIAL_OFFER = "/oid4vci/v1/credential-offer/**";
-    public static final String PUBLIC_DISCOVERY_ISSUER = "/.well-known/openid-credential-issuer";
-    public static final String PUBLIC_DISCOVERY_AUTH_SERVER = "/.well-known/openid-configuration";
-    public static final String LOCAL_ISSUER_UI = "http://localhost:4201";
-    public static final String SWAGGER_UI = "/swagger-ui/**";
-    public static final String SWAGGER_RESOURCES = "/swagger-resources/**";
-    public static final String SWAGGER_API_DOCS = "/api-docs/**";
-    public static final String SWAGGER_SPRING_UI = "/spring-ui/**";
-    public static final String SWAGGER_WEBJARS = "/webjars/swagger-ui/**";
-    public static final String EXTERNAL_ISSUANCE = "/vci/v1/issuances";
     public static final String DEFERRED_CREDENTIALS = "/api/v1/deferred-credentials";
-    public static final String OID4VCI = "/oid4vci/**";
-    public static final String TOKEN = "/oauth/token";
-    public static final String PROMETHEUS = "/prometheus";
 
 }

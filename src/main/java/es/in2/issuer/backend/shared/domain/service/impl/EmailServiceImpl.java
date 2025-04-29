@@ -32,7 +32,7 @@ public class EmailServiceImpl implements EmailService {
     private final MailProperties mailProperties;
 
     @Override
-    public Mono<Void> sendPin(String to, String subject, String pin) {
+    public Mono<Void> sendTxCodeNotification(String to, String subject, String pin) {
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);

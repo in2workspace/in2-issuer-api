@@ -303,7 +303,7 @@ class GlobalExceptionHandlerTest {
 
     @Test
     void handleCustomCredentialOfferNotFoundException() {
-        CustomCredentialOfferNotFoundException exception = new CustomCredentialOfferNotFoundException(null);
+        CredentialOfferNotFoundException exception = new CredentialOfferNotFoundException(null);
 
         Mono<ResponseEntity<Void>> result = globalExceptionHandler.handleCustomCredentialOfferNotFoundException(exception);
 

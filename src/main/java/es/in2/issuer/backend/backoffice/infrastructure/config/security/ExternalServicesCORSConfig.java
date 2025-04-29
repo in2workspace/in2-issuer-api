@@ -30,7 +30,7 @@ public class ExternalServicesCORSConfig {
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(EXTERNAL_ISSUANCE, configuration);
+        source.registerCorsConfiguration(VCI_ISSUANCES_PATH, configuration);
         return source;
     }
 }

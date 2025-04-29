@@ -1,6 +1,5 @@
 package es.in2.issuer.backend.shared.domain.service.impl;
 
-import es.in2.issuer.backend.shared.domain.service.impl.EmailServiceImpl;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,13 +33,13 @@ class EmailServiceImplTest {
     private EmailServiceImpl emailService;
 
     @Test
-    void testSendPin() {
+    void testSendTxCodeNotification() {
         MimeMessage mimeMessage = mock(MimeMessage.class);
         when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
         when(templateEngine.process(eq("pin-email"), any(Context.class))).thenReturn("htmlContent");
         when(mailProperties.getUsername()).thenReturn("user@example.com");
 
-        Mono<Void> result = emailService.sendPin("to@example.com", "subject", "1234");
+        Mono<Void> result = emailService.sendTxCodeNotification("to@example.com", "subject", "1234");
 
         StepVerifier.create(result)
                 .verifyComplete();

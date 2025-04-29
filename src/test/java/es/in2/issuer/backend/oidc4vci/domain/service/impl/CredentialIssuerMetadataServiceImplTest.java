@@ -1,30 +1,28 @@
 package es.in2.issuer.backend.oidc4vci.domain.service.impl;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.CredentialConfiguration;
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.CredentialIssuerMetadata;
-import es.in2.issuer.backend.oidc4vci.domain.service.impl.CredentialIssuerMetadataServiceImpl;
-import es.in2.issuer.backend.shared.domain.model.dto.CredentialDefinition;
+import es.in2.issuer.backend.oidc4vci.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.backend.shared.domain.util.Constants;
-import es.in2.issuer.backend.shared.domain.util.EndpointsConstants;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.util.List;
+import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.lenient;
+import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.backend.shared.domain.util.Constants.VERIFIABLE_CREDENTIAL;
+import static es.in2.issuer.backend.shared.domain.util.EndpointsConstants.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CredentialIssuerMetadataServiceImplTest {
 
-    private final String issuerApiExternalDomain = "http://example.com";
+    private static final String PROCESS_ID = "b731b463-7473-4f97-be7a-658ec0b5dbc9";
+    private static final String ISSUER_URL = "https://issuer.example.com";
 
     @Mock
     private AppConfig appConfig;
@@ -32,32 +30,37 @@ class CredentialIssuerMetadataServiceImplTest {
     @InjectMocks
     private CredentialIssuerMetadataServiceImpl credentialIssuerMetadataService;
 
-    @BeforeEach
-    void setup() {
-        lenient().when(appConfig.getIssuerBackendUrl()).thenReturn(issuerApiExternalDomain);
-    }
-
     @Test
-    void testGenerateOpenIdCredentialIssuer() {
-        Mono<CredentialIssuerMetadata> credentialIssuerMetadataMono = credentialIssuerMetadataService.generateOpenIdCredentialIssuer();
-
-        StepVerifier.create(credentialIssuerMetadataMono)
+    void shouldBuildCredentialIssuerMetadataSuccessfully() {
+        // Arrange
+        when(appConfig.getIssuerBackendUrl()).thenReturn(ISSUER_URL);
+        // Act
+        var resultMono = credentialIssuerMetadataService.buildCredentialIssuerMetadata(PROCESS_ID);
+        // Assert
+        StepVerifier.create(resultMono)
                 .assertNext(metadata -> {
-                    assertEquals(issuerApiExternalDomain, metadata.credentialIssuer(), "Credential Issuer");
-                    assertEquals(issuerApiExternalDomain + EndpointsConstants.CREDENTIAL, metadata.credentialEndpoint(), "Credential Endpoint");
-                    assertEquals(issuerApiExternalDomain + EndpointsConstants.CREDENTIAL_BATCH, metadata.batchCredentialEndpoint(), "Batch Credential Endpoint");
-                    assertEquals(issuerApiExternalDomain + EndpointsConstants.CREDENTIAL_DEFERRED, metadata.deferredCredentialEndpoint(), "Deferred Credential Endpoint");
+                    assertThat(metadata.credentialIssuer()).isEqualTo(ISSUER_URL + VCI_ISSUANCES_PATH);
+                    assertThat(metadata.credentialEndpoint()).isEqualTo(ISSUER_URL + OID4VCI_CREDENTIAL_PATH);
+                    assertThat(metadata.deferredCredentialEndpoint()).isEqualTo(ISSUER_URL + OID4VCI_DEFERRED_CREDENTIAL_PATH);
 
-                    CredentialConfiguration config = metadata.credentialConfigurationsSupported().get(Constants.LEAR_CREDENTIAL_EMPLOYEE);
-                    assertNotNull(config);
-                    assertEquals(Constants.JWT_VC_JSON, config.format(), "Format");
-                    assertTrue(config.cryptographicBindingMethodsSupported().isEmpty(), "Cryptographic Binding Methods Supported");
-                    assertTrue(config.credentialSigningAlgValuesSupported().isEmpty(), "Credential Signing Alg Values Supported");
+                    Map<String, CredentialIssuerMetadata.CredentialConfiguration> configs = metadata.credentialConfigurationsSupported();
+                    assertThat(configs).containsKeys(LEAR_CREDENTIAL_EMPLOYEE);
 
-                    CredentialDefinition definition = config.credentialDefinition();
-                    assertNotNull(definition);
-                    assertEquals(List.of(Constants.LEAR_CREDENTIAL, Constants.VERIFIABLE_CREDENTIAL), definition.type(), "Credential Definition Types");
+                    CredentialIssuerMetadata.CredentialConfiguration learCredentialEmployeeConfig = configs.get(LEAR_CREDENTIAL_EMPLOYEE);
+                    assertThat(learCredentialEmployeeConfig.format()).isEqualTo(Constants.JWT_VC_JSON);
+                    assertThat(learCredentialEmployeeConfig.scope()).isEqualTo("lear_credential_employee");
+                    assertThat(learCredentialEmployeeConfig.cryptographicBindingMethodsSupported()).containsExactly("did:key");
+                    assertThat(learCredentialEmployeeConfig.credentialSigningAlgValuesSupported()).containsExactly("ES256");
+
+                    CredentialIssuerMetadata.CredentialConfiguration.CredentialDefinition definition = learCredentialEmployeeConfig.credentialDefinition();
+                    assertThat(definition).isNotNull();
+                    assertThat(definition.type()).containsExactlyInAnyOrder(VERIFIABLE_CREDENTIAL, LEAR_CREDENTIAL_EMPLOYEE);
+
+                    Map<String, CredentialIssuerMetadata.CredentialConfiguration.ProofSigninAlgValuesSupported> proofTypes = learCredentialEmployeeConfig.proofTypesSupported();
+                    assertThat(proofTypes).containsKey("jwt");
+                    assertThat(proofTypes.get("jwt").proofSigningAlgValuesSupported()).containsExactly("ES256");
                 })
                 .verifyComplete();
     }
+
 }

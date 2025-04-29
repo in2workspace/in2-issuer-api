@@ -1,8 +1,7 @@
 package es.in2.issuer.backend.oidc4vci.domain.service.impl;
 
-import es.in2.issuer.backend.oidc4vci.domain.service.impl.TokenServiceImpl;
 import es.in2.issuer.backend.shared.domain.service.JWTService;
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.TokenResponse;
+import es.in2.issuer.backend.oidc4vci.domain.model.TokenResponse;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialIdAndTxCode;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.shared.infrastructure.repository.CacheStore;

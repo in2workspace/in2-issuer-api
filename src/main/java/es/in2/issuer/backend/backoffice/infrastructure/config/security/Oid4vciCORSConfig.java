@@ -30,8 +30,8 @@ public class Oid4vciCORSConfig {
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration(CREDENTIAL_OFFER, configuration);
-        source.registerCorsConfiguration(TOKEN, configuration);
+        source.registerCorsConfiguration(OID4VCI_CREDENTIAL_OFFER_PATH, configuration);
+        source.registerCorsConfiguration(OAUTH_TOKEN_PATH, configuration);
         return source;
     }
 }

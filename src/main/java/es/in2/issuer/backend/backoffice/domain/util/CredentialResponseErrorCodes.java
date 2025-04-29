@@ -2,6 +2,10 @@ package es.in2.issuer.backend.backoffice.domain.util;
 
 public class CredentialResponseErrorCodes {
 
+    private CredentialResponseErrorCodes() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static final String INVALID_REQUEST = "invalid_request";
     public static final String INVALID_TOKEN = "invalid_token";
     public static final String UNSUPPORTED_CREDENTIAL_TYPE = "unsupported_credential_type";
@@ -17,9 +21,5 @@ public class CredentialResponseErrorCodes {
     public static final String FORMAT_IS_NOT_SUPPORTED = "format_is_not_supported";
     public static final String INSUFFICIENT_PERMISSION = "insufficient_permission";
     public static final String MISSING_HEADER = "missing_header";
-    private CredentialResponseErrorCodes() {
-        throw new IllegalStateException("Utility class");
-    }
 
 }
-

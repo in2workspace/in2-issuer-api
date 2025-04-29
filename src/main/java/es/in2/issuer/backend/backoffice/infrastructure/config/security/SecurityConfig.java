@@ -47,7 +47,7 @@ public class SecurityConfig {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(customAuthenticationManager);
         // Set the path for which the filter will be applied
         authenticationWebFilter.setRequiresAuthenticationMatcher(
-                ServerWebExchangeMatchers.pathMatchers(EXTERNAL_ISSUANCE)
+                ServerWebExchangeMatchers.pathMatchers(VCI_ISSUANCES_PATH)
         );
         // Configure the Bearer token authentication converter
         ServerBearerTokenAuthenticationConverter bearerConverter = new ServerBearerTokenAuthenticationConverter();
@@ -64,19 +64,19 @@ public class SecurityConfig {
                         ServerWebExchangeMatchers.matchers(
                                 ServerWebExchangeMatchers.pathMatchers(
                                         HttpMethod.GET,
-                                        SWAGGER_UI,
-                                        SWAGGER_RESOURCES,
-                                        SWAGGER_API_DOCS,
-                                        SWAGGER_SPRING_UI,
-                                        SWAGGER_WEBJARS,
-                                        PUBLIC_HEALTH,
-                                        PUBLIC_CREDENTIAL_OFFER,
-                                        PUBLIC_DISCOVERY_ISSUER,
-                                        PROMETHEUS
+                                        SWAGGER_UI_PATH,
+                                        SWAGGER_RESOURCES_PATH,
+                                        SWAGGER_API_DOCS_PATH,
+                                        SWAGGER_SPRING_UI_PATH,
+                                        SWAGGER_WEBJARS_PATH,
+                                        HEALTH_PATH,
+                                        CORS_CREDENTIAL_OFFER_PATH,
+                                        CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH,
+                                        PROMETHEUS_PATH
                                 ),
                                 ServerWebExchangeMatchers.pathMatchers(
                                         HttpMethod.POST,
-                                        TOKEN,
+                                        OAUTH_TOKEN_PATH,
                                         DEFERRED_CREDENTIALS
                                 )
                         )
@@ -85,19 +85,19 @@ public class SecurityConfig {
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers(
                                 HttpMethod.GET,
-                                SWAGGER_UI,
-                                SWAGGER_RESOURCES,
-                                SWAGGER_API_DOCS,
-                                SWAGGER_SPRING_UI,
-                                SWAGGER_WEBJARS,
-                                PUBLIC_HEALTH,
-                                PUBLIC_CREDENTIAL_OFFER,
-                                PUBLIC_DISCOVERY_ISSUER,
-                                PROMETHEUS
+                                SWAGGER_UI_PATH,
+                                SWAGGER_RESOURCES_PATH,
+                                SWAGGER_API_DOCS_PATH,
+                                SWAGGER_SPRING_UI_PATH,
+                                SWAGGER_WEBJARS_PATH,
+                                HEALTH_PATH,
+                                CORS_CREDENTIAL_OFFER_PATH,
+                                CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH,
+                                PROMETHEUS_PATH
                         ).permitAll()
                         .pathMatchers(
                                 HttpMethod.POST,
-                                TOKEN,
+                                OAUTH_TOKEN_PATH,
                                 DEFERRED_CREDENTIALS
                         ).permitAll()
                         .anyExchange().authenticated()
@@ -112,7 +112,7 @@ public class SecurityConfig {
     @Order(2)
     public SecurityWebFilterChain externalFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, EXTERNAL_ISSUANCE))
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(HttpMethod.POST, VCI_ISSUANCES_PATH))
                 .cors(cors -> cors.configurationSource(externalServicesCORSConfig.externalCorsConfigurationSource()))
                 .authorizeExchange(exchanges -> exchanges
                         .anyExchange().authenticated()
@@ -127,10 +127,10 @@ public class SecurityConfig {
     @Order(3)
     public SecurityWebFilterChain oidc4vciFilterChain(ServerHttpSecurity http) {
         http
-                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(OID4VCI))
+                .securityMatcher(ServerWebExchangeMatchers.pathMatchers(CORS_OID4VCI_PATH))
                 .cors(cors -> oid4VciCORSConfig.oid4vciCorsConfigurationSource())
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers(TOKEN, CREDENTIAL_OFFER).permitAll()
+                        .pathMatchers(OAUTH_TOKEN_PATH, OID4VCI_CREDENTIAL_OFFER_PATH).permitAll()
                         .anyExchange().authenticated()
                 )
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
@@ -162,7 +162,7 @@ public class SecurityConfig {
         AuthenticationWebFilter authenticationWebFilter = new AuthenticationWebFilter(oidc4vciAuthenticationManager);
 
         // Set the path for which the filter will be applied
-        ServerWebExchangeMatcher excludedPaths = ServerWebExchangeMatchers.pathMatchers(TOKEN, CREDENTIAL_OFFER);
+        ServerWebExchangeMatcher excludedPaths = ServerWebExchangeMatchers.pathMatchers(OAUTH_TOKEN_PATH, OID4VCI_CREDENTIAL_OFFER_PATH);
         authenticationWebFilter.setRequiresAuthenticationMatcher(
                 new NegatedServerWebExchangeMatcher(excludedPaths)
         );

@@ -1,7 +1,6 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
-import es.in2.issuer.backend.backoffice.domain.service.impl.CredentialOfferServiceImpl;
-import es.in2.issuer.backend.shared.domain.model.dto.Grant;
+import es.in2.issuer.backend.shared.domain.model.dto.Grants;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,12 +37,11 @@ class CredentialOfferServiceImplTest {
         String preAuthCode = "code123";
         String email = "example@exmple.com";
         String pin = "1234";
-        Grant grant = Grant.builder().preAuthorizedCode(preAuthCode).txCode(Grant.TxCode.builder().length(4).build()).build();
+        Grants grants = Grants.builder().preAuthorizedCode(preAuthCode).txCode(Grants.TxCode.builder().length(4).build()).build();
         when(appConfig.getIssuerBackendUrl()).thenReturn("https://example.com");
-        StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grant, email, pin))
+        StepVerifier.create(credentialOfferService.buildCustomCredentialOffer(credentialType, grants, email, pin))
                 .expectNextMatches(offer ->
                         offer.credentialOffer().credentialIssuer().equals("https://example.com") &&
-                                offer.credentialOffer().credentials().size() == 1 &&
                                 offer.credentialOffer().credentialConfigurationIds().equals(List.of(LEAR_CREDENTIAL_EMPLOYEE)) &&
                                 offer.credentialOffer().grants().containsKey(GRANT_TYPE) &&
                                 offer.credentialOffer().grants().get(GRANT_TYPE).preAuthorizedCode().equals(preAuthCode) &&

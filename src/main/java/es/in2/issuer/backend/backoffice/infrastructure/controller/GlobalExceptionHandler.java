@@ -193,8 +193,8 @@ public class GlobalExceptionHandler {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
     }
-    @ExceptionHandler(CustomCredentialOfferNotFoundException.class)
-    public Mono<ResponseEntity<Void>> handleCustomCredentialOfferNotFoundException(CustomCredentialOfferNotFoundException ex) {
+    @ExceptionHandler(CredentialOfferNotFoundException.class)
+    public Mono<ResponseEntity<Void>> handleCustomCredentialOfferNotFoundException(CredentialOfferNotFoundException ex) {
         log.error(ex.getMessage());
         return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }

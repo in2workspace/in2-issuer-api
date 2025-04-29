@@ -1,8 +1,7 @@
 package es.in2.issuer.backend.oidc4vci.infrastructure.controller;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.dto.TokenResponse;
+import es.in2.issuer.backend.oidc4vci.domain.model.TokenResponse;
 import es.in2.issuer.backend.oidc4vci.domain.service.TokenService;
-import es.in2.issuer.backend.oidc4vci.infrastructure.controller.TokenController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;

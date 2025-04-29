@@ -2,7 +2,7 @@ package es.in2.issuer.backend.oidc4vci.domain.service.impl;
 
 import es.in2.issuer.backend.oidc4vci.domain.service.PreAuthorizedCodeService;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialIdAndTxCode;
-import es.in2.issuer.backend.shared.domain.model.dto.Grant;
+import es.in2.issuer.backend.shared.domain.model.dto.Grants;
 import es.in2.issuer.backend.shared.domain.model.dto.PreAuthorizedCodeResponse;
 import es.in2.issuer.backend.shared.infrastructure.repository.CacheStore;
 import lombok.RequiredArgsConstructor;
@@ -70,8 +70,8 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     }
 
     private Mono<PreAuthorizedCodeResponse> buildPreAuthorizedCodeResponse(String preAuthorizedCode, String txCode) {
-        Grant.TxCode grantTxCode = new Grant.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
-        Grant grant = new Grant(preAuthorizedCode, grantTxCode);
-        return Mono.just(new PreAuthorizedCodeResponse(grant, txCode));
+        Grants.TxCode grantTxCode = new Grants.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
+        Grants grants = new Grants(preAuthorizedCode, grantTxCode);
+        return Mono.just(new PreAuthorizedCodeResponse(grants, txCode));
     }
 }
