@@ -28,6 +28,7 @@ public class CredentialIssuerMetadataServiceImpl implements CredentialIssuerMeta
         String credentialIssuerUrl = ensureUrlHasProtocol(appConfig.getIssuerBackendUrl());
         CredentialIssuerMetadata credentialIssuerMetadata = CredentialIssuerMetadata.builder()
                 .credentialIssuer(credentialIssuerUrl)
+                .issuanceEndpoint(credentialIssuerUrl + VCI_ISSUANCES_PATH)
                 .credentialEndpoint(credentialIssuerUrl + OID4VCI_CREDENTIAL_PATH)
                 .deferredCredentialEndpoint(credentialIssuerUrl + OID4VCI_DEFERRED_CREDENTIAL_PATH)
                 .credentialConfigurationsSupported(Map.of(
