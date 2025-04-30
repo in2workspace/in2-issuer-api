@@ -39,7 +39,7 @@ class CredentialIssuerMetadataServiceImplTest {
         // Assert
         StepVerifier.create(resultMono)
                 .assertNext(metadata -> {
-                    assertThat(metadata.credentialIssuer()).isEqualTo(ISSUER_URL + VCI_ISSUANCES_PATH);
+                    assertThat(metadata.credentialIssuer()).isEqualTo(ISSUER_URL);
                     assertThat(metadata.credentialEndpoint()).isEqualTo(ISSUER_URL + OID4VCI_CREDENTIAL_PATH);
                     assertThat(metadata.deferredCredentialEndpoint()).isEqualTo(ISSUER_URL + OID4VCI_DEFERRED_CREDENTIAL_PATH);
 
