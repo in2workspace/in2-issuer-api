@@ -71,6 +71,7 @@ public class SecurityConfig {
                                         HEALTH_PATH,
                                         CORS_CREDENTIAL_OFFER_PATH,
                                         CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH,
+                                        AUTHORIZATION_SERVER_METADATA_WELL_KNOWN_PATH,
                                         PROMETHEUS_PATH
                                 ),
                                 ServerWebExchangeMatchers.pathMatchers(
@@ -92,6 +93,7 @@ public class SecurityConfig {
                                 HEALTH_PATH,
                                 CORS_CREDENTIAL_OFFER_PATH,
                                 CREDENTIAL_ISSUER_METADATA_WELL_KNOWN_PATH,
+                                AUTHORIZATION_SERVER_METADATA_WELL_KNOWN_PATH,
                                 PROMETHEUS_PATH
                         ).permitAll()
                         .pathMatchers(
