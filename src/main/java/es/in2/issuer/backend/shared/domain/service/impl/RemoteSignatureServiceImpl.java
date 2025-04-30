@@ -170,8 +170,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     private Mono<String> getSignedDocumentDSS(SignatureRequest signatureRequest, String token) {
         String signatureRemoteServerEndpoint = remoteSignatureConfig.getRemoteSignatureDomain() + "/api/v1"
                 + remoteSignatureConfig.getRemoteSignatureSignPath();
-        log.debug("Signature endpoint: {}", signatureRemoteServerEndpoint);
-        log.debug("Token for sign: {}", token);
         String signatureRequestJSON;
 
         log.info("Requesting signature to DSS service");

@@ -54,7 +54,6 @@ public class IssuerApiClientTokenServiceImpl implements IssuerApiClientTokenServ
                     } catch (JsonProcessingException e) {
                         return Mono.error(new RuntimeException(e));
                     }
-                    log.debug("Token from client api {}",jsonObject.get("access_token").toString());
                     String token = jsonObject.get("access_token").toString();
                     return Mono.just(token);
                 });
