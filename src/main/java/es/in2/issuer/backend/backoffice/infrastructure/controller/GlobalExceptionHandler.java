@@ -297,6 +297,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingIdTokenHeaderException.class)
+    // todo: move to responsestatus annotation
     public Mono<ResponseEntity<CredentialErrorResponse>> handleMissingIdTokenHeaderException(Exception ex) {
         String description = "The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification";
 

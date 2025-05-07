@@ -50,6 +50,11 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final M2MTokenService m2mTokenService;
 
     @Override
+    // todo: split into 2 functions with idtoken/without idtoken
+    // todo: issuanceFromService -> without idToken
+    // todo: issuanceFromServiceWithDelegatedAuthorization -> with idToken
+    // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
+    // todo: move 2 first validations to PreSubmittedCredentialRequest and add validate annotation in controller
     public Mono<Void> execute(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken) {
 
         // Check if the format is not "json_vc_jwt"
@@ -61,6 +66,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
             return Mono.error(new OperationNotSupportedException("operation_mode: " + preSubmittedCredentialRequest.operationMode() + " with schema: " + preSubmittedCredentialRequest.schema()));
         }
 
+        // todo: only in issuanceFromServiceWithDelegatedAuthorization
         // Validate idToken header for VerifiableCertification schema
         if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
             return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
@@ -69,7 +75,21 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         // Validate user policy before proceeding
         return verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload(), idToken)
                 .then(Mono.defer(() -> {
+                    // todo: change to switch
                     if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                        // todo: credentialIssuanceRecordService.create() ->
+                        //  --> buildCredentialIssuanceRecord [CredentialProcedure]
+                        //  -----> id -> random uuid
+                        //  -----> organizationIdentifier -> token
+                        // ------> credentialFormat -> preSubmittedCredentialRequest.format()
+                        //  -----> credentialType -> preSubmittedCredentialRequest.schema()
+                        //  -----> credentialData -> learCredentialEmployee.map(payload)
+                        //  -----> operationMode -> preSubmittedCredentialRequest.operationMode()
+                        //  -----> signatureMode -> hardcoded
+                        //  -----> createdAt
+                        //  -----> updatedAt
+                        //  --> SAVE
+                        // --> generateActivationCode (nonce) and save in cache (key: activationCode (nonce), value: credentialIssuanceRecordId)
                         return verifiableCredentialService.generateVc(processId, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest, token)
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedCredentialRequest));
                     } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
@@ -93,11 +113,17 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                 }));
     }
 
+    // todo: sendActivationCredentialEmail
+    // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
+    // todo: transactionCode -> activationCode
     private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
         String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
-        // TODO we are only validating that the url its well formed, we should return the proper object not a string
+        // todo: change to send to /activation-code
+        // todo: path variable -> activation-code
+        // todo: CHANGE IN FRONTEND
+        // todo: change to https
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerFrontendUrl())
                 .path("/credential-offer")
