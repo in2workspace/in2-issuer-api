@@ -19,7 +19,7 @@ import java.util.UUID;
 public class IssuanceController {
 
     private final CredentialIssuanceWorkflow credentialIssuanceWorkflow;
-    private final AccessTokenService accessTokenService;
+    private final AccessTokenService accessTokenService; // todo: move to credentialIssuanceWorkflow
 
     @PostMapping("/backoffice/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
