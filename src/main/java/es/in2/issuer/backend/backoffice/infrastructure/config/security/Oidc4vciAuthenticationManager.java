@@ -29,7 +29,6 @@ public class Oidc4vciAuthenticationManager implements ReactiveAuthenticationMana
 
     @Override
     public Mono<Authentication> authenticate(Authentication authentication) {
-        log.info("Validating JWT token");
         String token = authentication.getCredentials().toString();
 
         return Mono.fromCallable(() -> JWSObject.parse(token))
