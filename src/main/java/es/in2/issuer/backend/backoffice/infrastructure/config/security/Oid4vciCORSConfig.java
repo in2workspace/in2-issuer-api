@@ -15,8 +15,6 @@ import static es.in2.issuer.backend.shared.domain.util.EndpointsConstants.*;
 @RequiredArgsConstructor
 
 public class Oid4vciCORSConfig {
-    private final AppConfig appConfig;
-
     /**
      * Default CORS configuration source.
      */
