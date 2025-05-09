@@ -23,7 +23,7 @@ public class Oid4vciCORSConfig {
     @Bean
     public UrlBasedCorsConfigurationSource oid4vciCorsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(appConfig.getDefaultCorsAllowedOrigins());
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
