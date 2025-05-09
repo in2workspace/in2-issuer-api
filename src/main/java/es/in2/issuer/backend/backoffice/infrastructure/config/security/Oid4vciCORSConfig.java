@@ -32,6 +32,7 @@ public class Oid4vciCORSConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration(OID4VCI_CREDENTIAL_OFFER_PATH, configuration);
         source.registerCorsConfiguration(OAUTH_TOKEN_PATH, configuration);
+        source.registerCorsConfiguration(OID4VCI_CREDENTIAL_PATH, configuration);
         return source;
     }
 }
