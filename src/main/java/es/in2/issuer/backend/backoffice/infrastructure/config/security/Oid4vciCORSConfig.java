@@ -26,7 +26,7 @@ public class Oid4vciCORSConfig {
         configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
-        configuration.setAllowCredentials(true);
+        configuration.setAllowCredentials(false);
         configuration.setMaxAge(1800L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
