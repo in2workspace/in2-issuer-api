@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Refactor configs.
 
+## [v1.6.6](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.6)
+### Fixed
+- OID4VCI cors configuration.
+
 ## [v1.6.5](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.5)
 ### Fixed
 - Refactor configs.
