@@ -1,8 +1,8 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import es.in2.issuer.backend.backoffice.domain.model.entities.Configuration;
+import es.in2.issuer.backend.backoffice.domain.repository.ConfigurationRepository;
 import es.in2.issuer.backend.backoffice.domain.service.ConfigurationService;
-import es.in2.issuer.backend.shared.domain.model.entities.Configuration;
-import es.in2.issuer.backend.shared.domain.repository.ConfigurationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

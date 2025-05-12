@@ -2,7 +2,7 @@ package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
 
 import es.in2.issuer.backend.backoffice.domain.exception.*;
-import es.in2.issuer.backend.backoffice.domain.model.ApiErrorResponse;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.ApiErrorResponse;
 import es.in2.issuer.backend.backoffice.domain.util.CredentialResponseErrorCodes;
 import es.in2.issuer.backend.shared.domain.exception.*;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialErrorResponse;

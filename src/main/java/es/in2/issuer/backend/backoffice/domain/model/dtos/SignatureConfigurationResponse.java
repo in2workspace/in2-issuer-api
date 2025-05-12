@@ -1,7 +1,7 @@
-package es.in2.issuer.backend.backoffice.domain.model;
+package es.in2.issuer.backend.backoffice.domain.model.dtos;
 
 
-import es.in2.issuer.backend.shared.domain.model.enums.SignatureMode;
+import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
 import lombok.Builder;
 
 import java.util.UUID;

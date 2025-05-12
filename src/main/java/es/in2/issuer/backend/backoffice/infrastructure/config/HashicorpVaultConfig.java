@@ -1,6 +1,6 @@
-package es.in2.issuer.backend.shared.infrastructure.config;
+package es.in2.issuer.backend.backoffice.infrastructure.config;
 
-import es.in2.issuer.backend.shared.infrastructure.config.properties.HashicorpVaultProperties;
+import es.in2.issuer.backend.backoffice.infrastructure.config.properties.HashicorpVaultProperties;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

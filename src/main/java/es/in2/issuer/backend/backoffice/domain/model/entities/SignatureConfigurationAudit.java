@@ -1,11 +1,12 @@
-package es.in2.issuer.backend.shared.domain.model.entities;
+package es.in2.issuer.backend.backoffice.domain.model.entities;
 
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+
 import java.time.Instant;
 import java.util.UUID;
-import org.springframework.data.relational.core.mapping.Table;
 
 @Getter
 @Setter

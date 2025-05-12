@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.shared.infrastructure.config.properties;
+package es.in2.issuer.backend.backoffice.infrastructure.config.properties;
 
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.URL;

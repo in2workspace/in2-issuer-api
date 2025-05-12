@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.shared.domain.service;
+package es.in2.issuer.backend.backoffice.domain.service;
 
 import reactor.core.publisher.Mono;
 

@@ -1,10 +1,10 @@
 package es.in2.issuer.backend.backoffice.domain.service;
 
-import es.in2.issuer.backend.backoffice.domain.model.CompleteSignatureConfiguration;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigWithProviderName;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigurationResponse;
-import es.in2.issuer.backend.shared.domain.model.entities.SignatureConfiguration;
-import es.in2.issuer.backend.shared.domain.model.enums.SignatureMode;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 

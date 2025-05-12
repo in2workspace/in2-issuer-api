@@ -2,13 +2,13 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.backoffice.domain.model.CompleteSignatureConfiguration;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigAudit;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;
+import es.in2.issuer.backend.backoffice.domain.repository.SignatureConfigurationAuditRepository;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationAuditService;
 import es.in2.issuer.backend.backoffice.domain.util.factory.SignatureConfigAuditFactory;
-import es.in2.issuer.backend.shared.domain.model.entities.SignatureConfigurationAudit;
-import es.in2.issuer.backend.shared.domain.repository.SignatureConfigurationAuditRepository;
 import es.in2.issuer.backend.shared.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

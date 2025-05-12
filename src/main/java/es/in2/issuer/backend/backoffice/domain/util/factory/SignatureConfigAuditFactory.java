@@ -2,8 +2,8 @@ package es.in2.issuer.backend.backoffice.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigAudit;
-import es.in2.issuer.backend.shared.domain.model.entities.SignatureConfigurationAudit;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

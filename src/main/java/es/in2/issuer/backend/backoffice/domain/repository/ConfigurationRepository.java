@@ -1,6 +1,6 @@
-package es.in2.issuer.backend.shared.domain.repository;
+package es.in2.issuer.backend.backoffice.domain.repository;
 
-import es.in2.issuer.backend.shared.domain.model.entities.Configuration;
+import es.in2.issuer.backend.backoffice.domain.model.entities.Configuration;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import reactor.core.publisher.Flux;
 

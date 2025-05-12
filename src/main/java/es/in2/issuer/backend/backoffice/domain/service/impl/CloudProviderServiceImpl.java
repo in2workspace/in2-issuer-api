@@ -1,8 +1,8 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import es.in2.issuer.backend.backoffice.domain.model.entities.CloudProvider;
+import es.in2.issuer.backend.backoffice.domain.repository.CloudProviderRepository;
 import es.in2.issuer.backend.backoffice.domain.service.CloudProviderService;
-import es.in2.issuer.backend.shared.domain.model.entities.CloudProvider;
-import es.in2.issuer.backend.shared.domain.repository.CloudProviderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

@@ -1,12 +1,12 @@
 package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
-import es.in2.issuer.backend.backoffice.domain.model.CompleteSignatureConfiguration;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigWithProviderName;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigurationResponse;
-import es.in2.issuer.backend.backoffice.domain.model.UpdateSignatureConfigurationRequest;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.UpdateSignatureConfigurationRequest;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationService;
-import es.in2.issuer.backend.shared.domain.model.entities.SignatureConfiguration;
-import es.in2.issuer.backend.shared.domain.model.enums.SignatureMode;
 import es.in2.issuer.backend.shared.domain.service.AccessTokenService;
 import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,6 +1,6 @@
-package es.in2.issuer.backend.shared.domain.repository;
+package es.in2.issuer.backend.backoffice.domain.repository;
 
-import es.in2.issuer.backend.shared.domain.model.entities.CloudProvider;
+import es.in2.issuer.backend.backoffice.domain.model.entities.CloudProvider;
 import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 

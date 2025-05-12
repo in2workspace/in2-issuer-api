@@ -1,16 +1,16 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
-import es.in2.issuer.backend.backoffice.domain.model.CompleteSignatureConfiguration;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigWithProviderName;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureConfigurationResponse;
-import es.in2.issuer.backend.backoffice.domain.model.SignatureVaultSecret;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureVaultSecret;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
+import es.in2.issuer.backend.backoffice.domain.repository.SignatureConfigurationRepository;
 import es.in2.issuer.backend.backoffice.domain.service.CloudProviderService;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationAuditService;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationService;
-import es.in2.issuer.backend.shared.domain.model.entities.SignatureConfiguration;
-import es.in2.issuer.backend.shared.domain.model.enums.SignatureMode;
-import es.in2.issuer.backend.shared.domain.repository.SignatureConfigurationRepository;
-import es.in2.issuer.backend.shared.domain.service.VaultService;
+import es.in2.issuer.backend.backoffice.domain.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

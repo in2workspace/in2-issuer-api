@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
+import es.in2.issuer.backend.backoffice.domain.model.entities.CloudProvider;
 import es.in2.issuer.backend.backoffice.domain.service.CloudProviderService;
-import es.in2.issuer.backend.shared.domain.model.entities.CloudProvider;
 import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
