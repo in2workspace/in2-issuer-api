@@ -8,6 +8,7 @@ import org.springframework.vault.core.VaultKeyValueOperationsSupport;
 import org.springframework.vault.support.VaultResponseSupport;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -41,7 +42,7 @@ public class VaultServiceImpl implements VaultService {
     @Override
     public Mono<Void> patchSecrets(String secretRelativePath, Map<String, String> partialUpdate) {
         return getSecrets(secretRelativePath)
-                .defaultIfEmpty(Map.of())
+                .defaultIfEmpty(new HashMap<>())
                 .map(currentSecrets -> {
                     currentSecrets.putAll(partialUpdate);
                     return currentSecrets;
