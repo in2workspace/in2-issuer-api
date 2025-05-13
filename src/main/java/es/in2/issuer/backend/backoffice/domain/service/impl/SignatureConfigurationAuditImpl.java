@@ -22,7 +22,6 @@ import java.time.Instant;
 public class SignatureConfigurationAuditImpl implements SignatureConfigurationAuditService {
     private final SignatureConfigurationAuditRepository auditRepository;
     private final ObjectMapper objectMapper;
-    private final AccessTokenService accessTokenService;
     private final SignatureConfigAuditFactory factory;
 
 

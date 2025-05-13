@@ -1,0 +1,208 @@
+package es.in2.issuer.backend.backoffice.domain.service.impl;
+
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
+import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;
+import es.in2.issuer.backend.backoffice.domain.repository.SignatureConfigurationAuditRepository;
+import es.in2.issuer.backend.backoffice.domain.util.factory.SignatureConfigAuditFactory;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
+
+import java.time.Instant;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class SignatureConfigurationAuditImplTest {
+
+    @Mock SignatureConfigurationAuditRepository auditRepository;
+    @Mock ObjectMapper objectMapper;
+    @Mock SignatureConfigAuditFactory factory;
+    @InjectMocks SignatureConfigurationAuditImpl service;
+
+    private SignatureConfigurationResponse oldConfig;
+    private CompleteSignatureConfiguration newConfig;
+    private final String rationale = "rationale";
+    private final String userEmail = "user@example.com";
+
+    @BeforeEach
+    void setUp() {
+        UUID id = UUID.randomUUID();
+        oldConfig = SignatureConfigurationResponse.builder()
+                .id(id)
+                .organizationIdentifier("org-1")
+                .enableRemoteSignature(true)
+                .signatureMode(es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode.LOCAL)
+                .cloudProviderId(id)
+                .clientId("cid")
+                .credentialId("crid")
+                .credentialName("cname")
+                .build();
+
+        newConfig = CompleteSignatureConfiguration.builder()
+                .id(id)
+                .organizationIdentifier("org-1")
+                .enableRemoteSignature(false)
+                .signatureMode(es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode.LOCAL)
+                .cloudProviderId(id)
+                .clientId("cid2")
+                .credentialId("crid2")
+                .credentialName("cname2")
+                .secretRelativePath("path")
+                .clientSecret("csec")
+                .credentialPassword("pwd")
+                .secret("sec")
+                .build();
+    }
+
+    @Test
+    void saveAudit_success() throws JsonProcessingException {
+        String oldJson = "{\"old\":true}";
+        String newJson = "{\"new\":true}";
+
+        when(objectMapper.writeValueAsString(oldConfig)).thenReturn(oldJson);
+        when(objectMapper.writeValueAsString(newConfig)).thenReturn(newJson);
+        when(auditRepository.save(any(SignatureConfigurationAudit.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+
+        Mono<Void> result = service.saveAudit(oldConfig, newConfig, rationale, userEmail);
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        ArgumentCaptor<SignatureConfigurationAudit> captor =
+                ArgumentCaptor.forClass(SignatureConfigurationAudit.class);
+        verify(auditRepository).save(captor.capture());
+        SignatureConfigurationAudit audit = captor.getValue();
+
+        assertThat(audit.getSignatureConfigurationId()).isEqualTo(oldConfig.id().toString());
+        assertThat(audit.getUserEmail()).isEqualTo(userEmail);
+        assertThat(audit.getOrganizationIdentifier()).isEqualTo(oldConfig.organizationIdentifier());
+        assertThat(audit.getOldValues()).isEqualTo(oldJson);
+        assertThat(audit.getNewValues()).isEqualTo(newJson);
+        assertThat(audit.getRationale()).isEqualTo(rationale);
+        assertThat(audit.isEncrypted()).isFalse();
+        assertThat(audit.getInstant()).isNotNull();
+    }
+
+    @Test
+    void saveAudit_serializeOldConfigError() throws JsonProcessingException {
+        when(objectMapper.writeValueAsString(oldConfig))
+                .thenThrow(new JsonProcessingException("fail"){});
+
+        Mono<Void> result = service.saveAudit(oldConfig, newConfig, rationale, userEmail);
+
+        StepVerifier.create(result)
+                .expectErrorSatisfies(e -> {
+                    assertThat(e).isInstanceOf(RuntimeException.class);
+                    assertThat(e).hasMessageContaining("Error serializing config audit JSON");
+                    assertThat(e.getCause()).isInstanceOf(JsonProcessingException.class);
+                })
+                .verify();
+    }
+
+    @Test
+    void saveDeletionAudit_success() throws JsonProcessingException {
+        String oldJson = "{\"old\":true}";
+
+        when(objectMapper.writeValueAsString(oldConfig)).thenReturn(oldJson);
+        when(auditRepository.save(any(SignatureConfigurationAudit.class)))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+
+        Mono<Void> result = service.saveDeletionAudit(oldConfig, rationale, userEmail);
+
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        ArgumentCaptor<SignatureConfigurationAudit> captor =
+                ArgumentCaptor.forClass(SignatureConfigurationAudit.class);
+        verify(auditRepository).save(captor.capture());
+        SignatureConfigurationAudit audit = captor.getValue();
+
+        assertThat(audit.getSignatureConfigurationId()).isEqualTo(oldConfig.id().toString());
+        assertThat(audit.getOldValues()).isEqualTo(oldJson);
+        assertThat(audit.getNewValues()).isNull();
+        assertThat(audit.getRationale()).isEqualTo(rationale);
+        assertThat(audit.isEncrypted()).isFalse();
+        assertThat(audit.getInstant()).isNotNull();
+    }
+
+    @Test
+    void saveDeletionAudit_serializeError() throws JsonProcessingException {
+        when(objectMapper.writeValueAsString(oldConfig))
+                .thenThrow(new JsonProcessingException("err"){});
+
+        Mono<Void> result = service.saveDeletionAudit(oldConfig, rationale, userEmail);
+
+        StepVerifier.create(result)
+                .expectErrorSatisfies(e -> {
+                    assertThat(e).isInstanceOf(RuntimeException.class);
+                    assertThat(e).hasMessageContaining("Error serializing old config for deletion audit");
+                    assertThat(e.getCause()).isInstanceOf(JsonProcessingException.class);
+                })
+                .verify();
+    }
+
+    @Test
+    void getAllAudits_mapsEntities() {
+        SignatureConfigurationAudit entity = SignatureConfigurationAudit.builder()
+                .id(UUID.randomUUID())
+                .signatureConfigurationId("id1")
+                .userEmail("u1")
+                .organizationIdentifier("org-1")
+                .instant(Instant.now())
+                .oldValues("{}")
+                .newValues("{}")
+                .rationale("r")
+                .encrypted(false)
+                .build();
+        SignatureConfigAudit dto = mock(SignatureConfigAudit.class);
+
+        when(auditRepository.findAll()).thenReturn(Flux.just(entity));
+        when(factory.createFromEntity(entity)).thenReturn(dto);
+
+        StepVerifier.create(service.getAllAudits())
+                .expectNext(dto)
+                .verifyComplete();
+    }
+
+    @Test
+    void getAuditsByOrganization_mapsEntities() {
+        String org = "org-XYZ";
+        SignatureConfigurationAudit entity = SignatureConfigurationAudit.builder()
+                .id(UUID.randomUUID())
+                .signatureConfigurationId("id2")
+                .userEmail("u2")
+                .organizationIdentifier(org)
+                .instant(Instant.now())
+                .oldValues("{}")
+                .newValues("{}")
+                .rationale("r2")
+                .encrypted(true)
+                .build();
+        SignatureConfigAudit dto = mock(SignatureConfigAudit.class);
+
+        when(auditRepository.findAllByOrganizationIdentifier(org))
+                .thenReturn(Flux.just(entity));
+        when(factory.createFromEntity(entity)).thenReturn(dto);
+
+        StepVerifier.create(service.getAuditsByOrganization(org))
+                .expectNext(dto)
+                .verifyComplete();
+    }
+}
+
