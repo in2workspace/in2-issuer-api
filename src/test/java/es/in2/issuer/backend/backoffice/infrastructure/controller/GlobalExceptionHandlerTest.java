@@ -2,7 +2,8 @@ package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
 
 import es.in2.issuer.backend.backoffice.domain.exception.*;
-import es.in2.issuer.backend.backoffice.infrastructure.controller.GlobalExceptionHandler;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.ApiErrorResponse;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import es.in2.issuer.backend.shared.domain.exception.*;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.server.RequestPath;
 import org.springframework.web.context.request.WebRequest;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -18,6 +20,7 @@ import reactor.test.StepVerifier;
 import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
+import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
@@ -427,6 +430,108 @@ class GlobalExceptionHandlerTest {
                 .assertNext(globalErrorMessage -> {
                     assertEquals(HttpStatus.SERVICE_UNAVAILABLE.value(), globalErrorMessage.status());
                     assertNull(globalErrorMessage.message());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleMissingIdTokenHeaderException_withoutMessage() {
+        MissingIdTokenHeaderException ex = new MissingIdTokenHeaderException(null);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> result =
+                globalExceptionHandler.handleMissingIdTokenHeaderException(ex);
+
+        StepVerifier.create(result)
+                .assertNext(resp -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+                    CredentialErrorResponse body = resp.getBody();
+                    assertNotNull(body);
+                    assertEquals(CredentialResponseErrorCodes.MISSING_HEADER, body.error());
+                    assertEquals(
+                            "The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification",
+                            body.description()
+                    );
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleMissingIdTokenHeaderException_withMessage() {
+        String msg = "Custom missing header message";
+        MissingIdTokenHeaderException ex = new MissingIdTokenHeaderException(msg);
+
+        Mono<ResponseEntity<CredentialErrorResponse>> result =
+                globalExceptionHandler.handleMissingIdTokenHeaderException(ex);
+
+        StepVerifier.create(result)
+                .assertNext(resp -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, resp.getStatusCode());
+                    CredentialErrorResponse body = resp.getBody();
+                    assertNotNull(body);
+                    assertEquals(CredentialResponseErrorCodes.MISSING_HEADER, body.error());
+                    assertEquals(msg, body.description());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleOrganizationIdentifierMismatchException() {
+        RequestPath mockPath = mock(RequestPath.class);
+        when(mockPath.toString()).thenReturn("/org");
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        when(request.getPath()).thenReturn(mockPath);
+
+        String msg = "Org ID mismatch!";
+        OrganizationIdentifierMismatchException ex =
+                new OrganizationIdentifierMismatchException(msg);
+
+        Mono<ResponseEntity<ApiErrorResponse>> result =
+                globalExceptionHandler.handleOrganizationIdentifierMismatchException(ex, request);
+
+        StepVerifier.create(result)
+                .assertNext(resp -> {
+                    assertEquals(HttpStatus.FORBIDDEN, resp.getStatusCode());
+                    ApiErrorResponse er = resp.getBody();
+                    assertNotNull(er);
+                    assertEquals("Unauthorized", er.type());
+                    assertEquals(OrganizationIdentifierMismatchException.class.toString(), er.title());
+                    assertEquals(403, er.status());
+                    assertEquals(msg, er.detail());
+                    assertNotNull(er.instance());
+                    assertTrue(Pattern.matches(
+                            "[0-9a-fA-F\\-]{36}", er.instance()
+                    ));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleNoSuchEntityException() {
+        RequestPath mockPath = mock(RequestPath.class);
+        when(mockPath.toString()).thenReturn("/nosuch");
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        when(request.getPath()).thenReturn(mockPath);
+
+        String msg = "Not found!";
+        NoSuchEntityException ex = new NoSuchEntityException(msg);
+
+        Mono<ResponseEntity<ApiErrorResponse>> result =
+                globalExceptionHandler.handleOrganizationIdentifierMismatchException(ex, request);
+
+        StepVerifier.create(result)
+                .assertNext(resp -> {
+                    assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
+                    ApiErrorResponse er = resp.getBody();
+                    assertNotNull(er);
+                    assertEquals("Not Found", er.type());
+                    // note: code uses FORBIDDEN.value() as the body.status
+                    assertEquals(403, er.status());
+                    assertEquals(NoSuchEntityException.class.toString(), er.title());
+                    assertEquals(msg, er.detail());
+                    assertNotNull(er.instance());
+                    assertTrue(Pattern.matches(
+                            "[0-9a-fA-F\\-]{36}", er.instance()
+                    ));
                 })
                 .verifyComplete();
     }

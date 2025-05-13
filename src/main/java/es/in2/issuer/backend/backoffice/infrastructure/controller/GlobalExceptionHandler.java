@@ -390,6 +390,4 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(response));
     }
-
-
 }

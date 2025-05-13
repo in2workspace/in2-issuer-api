@@ -59,5 +59,4 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                 .then();
     }
 
-
 }
