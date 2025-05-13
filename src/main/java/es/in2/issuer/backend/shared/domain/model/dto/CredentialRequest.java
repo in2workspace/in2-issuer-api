@@ -9,7 +9,7 @@ import java.util.Set;
 public record CredentialRequest(
         @JsonProperty("format") String format,
         @JsonProperty("credential_definition") CredentialDefinition credentialDefinition,
-        @JsonProperty("proof") Proof proof) {
+        @JsonProperty("proofs") Proof proofs) {
 
     @Builder
     public record CredentialDefinition(@JsonProperty("type") Set<String> type) {
