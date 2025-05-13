@@ -46,7 +46,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         validateBasicConfig(config);
 
         UUID generatedId = UUID.randomUUID();
-        String secretRelativePath = organizationIdentifier + "/" + generatedId;
+        String secretRelativePath = organizationIdentifier + SLASH + generatedId;
         SignatureConfiguration baseConfig = buildBaseConfig(config, organizationIdentifier, generatedId);
 
         return switch (config.signatureMode()) {
