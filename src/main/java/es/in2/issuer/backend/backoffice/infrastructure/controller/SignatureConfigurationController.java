@@ -12,7 +12,6 @@ import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -36,10 +35,8 @@ public class SignatureConfigurationController {
     @Operation(
             summary = "Create a new signature configuration",
             description = "Creates a new signature configuration, stores the secrets in Vault, and persists the configuration identifier.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
-    )
-    @ApiResponses(
-            value = {
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
                     @ApiResponse(responseCode = "201", description = "Signature configuration created successfully"),
                     @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
@@ -62,10 +59,8 @@ public class SignatureConfigurationController {
     @Operation(
             summary = "Get signature configurations for a specific organization",
             description = "Returns a list of all signature configurations filtered by the given organization identifier.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
-    )
-    @ApiResponses(
-            value = {
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
                     @ApiResponse(responseCode = "200", description = "All configurations for the specified organization returned"),
                     @ApiResponse(responseCode = "400", description = "Missing or invalid organization identifier", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
@@ -83,10 +78,8 @@ public class SignatureConfigurationController {
     @Operation(
             summary = "Get complete signature configuration by ID",
             description = "Returns a complete signature configuration, including secrets stored in Vault, for the given configuration ID.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
-    )
-    @ApiResponses(
-            value = {
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
                     @ApiResponse(responseCode = "200", description = "Complete signature configuration returned successfully"),
                     @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content),
                     @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
@@ -107,13 +100,13 @@ public class SignatureConfigurationController {
     @Operation(
             summary = "Update an existing signature configuration",
             description = "Partially updates the signature configuration and secrets in Vault if provided.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Signature configuration updated successfully"),
+                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content),
+                    @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
+            }
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Signature configuration updated successfully"),
-            @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content),
-            @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
-    })
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> updateSignatureConfiguration(
@@ -134,12 +127,12 @@ public class SignatureConfigurationController {
     @Operation(
             summary = "Delete an existing signature configuration",
             description = "Deletes the signature configuration and its secrets from Vault if present.",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
+                    @ApiResponse(responseCode = "204", description = "Signature configuration deleted successfully"),
+                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content)
+            }
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Signature configuration deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content)
-    })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteSignatureConfiguration(

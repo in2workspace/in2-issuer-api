@@ -6,7 +6,6 @@ import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -27,13 +26,13 @@ public class CloudProviderController {
     @Operation(
             summary = "Create a new cloud provider",
             description = "Registers a new cloud signature provider",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Cloud provider created"),
+                    @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
+                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
+            }
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Cloud provider created"),
-            @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
-            @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-    })
     @PostMapping(path = "/backoffice/v1/signatures/cloud-providers",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -49,12 +48,12 @@ public class CloudProviderController {
     @Operation(
             summary = "List all cloud providers",
             description = "Returns all cloud providers currently registered",
-            tags = {SwaggerConfig.TAG_PRIVATE}
+            tags = {SwaggerConfig.TAG_PRIVATE},
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "List of cloud providers returned successfully"),
+                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
+            }
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "List of cloud providers returned successfully"),
-            @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-    })
     @GetMapping(path = "/ops/v1/signatures/cloud-providers",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CloudProvider> getAllCloudProviders(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {

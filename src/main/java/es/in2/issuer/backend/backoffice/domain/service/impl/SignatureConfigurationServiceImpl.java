@@ -23,7 +23,11 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Stream;
+
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
 
 @Service
 @Slf4j
@@ -35,70 +39,112 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     private final SignatureConfigurationAuditService signatureConfigurationAuditService;
 
     @Override
-    public Mono<SignatureConfiguration> saveSignatureConfig(CompleteSignatureConfiguration config, String organizationIdentifier) {
+    public Mono<SignatureConfiguration> saveSignatureConfig(
+            CompleteSignatureConfiguration config,
+            String organizationIdentifier) {
 
-        if (config.signatureMode() == null) {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "signatureMode must not be null"));
-        }
-        if (!config.enableRemoteSignature() && config.signatureMode() != SignatureMode.LOCAL) {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Remote signature must be enabled for SERVER or CLOUD modes"));
-        }
+        validateBasicConfig(config);
 
         UUID generatedId = UUID.randomUUID();
         String secretRelativePath = organizationIdentifier + "/" + generatedId;
+        SignatureConfiguration baseConfig = buildBaseConfig(config, organizationIdentifier, generatedId);
 
-        SignatureConfiguration signatureConfigData = SignatureConfiguration.builder()
-                .id(generatedId)
-                .organizationIdentifier(organizationIdentifier)
+        return switch (config.signatureMode()) {
+            case CLOUD   -> handleCloudMode(config, baseConfig, secretRelativePath);
+            case SERVER  -> handleServerMode(config, baseConfig);
+            case LOCAL   -> repository.save(baseConfig);
+        };
+    }
+
+    private void validateBasicConfig(CompleteSignatureConfiguration config) {
+        if (config.signatureMode() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "signatureMode must not be null");
+        }
+        if (Boolean.FALSE.equals(config.enableRemoteSignature()) && config.signatureMode() != SignatureMode.LOCAL) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Remote signature must be enabled for SERVER or CLOUD modes"
+            );
+        }
+    }
+
+    private SignatureConfiguration buildBaseConfig(
+            CompleteSignatureConfiguration config,
+            String orgId,
+            UUID id) {
+
+        return SignatureConfiguration.builder()
+                .id(id)
+                .organizationIdentifier(orgId)
                 .enableRemoteSignature(config.enableRemoteSignature())
                 .signatureMode(config.signatureMode())
                 .newTransaction(true)
                 .build();
+    }
 
-        // Si es CLOUD
-        if (config.signatureMode() == SignatureMode.CLOUD) {
-            if (config.clientId() == null || config.clientSecret() == null || config.credentialId() == null ||
-                    config.credentialName() == null || config.credentialPassword() == null || config.cloudProviderId() == null) {
-                return Mono.error(new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Secret (TOTP) is required by the provider"));
-            }
+    //--- CLOUD mode ---
+    private Mono<SignatureConfiguration> handleCloudMode(
+            CompleteSignatureConfiguration config,
+            SignatureConfiguration signatureConfigData,
+            String secretRelativePath) {
 
-            signatureConfigData.setClientId(config.clientId());
-            signatureConfigData.setCredentialId(config.credentialId());
-            signatureConfigData.setCredentialName(config.credentialName());
-            signatureConfigData.setCloudProviderId(config.cloudProviderId());
-            signatureConfigData.setSecretRelativePath(secretRelativePath);
-
-            return cloudProviderService.requiresTOTP(config.cloudProviderId())
-                    .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cloud provider not found")))
-                    .flatMap(requiresTOTP -> {
-                        if (requiresTOTP && config.secret() == null) {
-                            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Secret (TOTP) is required by the provider"));
-                        }
-
-                        Map<String, String> secretsToSave = new HashMap<>();
-                        secretsToSave.put("clientSecret", config.clientSecret());
-                        secretsToSave.put("credentialPassword", config.credentialPassword());
-                        if (requiresTOTP) {
-                            secretsToSave.put("secret", config.secret());
-                        }
-
-                        return vaultService.saveSecrets(secretRelativePath, secretsToSave)
-                                .then(repository.save(signatureConfigData));
-                    });
+        // Validate required fields for CLOUD mode
+        if ( Stream.of(
+                config.clientId(),
+                config.clientSecret(),
+                config.credentialId(),
+                config.credentialName(),
+                config.credentialPassword(),
+                config.cloudProviderId()
+        ).anyMatch(Objects::isNull) ) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Secret (TOTP) is required by the provider"
+            ));
         }
 
-        // Si es SERVER
-        if (config.signatureMode() == SignatureMode.SERVER) {
-            if (config.credentialId() == null || config.credentialName() == null) {
-                return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing required fields for SERVER mode"));
-            }
-            signatureConfigData.setCredentialId(config.credentialId());
-            signatureConfigData.setCredentialName(config.credentialName());
-            return repository.save(signatureConfigData);
-        }
+        signatureConfigData.setClientId(config.clientId());
+        signatureConfigData.setCredentialId(config.credentialId());
+        signatureConfigData.setCredentialName(config.credentialName());
+        signatureConfigData.setCloudProviderId(config.cloudProviderId());
+        signatureConfigData.setSecretRelativePath(secretRelativePath);
 
-        // Si es LOCAL
+        // Flow to check if TOTP is required and save secrets
+        return cloudProviderService.requiresTOTP(config.cloudProviderId())
+                .switchIfEmpty(Mono.error(new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Cloud provider not found")))
+                .flatMap(requiresTOTP -> {
+                    if (Boolean.TRUE.equals(requiresTOTP) && config.secret() == null) {
+                        return Mono.error(new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST,
+                                "Secret (TOTP) is required by the provider"
+                        ));
+                    }
+                    Map<String, String> secrets = new HashMap<>();
+                    secrets.put("clientSecret", config.clientSecret());
+                    secrets.put(CREDENTIAL_PASSWORD, config.credentialPassword());
+                    if (Boolean.TRUE.equals(requiresTOTP)) {
+                        secrets.put(SECRET, config.secret());
+                    }
+                    return vaultService
+                            .saveSecrets(secretRelativePath, secrets)
+                            .then(repository.save(signatureConfigData));
+                });
+    }
+
+    //--- SERVER mode ---
+    private Mono<SignatureConfiguration> handleServerMode(
+            CompleteSignatureConfiguration config,
+            SignatureConfiguration signatureConfigData) {
+
+        if (config.credentialId() == null || config.credentialName() == null) {
+            return Mono.error(new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Missing required fields for SERVER mode"
+            ));
+        }
+        signatureConfigData.setCredentialId(config.credentialId());
+        signatureConfigData.setCredentialName(config.credentialName());
         return repository.save(signatureConfigData);
     }
 
@@ -144,28 +190,52 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     }
 
     @Override
-    public Mono<Void> updateSignatureConfiguration(String id, String organizationId, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
+    public Mono<Void> updateSignatureConfiguration(
+            String id,
+            String organizationId,
+            CompleteSignatureConfiguration newConfig,
+            String rationale,
+            String userEmail) {
+
         UUID configId = UUID.fromString(id);
+
         return getCompleteConfigurationById(id, organizationId)
                 .flatMap(oldConfig ->
-                        repository.findById(configId)
-                                .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")))
-                                .flatMap(existing -> {
-                                    Mono<Void> secretUpdate = Mono.empty();
-                                    if (newConfig.clientSecret() != null || newConfig.credentialPassword() != null || newConfig.secret() != null) {
-                                        Map<String, String> partialSecrets = new java.util.HashMap<>();
-                                        if (newConfig.clientSecret() != null) partialSecrets.put("clientSecret", newConfig.clientSecret());
-                                        if (newConfig.credentialPassword() != null) partialSecrets.put("credentialPassword", newConfig.credentialPassword());
-                                        if (newConfig.secret() != null) partialSecrets.put("secret", newConfig.secret());
-
-                                        secretUpdate = vaultService.patchSecrets(existing.getSecretRelativePath(), partialSecrets);
-                                    }
-                                    return secretUpdate
-                                            .then(repository.save(existing))
-                                            .then(saveAudit(oldConfig, newConfig, rationale, userEmail));
-                                })
+                        findExistingConfig(configId)
+                                .flatMap(existing ->
+                                        patchSecretsIfNeeded(existing, newConfig)
+                                                .then(saveConfig(existing))
+                                                .then(saveAudit(oldConfig, newConfig, rationale, userEmail))
+                                )
                 );
     }
+
+    //--- Look for existing configuration ---
+    private Mono<SignatureConfiguration> findExistingConfig(UUID configId) {
+        return repository.findById(configId)
+                .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")));
+    }
+
+    //--- If needed, update secrets in Vault ---
+    private Mono<Void> patchSecretsIfNeeded(
+            SignatureConfiguration existing,
+            CompleteSignatureConfiguration newConfig) {
+
+        Map<String, String> partialSecrets = new HashMap<>();
+        if (newConfig.clientSecret()       != null) partialSecrets.put(CLIENT_SECRET,      newConfig.clientSecret());
+        if (newConfig.credentialPassword() != null) partialSecrets.put(CREDENTIAL_PASSWORD, newConfig.credentialPassword());
+        if (newConfig.secret()             != null) partialSecrets.put(SECRET,             newConfig.secret());
+
+        return partialSecrets.isEmpty()
+                ? Mono.empty()
+                : vaultService.patchSecrets(existing.getSecretRelativePath(), partialSecrets);
+    }
+
+    //--- Save the updated configuration ---
+    private Mono<SignatureConfiguration> saveConfig(SignatureConfiguration existing) {
+        return repository.save(existing);
+    }
+
 
     private Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
         return signatureConfigurationAuditService.saveAudit(oldConfig, newConfig, rationale, userEmail);
@@ -203,9 +273,9 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     private Mono<SignatureVaultSecret> getSecretsFromVault(String secretRelativePath) {
         return vaultService.getSecrets(secretRelativePath)
                 .map(secretsMap -> new SignatureVaultSecret(
-                        toStringOrNull(secretsMap.get("clientSecret")),
-                        toStringOrNull(secretsMap.get("credentialPassword")),
-                        toStringOrNull(secretsMap.get("secret"))
+                        toStringOrNull(secretsMap.get(CLIENT_SECRET)),
+                        toStringOrNull(secretsMap.get(CREDENTIAL_PASSWORD)),
+                        toStringOrNull(secretsMap.get(SECRET))
                 ));
     }
 
