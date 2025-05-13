@@ -20,7 +20,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/backoffice/v1/signatures/cloud-providers")
+@RequestMapping
 public class CloudProviderController {
     private final CloudProviderService cloudProviderService;
 
@@ -34,7 +34,9 @@ public class CloudProviderController {
             @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
             @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
     })
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/backoffice/v1/signatures/cloud-providers",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ResponseEntity<CloudProvider>> createCloudProvider(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
@@ -53,7 +55,8 @@ public class CloudProviderController {
             @ApiResponse(responseCode = "200", description = "List of cloud providers returned successfully"),
             @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
     })
-    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(path = "/ops/v1/signatures/cloud-providers",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CloudProvider> getAllCloudProviders(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         log.debug("Fetching all cloud providers");
         return cloudProviderService.findAll();

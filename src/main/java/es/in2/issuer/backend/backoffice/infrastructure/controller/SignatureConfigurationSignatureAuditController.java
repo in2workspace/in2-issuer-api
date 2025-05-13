@@ -8,14 +8,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
 @RestController
-@RequestMapping("/backoffice/v1/signatures/configs/audit")
+@RequestMapping("/ops/v1/signatures/configs/audit")
 @RequiredArgsConstructor
 public class SignatureConfigurationSignatureAuditController {
 
@@ -31,7 +29,7 @@ public class SignatureConfigurationSignatureAuditController {
             @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
     })
     @GetMapping
-    public Flux<SignatureConfigAudit> getAllAudits() {
+    public Flux<SignatureConfigAudit> getAllAudits(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         return auditService.getAllAudits();
     }
 
@@ -47,6 +45,7 @@ public class SignatureConfigurationSignatureAuditController {
     })
     @GetMapping(params = "organizationIdentifier")
     public Flux<SignatureConfigAudit> getAuditsByOrganization(
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestParam String organizationIdentifier
     ) {
         return auditService.getAuditsByOrganization(organizationIdentifier);

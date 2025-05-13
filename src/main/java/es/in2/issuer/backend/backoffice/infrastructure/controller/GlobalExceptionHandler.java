@@ -344,4 +344,52 @@ public class GlobalExceptionHandler {
 
         return Mono.just(ResponseEntity.status(statusCode).body(response));
     }
+
+    @ExceptionHandler(OrganizationIdentifierMismatchException.class)
+    public Mono<ResponseEntity<ApiErrorResponse>> handleOrganizationIdentifierMismatchException(OrganizationIdentifierMismatchException ex, ServerHttpRequest request) {
+        String instanceId = UUID.randomUUID().toString();
+
+        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+                instanceId,
+                request.getPath(),
+                HttpStatus.FORBIDDEN.value(),
+                ex.getClass(),
+                ex.getMessage()
+        );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "Unauthorized",
+                ex.getClass().toString(),
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                instanceId
+        );
+
+        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(response));
+    }
+
+    @ExceptionHandler(NoSuchEntityException.class)
+    public Mono<ResponseEntity<ApiErrorResponse>> handleOrganizationIdentifierMismatchException(NoSuchEntityException ex, ServerHttpRequest request) {
+        String instanceId = UUID.randomUUID().toString();
+
+        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+                instanceId,
+                request.getPath(),
+                HttpStatus.NOT_FOUND.value(),
+                ex.getClass(),
+                ex.getMessage()
+        );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "Not Found",
+                ex.getClass().toString(),
+                HttpStatus.FORBIDDEN.value(),
+                ex.getMessage(),
+                instanceId
+        );
+
+        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(response));
+    }
+
+
 }

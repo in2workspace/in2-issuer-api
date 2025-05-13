@@ -1,5 +1,7 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
+import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
@@ -121,7 +123,8 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         });
     }
 
-    public Mono<SignatureConfigurationResponse> getCompleteConfigurationById(String id) {
+    @Override
+    public Mono<SignatureConfigurationResponse> getCompleteConfigurationById(String id, String organizationId) {
         UUID uuid;
         try {
             uuid = UUID.fromString(id);
@@ -131,16 +134,19 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         }
 
         return repository.findById(uuid)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(HttpStatus.NOT_FOUND, "No config found for ID: " + id)))
+                .switchIfEmpty(Mono.error(new NoSuchEntityException("Signature configuration not found with ID: " + id)))
                 .flatMap(config -> {
+                    if (!organizationId.equals(config.getOrganizationIdentifier())) {
+                        return Mono.error(new OrganizationIdentifierMismatchException("The organization identifier does not match the organization identifier of the configuration"));
+                    }
                     return Mono.just(mapToSignatureConfigurationResponse(config));
                 });
     }
 
     @Override
-    public Mono<Void> updateSignatureConfiguration(String id, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
+    public Mono<Void> updateSignatureConfiguration(String id, String organizationId, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
         UUID configId = UUID.fromString(id);
-        return getCompleteConfigurationById(id)
+        return getCompleteConfigurationById(id, organizationId)
                 .flatMap(oldConfig ->
                         repository.findById(configId)
                                 .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")))
@@ -180,11 +186,11 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
 
     @Override
-    public Mono<Void> deleteSignatureConfiguration(String id, String rationale, String userEmail) {
+    public Mono<Void> deleteSignatureConfiguration(String id, String organizationId, String rationale, String userEmail) {
 
         UUID uuid = UUID.fromString(id);
 
-        return getCompleteConfigurationById(id)
+        return getCompleteConfigurationById(id, organizationId)
                 .flatMap(oldConfig -> repository.findById(uuid)
                         .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")))
                         .flatMap(existing -> vaultService.deleteSecret(existing.getSecretRelativePath())

@@ -30,10 +30,6 @@ public class EndpointsConstants {
     // OIDC Endpoints
     public static final String OAUTH_TOKEN_PATH = "/oauth/token";
 
-    // Backoffice Endpoints
-    public static final String SIGNATURE_CONFIGURATION= "/api/v1/signatures/**";
-    public static final String CONFIGURATION= "/api/v1/configuration";
-
     // CORS Configuration
     public static final String CORS_OID4VCI_PATH = "/oid4vci/**";
     public static final String CORS_CREDENTIAL_OFFER_PATH = "/oid4vci/v1/credential-offer/**";

@@ -98,9 +98,10 @@ public class SignatureConfigurationController {
             @PathVariable String id) {
 
         log.debug("Fetching complete signature configuration for ID: {}", id);
-        return signatureConfigurationService.getCompleteConfigurationById(id)
-                .map(ResponseEntity::ok)
-                .switchIfEmpty(Mono.just(ResponseEntity.notFound().build()));
+        return accessTokenService.getOrganizationId(authorizationHeader)
+                .flatMap(organizationId -> signatureConfigurationService.getCompleteConfigurationById(id, organizationId)
+                        .map(ResponseEntity::ok)
+                        .switchIfEmpty(Mono.just(ResponseEntity.notFound().build())));
     }
 
     @Operation(
@@ -124,9 +125,10 @@ public class SignatureConfigurationController {
         if (updateRequest.rationale() == null || updateRequest.rationale().isBlank()) {
             return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "'rationale' must be provided"));
         }
-        return accessTokenService.getMandateeEmail(authorizationHeader)
-                .flatMap(userEmail ->signatureConfigurationService.updateSignatureConfiguration( id, updateRequest.toCompleteSignatureConfiguration(),updateRequest.rationale(), userEmail));
-
+        return
+                accessTokenService.getOrganizationId(authorizationHeader)
+                        .flatMap(organizationId -> accessTokenService.getMandateeEmail(authorizationHeader)
+                                .flatMap(userEmail -> signatureConfigurationService.updateSignatureConfiguration(id, organizationId, updateRequest.toCompleteSignatureConfiguration(),updateRequest.rationale(), userEmail)));
     }
 
     @Operation(
@@ -146,8 +148,9 @@ public class SignatureConfigurationController {
             @RequestParam() String rationale
     ) {
         log.debug("Deleting signature configuration with ID: {} and rationale: {}", id, rationale);
-        return accessTokenService.getMandateeEmail(authorizationHeader)
-                .flatMap(userEmail ->signatureConfigurationService.deleteSignatureConfiguration( id, rationale, userEmail));
+        return accessTokenService.getOrganizationId(authorizationHeader)
+                .flatMap(organizationId -> accessTokenService.getMandateeEmail(authorizationHeader)
+                        .flatMap(userEmail ->signatureConfigurationService.deleteSignatureConfiguration( id, organizationId, rationale, userEmail)));
 
     }
 
