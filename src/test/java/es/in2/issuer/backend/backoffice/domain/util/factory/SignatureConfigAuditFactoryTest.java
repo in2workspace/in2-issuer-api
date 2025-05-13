@@ -1,10 +1,9 @@
-package es.in2.issuer.backend.backoffice.domain.util;
+package es.in2.issuer.backend.backoffice.domain.util.factory;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
 import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;
-import es.in2.issuer.backend.backoffice.domain.util.factory.SignatureConfigAuditFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
