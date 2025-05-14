@@ -166,9 +166,10 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
             JWSObject jwsObject = JWSObject.parse(token);
             String authServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
 
-            return proofValidationService.isProofValid(credentialRequest.proof().jwt(), token)
+            // TODO: rethink this logic instead of taking the first JWT proof
+            return proofValidationService.isProofValid(credentialRequest.proofs().jwt().get(0), token)
                     .flatMap(isValid -> Boolean.TRUE.equals(isValid)
-                            ? extractDidFromJwtProof(credentialRequest.proof().jwt())
+                            ? extractDidFromJwtProof(credentialRequest.proofs().jwt().get(0))
                             : Mono.error(new InvalidOrMissingProofException("Invalid proof")))
                     .flatMap(subjectDid -> deferredCredentialMetadataService.getOperationModeByAuthServerNonce(authServerNonce)
                             .flatMap(operationMode -> verifiableCredentialService.buildCredentialResponse(

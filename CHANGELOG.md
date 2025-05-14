@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Refactor configs.
 
+## [v1.6.8](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.8)
+### Fixed
+- Error on credential request contract.
+
+## [v1.6.7](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.7)
+### Fixed
+- When updating transaction code, delete previous one
+
 ## [v1.6.6](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.6)
 ### Fixed
 - OID4VCI cors configuration.
