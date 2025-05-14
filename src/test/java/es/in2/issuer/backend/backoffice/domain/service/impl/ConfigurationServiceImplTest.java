@@ -28,7 +28,7 @@ class ConfigurationServiceImplTest {
     @InjectMocks
     private ConfigurationServiceImpl configurationServiceImpl;
 
-    private final String ORG_ID = "org-1";
+    private final static String ORG_ID = "org-1";
 
     @Test
     void testSaveConfiguration() {
@@ -84,12 +84,10 @@ class ConfigurationServiceImplTest {
         Mono<Map<String, String>> result = configurationServiceImpl.getConfigurationMapByOrganization(ORG_ID);
 
         StepVerifier.create(result)
-                .assertNext(map -> {
-                    assertThat(map)
-                            .hasSize(2)
-                            .containsEntry("a", "1")
-                            .containsEntry("b", "2");
-                })
+                .assertNext(map -> assertThat(map)
+                        .hasSize(2)
+                        .containsEntry("a", "1")
+                        .containsEntry("b", "2"))
                 .verifyComplete();
     }
 

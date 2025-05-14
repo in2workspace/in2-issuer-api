@@ -80,7 +80,7 @@ class SignatureConfigAuditFactoryTest {
         SignatureConfigAudit dto = factory.createFromEntity(entity);
 
         assertThat(dto.oldValues().isObject()).isTrue();
-        assertThat(dto.oldValues()).hasSize(0);
+        assertThat(dto.oldValues()).isEmpty();
         assertThat(dto.newValues()).isNull();
     }
 
@@ -104,7 +104,7 @@ class SignatureConfigAuditFactoryTest {
 
         // old falls back to empty object
         assertThat(dto.oldValues().isObject()).isTrue();
-        assertThat(dto.oldValues()).hasSize(0);
+        assertThat(dto.oldValues()).isEmpty();
         // new parsed correctly
         assertThat(dto.newValues().get("x").asInt()).isEqualTo(42);
     }

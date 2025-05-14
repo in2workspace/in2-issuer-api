@@ -9,7 +9,6 @@ import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigura
 import es.in2.issuer.backend.backoffice.domain.repository.SignatureConfigurationAuditRepository;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationAuditService;
 import es.in2.issuer.backend.backoffice.domain.util.factory.SignatureConfigAuditFactory;
-import es.in2.issuer.backend.shared.domain.service.AccessTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;

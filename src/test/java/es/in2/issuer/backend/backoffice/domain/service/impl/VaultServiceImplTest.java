@@ -31,8 +31,8 @@ class VaultServiceImplTest {
     @BeforeEach
     void setUp() {
         when(reactiveVaultOperations.opsForKeyValue(
-                eq("kv"),
-                eq(org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend.KV_2)
+                "kv",
+                org.springframework.vault.core.VaultKeyValueOperationsSupport.KeyValueBackend.KV_2
         )).thenReturn(vaultOperations);
 
         service = new VaultServiceImpl(reactiveVaultOperations);
@@ -59,7 +59,7 @@ class VaultServiceImplTest {
         data.put("k", 123);
 
         when(resp.getData()).thenReturn(data);
-        when(vaultOperations.get(eq(path), eq((Class<Map<String, Object>>) (Class<?>) Map.class)))
+        when(vaultOperations.get(path, (Class<Map<String, Object>>) (Class<?>) Map.class))
                 .thenReturn(Mono.just(resp));
 
         StepVerifier.create(service.getSecrets(path))
@@ -101,7 +101,7 @@ class VaultServiceImplTest {
         VaultResponseSupport<Map<String, Object>> resp = mock(VaultResponseSupport.class);
         when(resp.getData()).thenReturn(existing);
 
-        when(vaultOperations.get(eq(path), eq((Class<Map<String, Object>>) (Class<?>) Map.class)))
+        when(vaultOperations.get(path, (Class<Map<String, Object>>) (Class<?>) Map.class))
                 .thenReturn(Mono.just(resp));
 
         Map<String, String> update = Map.of("y", "new", "x", "override");
@@ -114,9 +114,11 @@ class VaultServiceImplTest {
         ArgumentCaptor<Map<String, Object>> captor = ArgumentCaptor.forClass(Map.class);
         verify(vaultOperations).put(eq(path), captor.capture());
 
-        Map<String, ?> merged = captor.getValue();
-        assertThat(merged.get("x")).isEqualTo("override");
-        assertThat(merged.get("y")).isEqualTo("new");
+        Map<String, Object> merged = captor.getValue();
+
+        assertThat(merged)
+                .containsEntry("x", "override")
+                .containsEntry("y", "new");
     }
 
     @Test
@@ -125,7 +127,7 @@ class VaultServiceImplTest {
 
         VaultResponseSupport<Map<String, Object>> resp = mock(VaultResponseSupport.class);
         when(resp.getData()).thenReturn(new HashMap<>());
-        when(vaultOperations.get(eq(path), eq((Class<Map<String, Object>>) (Class<?>) Map.class)))
+        when(vaultOperations.get(path, (Class<Map<String, Object>>) (Class<?>) Map.class))
                 .thenReturn(Mono.just(resp));
 
         when(vaultOperations.put(eq(path), anyMap()))
@@ -142,6 +144,6 @@ class VaultServiceImplTest {
         Map<String, Object> resultMap = captor.getValue();
         assertThat(resultMap)
                 .hasSize(1)
-                .containsEntry("a", "1");   // ahora compila correctamente
+                .containsEntry("a", "1");
     }
 }
