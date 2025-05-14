@@ -1,6 +1,5 @@
 package es.in2.issuer.backend.shared.domain.model.dto;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.CredentialIssuerMetadata;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -14,20 +13,20 @@ class CredentialRequestTest {
     void testConstructorAndGetters() {
         // Arrange
         String expectedFormat = "sampleFormat";
-        Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
+        Proofs expectedProof = new Proofs("jwt_vc_json", List.of("sampleJwt"));
         CredentialRequest.CredentialDefinition expectedCredentialDefinition = new CredentialRequest.CredentialDefinition(Set.of("type"));
         // Act
         CredentialRequest credentialRequest = new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof);
         // Assert
         assertEquals(expectedFormat, credentialRequest.format());
-        assertEquals(expectedProof, credentialRequest.proof());
+        assertEquals(expectedProof, credentialRequest.proofs());
     }
 
     @Test
     void lombokGeneratedMethodsTest() {
         // Arrange
         String expectedFormat = "sampleFormat";
-        Proof expectedProof = new Proof("jwt_vc_json", "sampleJwt");
+        Proofs expectedProof = new Proofs("jwt_vc_json", List.of("sampleJwt"));
         CredentialRequest.CredentialDefinition expectedCredentialDefinition = new CredentialRequest.CredentialDefinition(Set.of("type"));
         // Act
         CredentialRequest dto1 = new CredentialRequest(expectedFormat, expectedCredentialDefinition, expectedProof);
