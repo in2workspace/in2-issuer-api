@@ -68,6 +68,14 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
+    public Mono<String> getResponseUriByProcedureId(String procedureId) {
+        return deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
+                .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getResponseUri()));
+        //todo error en cas de no tenir responseUri?
+    }
+
+
+    @Override
     public Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode) {
         return generateCustomNonce()
                 .flatMap(cTransactionCode ->

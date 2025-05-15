@@ -10,6 +10,7 @@ public interface DeferredCredentialMetadataService {
     Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode);
     Mono<String> validateCTransactionCode(String cTransactionCode);
     Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId);
+    Mono<String> getResponseUriByProcedureId(String procedureId);
     Mono<String> getProcedureIdByTransactionCode(String transactionCode);
     Mono<String> getProcedureIdByAuthServerNonce(String authServerNonce);
     Mono<String> getOperationModeByAuthServerNonce(String authServerNonce);
