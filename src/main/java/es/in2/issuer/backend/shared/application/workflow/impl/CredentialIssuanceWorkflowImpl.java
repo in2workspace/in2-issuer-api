@@ -54,6 +54,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     // todo: issuanceFromService -> without idToken
     // todo: issuanceFromServiceWithDelegatedAuthorization -> with idToken
     // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
+    // todo: Add in PreSubmittedDataCredential -> schema validation (learemployee, verifiableCertification... ) comparing with A NEW ENUM WITH THE 3 CredentialsConfigurationsSupported
     // todo: move 2 first validations to PreSubmittedCredentialRequest and add validate annotation in controller
     public Mono<Void> execute(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken) {
 
@@ -75,7 +76,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         // Validate user policy before proceeding
         return verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload(), idToken)
                 .then(Mono.defer(() -> {
-                    // todo: change to switch
+                    // todo invert if is verifiablecertification else....
                     if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                         // todo: credentialIssuanceRecordService.create() ->
                         //  --> buildCredentialIssuanceRecord [CredentialProcedure]
