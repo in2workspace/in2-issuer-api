@@ -31,7 +31,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import javax.naming.OperationNotSupportedException;
-
 import java.util.List;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
@@ -42,6 +41,9 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {
+
+    @Mock
+    private AccessTokenService accessTokenService;
 
     @Mock
     private VerifiableCredentialService verifiableCredentialService;
@@ -111,6 +113,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         JsonNode jsonNode = mock(JsonNode.class);
 
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
+        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .expectError(OperationNotSupportedException.class)
@@ -182,6 +185,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
+        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
@@ -260,6 +264,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .build();
         String transactionCode = "4321";
 
+        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, null)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVc(processId, type, preSubmittedCredentialRequest, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
@@ -331,6 +336,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         JsonNode jsonNode = objectMapper.readTree(json);
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
+        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
         when(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
