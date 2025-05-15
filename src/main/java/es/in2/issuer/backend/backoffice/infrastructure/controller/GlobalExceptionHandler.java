@@ -297,8 +297,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(MissingIdTokenHeaderException.class)
-    // todo: move to responsestatus annotation
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleMissingIdTokenHeaderException(Exception ex) {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Mono<CredentialErrorResponse> handleMissingIdTokenHeaderException(Exception ex) {
         String description = "The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification";
 
         if (ex.getMessage() != null) {
@@ -310,6 +310,6 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.MISSING_HEADER,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 }
