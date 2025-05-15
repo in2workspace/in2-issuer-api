@@ -8,7 +8,6 @@ import es.in2.issuer.backend.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,14 +17,13 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 import java.util.NoSuchElementException;
 
-// TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(CredentialTypeUnsupportedException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleCredentialTypeUnsupported(Exception ex) {
+    public Mono<CredentialErrorResponse> handleCredentialTypeUnsupported(Exception ex) {
         String description = "The given credential type is not supported";
 
         if (ex.getMessage() != null) {
@@ -37,18 +35,19 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.UNSUPPORTED_CREDENTIAL_TYPE,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(NoSuchElementException.class)
-    public Mono<ResponseEntity<Void>> handleNoSuchElementException(NoSuchElementException ex) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<Void> handleNoSuchElementException(NoSuchElementException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return Mono.empty();
     }
 
     @ExceptionHandler(ExpiredCacheException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleExpiredCacheException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleExpiredCacheException(Exception ex) {
         String description = "The given credential ID does not match with any credentials";
 
         if (ex.getMessage() != null) {
@@ -60,23 +59,24 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.VC_DOES_NOT_EXIST,
                 description);
 
-        return Mono.just(ResponseEntity.badRequest().body(errorResponse));
+        return Mono.just(errorResponse);
     }
+
     @ExceptionHandler(ExpiredPreAuthorizedCodeException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> expiredPreAuthorizedCode(Exception ex) {
+    public Mono<CredentialErrorResponse> expiredPreAuthorizedCode(Exception ex) {
         log.error(ex.getMessage());
 
         CredentialErrorResponse errorResponse = new CredentialErrorResponse(
                 CredentialResponseErrorCodes.EXPIRED_PRE_AUTHORIZED_CODE,
                 "The pre-authorized code has expired, has been used, or does not exist.");
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(InvalidOrMissingProofException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleInvalidOrMissingProof(Exception ex) {
+    public Mono<CredentialErrorResponse> handleInvalidOrMissingProof(Exception ex) {
         log.error(ex.getMessage());
 
         CredentialErrorResponse errorResponse = new CredentialErrorResponse(
@@ -84,12 +84,12 @@ public class GlobalExceptionHandler {
                 "Credential Request did not contain a proof, or proof was invalid, " +
                         "i.e. it was not bound to a Credential Issuer provided nonce");
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleInvalidToken(Exception ex) {
+    public Mono<CredentialErrorResponse> handleInvalidToken(Exception ex) {
         String description = "Credential Request contains the wrong Access Token or the Access Token is missing";
 
         if (ex.getMessage() != null) {
@@ -102,12 +102,12 @@ public class GlobalExceptionHandler {
                 description
                 );
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(UserDoesNotExistException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleUserDoesNotExistException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleUserDoesNotExistException(Exception ex) {
         String description = "User does not exist";
 
         if (ex.getMessage() != null) {
@@ -119,12 +119,12 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.USER_DOES_NOT_EXIST,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(VcTemplateDoesNotExistException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public Mono<ResponseEntity<CredentialErrorResponse>> vcTemplateDoesNotExist(Exception ex) {
+    public Mono<CredentialErrorResponse> vcTemplateDoesNotExist(Exception ex) {
         String description = "The given template name is not supported";
 
         if (ex.getMessage() != null) {
@@ -136,78 +136,96 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.VC_TEMPLATE_DOES_NOT_EXIST,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(ParseException.class)
-    public Mono<ResponseEntity<Void>> handleParseException(ParseException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleParseException(ParseException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
 
     @ExceptionHandler(Base45Exception.class)
-    public Mono<ResponseEntity<Void>> handleBase45Exception(Base45Exception ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleBase45Exception(Base45Exception ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
 
     @ExceptionHandler(CreateDateException.class)
-    public Mono<ResponseEntity<Void>> handleCreateDateException(CreateDateException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleCreateDateException(CreateDateException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
 
     @ExceptionHandler(SignedDataParsingException.class)
-    public Mono<ResponseEntity<Void>> handleSignedDataParsingException(SignedDataParsingException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleSignedDataParsingException(SignedDataParsingException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
 
     @ExceptionHandler(AuthenticSourcesUserParsingException.class)
-    public Mono<ResponseEntity<Void>> handleSignedDataParsingException(AuthenticSourcesUserParsingException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleSignedDataParsingException(AuthenticSourcesUserParsingException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
+    
     @ExceptionHandler(ParseCredentialJsonException.class)
-    public Mono<ResponseEntity<Void>> handleParseCredentialJsonException(ParseCredentialJsonException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleParseCredentialJsonException(ParseCredentialJsonException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
+
     @ExceptionHandler(TemplateReadException.class)
-    public Mono<ResponseEntity<Void>> handleTemplateReadException(TemplateReadException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleTemplateReadException(TemplateReadException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
+
     @ExceptionHandler(ProofValidationException.class)
-    public Mono<ResponseEntity<Void>> handleProofValidationException(ProofValidationException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handleProofValidationException(ProofValidationException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
+
     @ExceptionHandler(NoCredentialFoundException.class)
-    public Mono<ResponseEntity<Void>> handleNoCredentialFoundException(NoCredentialFoundException ex) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<Void> handleNoCredentialFoundException(NoCredentialFoundException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return Mono.empty();
     }
+
     @ExceptionHandler(PreAuthorizationCodeGetException.class)
-    public Mono<ResponseEntity<Void>> handlePreAuthorizationCodeGetException(PreAuthorizationCodeGetException ex) {
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public Mono<Void> handlePreAuthorizationCodeGetException(PreAuthorizationCodeGetException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
+        return Mono.empty();
     }
+    
     @ExceptionHandler(CredentialOfferNotFoundException.class)
-    public Mono<ResponseEntity<Void>> handleCustomCredentialOfferNotFoundException(CredentialOfferNotFoundException ex) {
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Mono<Void> handleCustomCredentialOfferNotFoundException(CredentialOfferNotFoundException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        return Mono.empty();
     }
 
     @ExceptionHandler(CredentialAlreadyIssuedException.class)
-    public Mono<ResponseEntity<Void>> handleCredentialAlreadyIssuedException(CredentialAlreadyIssuedException ex) {
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Mono<Void> handleCredentialAlreadyIssuedException(CredentialAlreadyIssuedException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.CONFLICT));
+        return Mono.empty();
     }
 
     @ExceptionHandler(OperationNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleOperationNotSupportedException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleOperationNotSupportedException(Exception ex) {
         String description = "The given operation is not supported";
 
         if (ex.getMessage() != null) {
@@ -219,18 +237,19 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.OPERATION_NOT_SUPPORTED,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(JWTVerificationException.class)
-    public Mono<ResponseEntity<Void>> handleJWTVerificationException(JWTVerificationException ex) {
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Mono<Void> handleJWTVerificationException(JWTVerificationException ex) {
         log.error(ex.getMessage());
-        return Mono.just(new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+        return Mono.empty();
     }
 
     @ExceptionHandler(ResponseUriException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleResponseUriException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleResponseUriException(Exception ex) {
         String description = "Request to response uri failed";
 
         if (ex.getMessage() != null) {
@@ -242,12 +261,12 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.RESPONSE_URI_ERROR,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(FormatUnsupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleFormatUnsupportedException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleFormatUnsupportedException(Exception ex) {
         String description = "Format is not supported";
 
         if (ex.getMessage() != null) {
@@ -259,12 +278,12 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(InsufficientPermissionException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public Mono<ResponseEntity<CredentialErrorResponse>> handleInsufficientPermissionException(Exception ex) {
+    public Mono<CredentialErrorResponse> handleInsufficientPermissionException(Exception ex) {
         String description = "The client who made the issuance request do not have the required permissions";
 
         if (ex.getMessage() != null) {
@@ -276,12 +295,7 @@ public class GlobalExceptionHandler {
                 CredentialResponseErrorCodes.INSUFFICIENT_PERMISSION,
                 description);
 
-        return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse));
-    }
-
-    @ExceptionHandler(UnauthorizedRoleException.class)
-    public ResponseEntity<String> handleUnauthorizedRoleException(UnauthorizedRoleException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        return Mono.just(errorResponse);
     }
 
     @ExceptionHandler(EmailCommunicationException.class)
@@ -294,22 +308,5 @@ public class GlobalExceptionHandler {
                         .message(ex.getMessage())
                         .error("EmailCommunicationException")
                         .build());
-    }
-
-    @ExceptionHandler(MissingIdTokenHeaderException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<CredentialErrorResponse> handleMissingIdTokenHeaderException(Exception ex) {
-        String description = "The X-ID-TOKEN header is missing, this header is needed to issuer a Verifiable Certification";
-
-        if (ex.getMessage() != null) {
-            log.error(ex.getMessage());
-            description = ex.getMessage();
-        }
-
-        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
-                CredentialResponseErrorCodes.MISSING_HEADER,
-                description);
-
-        return Mono.just(errorResponse);
     }
 }
