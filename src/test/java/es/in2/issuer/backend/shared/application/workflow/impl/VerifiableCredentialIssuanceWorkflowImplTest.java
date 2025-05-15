@@ -128,60 +128,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String issuerUiExternalDomain = "https://example.com";
         String token = "token";
         String idToken = "idToken";
-        String json = """
-                {
-                    "life_span": {
-                        "end_date_time": "2025-04-02 09:23:22.637345122 +0000 UTC",
-                        "start_date_time": "2024-04-02 09:23:22.637345122 +0000 UTC"
-                    },
-                    "mandatee": {
-                        "email": "example@in2.es",
-                        "firstName": "Jhon",
-                        "lastName": "Doe",
-                        "mobile_phone": "+34666336699"
-                    },
-                    "mandator": {
-                        "commonName": "IN2",
-                        "country": "ES",
-                        "emailAddress": "rrhh@in2.es",
-                        "organization": "IN2, Ingeniería de la Información, S.L.",
-                        "organizationIdentifier": "VATES-B26246436",
-                        "serialNumber": "3424320"
-                    },
-                    "power": [
-                        {
-                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fv",
-                            "tmf_domain": "DOME",
-                            "tmf_function": "DomePlatform",
-                            "tmf_type": "Domain",
-                            "tmf_action": [
-                                "Operator",
-                                "Customer",
-                                "Provider"
-                            ]
-                        },
-                        {
-                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fb",
-                            "tmf_action": "Execute",
-                            "tmf_domain": "DOME",
-                            "tmf_function": "Onboarding",
-                            "tmf_type": "Domain"
-                        },
-                        {
-                            "id": "ad9b1509-60ea-47d4-9878-18b581d8e19b",
-                            "tmf_action": [
-                                "Create",
-                                "Update"
-                            ],
-                            "tmf_domain": "DOME",
-                            "tmf_function": "ProductOffering",
-                            "tmf_type": "Domain"
-                        }
-                    ]
-                }
-                """;
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(json);
+        JsonNode jsonNode = getJsonNode();
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
         String transactionCode = "4321";
 
@@ -202,60 +149,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String knowledgebaseWalletUrl = "https://knowledgebase.com";
         String issuerUiExternalDomain = "https://example.com";
         String token = "token";
-        String json = """
-                {
-                    "life_span": {
-                        "end_date_time": "2025-04-02 09:23:22.637345122 +0000 UTC",
-                        "start_date_time": "2024-04-02 09:23:22.637345122 +0000 UTC"
-                    },
-                    "mandatee": {
-                        "email": "example@in2.es",
-                        "firstName": "Jhon",
-                        "lastName": "Doe",
-                        "mobile_phone": "+34666336699"
-                    },
-                    "mandator": {
-                        "commonName": "IN2",
-                        "country": "ES",
-                        "emailAddress": "rrhh@in2.es",
-                        "organization": "IN2, Ingeniería de la Información, S.L.",
-                        "organizationIdentifier": "VATES-B26246436",
-                        "serialNumber": "3424320"
-                    },
-                    "power": [
-                        {
-                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fv",
-                            "tmf_domain": "DOME",
-                            "tmf_function": "DomePlatform",
-                            "tmf_type": "Domain",
-                            "tmf_action": [
-                                "Operator",
-                                "Customer",
-                                "Provider"
-                            ]
-                        },
-                        {
-                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fb",
-                            "tmf_action": "Execute",
-                            "tmf_domain": "DOME",
-                            "tmf_function": "Onboarding",
-                            "tmf_type": "Domain"
-                        },
-                        {
-                            "id": "ad9b1509-60ea-47d4-9878-18b581d8e19b",
-                            "tmf_action": [
-                                "Create",
-                                "Update"
-                            ],
-                            "tmf_domain": "DOME",
-                            "tmf_function": "ProductOffering",
-                            "tmf_type": "Domain"
-                        }
-                    ]
-                }
-                """;
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(json);
+        JsonNode jsonNode = getJsonNode();
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
                 .payload(jsonNode)
                 .schema("LEARCredentialEmployee")
@@ -287,6 +181,63 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .verify();
     }
 
+    private static JsonNode getJsonNode() throws JsonProcessingException {
+        String json = """
+                {
+                    "life_span": {
+                        "end_date_time": "2025-04-02 09:23:22.637345122 +0000 UTC",
+                        "start_date_time": "2024-04-02 09:23:22.637345122 +0000 UTC"
+                    },
+                    "mandatee": {
+                        "email": "example@in2.es",
+                        "firstName": "Jhon",
+                        "lastName": "Doe",
+                        "mobile_phone": "+34666336699"
+                    },
+                    "mandator": {
+                        "commonName": "IN2",
+                        "country": "ES",
+                        "emailAddress": "rrhh@in2.es",
+                        "organization": "IN2, Ingeniería de la Información, S.L.",
+                        "organizationIdentifier": "VATES-B26246436",
+                        "serialNumber": "3424320"
+                    },
+                    "power": [
+                        {
+                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fv",
+                            "tmf_domain": "DOME",
+                            "tmf_function": "DomePlatform",
+                            "tmf_type": "Domain",
+                            "tmf_action": [
+                                "Operator",
+                                "Customer",
+                                "Provider"
+                            ]
+                        },
+                        {
+                            "id": "6b8f3137-a57a-46a5-97e7-1117a20142fb",
+                            "tmf_action": "Execute",
+                            "tmf_domain": "DOME",
+                            "tmf_function": "Onboarding",
+                            "tmf_type": "Domain"
+                        },
+                        {
+                            "id": "ad9b1509-60ea-47d4-9878-18b581d8e19b",
+                            "tmf_action": [
+                                "Create",
+                                "Update"
+                            ],
+                            "tmf_domain": "DOME",
+                            "tmf_function": "ProductOffering",
+                            "tmf_type": "Domain"
+                        }
+                    ]
+                }
+                """;
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readTree(json);
+    }
+
 
     @Test
     void completeWithdrawVerifiableCertificationProcessSuccess() throws JsonProcessingException {
@@ -295,6 +246,33 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String procedureId = "procedureId";
         String token = "token";
         String idToken = "idToken";
+        JsonNode jsonNode = getNode();
+        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
+
+        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
+        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
+        when(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)).thenReturn(Mono.just(procedureId));
+        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
+        when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
+        when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
+        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
+
+        // Mock webClient
+        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
+        // Create a mock ClientResponse for a successful response
+        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
+                .header("Content-Type", "application/json")
+                .build();
+        // Stub the exchange function to return the mock ClientResponse
+        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
+        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
+        when(webClientConfig.commonWebClient()).thenReturn(webClient);
+
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
+                .verifyComplete();
+    }
+
+    private static JsonNode getNode() throws JsonProcessingException {
         String json = """
                 {
                     "type": [
@@ -333,30 +311,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 }
                 """;
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(json);
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
-
-        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
-        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)).thenReturn(Mono.just(procedureId));
-        when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
-        when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
-        when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
-        when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
-
-        // Mock webClient
-        ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-        // Create a mock ClientResponse for a successful response
-        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
-                .header("Content-Type", "application/json")
-                .build();
-        // Stub the exchange function to return the mock ClientResponse
-        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
-        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
-        when(webClientConfig.commonWebClient()).thenReturn(webClient);
-
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
-                .verifyComplete();
+        return objectMapper.readTree(json);
     }
 
     @Test
