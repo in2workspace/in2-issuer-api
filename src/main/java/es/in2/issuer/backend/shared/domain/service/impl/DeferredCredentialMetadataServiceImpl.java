@@ -85,9 +85,14 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     @Override
     public Mono<String> getResponseUriByProcedureId(String procedureId) {
         return deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
-                .flatMap(deferredCredentialMetadata -> Mono.just(deferredCredentialMetadata.getResponseUri()));
-        //todo error en cas de no tenir responseUri?
+                .doOnNext(metadata -> log.info("Deferred metadata trobat: {}", metadata))
+                .flatMap(deferredCredentialMetadata -> {
+                    String responseUri = deferredCredentialMetadata.getResponseUri();
+                    log.info("responseUri obtinguda: {}", responseUri);
+                    return Mono.justOrEmpty(responseUri);
+                });
     }
+
 
 
 

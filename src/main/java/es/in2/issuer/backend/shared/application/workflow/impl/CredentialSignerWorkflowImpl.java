@@ -224,6 +224,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                             }
 
                             return deferredCredentialMetadataService.getResponseUriByProcedureId(procedureId)
+                                    .switchIfEmpty(Mono.error(new IllegalStateException("Missing responseUri for procedureId: " + procedureId)))
                                     .flatMap(responseUri -> {
                                         try {
                                             log.info("Retrieved response URI: " + responseUri);
