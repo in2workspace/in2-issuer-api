@@ -3,7 +3,7 @@ package es.in2.issuer.backend.shared.domain.util.factory;
 import com.fasterxml.jackson.databind.JsonNode;
 import es.in2.issuer.backend.shared.domain.exception.CredentialTypeUnsupportedException;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialProcedureCreationRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedCredentialRequest;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +25,17 @@ public class CredentialFactory {
     private final CredentialProcedureService credentialProcedureService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
-    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
-        JsonNode credential = preSubmittedCredentialRequest.payload();
-        String operationMode = preSubmittedCredentialRequest.operationMode();
-        if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+    public Mono<CredentialProcedureCreationRequest> mapCredentialIntoACredentialProcedureRequest(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String token) {
+        JsonNode credential = preSubmittedDataCredential.payload();
+        String operationMode = preSubmittedDataCredential.operationMode();
+        if (preSubmittedDataCredential.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
             return learCredentialEmployeeFactory.mapAndBuildLEARCredentialEmployee(credential, operationMode)
                     .doOnSuccess(learCredentialEmployee -> log.info("ProcessID: {} - LEARCredentialEmployee mapped: {}", processId, credential));
-        } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
+        } else if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION)) {
             return verifiableCertificationFactory.mapAndBuildVerifiableCertification(credential, token, operationMode)
                     .doOnSuccess(verifiableCertification -> log.info("ProcessID: {} - VerifiableCertification mapped: {}", processId, credential));
         }
-        return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
+        return Mono.error(new CredentialTypeUnsupportedException(preSubmittedDataCredential.schema()));
     }
     public Mono<String> mapCredentialAndBindMandateeId(String processId, String credentialType, String decodedCredential, String mandateeId){
         if (credentialType.equals(LEAR_CREDENTIAL_EMPLOYEE)) {

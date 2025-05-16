@@ -4,7 +4,7 @@ import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.shared.domain.model.dto.DeferredCredentialRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedCredentialRequest;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
 import es.in2.issuer.backend.shared.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
@@ -34,18 +34,18 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token)
+    public Mono<String> generateVc(String processId, String vcType, PreSubmittedDataCredential preSubmittedDataCredential, String token) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, token)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 .flatMap(procedureId -> deferredCredentialMetadataService.createDeferredCredentialMetadata(
                         procedureId,
-                        preSubmittedCredentialRequest.operationMode(),
-                        preSubmittedCredentialRequest.responseUri()));
+                        preSubmittedDataCredential.operationMode(),
+                        preSubmittedDataCredential.responseUri()));
     }
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String idToken) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, idToken)
+    public Mono<String> generateVerifiableCertification(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, idToken)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
                 //Generate Issuer and Signer using LEARCredentialEmployee method
@@ -86,7 +86,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
             String newAuthServerNonce = jwsObject.getPayload().toJSONObject().get("jti").toString();
             return deferredCredentialMetadataService.updateAuthServerNonceByAuthServerNonce(newAuthServerNonce, preAuthCode);
         } catch (ParseException e){
-            throw new RuntimeException();
+            return Mono.error(RuntimeException::new);
         }
 
     }
