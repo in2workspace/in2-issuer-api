@@ -95,49 +95,6 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             .doOnSuccess(x -> log.info("Credential Signed and updated successfully."));
     }
 
-    public Mono<String> signUpdateAndSendToResponseUri(String authorizationHeader, String procedureId, String format) {
-        log.info("signUpdateAndSendToResponseUri");
-        return signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, format)
-                .flatMap(signedCredential ->
-                        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
-                                .flatMap(credentialProcedure -> {
-                                    if (!"VERIFIABLE_CERTIFICATION".equals(credentialProcedure.getCredentialType())) {
-                                        return Mono.error(new IllegalStateException("Only VERIFIABLE_CERTIFICATION supports response_uri sending."));
-                                    }
-                                    log.info("credential is of type VERFIABLE_CERTIFICATION");
-                                    return deferredCredentialMetadataService.getResponseUriByProcedureId(procedureId)
-                                            .flatMap(responseUri -> {
-                                                if (responseUri == null || responseUri.isBlank()) {
-                                                    return Mono.error(new OperationNotSupportedException("Missing response_uri for credential procedure: " + procedureId));
-                                                }
-
-                                                try {
-                                                    JsonNode payload = new ObjectMapper().readTree(credentialProcedure.getCredentialDecoded());
-                                                    String productId = payload.get("credentialSubject").get("product").get("productId").asText();
-                                                    String companyEmail = payload.get("credentialSubject").get("company").get("email").asText();
-
-                                                    return m2mTokenService.getM2MToken()
-                                                            .flatMap(m2mAccessToken ->
-                                                                    credentialDeliveryService.sendVcToResponseUri(
-                                                                            responseUri,
-                                                                            signedCredential,
-                                                                            productId,
-                                                                            companyEmail,
-                                                                            m2mAccessToken.accessToken()
-                                                                    )
-                                                            ).thenReturn(signedCredential);
-                                                } catch (Exception e) {
-                                                    log.error("Error extracting productId or companyEmail from credential", e);
-                                                    return Mono.error(new IllegalStateException("Could not extract productId or companyEmail from credential"));
-                                                }
-                                            });
-                                })
-                );
-    }
-
-
-
-
     private Mono<Void> updateSignedCredential(String signedCredential) {
         List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());
         SignedCredentials signedCredentials = new SignedCredentials(credentials);
@@ -222,6 +179,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
 
     @Override
     public Mono<Void> retrySignUnsignedCredential(String authorizationHeader, String procedureId) {
+        log.info("Retrying to sign credential...");
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                 .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
                 .flatMap(credentialProcedure -> switch (credentialProcedure.getCredentialType()) {
@@ -246,12 +204,45 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                     }
                 })
                 .then(this.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC))
-                .flatMap(ignored -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
-                .then(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
-                .flatMap(updatedCredentialProcedure -> {
-                    updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return credentialProcedureRepository.save(updatedCredentialProcedure);
-                })
+                .flatMap(signedVc ->
+                        credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                .thenReturn(signedVc)
+                )
+                .flatMap(signedVc -> credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                        .flatMap(updatedCredentialProcedure -> {
+                            updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+                            return credentialProcedureRepository.save(updatedCredentialProcedure)
+                                    .thenReturn(updatedCredentialProcedure);
+                        })
+                        .flatMap(updatedCredentialProcedure -> {
+                            if (!"VERIFIABLE_CERTIFICATION".equals(updatedCredentialProcedure.getCredentialType())) {
+                                return Mono.empty(); //don't send message if it isn't VERIFIABLE_CERTIFICATION
+                            }
+
+                            return deferredCredentialMetadataService.getResponseUriByProcedureId(procedureId)
+                                    .flatMap(responseUri -> {
+                                        try {
+                                            log.info("Retrieved response URI: " + responseUri);
+                                            JsonNode root = new ObjectMapper().readTree(updatedCredentialProcedure.getCredentialDecoded());
+                                            String productId = root.get("credentialSubject").get("product").get("productId").asText();
+                                            String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
+
+                                            return m2mTokenService.getM2MToken()
+                                                    .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
+                                                            responseUri,
+                                                            signedVc,
+                                                            m2mToken.accessToken(),
+                                                            productId,
+                                                            companyEmail
+                                                    ));
+                                        } catch (Exception e) {
+                                            log.error("Error extracting productId or companyEmail from credential", e);
+                                            return Mono.error(new RuntimeException("Failed to prepare signed VC for delivery", e));
+                                        }
+                                    });
+                        })
+                )
                 .then();
     }
+
 }

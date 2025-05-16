@@ -24,6 +24,6 @@ public class CredentialSignerController {
     public Mono<Void> createVerifiableCredential(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @RequestBody ProcedureIdRequest procedureIdRequest) {
-        return credentialSignerWorkflow.signUpdateAndSendToResponseUri(authorizationHeader, procedureIdRequest.procedureId(), JWT_VC).then();
+        return credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureIdRequest.procedureId(), JWT_VC).then();
     }
 }
