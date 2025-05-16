@@ -1,5 +1,7 @@
 package es.in2.issuer.backend.shared.application.workflow.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.application.workflow.DeferredCredentialWorkflow;
@@ -7,8 +9,7 @@ import es.in2.issuer.backend.shared.domain.exception.Base45Exception;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.enums.SignatureType;
-import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
-import es.in2.issuer.backend.shared.domain.service.RemoteSignatureService;
+import es.in2.issuer.backend.shared.domain.service.*;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.backend.shared.infrastructure.repository.CredentialProcedureRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,9 +44,13 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final VerifiableCertificationFactory verifiableCertificationFactory;
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final CredentialProcedureService credentialProcedureService;
+    private final M2MTokenService m2mTokenService;
+    private final CredentialDeliveryService credentialDeliveryService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
+        log.info("signAndUpdateCredentialByProcedureId");
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 try{
@@ -173,6 +179,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
 
     @Override
     public Mono<Void> retrySignUnsignedCredential(String authorizationHeader, String procedureId) {
+        log.info("Retrying to sign credential...");
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                 .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
                 .flatMap(credentialProcedure -> switch (credentialProcedure.getCredentialType()) {
@@ -197,12 +204,50 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                     }
                 })
                 .then(this.signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC))
-                .flatMap(ignored -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId))
-                .then(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
-                .flatMap(updatedCredentialProcedure -> {
-                    updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
-                    return credentialProcedureRepository.save(updatedCredentialProcedure);
-                })
+                .flatMap(signedVc ->
+                        credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                .thenReturn(signedVc)
+                )
+                .flatMap(signedVc -> credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                        .flatMap(updatedCredentialProcedure -> {
+                            updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+                            log.info("Saving updated credential with type: '{}'", updatedCredentialProcedure.getCredentialType());
+                            return credentialProcedureRepository.save(updatedCredentialProcedure)
+                                    .thenReturn(updatedCredentialProcedure);
+                        })
+                        .flatMap(updatedCredentialProcedure -> {
+                            String credentialType = updatedCredentialProcedure.getCredentialType();
+                            log.info("Valor de credentialType: '{}'", credentialType);
+                            log.info("Verifying credential type for responseUri delivery: {}", updatedCredentialProcedure.getCredentialType());
+                            if (!"VERIFIABLE_CERTIFICATION".equals(updatedCredentialProcedure.getCredentialType())) {
+                                return Mono.empty(); //don't send message if it isn't VERIFIABLE_CERTIFICATION
+                            }
+
+                            return deferredCredentialMetadataService.getResponseUriByProcedureId(procedureId)
+                                    .switchIfEmpty(Mono.error(new IllegalStateException("Missing responseUri for procedureId: " + procedureId)))
+                                    .flatMap(responseUri -> {
+                                        try {
+                                            log.info("Retrieved response URI: " + responseUri);
+                                            JsonNode root = new ObjectMapper().readTree(updatedCredentialProcedure.getCredentialDecoded());
+                                            String productId = root.get("credentialSubject").get("product").get("productId").asText();
+                                            String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
+
+                                            return m2mTokenService.getM2MToken()
+                                                    .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
+                                                            responseUri,
+                                                            signedVc,
+                                                            m2mToken.accessToken(),
+                                                            productId,
+                                                            companyEmail
+                                                    ));
+                                        } catch (Exception e) {
+                                            log.error("Error extracting productId or companyEmail from credential", e);
+                                            return Mono.error(new RuntimeException("Failed to prepare signed VC for delivery", e));
+                                        }
+                                    });
+                        })
+                )
                 .then();
     }
+
 }
