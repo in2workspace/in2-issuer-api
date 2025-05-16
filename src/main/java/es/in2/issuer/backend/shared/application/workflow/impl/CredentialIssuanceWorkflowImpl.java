@@ -113,13 +113,10 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         //  --> SAVE
         // --> generateActivationCode (nonce) and save in cache (key: activationCode (nonce), value: credentialIssuanceRecordId)
         return verifiableCredentialService.generateVc(processId, preSubmittedDataCredential.schema(), preSubmittedDataCredential, token)
-                .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedDataCredential));
+                .flatMap(activationCode -> sendActivationCredentialEmail(activationCode, preSubmittedDataCredential));
     }
 
-    // todo: sendActivationCredentialEmail
-    // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
-    // todo: transactionCode -> activationCode
-    private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedDataCredential preSubmittedDataCredential) {
+    private Mono<Void> sendActivationCredentialEmail(String activationCode, PreSubmittedDataCredential preSubmittedDataCredential) {
         String email = preSubmittedDataCredential.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedDataCredential.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedDataCredential.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedDataCredential.payload().get(MANDATOR).get(ORGANIZATION).asText();
@@ -130,7 +127,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerFrontendUrl())
                 .path("/credential-offer")
-                .queryParam("transaction_code", transactionCode)
+                .queryParam("transaction_code", activationCode)
                 .build()
                 .toUriString();
 
