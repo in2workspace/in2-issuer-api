@@ -1,8 +1,8 @@
 package es.in2.issuer.backend.shared.application.workflow.impl;
 
 import com.nimbusds.jose.JWSObject;
-import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.application.workflow.CredentialIssuanceWorkflow;
+import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.exception.*;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
@@ -28,7 +28,6 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
-import static es.in2.issuer.backend.shared.domain.util.Constants.JWT_VC_JSON;
 import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
 
 @Slf4j
@@ -52,31 +51,13 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final M2MTokenService m2mTokenService;
 
     @Override
-    // todo: Add in PreSubmittedDataCredential -> schema validation (learemployee, verifiableCertification... ) comparing with A NEW ENUM WITH THE 3 CredentialsConfigurationsSupported
-    // todo: move 2 first validations to PreSubmittedCredentialRequest and add validate annotation in controller
     public Mono<Void> execute(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String bearerToken, String idToken) {
-
-        // Check if the format is not "json_vc_jwt"
-        if (!JWT_VC_JSON.equals(preSubmittedDataCredential.format())) {
-            return Mono.error(new FormatUnsupportedException("Format: " + preSubmittedDataCredential.format() + " is not supported"));
-        }
-        // Check if operation_mode is different to sync
-        if (!preSubmittedDataCredential.operationMode().equals(SYNC)) {
-            return Mono.error(new OperationNotSupportedException("operation_mode: " + preSubmittedDataCredential.operationMode() + " with schema: " + preSubmittedDataCredential.schema()));
-        }
-
-        // todo: only in issuanceFromServiceWithDelegatedAuthorization
-        // Validate idToken header for VerifiableCertification schema
-        if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
-            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
-        }
-
         // Validate user policy before proceeding
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
                 token ->
                         verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedDataCredential.schema(), preSubmittedDataCredential.payload(), idToken)
                                 .then(Mono.defer(() -> {
-                                    // todo invert if is verifiablecertification else....
+                                    // todo invert if is verifiable certification else....
                                     if (preSubmittedDataCredential.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
                                         return issuanceFromService(processId, preSubmittedDataCredential, token);
                                     } else if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION)) {
@@ -87,21 +68,35 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     }
 
     private @NotNull Mono<Void> issuanceFromServiceWithDelegatedAuthorization(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
-        // Check if responseUri is null, empty, or only contains whitespace
+        return ensurePreSubmittedCredentialResponseUriIsNotNullOrBlank(preSubmittedDataCredential)
+                .then(ensureVerifiableCertificationHasIdToken(preSubmittedDataCredential, idToken)
+                        .then(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedDataCredential, idToken)
+                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
+                                        // TODO instead of updating the credential status to valid,
+                                        //  we should update the credential status to pending download
+                                        //  but we don't support the verifiable certification download yet
+                                        .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                                .then(m2mTokenService.getM2MToken()
+                                                        .flatMap(m2mAccessToken ->
+                                                                sendVcToResponseUri(
+                                                                        preSubmittedDataCredential,
+                                                                        encodedVc,
+                                                                        m2mAccessToken.accessToken())))))));
+    }
+
+    private Mono<Void> ensurePreSubmittedCredentialResponseUriIsNotNullOrBlank(PreSubmittedDataCredential preSubmittedDataCredential) {
         if (preSubmittedDataCredential.responseUri() == null || preSubmittedDataCredential.responseUri().isBlank()) {
             return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedDataCredential.schema() + " response_uri is required"));
         }
-        return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedDataCredential, idToken)
-                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
-                        // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
-                        .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                .then(m2mTokenService.getM2MToken()
-                                        .flatMap(m2mAccessToken ->
-                                                sendVcToResponseUri(
-                                                        preSubmittedDataCredential,
-                                                        encodedVc,
-                                                        m2mAccessToken.accessToken())))));
+        return Mono.empty();
+    }
+
+    private Mono<Void> ensureVerifiableCertificationHasIdToken(PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
+        if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
+            return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
+        }
+        return Mono.empty();
     }
 
     private @NotNull Mono<Void> issuanceFromService(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String token) {

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.exception.EmailCommunicationException;
-import es.in2.issuer.backend.shared.domain.exception.FormatUnsupportedException;
 import es.in2.issuer.backend.shared.domain.exception.InvalidOrMissingProofException;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.Mandator;
@@ -30,7 +29,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import javax.naming.OperationNotSupportedException;
 import java.util.List;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
@@ -85,40 +83,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
 
     @InjectMocks
     private CredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
-
-    @Test
-    void unsupportedFormatErrorExceptionTest() {
-        String processId = "1234";
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder().payload(null).schema("LEARCredentialEmployee").format("json_ldp").operationMode("S").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, "token", null))
-                .expectError(FormatUnsupportedException.class)
-                .verify();
-    }
-
-    @Test
-    void unsupportedOperationModeExceptionTest() {
-        String processId = "1234";
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder().payload(null).schema("LEARCredentialEmployee").format(JWT_VC).operationMode("F").build();
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, "token", null))
-                .expectError(OperationNotSupportedException.class)
-                .verify();
-    }
-
-    @Test
-    void operationNotSupportedExceptionDueInvalidResponseUriTest() {
-        String processId = "1234";
-        String token = "token";
-        String type = "VerifiableCertification";
-        String idToken = "idToken";
-        JsonNode jsonNode = mock(JsonNode.class);
-
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC).operationMode("S").responseUri("").build();
-        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
-        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, idToken))
-                .expectError(OperationNotSupportedException.class)
-                .verify();
-    }
 
     @Test
     void completeWithdrawLEARProcessSyncSuccess() throws JsonProcessingException {

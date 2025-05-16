@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.shared.domain.validation.constraint;
 
 
-import es.in2.issuer.backend.shared.domain.validation.validator.CredentialConfigurationsSupportedValidator;
+import es.in2.issuer.backend.shared.domain.validation.validator.SyncOperationModeValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
@@ -15,9 +15,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Target({METHOD, FIELD, ANNOTATION_TYPE, CONSTRUCTOR, PARAMETER, TYPE_USE})
 @Retention(RUNTIME)
 @Documented
-@Constraint(validatedBy = CredentialConfigurationsSupportedValidator.class)
-public @interface CredentialConfigurationsSupportedConstraint {
-    String message() default "Schema must be one of the supported credential configurations";
+@Constraint(validatedBy = SyncOperationModeValidator.class)
+public @interface SyncOperationModeConstraint {
+    String message() default "Operation mode must be SYNC";
 
     Class<?>[] groups() default {};
 

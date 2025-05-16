@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class CredentialSchemaValidator implements
+public class CredentialConfigurationsSupportedValidator implements
         ConstraintValidator<CredentialConfigurationsSupportedConstraint, String> {
 
     private static final Set<String> VALID_TEXT_VALUES = Arrays.stream(CredentialConfigurationsSupported.values())

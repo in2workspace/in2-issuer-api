@@ -14,19 +14,19 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
-class CredentialSchemaValidatorTest {
+class CredentialConfigurationsSupportedValidatorTest {
 
     @Mock
     private ConstraintValidatorContext constraintValidatorContext;
 
     @InjectMocks
-    CredentialSchemaValidator credentialSchemaValidator;
+    private CredentialConfigurationsSupportedValidator credentialConfigurationsSupportedValidator;
 
     @Test
     void isValid_WithValidCredentialValue_ReturnsTrue() {
         String validValue = CredentialConfigurationsSupported.values()[0].toString();
 
-        var result = credentialSchemaValidator.isValid(validValue, constraintValidatorContext);
+        var result = credentialConfigurationsSupportedValidator.isValid(validValue, constraintValidatorContext);
 
         assertThat(result).isTrue();
     }
@@ -35,7 +35,7 @@ class CredentialSchemaValidatorTest {
     void isValid_WithInvalidCredentialValue_ReturnsFalse() {
         String invalidValue = "invalid_value";
 
-        var result = credentialSchemaValidator.isValid(invalidValue, constraintValidatorContext);
+        var result = credentialConfigurationsSupportedValidator.isValid(invalidValue, constraintValidatorContext);
 
         assertThat(result).isFalse();
     }
@@ -45,7 +45,7 @@ class CredentialSchemaValidatorTest {
     void isValid_WithAllEnumValues_ReturnsTrue(CredentialConfigurationsSupported credentialConfiguration) {
         String value = credentialConfiguration.toString();
 
-        boolean isValid = credentialSchemaValidator.isValid(value, constraintValidatorContext);
+        boolean isValid = credentialConfigurationsSupportedValidator.isValid(value, constraintValidatorContext);
 
         assertThat(isValid).isTrue();
     }
@@ -53,7 +53,7 @@ class CredentialSchemaValidatorTest {
     @ParameterizedTest
     @NullAndEmptySource
     void isValid_WithNullOrEmptyValue_ReturnsFalse(String nullOrEmptyValue) {
-        boolean isValid = credentialSchemaValidator.isValid(nullOrEmptyValue, constraintValidatorContext);
+        boolean isValid = credentialConfigurationsSupportedValidator.isValid(nullOrEmptyValue, constraintValidatorContext);
 
         assertThat(isValid).isFalse();
     }
@@ -62,7 +62,7 @@ class CredentialSchemaValidatorTest {
     void isValid_WithCaseInsensitiveMatch_ReturnsFalse() {
         String validValue = CredentialConfigurationsSupported.values()[0].toString().toLowerCase();
 
-        var result = credentialSchemaValidator.isValid(validValue, constraintValidatorContext);
+        var result = credentialConfigurationsSupportedValidator.isValid(validValue, constraintValidatorContext);
 
         assertThat(result).isFalse();
     }
