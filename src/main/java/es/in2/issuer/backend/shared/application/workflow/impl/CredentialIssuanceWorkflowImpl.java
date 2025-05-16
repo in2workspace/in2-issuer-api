@@ -14,6 +14,7 @@ import es.in2.issuer.backend.shared.infrastructure.config.WebClientConfig;
 import es.in2.issuer.backend.shared.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -51,79 +52,83 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final M2MTokenService m2mTokenService;
 
     @Override
-    // todo: split into 2 functions with idtoken/without idtoken
-    // todo: issuanceFromService -> without idToken
-    // todo: issuanceFromServiceWithDelegatedAuthorization -> with idToken
-    // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
     // todo: Add in PreSubmittedDataCredential -> schema validation (learemployee, verifiableCertification... ) comparing with A NEW ENUM WITH THE 3 CredentialsConfigurationsSupported
     // todo: move 2 first validations to PreSubmittedCredentialRequest and add validate annotation in controller
-    public Mono<Void> execute(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String bearerToken, String idToken) {
+    public Mono<Void> execute(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String bearerToken, String idToken) {
 
         // Check if the format is not "json_vc_jwt"
-        if (!JWT_VC_JSON.equals(preSubmittedCredentialRequest.format())) {
-            return Mono.error(new FormatUnsupportedException("Format: " + preSubmittedCredentialRequest.format() + " is not supported"));
+        if (!JWT_VC_JSON.equals(preSubmittedDataCredential.format())) {
+            return Mono.error(new FormatUnsupportedException("Format: " + preSubmittedDataCredential.format() + " is not supported"));
         }
         // Check if operation_mode is different to sync
-        if (!preSubmittedCredentialRequest.operationMode().equals(SYNC)) {
-            return Mono.error(new OperationNotSupportedException("operation_mode: " + preSubmittedCredentialRequest.operationMode() + " with schema: " + preSubmittedCredentialRequest.schema()));
+        if (!preSubmittedDataCredential.operationMode().equals(SYNC)) {
+            return Mono.error(new OperationNotSupportedException("operation_mode: " + preSubmittedDataCredential.operationMode() + " with schema: " + preSubmittedDataCredential.schema()));
         }
 
         // todo: only in issuanceFromServiceWithDelegatedAuthorization
         // Validate idToken header for VerifiableCertification schema
-        if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
+        if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION) && idToken == null) {
             return Mono.error(new MissingIdTokenHeaderException("Missing required ID Token header for VerifiableCertification issuance."));
         }
 
         // Validate user policy before proceeding
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
                 token ->
-                        verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest.payload(), idToken)
+                        verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedDataCredential.schema(), preSubmittedDataCredential.payload(), idToken)
                                 .then(Mono.defer(() -> {
                                     // todo invert if is verifiablecertification else....
-                                    if (preSubmittedCredentialRequest.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                        // todo: credentialIssuanceRecordService.create() ->
-                                        //  --> buildCredentialIssuanceRecord [CredentialProcedure]
-                                        //  -----> id -> random uuid
-                                        //  -----> organizationIdentifier -> token
-                                        // ------> credentialFormat -> preSubmittedCredentialRequest.format()
-                                        //  -----> credentialType -> preSubmittedCredentialRequest.schema()
-                                        //  -----> credentialData -> learCredentialEmployee.map(payload)
-                                        //  -----> operationMode -> preSubmittedCredentialRequest.operationMode()
-                                        //  -----> signatureMode -> hardcoded
-                                        //  -----> createdAt
-                                        //  -----> updatedAt
-                                        //  --> SAVE
-                                        // --> generateActivationCode (nonce) and save in cache (key: activationCode (nonce), value: credentialIssuanceRecordId)
-                                        return verifiableCredentialService.generateVc(processId, preSubmittedCredentialRequest.schema(), preSubmittedCredentialRequest, token)
-                                                .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedCredentialRequest));
-                                    } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
-                                        // Check if responseUri is null, empty, or only contains whitespace
-                                        if (preSubmittedCredentialRequest.responseUri() == null || preSubmittedCredentialRequest.responseUri().isBlank()) {
-                                            return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedCredentialRequest.schema() + " response_uri is required"));
-                                        }
-                                        return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)
-                                                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
-                                                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
-                                                        // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
-                                                        .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                                                .then(m2mTokenService.getM2MToken()
-                                                                        .flatMap(m2mAccessToken ->
-                                                                                sendVcToResponseUri(
-                                                                                        preSubmittedCredentialRequest,
-                                                                                        encodedVc,
-                                                                                        m2mAccessToken.accessToken())))));
+                                    if (preSubmittedDataCredential.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                        return issuanceFromService(processId, preSubmittedDataCredential, token);
+                                    } else if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION)) {
+                                        return issuanceFromServiceWithDelegatedAuthorization(processId, preSubmittedDataCredential, idToken);
                                     }
-                                    return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
+                                    return Mono.error(new CredentialTypeUnsupportedException(preSubmittedDataCredential.schema()));
                                 })));
+    }
+
+    private @NotNull Mono<Void> issuanceFromServiceWithDelegatedAuthorization(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
+        // Check if responseUri is null, empty, or only contains whitespace
+        if (preSubmittedDataCredential.responseUri() == null || preSubmittedDataCredential.responseUri().isBlank()) {
+            return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedDataCredential.schema() + " response_uri is required"));
+        }
+        return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedDataCredential, idToken)
+                .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
+                        .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
+                        // todo instead of updating the credential status to valid, we should update the credential status to pending download but we don't support the verifiable certification download yet
+                        .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                .then(m2mTokenService.getM2MToken()
+                                        .flatMap(m2mAccessToken ->
+                                                sendVcToResponseUri(
+                                                        preSubmittedDataCredential,
+                                                        encodedVc,
+                                                        m2mAccessToken.accessToken())))));
+    }
+
+    private @NotNull Mono<Void> issuanceFromService(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String token) {
+        // todo: credentialIssuanceRecordService.create() ->
+        //  --> buildCredentialIssuanceRecord [CredentialProcedure]
+        //  -----> id -> random uuid
+        //  -----> organizationIdentifier -> token
+        // ------> credentialFormat -> preSubmittedCredentialRequest.format()
+        //  -----> credentialType -> preSubmittedCredentialRequest.schema()
+        //  -----> credentialData -> learCredentialEmployee.map(payload)
+        //  -----> operationMode -> preSubmittedCredentialRequest.operationMode()
+        //  -----> signatureMode -> hardcoded
+        //  -----> createdAt
+        //  -----> updatedAt
+        //  --> SAVE
+        // --> generateActivationCode (nonce) and save in cache (key: activationCode (nonce), value: credentialIssuanceRecordId)
+        return verifiableCredentialService.generateVc(processId, preSubmittedDataCredential.schema(), preSubmittedDataCredential, token)
+                .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedDataCredential));
     }
 
     // todo: sendActivationCredentialEmail
     // todo: PreSubmittedCredentialRequest -> PreSubmittedDataCredential
     // todo: transactionCode -> activationCode
-    private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedCredentialRequest preSubmittedCredentialRequest) {
-        String email = preSubmittedCredentialRequest.payload().get(MANDATEE).get(EMAIL).asText();
-        String user = preSubmittedCredentialRequest.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedCredentialRequest.payload().get(MANDATEE).get(LAST_NAME).asText();
-        String organization = preSubmittedCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
+    private Mono<Void> sendCredentialOfferEmail(String transactionCode, PreSubmittedDataCredential preSubmittedDataCredential) {
+        String email = preSubmittedDataCredential.payload().get(MANDATEE).get(EMAIL).asText();
+        String user = preSubmittedDataCredential.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedDataCredential.payload().get(MANDATEE).get(LAST_NAME).asText();
+        String organization = preSubmittedDataCredential.payload().get(MANDATOR).get(ORGANIZATION).asText();
         // todo: change to send to /activation-code
         // todo: path variable -> activation-code
         // todo: CHANGE IN FRONTEND
@@ -140,20 +145,20 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
     }
 
-    private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {
+    private Mono<Void> sendVcToResponseUri(PreSubmittedDataCredential preSubmittedDataCredential, String encodedVc, String token) {
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        log.debug("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedCredentialRequest.responseUri(), encodedVc, token);
+        log.debug("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedDataCredential.responseUri(), encodedVc, token);
 
         // Extract the product ID from the payload
-        String productId = preSubmittedCredentialRequest.payload()
+        String productId = preSubmittedDataCredential.payload()
                 .get(CREDENTIAL_SUBJECT)
                 .get(PRODUCT)
                 .get(PRODUCT_ID)
                 .asText();
         // Extract the company email from the payload
-        String companyEmail = preSubmittedCredentialRequest.payload()
+        String companyEmail = preSubmittedDataCredential.payload()
                 .get(CREDENTIAL_SUBJECT)
                 .get(COMPANY)
                 .get(EMAIL)
@@ -161,7 +166,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
 
         return webClient.commonWebClient()
                 .patch()
-                .uri(preSubmittedCredentialRequest.responseUri())
+                .uri(preSubmittedDataCredential.responseUri())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
                 .bodyValue(responseUriRequest)
