@@ -30,7 +30,7 @@ public class CredentialDeliveryServiceImpl implements CredentialDeliveryService 
     public Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String accessToken, String productId, String companyEmail) {
         ResponseUriRequest request = ResponseUriRequest.builder().encodedVc(encodedVc).build();
 
-        log.debug("Sending VC to responseUri: {}", responseUri);
+        log.info("Sending VC to responseUri: {}", responseUri);
 
         return webClient.commonWebClient()
                 .patch()

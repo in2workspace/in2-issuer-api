@@ -100,6 +100,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                                                                             .get(EMAIL)
                                                                             .asText();
 
+                                                                    log.info("➡️ A punt d'enviar VC a responseUri: {}", responseUri);
                                                                     return credentialDeliveryService.sendVcToResponseUri(
                                                                             responseUri,
                                                                             encodedVc,
