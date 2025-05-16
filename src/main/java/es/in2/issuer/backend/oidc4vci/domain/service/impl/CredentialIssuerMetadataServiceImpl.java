@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.oidc4vci.domain.service.impl;
 
-import es.in2.issuer.backend.oidc4vci.domain.model.CredentialConfigurationsSupported;
+import es.in2.issuer.backend.shared.domain.model.CredentialConfigurationsSupported;
 import es.in2.issuer.backend.oidc4vci.domain.model.CredentialIssuerMetadata;
 import es.in2.issuer.backend.oidc4vci.domain.service.CredentialIssuerMetadataService;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;

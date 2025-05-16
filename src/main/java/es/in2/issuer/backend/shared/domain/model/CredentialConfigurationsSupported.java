@@ -1,4 +1,4 @@
-package es.in2.issuer.backend.oidc4vci.domain.model;
+package es.in2.issuer.backend.shared.domain.model;
 
 import es.in2.issuer.backend.shared.domain.util.Constants;
 import lombok.AllArgsConstructor;
