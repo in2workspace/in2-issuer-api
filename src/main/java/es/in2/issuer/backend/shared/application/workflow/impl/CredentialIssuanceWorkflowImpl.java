@@ -52,17 +52,16 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
 
     @Override
     public Mono<Void> execute(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String bearerToken, String idToken) {
-        // Validate user policy before proceeding
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
                 token ->
                         verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedDataCredential.schema(), preSubmittedDataCredential.payload(), idToken)
                                 .then(Mono.defer(() -> {
-                                    // todo invert if is verifiable certification else....
-                                    if (preSubmittedDataCredential.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
-                                        return issuanceFromService(processId, preSubmittedDataCredential, token);
-                                    } else if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION)) {
+                                    if (preSubmittedDataCredential.schema().equals(VERIFIABLE_CERTIFICATION)) {
                                         return issuanceFromServiceWithDelegatedAuthorization(processId, preSubmittedDataCredential, idToken);
+                                    } else if (preSubmittedDataCredential.schema().equals(LEAR_CREDENTIAL_EMPLOYEE)) {
+                                        return issuanceFromService(processId, preSubmittedDataCredential, token);
                                     }
+
                                     return Mono.error(new CredentialTypeUnsupportedException(preSubmittedDataCredential.schema()));
                                 })));
     }
