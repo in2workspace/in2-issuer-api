@@ -211,10 +211,14 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                 .flatMap(signedVc -> credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                         .flatMap(updatedCredentialProcedure -> {
                             updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
+                            log.info("Saving updated credential with type: '{}'", updatedCredentialProcedure.getCredentialType());
                             return credentialProcedureRepository.save(updatedCredentialProcedure)
                                     .thenReturn(updatedCredentialProcedure);
                         })
                         .flatMap(updatedCredentialProcedure -> {
+                            String credentialType = updatedCredentialProcedure.getCredentialType();
+                            log.info("Valor de credentialType: '{}'", credentialType);
+                            log.info("Verifying credential type for responseUri delivery: {}", updatedCredentialProcedure.getCredentialType());
                             if (!"VERIFIABLE_CERTIFICATION".equals(updatedCredentialProcedure.getCredentialType())) {
                                 return Mono.empty(); //don't send message if it isn't VERIFIABLE_CERTIFICATION
                             }
