@@ -75,6 +75,9 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                                 .flatMap(transactionCode -> sendCredentialOfferEmail(transactionCode, preSubmittedCredentialRequest));
                     } else if (preSubmittedCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
                         // Check if responseUri is null, empty, or only contains whitespace
+                        // todo
+                        log.info(preSubmittedCredentialRequest.toString());
+                        log.info("Valor de responseUri rebut: '{}'", preSubmittedCredentialRequest.responseUri());
                         if (preSubmittedCredentialRequest.responseUri() == null || preSubmittedCredentialRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedCredentialRequest.schema() + " response_uri is required"));
                         }
