@@ -84,33 +84,43 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                         return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
-                                        .flatMap(encodedVc ->
-                                                credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
-                                                        .then(m2mTokenService.getM2MToken()
-                                                                .flatMap(m2mAccessToken -> {
-                                                                    String responseUri = preSubmittedCredentialRequest.responseUri();
-                                                                    String productId = preSubmittedCredentialRequest.payload()
-                                                                            .get(CREDENTIAL_SUBJECT)
-                                                                            .get(PRODUCT)
-                                                                            .get(PRODUCT_ID)
-                                                                            .asText();
-                                                                    String companyEmail = preSubmittedCredentialRequest.payload()
-                                                                            .get(CREDENTIAL_SUBJECT)
-                                                                            .get(COMPANY)
-                                                                            .get(EMAIL)
-                                                                            .asText();
+                                        .flatMap(encodedVc -> {
+                                            log.info("✅ Credential signada correctament");
 
-                                                                    log.info("➡️ A punt d'enviar VC a responseUri: {}", responseUri);
-                                                                    return credentialDeliveryService.sendVcToResponseUri(
-                                                                            responseUri,
-                                                                            encodedVc,
-                                                                            m2mAccessToken.accessToken(),
-                                                                            productId,
-                                                                            companyEmail
-                                                                    );
-                                                                })
-                                                        )
-                                        )
+                                            return credentialProcedureService
+                                                    .updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
+                                                    .doOnSuccess(v -> log.info("📦 Estat de la credencial actualitzat a VALID per procedureId: {}", procedureId))
+                                                    .then(
+                                                            m2mTokenService.getM2MToken()
+                                                                    .doOnSubscribe(sub -> log.info("🔑 Sol·licitant token M2M..."))
+                                                                    .doOnNext(m2Mtoken -> log.info("✅ Token M2M obtingut correctament"))
+                                                                    .doOnError(err -> log.error("❌ Error obtenint M2M token", err))
+                                                                    .flatMap(m2mAccessToken -> {
+                                                                        String responseUri = preSubmittedCredentialRequest.responseUri();
+                                                                        String productId = preSubmittedCredentialRequest.payload()
+                                                                                .get(CREDENTIAL_SUBJECT)
+                                                                                .get(PRODUCT)
+                                                                                .get(PRODUCT_ID)
+                                                                                .asText();
+                                                                        String companyEmail = preSubmittedCredentialRequest.payload()
+                                                                                .get(CREDENTIAL_SUBJECT)
+                                                                                .get(COMPANY)
+                                                                                .get(EMAIL)
+                                                                                .asText();
+
+                                                                        log.info("➡️ A punt d'enviar VC a responseUri: {}", responseUri);
+                                                                        log.debug("📦 Dades d'enviament - productId: {}, companyEmail: {}", productId, companyEmail);
+
+                                                                        return credentialDeliveryService.sendVcToResponseUri(
+                                                                                responseUri,
+                                                                                encodedVc,
+                                                                                m2mAccessToken.accessToken(),
+                                                                                productId,
+                                                                                companyEmail
+                                                                        );
+                                                                    })
+                                                    );
+                                        })
                                 );
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
