@@ -1,5 +1,7 @@
 package es.in2.issuer.backend.shared.application.workflow.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.upokecenter.cbor.CBORObject;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.application.workflow.DeferredCredentialWorkflow;
@@ -7,8 +9,7 @@ import es.in2.issuer.backend.shared.domain.exception.Base45Exception;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.enums.SignatureType;
-import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
-import es.in2.issuer.backend.shared.domain.service.RemoteSignatureService;
+import es.in2.issuer.backend.shared.domain.service.*;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.backend.shared.infrastructure.repository.CredentialProcedureRepository;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import javax.naming.OperationNotSupportedException;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,9 +44,13 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final VerifiableCertificationFactory verifiableCertificationFactory;
     private final CredentialProcedureRepository credentialProcedureRepository;
     private final CredentialProcedureService credentialProcedureService;
+    private final M2MTokenService m2mTokenService;
+    private final CredentialDeliveryService credentialDeliveryService;
+    private final DeferredCredentialMetadataService deferredCredentialMetadataService;
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
+        log.info("signAndUpdateCredentialByProcedureId");
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 try{
@@ -88,6 +94,49 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             })
             .doOnSuccess(x -> log.info("Credential Signed and updated successfully."));
     }
+
+    public Mono<String> signUpdateAndSendToResponseUri(String authorizationHeader, String procedureId, String format) {
+        log.info("signUpdateAndSendToResponseUri");
+        return signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, format)
+                .flatMap(signedCredential ->
+                        credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
+                                .flatMap(credentialProcedure -> {
+                                    if (!"VERIFIABLE_CERTIFICATION".equals(credentialProcedure.getCredentialType())) {
+                                        return Mono.error(new IllegalStateException("Only VERIFIABLE_CERTIFICATION supports response_uri sending."));
+                                    }
+                                    log.info("credential is of type VERFIABLE_CERTIFICATION");
+                                    return deferredCredentialMetadataService.getResponseUriByProcedureId(procedureId)
+                                            .flatMap(responseUri -> {
+                                                if (responseUri == null || responseUri.isBlank()) {
+                                                    return Mono.error(new OperationNotSupportedException("Missing response_uri for credential procedure: " + procedureId));
+                                                }
+
+                                                try {
+                                                    JsonNode payload = new ObjectMapper().readTree(credentialProcedure.getCredentialDecoded());
+                                                    String productId = payload.get("credentialSubject").get("product").get("productId").asText();
+                                                    String companyEmail = payload.get("credentialSubject").get("company").get("email").asText();
+
+                                                    return m2mTokenService.getM2MToken()
+                                                            .flatMap(m2mAccessToken ->
+                                                                    credentialDeliveryService.sendVcToResponseUri(
+                                                                            responseUri,
+                                                                            signedCredential,
+                                                                            productId,
+                                                                            companyEmail,
+                                                                            m2mAccessToken.accessToken()
+                                                                    )
+                                                            ).thenReturn(signedCredential);
+                                                } catch (Exception e) {
+                                                    log.error("Error extracting productId or companyEmail from credential", e);
+                                                    return Mono.error(new IllegalStateException("Could not extract productId or companyEmail from credential"));
+                                                }
+                                            });
+                                })
+                );
+    }
+
+
+
 
     private Mono<Void> updateSignedCredential(String signedCredential) {
         List<SignedCredentials.SignedCredential> credentials = List.of(SignedCredentials.SignedCredential.builder().credential(signedCredential).build());

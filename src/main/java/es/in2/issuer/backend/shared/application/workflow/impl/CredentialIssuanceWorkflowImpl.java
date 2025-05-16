@@ -48,6 +48,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
     private final M2MTokenService m2mTokenService;
+    private final CredentialDeliveryService credentialDeliveryService;
 
     @Override
     public Mono<Void> execute(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken) {
@@ -77,6 +78,18 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                         if (preSubmittedCredentialRequest.responseUri() == null || preSubmittedCredentialRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedCredentialRequest.schema() + " response_uri is required"));
                         }
+                        // Extract values from payload
+                        String productId = preSubmittedCredentialRequest.payload()
+                                .get(CREDENTIAL_SUBJECT)
+                                .get(PRODUCT)
+                                .get(PRODUCT_ID)
+                                .asText();
+
+                        String companyEmail = preSubmittedCredentialRequest.payload()
+                                .get(CREDENTIAL_SUBJECT)
+                                .get(COMPANY)
+                                .get(EMAIL)
+                                .asText();
                         return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
@@ -84,9 +97,11 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                                         .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
                                                 .then(m2mTokenService.getM2MToken()
                                                         .flatMap(m2mAccessToken ->
-                                                                sendVcToResponseUri(
-                                                                        preSubmittedCredentialRequest,
+                                                                credentialDeliveryService.sendVcToResponseUri(
+                                                                        preSubmittedCredentialRequest.responseUri(),
                                                                         encodedVc,
+                                                                        productId,
+                                                                        companyEmail,
                                                                         m2mAccessToken.accessToken())))));
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
