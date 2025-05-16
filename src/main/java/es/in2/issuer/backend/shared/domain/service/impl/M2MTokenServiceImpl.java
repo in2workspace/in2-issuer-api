@@ -32,10 +32,26 @@ public class M2MTokenServiceImpl implements M2MTokenService {
     private final AppConfig appConfig;
     private final VerifierService verifierService;
 
+    //todo remove comments
     @Override
     public Mono<VerifierOauth2AccessToken> getM2MToken() {
-        return Mono.fromCallable(this::getM2MFormUrlEncodeBodyValue)
-                .flatMap(verifierService::performTokenRequest);
+        log.info("🔍 Starting M2M token retrieval process");
+
+        return Mono.fromCallable(() -> {
+                    log.info("📝 Preparing M2M form body values");
+                    return this.getM2MFormUrlEncodeBodyValue();
+                })
+                .doOnSuccess(formData -> log.info("✅ M2M form body values prepared successfully"))
+                .doOnError(error -> log.error("❌ Error preparing M2M form body values", error))
+                .flatMap(formData -> {
+                    log.info("🔄 Sending M2M token request to verifier service");
+                    return verifierService.performTokenRequest(formData)
+                            .doOnSubscribe(sub -> log.info("🏁 Token request initiated"))
+                            .doOnSuccess(token -> log.info("✅ M2M token obtained successfully"))
+                            .doOnError(error -> log.error("❌ Error obtaining M2M token", error));
+                })
+                .doOnSuccess(token -> log.info("🎉 M2M token retrieval process completed"))
+                .doOnError(error -> log.error("💥 M2M token retrieval process failed", error));
     }
 
     private String getM2MFormUrlEncodeBodyValue() {
