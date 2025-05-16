@@ -369,24 +369,6 @@ class GlobalExceptionHandlerTest {
     }
 
     @Test
-    void handleFormatUnsupportedException_withMessage() {
-        String errorMessage = "Error message for testing";
-        FormatUnsupportedException formatUnsupportedException = new FormatUnsupportedException(errorMessage);
-
-        var expected = new CredentialErrorResponse(
-                CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED,
-                formatUnsupportedException.getMessage()
-        );
-
-        Mono<CredentialErrorResponse> responseEntityMono = globalExceptionHandler.handleFormatUnsupportedException(formatUnsupportedException);
-
-        StepVerifier.create(responseEntityMono)
-                .assertNext(responseEntity ->
-                        assertThat(responseEntity).isEqualTo(expected))
-                .verifyComplete();
-    }
-
-    @Test
     void handleTrustServiceProviderForCertificationsException_withMessage() {
         String errorMessage = "Error message for testing";
         InsufficientPermissionException insufficientPermissionException = new InsufficientPermissionException(errorMessage);

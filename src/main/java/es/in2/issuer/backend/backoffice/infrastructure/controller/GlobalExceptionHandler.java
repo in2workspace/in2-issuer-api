@@ -264,23 +264,6 @@ public class GlobalExceptionHandler {
         return Mono.just(errorResponse);
     }
 
-    @ExceptionHandler(FormatUnsupportedException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Mono<CredentialErrorResponse> handleFormatUnsupportedException(Exception ex) {
-        String description = "Format is not supported";
-
-        if (ex.getMessage() != null) {
-            log.error(ex.getMessage());
-            description = ex.getMessage();
-        }
-
-        CredentialErrorResponse errorResponse = new CredentialErrorResponse(
-                CredentialResponseErrorCodes.FORMAT_IS_NOT_SUPPORTED,
-                description);
-
-        return Mono.just(errorResponse);
-    }
-
     @ExceptionHandler(InsufficientPermissionException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
     public Mono<CredentialErrorResponse> handleInsufficientPermissionException(Exception ex) {
