@@ -4,6 +4,8 @@ import es.in2.issuer.backend.shared.domain.model.dto.ResponseUriRequest;
 import es.in2.issuer.backend.shared.domain.service.CredentialDeliveryService;
 import es.in2.issuer.backend.shared.domain.service.EmailService;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;
+import es.in2.issuer.backend.shared.infrastructure.config.WebClientConfig;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,20 +16,13 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import reactor.core.publisher.Mono;
 
 @Slf4j
+@RequiredArgsConstructor
 @Service
 public class CredentialDeliveryServiceImpl implements CredentialDeliveryService {
 
-    private final WebClient webClient;
+    private final WebClientConfig webClient;
     private final EmailService emailService;
     private final AppConfig appConfig;
-
-    public CredentialDeliveryServiceImpl(WebClient.Builder webClientBuilder,
-                                         EmailService emailService,
-                                         AppConfig appConfig) {
-        this.webClient = webClientBuilder.build();
-        this.emailService = emailService;
-        this.appConfig = appConfig;
-    }
 
     @Override
     public Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String productId, String companyEmail, String bearerToken) {
@@ -38,7 +33,8 @@ public class CredentialDeliveryServiceImpl implements CredentialDeliveryService 
         //log.debug
         log.info("Sending to response_uri: {} the VC: {} with token: {}", responseUri, encodedVc, bearerToken);
 
-        return webClient.patch()
+        return webClient.commonWebClient()
+                .patch()
                 .uri(responseUri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + bearerToken)
