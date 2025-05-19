@@ -60,7 +60,9 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 .then(deferredCredentialMetadataService.createDeferredCredentialMetadata(
                                         procedureId,
                                         preSubmittedCredentialRequest.operationMode(),
-                                        preSubmittedCredentialRequest.responseUri()))
+                                        preSubmittedCredentialRequest.responseUri()
+                                ))
+                                .thenReturn(procedureId)
                 );
     }
 

@@ -51,6 +51,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
         log.info("signAndUpdateCredentialByProcedureId");
+        log.info("procedure id in signAndUpdateCredentialByProcedureId: {}", procedureId);
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 try{
