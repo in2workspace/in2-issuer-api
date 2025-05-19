@@ -57,7 +57,10 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                     log.error("Error generating issuer/signer, continuing in ASYNC mode", error);
                                     return Mono.empty();
                                 })
-                                .thenReturn(procedureId)
+                                .then(deferredCredentialMetadataService.createDeferredCredentialMetadata(
+                                        procedureId,
+                                        preSubmittedCredentialRequest.operationMode(),
+                                        preSubmittedCredentialRequest.responseUri()))
                 );
     }
 
