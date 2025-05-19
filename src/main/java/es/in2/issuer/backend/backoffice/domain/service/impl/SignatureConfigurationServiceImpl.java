@@ -1,11 +1,13 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
 import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
-import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureVaultSecret;
 import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
 import es.in2.issuer.backend.backoffice.domain.repository.SignatureConfigurationRepository;
@@ -21,10 +23,11 @@ import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
@@ -37,6 +40,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     private final SignatureConfigurationRepository repository;
     private final CloudProviderService cloudProviderService;
     private final SignatureConfigurationAuditService signatureConfigurationAuditService;
+    private final ObjectMapper objectMapper;
 
     @Override
     public Mono<SignatureConfiguration> saveSignatureConfig(
@@ -121,14 +125,30 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                         ));
                     }
                     Map<String, String> secrets = new HashMap<>();
-                    secrets.put("clientSecret", config.clientSecret());
+                    secrets.put(CLIENT_SECRET, config.clientSecret());
                     secrets.put(CREDENTIAL_PASSWORD, config.credentialPassword());
                     if (Boolean.TRUE.equals(requiresTOTP)) {
                         secrets.put(SECRET, config.secret());
                     }
+
                     return vaultService
                             .saveSecrets(secretRelativePath, secrets)
-                            .then(repository.save(signatureConfigData));
+                            .then(Mono.fromSupplier(() -> {
+                                // Calculate hashes
+                                Map<String, String> hashed = secrets.entrySet().stream()
+                                        .collect(Collectors.toMap(
+                                                Map.Entry::getKey,
+                                                e -> hashS256(e.getValue())
+                                        ));
+                                try {
+                                    String json = objectMapper.writeValueAsString(hashed);
+                                    signatureConfigData.setVaultHashedSecretValues(json);
+                                } catch (JsonProcessingException ex) {
+                                    throw new IllegalStateException("Error serializing hashes", ex);
+                                }
+                                return signatureConfigData;
+                            }))
+                            .flatMap(repository::save);
                 });
     }
 
@@ -200,46 +220,95 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         UUID configId = UUID.fromString(id);
 
         return getCompleteConfigurationById(id, organizationId)
+                // use oldConfig for auditing
                 .flatMap(oldConfig ->
-                        findExistingConfig(configId)
+                        // load the existing entity
+                        repository.findById(configId)
+                                .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")))
                                 .flatMap(existing ->
+                                        // 1) patch secrets + update hashes
                                         patchSecretsIfNeeded(existing, newConfig)
-                                                .then(saveConfig(existing))
-                                                .then(saveAudit(oldConfig, newConfig, rationale, userEmail))
+                                                // 2) apply the rest of the DTO fields
+                                                .doOnNext(updatedEntity -> applyDtoToEntity(updatedEntity, newConfig))
+                                                // 3) save the fully updated entity
+                                                .flatMap(repository::save)
                                 )
-                );
+                                // 4) record the audit entry
+                                .flatMap(saved -> signatureConfigurationAuditService
+                                        .saveAudit(oldConfig, newConfig, rationale, userEmail)
+                                )
+                )
+                .then();  // return Mono<Void>
     }
 
-    //--- Look for existing configuration ---
-    private Mono<SignatureConfiguration> findExistingConfig(UUID configId) {
-        return repository.findById(configId)
-                .switchIfEmpty(Mono.error(new IllegalArgumentException("Configuration not found")));
-    }
-
-    //--- If needed, update secrets in Vault ---
-    private Mono<Void> patchSecretsIfNeeded(
+    /**
+     * Compares hashes, patches Vault only if there are changes,
+     * updates vaultHashedSecretValues on the entity, and returns Mono<entity>.
+     */
+    private Mono<SignatureConfiguration> patchSecretsIfNeeded(
             SignatureConfiguration existing,
             CompleteSignatureConfiguration newConfig) {
 
-        Map<String, String> partialSecrets = new HashMap<>();
-        if (newConfig.clientSecret()       != null) partialSecrets.put(CLIENT_SECRET,      newConfig.clientSecret());
-        if (newConfig.credentialPassword() != null) partialSecrets.put(CREDENTIAL_PASSWORD, newConfig.credentialPassword());
-        if (newConfig.secret()             != null) partialSecrets.put(SECRET,             newConfig.secret());
+        // 1) Read previous hashes
+        Map<String,String> existingHashes = new HashMap<>();
+        if (existing.getVaultHashedSecretValues() != null) {
+            try {
+                existingHashes = objectMapper.readValue(
+                        existing.getVaultHashedSecretValues(),
+                        new TypeReference<>() {
+                        }
+                );
+            } catch (JsonProcessingException e) {
+                return Mono.error(new IllegalStateException("Error parsing previous hashes", e));
+            }
+        }
 
-        return partialSecrets.isEmpty()
-                ? Mono.empty()
-                : vaultService.patchSecrets(existing.getSecretRelativePath(), partialSecrets);
+        // 2) Compare new values
+        Map<String,String> toPatch       = new HashMap<>();
+        Map<String,String> updatedHashes = new HashMap<>(existingHashes);
+
+        if (newConfig.clientSecret() != null) {
+            String h = hashS256(newConfig.clientSecret());
+            if (!h.equals(existingHashes.get(CLIENT_SECRET))) {
+                toPatch.put(CLIENT_SECRET, newConfig.clientSecret());
+                updatedHashes.put(CLIENT_SECRET, h);
+            }
+        }
+        if (newConfig.credentialPassword() != null) {
+            String h = hashS256(newConfig.credentialPassword());
+            if (!h.equals(existingHashes.get(CREDENTIAL_PASSWORD))) {
+                toPatch.put(CREDENTIAL_PASSWORD, newConfig.credentialPassword());
+                updatedHashes.put(CREDENTIAL_PASSWORD, h);
+            }
+        }
+        if (newConfig.secret() != null) {
+            String h = hashS256(newConfig.secret());
+            if (!h.equals(existingHashes.get(SECRET))) {
+                toPatch.put(SECRET, newConfig.secret());
+                updatedHashes.put(SECRET, h);
+            }
+        }
+
+        // 3) Serialize new JSON of hashes into the entity
+        try {
+            existing.setVaultHashedSecretValues(
+                    objectMapper.writeValueAsString(updatedHashes)
+            );
+        } catch (JsonProcessingException ex) {
+            return Mono.error(new IllegalStateException("Failed to serialize updated hashes", ex));
+        }
+
+        // 4) If there’s nothing to patch, return the mutated entity
+        if (toPatch.isEmpty()) {
+            return Mono.just(existing);
+        }
+
+        // 5) Patch Vault and then return the entity
+        return vaultService
+                .patchSecrets(existing.getSecretRelativePath(), toPatch)
+                .thenReturn(existing);
     }
 
-    //--- Save the updated configuration ---
-    private Mono<SignatureConfiguration> saveConfig(SignatureConfiguration existing) {
-        return repository.save(existing);
-    }
-
-
-    private Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, CompleteSignatureConfiguration newConfig, String rationale, String userEmail) {
-        return signatureConfigurationAuditService.saveAudit(oldConfig, newConfig, rationale, userEmail);
-    }
 
     private SignatureConfigWithProviderName mapToWithProviderName(SignatureConfiguration config, String providerName) {
         return new SignatureConfigWithProviderName(
@@ -270,30 +339,36 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 );
     }
 
-    private Mono<SignatureVaultSecret> getSecretsFromVault(String secretRelativePath) {
-        return vaultService.getSecrets(secretRelativePath)
-                .map(secretsMap -> new SignatureVaultSecret(
-                        toStringOrNull(secretsMap.get(CLIENT_SECRET)),
-                        toStringOrNull(secretsMap.get(CREDENTIAL_PASSWORD)),
-                        toStringOrNull(secretsMap.get(SECRET))
-                ));
-    }
-
-    private String toStringOrNull(Object value) {
-        return value != null ? value.toString() : null;
-    }
-
     private SignatureConfigurationResponse mapToSignatureConfigurationResponse(SignatureConfiguration config) {
-        return new SignatureConfigurationResponse(
-                config.getId(),
-                config.getOrganizationIdentifier(),
-                config.isEnableRemoteSignature(),
-                config.getSignatureMode(),
-                config.getCloudProviderId(),
-                config.getClientId(),
-                config.getCredentialId(),
-                config.getCredentialName()
-        );
+        return SignatureConfigurationResponse.builder()
+                .id(config.getId())
+                .organizationIdentifier(config.getOrganizationIdentifier())
+                .enableRemoteSignature(config.isEnableRemoteSignature())
+                .signatureMode(config.getSignatureMode())
+                .cloudProviderId(config.getCloudProviderId())
+                .clientId(config.getClientId())
+                .credentialId(config.getCredentialId())
+                .credentialName(config.getCredentialName())
+                .build();
     }
 
+    private String hashS256(String value) {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(value.getBytes(StandardCharsets.UTF_8));
+            return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 Algorithm not supported", e);
+        }
+    }
+
+    private void applyDtoToEntity(SignatureConfiguration entity,
+                                  CompleteSignatureConfiguration dto) {
+        entity.setEnableRemoteSignature(dto.enableRemoteSignature());
+        entity.setSignatureMode(dto.signatureMode());
+        entity.setCloudProviderId(dto.cloudProviderId());
+        entity.setClientId(dto.clientId());
+        entity.setCredentialId(dto.credentialId());
+        entity.setCredentialName(dto.credentialName());
+    }
 }

@@ -47,6 +47,9 @@ public class SignatureConfiguration implements Persistable<UUID> {
     @Column("credential_name")
     private String credentialName;
 
+    @Column("vault_hashed_secret_values")
+    private String vaultHashedSecretValues;
+
     @Transient
     @JsonIgnore
     private boolean newTransaction;

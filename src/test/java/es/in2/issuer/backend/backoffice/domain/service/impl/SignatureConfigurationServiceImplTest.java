@@ -1,5 +1,6 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
 import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
@@ -22,6 +23,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -38,6 +40,7 @@ class SignatureConfigurationServiceImplTest {
     @Mock SignatureConfigurationRepository repository;
     @Mock CloudProviderService cloudProviderService;
     @Mock SignatureConfigurationAuditService auditService;
+    @Mock ObjectMapper mockObjectMapper;
     @InjectMocks SignatureConfigurationServiceImpl service;
 
     private static final String ORG = "org-1";
@@ -129,9 +132,9 @@ class SignatureConfigurationServiceImplTest {
                 .verify();
     }
 
-    // --- saveSignatureConfig CLOUD mode ---
     @Test
-    void saveSignatureConfig_cloud_success() {
+    void saveSignatureConfig_cloud_success() throws Exception {
+        // arrange
         UUID pid = UUID.randomUUID();
         CompleteSignatureConfiguration cfg = CompleteSignatureConfiguration.builder()
                 .id(null)
@@ -148,20 +151,33 @@ class SignatureConfigurationServiceImplTest {
                 .secret("totp456")
                 .build();
 
+
         when(cloudProviderService.requiresTOTP(pid)).thenReturn(Mono.just(true));
         when(vaultService.saveSecrets(anyString(), anyMap())).thenReturn(Mono.empty());
         when(repository.save(any())).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
+        Map<String,String> expectedHashed = new HashMap<>();
+        expectedHashed.put(CLIENT_SECRET,    sha256Base64Url("sec123"));
+        expectedHashed.put(CREDENTIAL_PASSWORD, sha256Base64Url("pwd123"));
+        expectedHashed.put(SECRET,            sha256Base64Url("totp456"));
+
+        String expectedJson = new ObjectMapper().writeValueAsString(expectedHashed);
+        when(mockObjectMapper.writeValueAsString(expectedHashed))
+                .thenReturn(expectedJson);
+
+        // act + assert
         StepVerifier.create(service.saveSignatureConfig(cfg, ORG))
                 .assertNext(saved -> {
                     assertThat(saved.getSignatureMode()).isEqualTo(SignatureMode.CLOUD);
                     assertThat(saved.getClientId()).isEqualTo("clientX");
                     assertThat(saved.getSecretRelativePath()).startsWith(ORG + SLASH);
+
+                    assertThat(saved.getVaultHashedSecretValues()).isEqualTo(expectedJson);
                 })
                 .verifyComplete();
 
         verify(vaultService).saveSecrets(startsWith(ORG + SLASH), argThat(map ->
-                "sec123".equals(map.get("clientSecret")) &&
+                "sec123".equals(map.get(CLIENT_SECRET)) &&
                         "pwd123".equals(map.get(CREDENTIAL_PASSWORD)) &&
                         "totp456".equals(map.get(SECRET))
         ));
@@ -334,6 +350,17 @@ class SignatureConfigurationServiceImplTest {
         verify(vaultService).deleteSecret("path/1");
         verify(repository).deleteById(id);
         verify(auditService).saveDeletionAudit(any(SignatureConfigurationResponse.class), eq("r"), eq("u"));
+    }
+
+    // helper to compute the same SHA-256 + Base64URL without padding
+    private static String sha256Base64Url(String value) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(value.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 }
 
