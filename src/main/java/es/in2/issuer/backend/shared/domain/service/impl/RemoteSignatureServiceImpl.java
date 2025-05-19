@@ -476,10 +476,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                 return credentialProcedureRepository.save(credentialProcedure)
                         .doOnSuccess(result -> log.info("Updated operationMode to Async - Procedure: {}", credentialProcedure))
                         .then();
-            })
-            .switchIfEmpty(Mono.fromRunnable(() ->
-                    log.warn("No deferred metadata found for procedureId: {}", procedureId)
-            ));
+            });
 
         Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
@@ -492,7 +489,10 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                                 log.error("Error updating deferred metadata for procedureId {}: {}", procedureId, e.toString());
                                 return Mono.empty();
                             });
-                });
+                })
+                .switchIfEmpty(Mono.fromRunnable(() ->
+                        log.warn("No deferred metadata found for procedureId: {}", procedureId)
+                ));;
 
         log.info("After updating procedure and metadata, send email");
         String domain = appConfig.getIssuerFrontendUrl();
