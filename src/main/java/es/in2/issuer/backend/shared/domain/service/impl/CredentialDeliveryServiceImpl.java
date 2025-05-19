@@ -32,6 +32,7 @@ public class CredentialDeliveryServiceImpl implements CredentialDeliveryService 
                 .build();
         //log.debug
         log.info("Sending to response_uri: {} the VC: {} with token: {}", responseUri, encodedVc, bearerToken);
+        log.info("To email: " + companyEmail);
 
         return webClient.commonWebClient()
                 .patch()

@@ -146,6 +146,7 @@ public class EmailServiceImpl implements EmailService {
 
     @Override
     public Mono<Void> sendResponseUriFailed(String to, String productId, String guideUrl) {
+        log.info("to: " + to);
         return Mono.fromCallable(() -> {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, UTF_8);

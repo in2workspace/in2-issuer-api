@@ -24,12 +24,10 @@ import reactor.core.scheduler.Schedulers;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
 
@@ -234,7 +232,9 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                             log.info("root: {}", root);
                                             String productId = root.get("credentialSubject").get("product").get("productId").asText();
                                             String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
-
+                                            log.info("email: " + companyEmail);
+                                            byte[] bytes = companyEmail.getBytes(StandardCharsets.UTF_8);
+                                            log.info("Email bytes: {}", Arrays.toString(bytes));
                                             return m2mTokenService.getM2MToken()
                                                     .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
                                                             responseUri,
