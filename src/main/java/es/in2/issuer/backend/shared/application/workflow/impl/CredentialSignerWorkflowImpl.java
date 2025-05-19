@@ -239,9 +239,9 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                                     .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
                                                             responseUri,
                                                             signedVc,
-                                                            m2mToken.accessToken(),
                                                             productId,
-                                                            companyEmail
+                                                            companyEmail,
+                                                            m2mToken.accessToken()
                                                     ));
                                         } catch (Exception e) {
                                             log.error("Error extracting productId or companyEmail from credential", e);
