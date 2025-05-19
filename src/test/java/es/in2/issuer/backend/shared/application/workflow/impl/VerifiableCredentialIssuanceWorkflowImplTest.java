@@ -81,6 +81,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
     @Mock
     private M2MTokenService m2MTokenService;
 
+    @Mock
+    private CredentialIssuanceRecordService credentialIssuanceRecordService;
+
     @InjectMocks
     private CredentialIssuanceWorkflowImpl verifiableCredentialIssuanceWorkflow;
 
@@ -93,16 +96,39 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String token = "token";
         String idToken = "idToken";
         JsonNode jsonNode = getJsonNode();
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder().payload(jsonNode).schema("LEARCredentialEmployee").format(JWT_VC_JSON).operationMode("S").build();
-        String transactionCode = "4321";
+        PreSubmittedDataCredential preSubmittedDataCredential =
+                PreSubmittedDataCredential
+                        .builder()
+                        .payload(jsonNode)
+                        .schema("LEARCredentialEmployee")
+                        .format(JWT_VC_JSON)
+                        .operationMode("S")
+                        .build();
+        String activationCode = "4321";
 
-        when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
-        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVc(processId, type, preSubmittedDataCredential, token)).thenReturn(Mono.just(transactionCode));
+        when(accessTokenService.getCleanBearerToken(token))
+                .thenReturn(Mono.just(token));
+        when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken))
+                .thenReturn(Mono.empty());
+        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token))
+                .thenReturn(Mono.just(activationCode));
+        when(emailService.sendCredentialActivationEmail(
+                "example@in2.es",
+                "Activate your new credential",
+                issuerUiExternalDomain + "/credential-offer?transaction_code=" + activationCode,
+                knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L."))
+                .thenReturn(Mono.empty());
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
-        when(emailService.sendCredentialActivationEmail("example@in2.es", "Activate your new credential", issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode, knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L.")).thenReturn(Mono.empty());
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, idToken))
+
+        var result = verifiableCredentialIssuanceWorkflow.execute(
+                processId,
+                preSubmittedDataCredential,
+                token,
+                idToken);
+
+        StepVerifier
+                .create(result)
                 .verifyComplete();
     }
 
@@ -123,8 +149,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
         String transactionCode = "4321";
 
         when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
+        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token))
+                .thenReturn(Mono.just(transactionCode));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, null)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVc(processId, type, preSubmittedDataCredential, token)).thenReturn(Mono.just(transactionCode));
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
         when(appConfig.getKnowledgebaseWalletUrl()).thenReturn(knowledgebaseWalletUrl);
 
@@ -138,7 +165,9 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 "IN2, Ingeniería de la Información, S.L."))
                 .thenReturn(Mono.error(new RuntimeException("Email sending failed")));
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, null))
+        var result = verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, null);
+
+        StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
                         throwable instanceof EmailCommunicationException &&
                                 throwable.getMessage().contains(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE))

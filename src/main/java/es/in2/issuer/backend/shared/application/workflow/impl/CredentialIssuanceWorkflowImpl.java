@@ -49,6 +49,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
     private final M2MTokenService m2mTokenService;
+    private final CredentialIssuanceRecordService credentialIssuanceRecordService;
 
     @Override
     public Mono<Void> execute(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String bearerToken, String idToken) {
@@ -99,20 +100,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     }
 
     private @NotNull Mono<Void> issuanceFromService(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String token) {
-        // todo: credentialIssuanceRecordService.create() ->
-        //  --> buildCredentialIssuanceRecord [CredentialProcedure]
-        //  -----> id -> random uuid
-        //  -----> organizationIdentifier -> token
-        // ------> credentialFormat -> preSubmittedCredentialRequest.format()
-        //  -----> credentialType -> preSubmittedCredentialRequest.schema()
-        //  -----> credentialData -> learCredentialEmployee.map(payload)
-        //  -----> operationMode -> preSubmittedCredentialRequest.operationMode()
-        //  -----> signatureMode -> hardcoded
-        //  -----> createdAt
-        //  -----> updatedAt
-        //  --> SAVE
-        // --> generateActivationCode (nonce) and save in cache (key: activationCode (nonce), value: credentialIssuanceRecordId)
-        return verifiableCredentialService.generateVc(processId, preSubmittedDataCredential.schema(), preSubmittedDataCredential, token)
+        return credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token)
                 .flatMap(activationCode -> sendActivationCredentialEmail(activationCode, preSubmittedDataCredential));
     }
 

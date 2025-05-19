@@ -6,7 +6,6 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 public interface DeferredCredentialMetadataService {
-    Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri);
     Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode);
     Mono<String> validateCTransactionCode(String cTransactionCode);
     Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId);

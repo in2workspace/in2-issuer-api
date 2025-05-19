@@ -82,55 +82,6 @@ class VerifiableCredentialServiceImplTest {
     }
 
     @Test
-    void generateVc_Success() throws Exception {
-        // Arrange: Create a sample JsonNode for LEARCredentialRequest
-        String token = "token";
-        JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
-
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder()
-                .payload(credentialJsonNode)
-                .build();
-
-        // Mock the behavior of credentialFactory
-        CredentialProcedureCreationRequest mockCreationRequest = CredentialProcedureCreationRequest.builder()
-                .credentialId("cred-id-123")
-                .organizationIdentifier("org-id-123")
-                .credentialDecoded("decoded-credential")
-                .build();
-        String vcType = "vc-type-789";
-        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, token))
-                .thenReturn(Mono.just(mockCreationRequest));
-
-        // Mock the behavior of credentialProcedureService
-        String createdProcedureId = "created-procedure-id-456";
-        when(credentialProcedureService.createCredentialProcedure(mockCreationRequest))
-                .thenReturn(Mono.just(createdProcedureId));
-
-        // Mock the behavior of deferredCredentialMetadataService
-        String metadataId = "metadata-id-789";
-        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(createdProcedureId, null, null))
-                .thenReturn(Mono.just(metadataId));
-
-        // Act: Call the generateVc method
-        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, preSubmittedDataCredential, token);
-
-        // Assert: Verify the result
-        StepVerifier.create(result)
-                .expectNext(metadataId)
-                .verifyComplete();
-
-        // Verify that all the interactions occurred as expected
-        verify(credentialFactory, times(1))
-                .mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, token);
-
-        verify(credentialProcedureService, times(1))
-                .createCredentialProcedure(mockCreationRequest);
-
-        verify(deferredCredentialMetadataService, times(1))
-                .createDeferredCredentialMetadata(createdProcedureId, null, null);
-    }
-
-    @Test
     void generateDeferredCredentialResponse_WithVcPresent() {
         // Arrange: Create the request and mock response
         DeferredCredentialRequest deferredCredentialRequest = DeferredCredentialRequest.builder()

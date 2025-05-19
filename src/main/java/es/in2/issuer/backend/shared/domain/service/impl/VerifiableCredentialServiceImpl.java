@@ -34,16 +34,6 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
-    public Mono<String> generateVc(String processId, String vcType, PreSubmittedDataCredential preSubmittedDataCredential, String token) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, token)
-                .flatMap(credentialProcedureService::createCredentialProcedure)
-                .flatMap(procedureId -> deferredCredentialMetadataService.createDeferredCredentialMetadata(
-                        procedureId,
-                        preSubmittedDataCredential.operationMode(),
-                        preSubmittedDataCredential.responseUri()));
-    }
-
-    @Override
     public Mono<String> generateVerifiableCertification(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
         return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, idToken)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
