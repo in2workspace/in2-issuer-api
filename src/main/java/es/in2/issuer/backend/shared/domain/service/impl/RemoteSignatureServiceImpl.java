@@ -468,12 +468,13 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     public Mono<Void> handlePostRecoverError(String procedureId) {
+        log.info("handlePostRecoverError for procedure id: {}", procedureId);
         Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);
                 credentialProcedure.setCredentialStatus(CredentialStatus.PEND_SIGNATURE);
                 return credentialProcedureRepository.save(credentialProcedure)
-                        .doOnSuccess(result -> log.info("Updated operationMode to Async - Procedure"))
+                        .doOnSuccess(result -> log.info("Updated operationMode to Async - Procedure: {}", credentialProcedure))
                         .then();
             });
         Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
@@ -481,7 +482,7 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                     credentialProcedure.setOperationMode(ASYNC);
                     log.info("Updating credentialProcedure: {}", credentialProcedure);
                     return deferredCredentialMetadataRepository.save(credentialProcedure)
-                            .doOnSuccess(result -> log.info("Saved object: {}", result))
+                            .doOnSuccess(result -> log.info("updateDeferredMetadata: Saved object: {}", result))
                             .then();
                 });
 
