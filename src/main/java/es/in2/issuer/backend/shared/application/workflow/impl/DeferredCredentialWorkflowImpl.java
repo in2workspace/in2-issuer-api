@@ -57,10 +57,31 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                JsonNode mandateeNode = credentialNode.get(VC).get(CREDENTIAL_SUBJECT).get(MANDATE).get(MANDATEE);
-                                                String email = mandateeNode.get(EMAIL).asText();
-                                                String firstName = mandateeNode.get(FIRST_NAME).asText();
+                                                //todo differentiate by credentialType
+                                                JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
+                                                JsonNode credentialSubjectNode = vcNode.path(CREDENTIAL_SUBJECT);
+
+                                                String email = null;
+                                                String firstName = null;
+
+                                                if (credentialSubjectNode.has(MANDATE) && credentialSubjectNode.get(MANDATE).has(MANDATEE)) {
+                                                    JsonNode mandateeNode = credentialSubjectNode.get(MANDATE).get(MANDATEE);
+                                                    email = mandateeNode.path(EMAIL).asText(null);
+                                                    firstName = mandateeNode.path(FIRST_NAME).asText(null);
+                                                }
+                                                else if (credentialSubjectNode.has("company")) {
+                                                    JsonNode companyNode = credentialSubjectNode.get("company");
+                                                    email = companyNode.path(EMAIL).asText(null);
+                                                    firstName = companyNode.path("commonName").asText(null);
+                                                }
+
+                                                if (email == null || firstName == null) {
+                                                    log.warn("Missing email or firstName in credential subject. Skipping email notification.");
+                                                    return Mono.empty();
+                                                }
+
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+
                                             }
                                             return Mono.empty();
                                         })
