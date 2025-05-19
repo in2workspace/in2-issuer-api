@@ -108,14 +108,11 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         String email = preSubmittedDataCredential.payload().get(MANDATEE).get(EMAIL).asText();
         String user = preSubmittedDataCredential.payload().get(MANDATEE).get(FIRST_NAME).asText() + " " + preSubmittedDataCredential.payload().get(MANDATEE).get(LAST_NAME).asText();
         String organization = preSubmittedDataCredential.payload().get(MANDATOR).get(ORGANIZATION).asText();
-        // todo: change to send to /activation-code
-        // todo: path variable -> activation-code
         // todo: CHANGE IN FRONTEND
         // todo: change to https
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerFrontendUrl())
-                .path("/credential-offer")
-                .queryParam("transaction_code", activationCode)
+                .path("/activation-code/" + activationCode)
                 .build()
                 .toUriString();
 
