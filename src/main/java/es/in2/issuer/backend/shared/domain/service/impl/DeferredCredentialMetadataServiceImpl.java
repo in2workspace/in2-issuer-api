@@ -52,6 +52,7 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
 
     @Override
     public Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri) {
+        log.info("Guardant deferred credential metadata: procedureId={}, operationMode={}, responseUri={}", procedureId, operationMode, responseUri);
         return generateCustomNonce()
                 .flatMap(nonce -> cacheStoreForTransactionCode.add(nonce, nonce))
                 .flatMap(transactionCode -> {

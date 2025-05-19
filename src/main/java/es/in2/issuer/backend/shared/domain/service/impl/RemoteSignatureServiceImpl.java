@@ -479,10 +479,12 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
         Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setOperationMode(ASYNC);
+                    log.info("Updating credentialProcedure: {}", credentialProcedure);
                     return deferredCredentialMetadataRepository.save(credentialProcedure)
-                            .doOnSuccess(result -> log.info("Updated operationMode to Async - Deferred"))
+                            .doOnSuccess(result -> log.info("Saved object: {}", result))
                             .then();
                 });
+
 
         String domain = appConfig.getIssuerFrontendUrl();
         Mono<Void> sendEmail = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)
