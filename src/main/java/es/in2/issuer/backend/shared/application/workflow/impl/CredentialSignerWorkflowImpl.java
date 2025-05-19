@@ -24,6 +24,7 @@ import reactor.core.scheduler.Schedulers;
 
 import javax.naming.OperationNotSupportedException;
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Base64;
@@ -90,6 +91,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             })
             .flatMap(signedCredential -> {
                 log.info("Update Signed Credential");
+                //todo error aquí
                 return updateSignedCredential(signedCredential)
                         .thenReturn(signedCredential);
             })
@@ -229,9 +231,21 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                     .flatMap(responseUri -> {
                                         try {
                                             log.info("Retrieved response URI: " + responseUri);
-                                            JsonNode root = new ObjectMapper().readTree(updatedCredentialProcedure.getCredentialDecoded());
-                                            String productId = root.get("credentialSubject").get("product").get("productId").asText();
-                                            String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
+                                            String raw = updatedCredentialProcedure.getCredentialDecoded();
+                                            JsonNode payload;
+
+                                            if (raw.trim().startsWith("{")) {
+                                                payload = new ObjectMapper().readTree(raw);
+                                            } else {
+                                                String[] parts = raw.split("\\.");
+                                                if (parts.length < 2) throw new IllegalArgumentException("Invalid JWT");
+                                                String decodedPayload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+                                                payload = new ObjectMapper().readTree(decodedPayload);
+                                            }
+
+                                            JsonNode vc = payload.has("vc") ? payload.get("vc") : payload;
+                                            String productId = vc.get("credentialSubject").get("product").get("productId").asText();
+                                            String companyEmail = vc.get("credentialSubject").get("company").get("email").asText();
 
                                             return m2mTokenService.getM2MToken()
                                                     .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
