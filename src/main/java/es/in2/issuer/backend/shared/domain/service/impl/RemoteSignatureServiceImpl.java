@@ -483,10 +483,14 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
                     log.info("Updating credentialProcedure: {}", credentialProcedure);
                     return deferredCredentialMetadataRepository.save(credentialProcedure)
                             .doOnSuccess(result -> log.info("updateDeferredMetadata: Saved object: {}", result))
-                            .then();
+                            .then()
+                            .onErrorResume(e -> {
+                                log.error("Error updating deferred metadata for procedureId {}: {}", procedureId, e.toString());
+                                return Mono.empty();
+                            });
                 });
 
-
+        log.info("After updating procedure and metadata, send email");
         String domain = appConfig.getIssuerFrontendUrl();
         Mono<Void> sendEmail = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)
                 .flatMap(signerEmail ->

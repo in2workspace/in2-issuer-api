@@ -141,6 +141,7 @@ public class LEARCredentialEmployeeFactory {
                 .toList();
     }
 
+    //todo move to generic credential factory
     public Mono<DetailedIssuer> createIssuer(String procedureId, String credentialType) {
         if (remoteSignatureConfig.getRemoteSignatureType().equals(SIGNATURE_REMOTE_TYPE_SERVER)) {
             return Mono.just(DetailedIssuer.builder()
@@ -157,6 +158,7 @@ public class LEARCredentialEmployeeFactory {
         }
     }
 
+    //todo move to generic credential factory
     private Mono<DetailedIssuer> createIssuerRemote(String procedureId, String credentialType) {
         return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
                 .flatMap(valid -> {
