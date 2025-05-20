@@ -11,7 +11,9 @@ import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataSer
 import es.in2.issuer.backend.shared.domain.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -57,7 +59,6 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                         .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
                                         .flatMap(operationMode -> {
                                             if(operationMode.equals(ASYNC)){
-                                                //todo differentiate by credentialType
                                                 JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
                                                 JsonNode credentialSubjectNode = vcNode.path(CREDENTIAL_SUBJECT);
 
@@ -76,8 +77,11 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                                 }
 
                                                 if (email == null || firstName == null) {
-                                                    log.warn("Missing email or firstName in credential subject. Skipping email notification.");
-                                                    return Mono.empty();
+                                                    log.error("Missing email or firstName in credential subject. Skipping email notification.");
+                                                    return Mono.error(new ResponseStatusException(
+                                                            HttpStatus.BAD_REQUEST,
+                                                            "Missing required credentialSubject properties: email and firstName"
+                                                    ));
                                                 }
 
                                                 return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
