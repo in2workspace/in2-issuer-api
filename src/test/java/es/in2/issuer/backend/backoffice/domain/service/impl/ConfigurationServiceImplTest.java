@@ -28,7 +28,7 @@ class ConfigurationServiceImplTest {
     @InjectMocks
     private ConfigurationServiceImpl configurationServiceImpl;
 
-    private final static String ORG_ID = "org-1";
+    private static final String ORG_ID = "org-1";
 
     @Test
     void testSaveConfiguration() {
@@ -37,7 +37,6 @@ class ConfigurationServiceImplTest {
                 "key2", "value2"
         );
 
-        // Simulamos que el repositorio devuelve los mismos elementos
         when(configurationRepository.saveAll(anyList()))
                 .thenAnswer(invocation -> {
                     List<Configuration> toSave = invocation.getArgument(0);

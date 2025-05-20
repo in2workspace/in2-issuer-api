@@ -3,7 +3,8 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.springframework.vault.core.ReactiveVaultKeyValueOperations;
 import org.springframework.vault.core.ReactiveVaultOperations;
 import org.springframework.vault.support.VaultResponseSupport;
@@ -14,7 +15,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
@@ -66,7 +68,7 @@ class VaultServiceImplTest {
                 .assertNext(map -> assertThat(map).containsEntry("k", 123))
                 .verifyComplete();
 
-        verify(vaultOperations).get(eq(path), eq((Class<Map<String, Object>>) (Class<?>) Map.class));
+        verify(vaultOperations).get(path, (Class<Map<String, Object>>) (Class<?>) Map.class);
     }
 
     @Test

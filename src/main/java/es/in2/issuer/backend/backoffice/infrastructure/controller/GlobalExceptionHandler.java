@@ -21,6 +21,8 @@ import java.text.ParseException;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.ERROR_LOG_FORMAT;
+
 // TODO: if we use @ResponseStatus we shouldn't use ResponseEntity is redundant
 @Slf4j
 @RestControllerAdvice
@@ -319,7 +321,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiErrorResponse>> handleOrganizationIdentifierMismatchException(OrganizationIdentifierMismatchException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
 
-        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+        log.error(ERROR_LOG_FORMAT,
                 instanceId,
                 request.getPath(),
                 HttpStatus.FORBIDDEN.value(),
@@ -342,7 +344,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiErrorResponse>> handleNoSuchEntityException(NoSuchEntityException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
 
-        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+        log.error(ERROR_LOG_FORMAT,
                 instanceId,
                 request.getPath(),
                 HttpStatus.NOT_FOUND.value(),
@@ -365,7 +367,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiErrorResponse>> handleMissingRequiredDataException(MissingRequiredDataException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
 
-        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+        log.error(ERROR_LOG_FORMAT,
                 instanceId,
                 request.getPath(),
                 HttpStatus.BAD_REQUEST.value(),
@@ -388,7 +390,7 @@ public class GlobalExceptionHandler {
     public Mono<ResponseEntity<ApiErrorResponse>> handleInvalidSignatureConfigurationException(InvalidSignatureConfigurationException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
 
-        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+        log.error(ERROR_LOG_FORMAT,
                 instanceId,
                 request.getPath(),
                 HttpStatus.BAD_REQUEST.value(),
