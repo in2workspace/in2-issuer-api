@@ -516,7 +516,7 @@ class GlobalExceptionHandlerTest {
         NoSuchEntityException ex = new NoSuchEntityException(msg);
 
         Mono<ResponseEntity<ApiErrorResponse>> result =
-                globalExceptionHandler.handleOrganizationIdentifierMismatchException(ex, request);
+                globalExceptionHandler.handleNoSuchEntityException(ex, request);
 
         StepVerifier.create(result)
                 .assertNext(resp -> {
@@ -525,7 +525,7 @@ class GlobalExceptionHandlerTest {
                     assertNotNull(er);
                     assertEquals("Not Found", er.type());
                     // note: code uses FORBIDDEN.value() as the body.status
-                    assertEquals(403, er.status());
+                    assertEquals(404, er.status());
                     assertEquals(NoSuchEntityException.class.toString(), er.title());
                     assertEquals(msg, er.detail());
                     assertNotNull(er.instance());

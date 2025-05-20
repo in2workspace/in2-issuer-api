@@ -1,5 +1,6 @@
 package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
+import es.in2.issuer.backend.backoffice.domain.exception.MissingRequiredDataException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
@@ -16,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -182,8 +182,7 @@ class SignatureConfigurationControllerTest {
 
         StepVerifier.create(controller.updateSignatureConfiguration(AUTH, CONFIG_ID.toString(), req))
                 .expectErrorSatisfies(e -> {
-                    assertThat(e).isInstanceOf(ResponseStatusException.class);
-                    assertThat(((ResponseStatusException)e).getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+                    assertThat(e).isInstanceOf(MissingRequiredDataException.class);
                 })
                 .verify();
     }

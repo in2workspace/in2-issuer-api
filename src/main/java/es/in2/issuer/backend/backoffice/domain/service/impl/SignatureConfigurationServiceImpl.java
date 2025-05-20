@@ -3,6 +3,8 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backend.backoffice.domain.exception.InvalidSignatureConfigurationException;
+import es.in2.issuer.backend.backoffice.domain.exception.MissingRequiredDataException;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
 import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
@@ -17,9 +19,7 @@ import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationSer
 import es.in2.issuer.backend.backoffice.domain.service.VaultService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -62,11 +62,10 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
     private void validateBasicConfig(CompleteSignatureConfiguration config) {
         if (config.signatureMode() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "signatureMode must not be null");
+            throw new MissingRequiredDataException("SignatureMode must not be null");
         }
         if (Boolean.FALSE.equals(config.enableRemoteSignature()) && config.signatureMode() != SignatureMode.LOCAL) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            throw new InvalidSignatureConfigurationException(
                     "Remote signature must be enabled for SERVER or CLOUD modes"
             );
         }
@@ -101,8 +100,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 config.credentialPassword(),
                 config.cloudProviderId()
         ).anyMatch(Objects::isNull) ) {
-            return Mono.error(new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            return Mono.error(new InvalidSignatureConfigurationException(
                     "Secret (TOTP) is required by the provider"
             ));
         }
@@ -115,12 +113,11 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
         // Flow to check if TOTP is required and save secrets
         return cloudProviderService.requiresTOTP(config.cloudProviderId())
-                .switchIfEmpty(Mono.error(new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Cloud provider not found")))
+                .switchIfEmpty(Mono.error(new InvalidSignatureConfigurationException(
+                        "Cloud provider not found")))
                 .flatMap(requiresTOTP -> {
                     if (Boolean.TRUE.equals(requiresTOTP) && config.secret() == null) {
-                        return Mono.error(new ResponseStatusException(
-                                HttpStatus.BAD_REQUEST,
+                        return Mono.error(new InvalidSignatureConfigurationException(
                                 "Secret (TOTP) is required by the provider"
                         ));
                     }
@@ -158,8 +155,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
             SignatureConfiguration signatureConfigData) {
 
         if (config.credentialId() == null || config.credentialName() == null) {
-            return Mono.error(new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
+            return Mono.error(new InvalidSignatureConfigurationException(
                     "Missing required fields for SERVER mode"
             ));
         }

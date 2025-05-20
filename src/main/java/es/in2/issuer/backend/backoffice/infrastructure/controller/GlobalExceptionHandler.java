@@ -9,13 +9,11 @@ import es.in2.issuer.backend.shared.domain.model.dto.CredentialErrorResponse;
 import es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import javax.naming.OperationNotSupportedException;
@@ -317,34 +315,6 @@ public class GlobalExceptionHandler {
         return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse));
     }
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public Mono<ResponseEntity<ApiErrorResponse>> handleResponseStatusException(ResponseStatusException ex, ServerHttpRequest request) {
-        HttpStatusCode statusCode = ex.getStatusCode();
-        String type = (statusCode instanceof HttpStatus httpStatus && httpStatus == HttpStatus.UNAUTHORIZED)
-                ? "Unauthorized"
-                : "Error";
-
-        String instanceId = UUID.randomUUID().toString();
-
-        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Reason: {}, Message: {}",
-                instanceId,
-                request.getPath(),
-                statusCode.value(),
-                ex.getReason(),
-                ex.getMessage()
-        );
-
-        ApiErrorResponse response = new ApiErrorResponse(
-                type,
-                ex.getReason() != null ? ex.getReason() : "Unexpected error",
-                statusCode.value(),
-                ex.getMessage(),
-                instanceId
-        );
-
-        return Mono.just(ResponseEntity.status(statusCode).body(response));
-    }
-
     @ExceptionHandler(OrganizationIdentifierMismatchException.class)
     public Mono<ResponseEntity<ApiErrorResponse>> handleOrganizationIdentifierMismatchException(OrganizationIdentifierMismatchException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
@@ -369,7 +339,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NoSuchEntityException.class)
-    public Mono<ResponseEntity<ApiErrorResponse>> handleOrganizationIdentifierMismatchException(NoSuchEntityException ex, ServerHttpRequest request) {
+    public Mono<ResponseEntity<ApiErrorResponse>> handleNoSuchEntityException(NoSuchEntityException ex, ServerHttpRequest request) {
         String instanceId = UUID.randomUUID().toString();
 
         log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
@@ -383,11 +353,57 @@ public class GlobalExceptionHandler {
         ApiErrorResponse response = new ApiErrorResponse(
                 "Not Found",
                 ex.getClass().toString(),
-                HttpStatus.FORBIDDEN.value(),
+                HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
                 instanceId
         );
 
         return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND).body(response));
+    }
+
+    @ExceptionHandler(MissingRequiredDataException.class)
+    public Mono<ResponseEntity<ApiErrorResponse>> handleMissingRequiredDataException(MissingRequiredDataException ex, ServerHttpRequest request) {
+        String instanceId = UUID.randomUUID().toString();
+
+        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+                instanceId,
+                request.getPath(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getClass(),
+                ex.getMessage()
+        );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "Bad Request",
+                ex.getClass().toString(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                instanceId
+        );
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response));
+    }
+
+    @ExceptionHandler(InvalidSignatureConfigurationException.class)
+    public Mono<ResponseEntity<ApiErrorResponse>> handleInvalidSignatureConfigurationException(InvalidSignatureConfigurationException ex, ServerHttpRequest request) {
+        String instanceId = UUID.randomUUID().toString();
+
+        log.error("[Error Instance ID: {}] Path: {}, Status: {}, Title: {}, Message: {}",
+                instanceId,
+                request.getPath(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getClass(),
+                ex.getMessage()
+        );
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "Bad Request",
+                ex.getClass().toString(),
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                instanceId
+        );
+
+        return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response));
     }
 }

@@ -1,6 +1,7 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backend.backoffice.domain.exception.InvalidSignatureConfigurationException;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
 import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
@@ -18,7 +19,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
@@ -128,7 +128,7 @@ class SignatureConfigurationServiceImplTest {
                 .build();
 
         StepVerifier.create(service.saveSignatureConfig(cfg, ORG))
-                .expectError(ResponseStatusException.class)
+                .expectError(InvalidSignatureConfigurationException.class)
                 .verify();
     }
 
@@ -203,7 +203,7 @@ class SignatureConfigurationServiceImplTest {
         when(cloudProviderService.requiresTOTP(pid)).thenReturn(Mono.just(true));
 
         StepVerifier.create(service.saveSignatureConfig(cfg, ORG))
-                .expectError(ResponseStatusException.class)
+                .expectError(InvalidSignatureConfigurationException.class)
                 .verify();
     }
 

@@ -1,5 +1,6 @@
 package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
+import es.in2.issuer.backend.backoffice.domain.exception.MissingRequiredDataException;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigWithProviderName;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
@@ -19,7 +20,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -116,7 +116,7 @@ public class SignatureConfigurationController {
 
     ) {
         if (updateRequest.rationale() == null || updateRequest.rationale().isBlank()) {
-            return Mono.error(new ResponseStatusException(HttpStatus.BAD_REQUEST, "'rationale' must be provided"));
+            return Mono.error(new MissingRequiredDataException("'rationale' must be provided"));
         }
         return
                 accessTokenService.getOrganizationId(authorizationHeader)
