@@ -64,16 +64,19 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
 
                                                 String email = null;
                                                 String firstName = null;
+                                                String sentence = null;
 
                                                 if (credentialSubjectNode.has(MANDATE) && credentialSubjectNode.get(MANDATE).has(MANDATEE)) {
                                                     JsonNode mandateeNode = credentialSubjectNode.get(MANDATE).get(MANDATEE);
                                                     email = mandateeNode.path(EMAIL).asText(null);
                                                     firstName = mandateeNode.path(FIRST_NAME).asText(null);
+                                                    sentence = "You can now use it with your Wallet";
                                                 }
                                                 else if (credentialSubjectNode.has("company")) {
                                                     JsonNode companyNode = credentialSubjectNode.get("company");
                                                     email = companyNode.path(EMAIL).asText(null);
                                                     firstName = companyNode.path("commonName").asText(null);
+                                                    sentence = "It is now ready to be applied to your product.";
                                                 }
 
                                                 if (email == null || firstName == null) {
@@ -84,7 +87,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                                     ));
                                                 }
 
-                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName);
+                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName, sentence);
 
                                             }
                                             return Mono.empty();

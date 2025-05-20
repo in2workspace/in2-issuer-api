@@ -48,7 +48,7 @@ public class NotificationServiceImpl implements NotificationService {
                                                 .onErrorMap(exception ->
                                                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
                                     } else if (status.equals(PEND_DOWNLOAD.toString())) {
-                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName);
+                                        return emailService.sendCredentialSignedNotification(email, "Credential Ready", completeName, "You can now use it with your wallet");
                                     } else {
                                         return Mono.empty();
                                     }
