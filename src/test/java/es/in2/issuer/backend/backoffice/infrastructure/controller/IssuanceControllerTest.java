@@ -3,7 +3,7 @@ package es.in2.issuer.backend.backoffice.infrastructure.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.shared.application.workflow.CredentialIssuanceWorkflow;
 import es.in2.issuer.backend.shared.domain.model.CredentialConfigurationsSupported;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredentialRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
@@ -34,8 +34,8 @@ class IssuanceControllerTest {
 
     @Test
     void internalIssueCredential_ValidRequest_ReturnsCreated() throws IOException {
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential.builder()
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest.builder()
                         .schema(CredentialConfigurationsSupported.LEAR_CREDENTIAL_EMPLOYEE.toString())
                         .format(JWT_VC_JSON)
                         .payload(mapper.readTree("{\"key\": \"value\"}"))
@@ -48,15 +48,15 @@ class IssuanceControllerTest {
                 .post()
                 .uri("/backoffice/v1/issuances")
                 .header("Authorization", "Bearer eyJ...")
-                .body(Mono.just(preSubmittedDataCredential), PreSubmittedDataCredential.class)
+                .body(Mono.just(preSubmittedDataCredentialRequest), PreSubmittedDataCredentialRequest.class)
                 .exchange()
                 .expectStatus().isCreated();
     }
 
     @Test
     void externalIssueCredential_ValidRequest_ReturnsCreated() throws IOException {
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential.builder()
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest.builder()
                         .schema(CredentialConfigurationsSupported.LEAR_CREDENTIAL_EMPLOYEE.toString())
                         .format(JWT_VC_JSON)
                         .payload(mapper.readTree("{\"key\": \"value\"}"))
@@ -69,15 +69,15 @@ class IssuanceControllerTest {
                 .post()
                 .uri("/vci/v1/issuances")
                 .header("Authorization", "Bearer eyJ...")
-                .body(Mono.just(preSubmittedDataCredential), PreSubmittedDataCredential.class)
+                .body(Mono.just(preSubmittedDataCredentialRequest), PreSubmittedDataCredentialRequest.class)
                 .exchange()
                 .expectStatus().isCreated();
     }
 
     @Test
     void internalIssueCredential_InvalidPreSubmittedCredential_ReturnsBadRequest() throws IOException {
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential.builder()
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest.builder()
                         .schema("Invalid schema")
                         .format(JWT_VC_JSON)
                         .payload(mapper.readTree("{\"key\": \"value\"}"))
@@ -90,15 +90,15 @@ class IssuanceControllerTest {
                 .post()
                 .uri("/backoffice/v1/issuances")
                 .header("Authorization", "Bearer eyJ...")
-                .body(Mono.just(preSubmittedDataCredential), PreSubmittedDataCredential.class)
+                .body(Mono.just(preSubmittedDataCredentialRequest), PreSubmittedDataCredentialRequest.class)
                 .exchange()
                 .expectStatus().isBadRequest();
     }
 
     @Test
     void externalIssueCredential_InvalidRequest_ReturnsBadRequest() throws IOException {
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential.builder()
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest.builder()
                         .schema("invalid_schema")
                         .format(JWT_VC_JSON)
                         .payload(mapper.readTree("{\"key\": \"value\"}"))
@@ -111,7 +111,7 @@ class IssuanceControllerTest {
                 .post()
                 .uri("/vci/v1/issuances")
                 .header("Authorization", "Bearer eyJ...")
-                .body(Mono.just(preSubmittedDataCredential), PreSubmittedDataCredential.class)
+                .body(Mono.just(preSubmittedDataCredentialRequest), PreSubmittedDataCredentialRequest.class)
                 .exchange()
                 .expectStatus().isBadRequest();
     }

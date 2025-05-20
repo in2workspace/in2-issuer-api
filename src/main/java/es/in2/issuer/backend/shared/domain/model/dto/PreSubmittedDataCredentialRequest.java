@@ -8,7 +8,7 @@ import es.in2.issuer.backend.shared.domain.validation.constraint.SyncOperationMo
 import lombok.Builder;
 
 @Builder
-public record PreSubmittedDataCredential(
+public record PreSubmittedDataCredentialRequest(
         @JsonProperty("schema") @CredentialConfigurationsSupportedConstraint String schema,
         @JsonProperty("format") @JwtVcJsonFormatConstraint String format,
         @JsonProperty("payload") JsonNode payload,

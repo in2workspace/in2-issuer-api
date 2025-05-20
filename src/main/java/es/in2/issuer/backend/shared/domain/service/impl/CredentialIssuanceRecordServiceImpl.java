@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.backend.shared.domain.exception.ParseErrorException;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredentialRequest;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.entities.CredentialIssuanceRecord;
 import es.in2.issuer.backend.shared.domain.repository.CredentialIssuanceRepository;
@@ -35,9 +35,9 @@ public class CredentialIssuanceRecordServiceImpl implements CredentialIssuanceRe
     @Override
     public Mono<String> create(
             String processId,
-            PreSubmittedDataCredential preSubmittedDataCredential,
+            PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest,
             String token) {
-        return buildCredentialIssuanceRecord(preSubmittedDataCredential, token)
+        return buildCredentialIssuanceRecord(preSubmittedDataCredentialRequest, token)
                 .flatMap(credentialIssuanceRecord ->
                         credentialIssuanceRepository.save(credentialIssuanceRecord)
                                 .thenReturn(credentialIssuanceRecord.getId().toString()))
@@ -50,17 +50,17 @@ public class CredentialIssuanceRecordServiceImpl implements CredentialIssuanceRe
                         cacheStoreForTransactionCode.add(activationCode, credentialIssuanceRecordId));
     }
 
-    private Mono<CredentialIssuanceRecord> buildCredentialIssuanceRecord(PreSubmittedDataCredential preSubmittedDataCredential, String token) {
+    private Mono<CredentialIssuanceRecord> buildCredentialIssuanceRecord(PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest, String token) {
         return getOrganizationIdentifierFromToken(token)
                 .map(organizationIdentifier -> {
                     Instant now = Instant.now();
                     CredentialIssuanceRecord credentialIssuanceRecord = new CredentialIssuanceRecord();
                     credentialIssuanceRecord.setId(UUID.randomUUID());
                     credentialIssuanceRecord.setOrganizationIdentifier(organizationIdentifier);
-                    credentialIssuanceRecord.setCredentialFormat(preSubmittedDataCredential.format());
-                    credentialIssuanceRecord.setCredentialType(preSubmittedDataCredential.schema());
-                    credentialIssuanceRecord.setCredentialData(preSubmittedDataCredential.payload().toString());
-                    credentialIssuanceRecord.setOperationMode(preSubmittedDataCredential.operationMode());
+                    credentialIssuanceRecord.setCredentialFormat(preSubmittedDataCredentialRequest.format());
+                    credentialIssuanceRecord.setCredentialType(preSubmittedDataCredentialRequest.schema());
+                    credentialIssuanceRecord.setCredentialData(preSubmittedDataCredentialRequest.payload().toString());
+                    credentialIssuanceRecord.setOperationMode(preSubmittedDataCredentialRequest.operationMode());
                     // TODO: get signature mode from DDBB
                     credentialIssuanceRecord.setSignatureMode("TODO");
                     credentialIssuanceRecord.setCreatedAt(Timestamp.from(now));

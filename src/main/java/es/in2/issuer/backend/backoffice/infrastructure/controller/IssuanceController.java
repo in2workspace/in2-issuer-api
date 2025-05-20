@@ -1,7 +1,7 @@
 package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
 import es.in2.issuer.backend.shared.application.workflow.CredentialIssuanceWorkflow;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredentialRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,18 +23,18 @@ public class IssuanceController {
     @PostMapping("/backoffice/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> internalIssueCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
-                                              @RequestBody @Valid PreSubmittedDataCredential preSubmittedDataCredential) {
+                                              @RequestBody @Valid PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        return credentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, bearerToken, null);
+        return credentialIssuanceWorkflow.execute(processId, preSubmittedDataCredentialRequest, bearerToken, null);
     }
 
     @PostMapping("/vci/v1/issuances")
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<Void> externalIssueCredential(@RequestHeader(HttpHeaders.AUTHORIZATION) String bearerToken,
                                               @RequestHeader(name = "X-Id-Token", required = false) String idToken,
-                                              @RequestBody @Valid PreSubmittedDataCredential preSubmittedDataCredential) {
+                                              @RequestBody @Valid PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest) {
         String processId = UUID.randomUUID().toString();
-        return credentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, bearerToken, idToken);
+        return credentialIssuanceWorkflow.execute(processId, preSubmittedDataCredentialRequest, bearerToken, idToken);
     }
 
 }

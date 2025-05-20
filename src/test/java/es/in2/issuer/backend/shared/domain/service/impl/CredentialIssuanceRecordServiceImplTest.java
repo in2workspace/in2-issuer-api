@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.backend.shared.domain.exception.ParseErrorException;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredentialRequest;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.entities.CredentialIssuanceRecord;
 import es.in2.issuer.backend.shared.domain.repository.CredentialIssuanceRepository;
@@ -53,8 +53,8 @@ class CredentialIssuanceRecordServiceImplTest {
         String expectedActivationCode = "12345";
         String processId = "processId";
 
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest
                         .builder()
                         .payload(JsonNodeFactory.instance.objectNode())
                         .build();
@@ -75,7 +75,7 @@ class CredentialIssuanceRecordServiceImplTest {
         when(cacheStoreForTransactionCode.add(anyString(), anyString()))
                 .thenReturn(Mono.just(expectedActivationCode));
 
-        var result = credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token);
+        var result = credentialIssuanceRecordService.create(processId, preSubmittedDataCredentialRequest, token);
 
         StepVerifier
                 .create(result)
@@ -88,8 +88,8 @@ class CredentialIssuanceRecordServiceImplTest {
     void create_withInvalidVcClaim_ReturnsParseErrorException() throws JsonProcessingException {
         String processId = "processId";
 
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest
                         .builder()
                         .payload(JsonNodeFactory.instance.objectNode())
                         .build();
@@ -103,7 +103,7 @@ class CredentialIssuanceRecordServiceImplTest {
         when(objectMapper.readValue(nullable(String.class), eq(String.class)))
                 .thenThrow(new JsonParseException(""));
 
-        var result = credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token);
+        var result = credentialIssuanceRecordService.create(processId, preSubmittedDataCredentialRequest, token);
 
         StepVerifier
                 .create(result)

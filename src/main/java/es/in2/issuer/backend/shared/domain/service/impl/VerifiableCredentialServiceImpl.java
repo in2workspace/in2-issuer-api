@@ -4,7 +4,7 @@ import com.nimbusds.jose.JWSObject;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.shared.domain.model.dto.DeferredCredentialRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredential;
+import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedDataCredentialRequest;
 import es.in2.issuer.backend.shared.domain.model.dto.VerifiableCredentialResponse;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
@@ -34,8 +34,8 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final VerifiableCertificationFactory verifiableCertificationFactory;
 
     @Override
-    public Mono<String> generateVerifiableCertification(String processId, PreSubmittedDataCredential preSubmittedDataCredential, String idToken) {
-        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredential, idToken)
+    public Mono<String> generateVerifiableCertification(String processId, PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest, String idToken) {
+        return credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedDataCredentialRequest, idToken)
                 .flatMap(credentialProcedureService::createCredentialProcedure)
                 //TODO repensar esto cuando el flujo del Verification cumpla con el OIDC4VC
                 //Generate Issuer and Signer using LEARCredentialEmployee method

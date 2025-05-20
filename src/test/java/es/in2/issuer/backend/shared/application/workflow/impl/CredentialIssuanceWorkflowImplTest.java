@@ -96,8 +96,8 @@ class CredentialIssuanceWorkflowImplTest {
         String token = "token";
         String idToken = "idToken";
         JsonNode jsonNode = getJsonNode();
-        PreSubmittedDataCredential preSubmittedDataCredential =
-                PreSubmittedDataCredential
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest =
+                PreSubmittedDataCredentialRequest
                         .builder()
                         .payload(jsonNode)
                         .schema("LEARCredentialEmployee")
@@ -110,7 +110,7 @@ class CredentialIssuanceWorkflowImplTest {
                 .thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken))
                 .thenReturn(Mono.empty());
-        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token))
+        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredentialRequest, token))
                 .thenReturn(Mono.just(activationCode));
         when(emailService.sendCredentialActivationEmail(
                 "example@in2.es",
@@ -123,7 +123,7 @@ class CredentialIssuanceWorkflowImplTest {
 
         var result = verifiableCredentialIssuanceWorkflow.execute(
                 processId,
-                preSubmittedDataCredential,
+                preSubmittedDataCredentialRequest,
                 token,
                 idToken);
 
@@ -140,7 +140,7 @@ class CredentialIssuanceWorkflowImplTest {
         String issuerUiExternalDomain = "https://example.com";
         String token = "token";
         JsonNode jsonNode = getJsonNode();
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder()
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest = PreSubmittedDataCredentialRequest.builder()
                 .payload(jsonNode)
                 .schema("LEARCredentialEmployee")
                 .format(JWT_VC_JSON)
@@ -149,7 +149,7 @@ class CredentialIssuanceWorkflowImplTest {
         String transactionCode = "4321";
 
         when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
-        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredential, token))
+        when(credentialIssuanceRecordService.create(processId, preSubmittedDataCredentialRequest, token))
                 .thenReturn(Mono.just(transactionCode));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, null)).thenReturn(Mono.empty());
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
@@ -165,7 +165,7 @@ class CredentialIssuanceWorkflowImplTest {
                 "IN2, Ingeniería de la Información, S.L."))
                 .thenReturn(Mono.error(new RuntimeException("Email sending failed")));
 
-        var result = verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, null);
+        var result = verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredentialRequest, token, null);
 
         StepVerifier.create(result)
                 .expectErrorMatches(throwable ->
@@ -240,11 +240,11 @@ class CredentialIssuanceWorkflowImplTest {
         String token = "token";
         String idToken = "idToken";
         JsonNode jsonNode = getNode();
-        PreSubmittedDataCredential preSubmittedDataCredential = PreSubmittedDataCredential.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
+        PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest = PreSubmittedDataCredentialRequest.builder().payload(jsonNode).schema("VerifiableCertification").format(JWT_VC_JSON).responseUri("https://example.com/1234").operationMode("S").build();
 
         when(accessTokenService.getCleanBearerToken(token)).thenReturn(Mono.just(token));
         when(verifiableCredentialPolicyAuthorizationService.authorize(token, type, jsonNode, idToken)).thenReturn(Mono.empty());
-        when(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedDataCredential, idToken)).thenReturn(Mono.just(procedureId));
+        when(verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedDataCredentialRequest, idToken)).thenReturn(Mono.just(procedureId));
         when(issuerApiClientTokenService.getClientToken()).thenReturn(Mono.just("internalToken"));
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
@@ -261,7 +261,7 @@ class CredentialIssuanceWorkflowImplTest {
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
         when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
-        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredential, token, idToken))
+        StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedDataCredentialRequest, token, idToken))
                 .verifyComplete();
     }
 
