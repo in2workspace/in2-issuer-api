@@ -535,4 +535,60 @@ class GlobalExceptionHandlerTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void handleMissingRequiredDataException_returnsBadRequestWithCorrectApiErrorResponse() {
+        RequestPath mockPath = mock(RequestPath.class);
+        when(mockPath.toString()).thenReturn("/missing-data");
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        when(request.getPath()).thenReturn(mockPath);
+
+        String errorMessage = "Required data is missing";
+        MissingRequiredDataException exception = new MissingRequiredDataException(errorMessage);
+
+        Mono<ResponseEntity<ApiErrorResponse>> result =
+                globalExceptionHandler.handleMissingRequiredDataException(exception, request);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    ApiErrorResponse responseBody = responseEntity.getBody();
+                    assertNotNull(responseBody);
+                    assertEquals("Bad Request", responseBody.type());
+                    assertEquals(MissingRequiredDataException.class.toString(), responseBody.title());
+                    assertEquals(400, responseBody.status());
+                    assertEquals(errorMessage, responseBody.detail());
+                    assertNotNull(responseBody.instance());
+                    assertTrue(Pattern.matches("[0-9a-fA-F\\-]{36}", responseBody.instance()));
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void handleInvalidSignatureConfigurationException_returnsBadRequestWithCorrectApiErrorResponse() {
+        RequestPath mockPath = mock(RequestPath.class);
+        when(mockPath.toString()).thenReturn("/invalid-signature");
+        ServerHttpRequest request = mock(ServerHttpRequest.class);
+        when(request.getPath()).thenReturn(mockPath);
+
+        String errorMessage = "Invalid signature configuration";
+        InvalidSignatureConfigurationException exception = new InvalidSignatureConfigurationException(errorMessage);
+
+        Mono<ResponseEntity<ApiErrorResponse>> result =
+                globalExceptionHandler.handleInvalidSignatureConfigurationException(exception, request);
+
+        StepVerifier.create(result)
+                .assertNext(responseEntity -> {
+                    assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
+                    ApiErrorResponse responseBody = responseEntity.getBody();
+                    assertNotNull(responseBody);
+                    assertEquals("Bad Request", responseBody.type());
+                    assertEquals(InvalidSignatureConfigurationException.class.toString(), responseBody.title());
+                    assertEquals(400, responseBody.status());
+                    assertEquals(errorMessage, responseBody.detail());
+                    assertNotNull(responseBody.instance());
+                    assertTrue(Pattern.matches("[0-9a-fA-F\\-]{36}", responseBody.instance()));
+                })
+                .verifyComplete();
+    }
 }
