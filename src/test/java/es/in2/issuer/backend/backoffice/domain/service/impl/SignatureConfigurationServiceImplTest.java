@@ -1,5 +1,6 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.exception.InvalidSignatureConfigurationException;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
@@ -351,6 +352,87 @@ class SignatureConfigurationServiceImplTest {
         verify(repository).deleteById(id);
         verify(auditService).saveDeletionAudit(any(SignatureConfigurationResponse.class), eq("r"), eq("u"));
     }
+
+    @Test
+    void updateSignatureConfiguration_patchesSecrets_and_savesAndAudits() throws JsonProcessingException {
+        // arrange
+        UUID id = UUID.randomUUID();
+        String path = ORG + SLASH + id;
+        SignatureConfiguration existing = SignatureConfiguration.builder()
+                .id(id)
+                .organizationIdentifier(ORG)
+                .secretRelativePath(path)
+                .vaultHashedSecretValues(null)
+                .build();
+
+        when(repository.findById(id)).thenReturn(Mono.just(existing));
+
+        when(vaultService.patchSecrets(eq(path), anyMap()))
+                .thenReturn(Mono.empty());
+        when(repository.save(any()))
+                .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
+
+        when(auditService.saveAudit(any(SignatureConfigurationResponse.class),
+                any(CompleteSignatureConfiguration.class),
+                eq("rationale"), eq("user@mail")))
+                .thenReturn(Mono.empty());
+
+        String fakeJson = "{\"dummy\":\"h\"}";
+        when(mockObjectMapper.writeValueAsString(anyMap()))
+                .thenReturn(fakeJson);
+
+        CompleteSignatureConfiguration newCfg = CompleteSignatureConfiguration.builder()
+                .id(id)
+                .organizationIdentifier(ORG)
+                .enableRemoteSignature(true)
+                .signatureMode(SignatureMode.SERVER)
+                .cloudProviderId(UUID.randomUUID())
+                .clientId("c")
+                .credentialId("cid")
+                .credentialName("cname")
+                .secretRelativePath(null)
+                .clientSecret("sec1")
+                .credentialPassword("pass1")
+                .secret("totp1")
+                .build();
+
+        // act
+        Mono<Void> result = service.updateSignatureConfiguration(
+                id.toString(), ORG, newCfg, "rationale", "user@mail"
+        );
+
+        // assert
+        StepVerifier.create(result)
+                .verifyComplete();
+
+        verify(vaultService).patchSecrets(eq(path), argThat(map ->
+                "sec1".equals(map.get(CLIENT_SECRET)) &&
+                        "pass1".equals(map.get(CREDENTIAL_PASSWORD)) &&
+                        "totp1".equals(map.get(SECRET))
+        ));
+
+        ArgumentCaptor<SignatureConfiguration> saveCap =
+                ArgumentCaptor.forClass(SignatureConfiguration.class);
+        verify(repository).save(saveCap.capture());
+        SignatureConfiguration saved = saveCap.getValue();
+        assertThat(saved.getVaultHashedSecretValues()).isEqualTo(fakeJson);
+        assertThat(saved.getClientId()).isEqualTo("c");
+        assertThat(saved.getCredentialName()).isEqualTo("cname");
+
+        ArgumentCaptor<SignatureConfigurationResponse> oldRespCap =
+                ArgumentCaptor.forClass(SignatureConfigurationResponse.class);
+        verify(auditService).saveAudit(
+                oldRespCap.capture(),
+                eq(newCfg),
+                eq("rationale"),
+                eq("user@mail")
+        );
+
+        SignatureConfigurationResponse oldResp = oldRespCap.getValue();
+        assertThat(oldResp.id()).isEqualTo(id);
+        assertThat(oldResp.organizationIdentifier()).isEqualTo(ORG);
+    }
+
 
     // helper to compute the same SHA-256 + Base64URL without padding
     private static String sha256Base64Url(String value) {
