@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS issuer.signature_configuration (
     credential_id VARCHAR(255) NULL,
     credential_name VARCHAR(255) NULL,
     vault_hashed_secret_values TEXT NULL,
-    FOREIGN KEY (cloud_provider_id) REFERENCES credentials.cloud_provider (id) ON DELETE SET NULL
+    FOREIGN KEY (cloud_provider_id) REFERENCES issuer.cloud_provider (id) ON DELETE SET NULL
     );
 
 CREATE TABLE IF NOT EXISTS issuer.signature_configuration_audit (
