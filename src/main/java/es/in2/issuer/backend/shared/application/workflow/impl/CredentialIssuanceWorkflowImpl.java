@@ -112,7 +112,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         // todo: change to https
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerFrontendUrl())
-                .path("/activation-code/" + activationCode)
+                .path("/credential-offer/activation-code/" + activationCode)
                 .build()
                 .toUriString();
 

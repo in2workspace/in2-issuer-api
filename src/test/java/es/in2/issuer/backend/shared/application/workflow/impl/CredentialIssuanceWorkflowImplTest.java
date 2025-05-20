@@ -38,7 +38,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class VerifiableCredentialIssuanceServiceImplTest {
+class CredentialIssuanceWorkflowImplTest {
 
     @Mock
     private AccessTokenService accessTokenService;
@@ -115,7 +115,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(emailService.sendCredentialActivationEmail(
                 "example@in2.es",
                 "Activate your new credential",
-                issuerUiExternalDomain + "/credential-offer?transaction_code=" + activationCode,
+                issuerUiExternalDomain + "/credential-offer/activation-code/" + activationCode,
                 knowledgebaseWalletUrl, "Jhon Doe", "IN2, Ingeniería de la Información, S.L."))
                 .thenReturn(Mono.empty());
         when(appConfig.getIssuerFrontendUrl()).thenReturn(issuerUiExternalDomain);
@@ -159,7 +159,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(emailService.sendCredentialActivationEmail(
                 "example@in2.es",
                 "Activate your new credential",
-                issuerUiExternalDomain + "/credential-offer?transaction_code=" + transactionCode,
+                issuerUiExternalDomain + "/credential-offer/activation-code/" + transactionCode,
                 knowledgebaseWalletUrl,
                 "Jhon Doe",
                 "IN2, Ingeniería de la Información, S.L."))
