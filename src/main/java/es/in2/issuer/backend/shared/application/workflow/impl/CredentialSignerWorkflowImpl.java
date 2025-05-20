@@ -48,8 +48,6 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
-        log.info("signAndUpdateCredentialByProcedureId");
-        log.info("procedure id in signAndUpdateCredentialByProcedureId: {}", procedureId);
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 try{
@@ -211,14 +209,11 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                 .flatMap(signedVc -> credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                         .flatMap(updatedCredentialProcedure -> {
                             updatedCredentialProcedure.setUpdatedAt(Timestamp.from(Instant.now()));
-                            log.info("Saving updated credential with type: '{}'", updatedCredentialProcedure.getCredentialType());
                             return credentialProcedureRepository.save(updatedCredentialProcedure)
                                     .thenReturn(updatedCredentialProcedure);
                         })
                         .flatMap(updatedCredentialProcedure -> {
                             String credentialType = updatedCredentialProcedure.getCredentialType();
-                            log.info("Valor de credentialType: '{}'", credentialType);
-                            log.info("Verifying credential type for responseUri delivery: {}", updatedCredentialProcedure.getCredentialType());
                             if (!"VERIFIABLE_CERTIFICATION".equals(updatedCredentialProcedure.getCredentialType())) {
                                 return Mono.empty(); //don't send message if it isn't VERIFIABLE_CERTIFICATION
                             }
@@ -227,14 +222,10 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                     .switchIfEmpty(Mono.error(new IllegalStateException("Missing responseUri for procedureId: " + procedureId)))
                                     .flatMap(responseUri -> {
                                         try {
-                                            log.info("Retrieved response URI: " + responseUri);
                                             JsonNode root = new ObjectMapper().readTree(updatedCredentialProcedure.getCredentialDecoded());
-                                            log.info("root: {}", root);
                                             String productId = root.get("credentialSubject").get("product").get("productId").asText();
                                             String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
-                                            log.info("email: " + companyEmail);
                                             byte[] bytes = companyEmail.getBytes(StandardCharsets.UTF_8);
-                                            log.info("Email bytes: {}", Arrays.toString(bytes));
                                             return m2mTokenService.getM2MToken()
                                                     .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
                                                             responseUri,

@@ -468,7 +468,6 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
     }
 
     public Mono<Void> handlePostRecoverError(String procedureId) {
-        log.info("handlePostRecoverError for procedure id: {}", procedureId);
         Mono<Void> updateOperationMode = credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
             .flatMap(credentialProcedure -> {
                 credentialProcedure.setOperationMode(ASYNC);
@@ -480,18 +479,15 @@ public class RemoteSignatureServiceImpl implements RemoteSignatureService {
 
         Mono<Void> updateDeferredMetadata = deferredCredentialMetadataRepository.findByProcedureId(UUID.fromString(procedureId))
                 .switchIfEmpty(Mono.fromRunnable(() ->
-                        log.warn("No deferred metadata found for procedureId: {}", procedureId)
+                        log.error("No deferred metadata found for procedureId: {}", procedureId)
                 ).then(Mono.empty()))
                 .flatMap(credentialProcedure -> {
                     credentialProcedure.setOperationMode(ASYNC);
-                    log.info("Updating credentialProcedure: {}", credentialProcedure);
                     return deferredCredentialMetadataRepository.save(credentialProcedure)
-                            .doOnSuccess(result -> log.info("updateDeferredMetadata: Saved object: {}", result))
+                            .doOnSuccess(result -> log.debug("Updated metadata: {}", result))
                             .then();
                 });
 
-
-        log.info("After updating procedure and metadata, send email");
         String domain = appConfig.getIssuerFrontendUrl();
         Mono<Void> sendEmail = credentialProcedureService.getSignerEmailFromDecodedCredentialByProcedureId(procedureId)
                 .flatMap(signerEmail ->

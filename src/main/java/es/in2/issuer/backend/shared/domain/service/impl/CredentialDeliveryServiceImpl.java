@@ -26,13 +26,10 @@ public class CredentialDeliveryServiceImpl implements CredentialDeliveryService 
 
     @Override
     public Mono<Void> sendVcToResponseUri(String responseUri, String encodedVc, String productId, String companyEmail, String bearerToken) {
-        log.info("Sending VC to responseUri");
         ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
                 .encodedVc(encodedVc)
                 .build();
-        //log.debug
-        log.info("Sending to response_uri: {} the VC: {} with token: {}", responseUri, encodedVc, bearerToken);
-        log.info("To email: " + companyEmail);
+        log.debug("Sending the VC: {} to response_uri: {} to email {}", encodedVc, responseUri, companyEmail);
 
         return webClient.commonWebClient()
                 .patch()
