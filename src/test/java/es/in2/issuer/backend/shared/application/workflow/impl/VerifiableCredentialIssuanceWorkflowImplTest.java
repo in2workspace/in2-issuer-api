@@ -37,11 +37,15 @@ import java.util.List;
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
 import static es.in2.issuer.backend.shared.domain.util.Constants.JWT_VC_JSON;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class VerifiableCredentialIssuanceServiceImplTest {
+
+    @Mock
+    private CredentialDeliveryService credentialDeliveryService;
 
     @Mock
     private VerifiableCredentialService verifiableCredentialService;
@@ -337,7 +341,13 @@ class VerifiableCredentialIssuanceServiceImplTest {
         when(credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)).thenReturn(Mono.empty());
         when(m2MTokenService.getM2MToken()).thenReturn(Mono.just(new VerifierOauth2AccessToken("", "", "")));
         when(credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + "internalToken", procedureId, JWT_VC_JSON)).thenReturn(Mono.just("signedCredential"));
-
+        when(credentialDeliveryService.sendVcToResponseUri(
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString(),
+                anyString()
+        )).thenReturn(Mono.empty());
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
         // Create a mock ClientResponse for a successful response
@@ -345,9 +355,7 @@ class VerifiableCredentialIssuanceServiceImplTest {
                 .header("Content-Type", "application/json")
                 .build();
         // Stub the exchange function to return the mock ClientResponse
-        when(exchangeFunction.exchange(any())).thenReturn(Mono.just(clientResponse));
         WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
-        when(webClientConfig.commonWebClient()).thenReturn(webClient);
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .verifyComplete();
