@@ -1,8 +1,9 @@
 package es.in2.issuer.backend.shared.domain.model.entities;
 
-import brave.internal.Nullable;
 import es.in2.issuer.backend.shared.domain.model.enums.CredentialStatus;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
@@ -10,7 +11,6 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-// todo: update flyway
 @Getter
 @Setter
 @NoArgsConstructor
