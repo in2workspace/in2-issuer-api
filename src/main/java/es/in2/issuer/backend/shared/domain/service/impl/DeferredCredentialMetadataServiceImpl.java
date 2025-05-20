@@ -2,7 +2,6 @@ package es.in2.issuer.backend.shared.domain.service.impl;
 
 import es.in2.issuer.backend.shared.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.backend.shared.domain.model.dto.DeferredCredentialMetadataDeferredResponse;
-import es.in2.issuer.backend.shared.domain.model.entities.DeferredCredentialMetadata;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.backend.shared.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -51,23 +50,6 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
     }
 
     @Override
-    public Mono<String> createDeferredCredentialMetadata(String procedureId, String operationMode, String responseUri) {
-        return generateCustomNonce()
-                .flatMap(nonce -> cacheStoreForTransactionCode.add(nonce, nonce))
-                .flatMap(transactionCode -> {
-                    DeferredCredentialMetadata deferredCredentialMetadata = DeferredCredentialMetadata
-                            .builder()
-                            .procedureId(UUID.fromString(procedureId))
-                            .transactionCode(transactionCode)
-                            .operationMode(operationMode)
-                            .responseUri(responseUri)
-                            .build();
-                    return deferredCredentialMetadataRepository.save(deferredCredentialMetadata)
-                            .then(Mono.just(transactionCode));
-                });
-    }
-
-    @Override
     public Mono<Map<String, Object>> updateCacheStoreForCTransactionCode(String transactionCode) {
         return generateCustomNonce()
                 .flatMap(cTransactionCode ->
@@ -81,7 +63,6 @@ public class DeferredCredentialMetadataServiceImpl implements DeferredCredential
                                 )
                 );
     }
-
 
     @Override
     public Mono<String> updateTransactionCodeInDeferredCredentialMetadata(String procedureId) {

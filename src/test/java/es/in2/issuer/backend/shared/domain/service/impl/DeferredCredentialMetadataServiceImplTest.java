@@ -2,7 +2,6 @@ package es.in2.issuer.backend.shared.domain.service.impl;
 
 import es.in2.issuer.backend.shared.domain.exception.CredentialAlreadyIssuedException;
 import es.in2.issuer.backend.shared.domain.model.entities.DeferredCredentialMetadata;
-import es.in2.issuer.backend.shared.domain.service.impl.DeferredCredentialMetadataServiceImpl;
 import es.in2.issuer.backend.shared.domain.util.Utils;
 import es.in2.issuer.backend.shared.infrastructure.repository.CacheStore;
 import es.in2.issuer.backend.shared.infrastructure.repository.DeferredCredentialMetadataRepository;
@@ -64,29 +63,6 @@ class DeferredCredentialMetadataServiceImplTest {
         // Assert
         verify(deferredCredentialMetadataRepository, times(1)).findByAuthServerNonce(preAuthCode);
         verify(deferredCredentialMetadataRepository, times(1)).save(deferredCredentialMetadata);
-    }
-
-    @Test
-    void testCreateDeferredCredentialMetadata_Success() {
-        // Arrange
-        String procedureId = UUID.randomUUID().toString();
-        String nonce = "nonce";
-        String transactionCode = "transaction-code";
-
-        try (MockedStatic<Utils> mockUtils = mockStatic(Utils.class)) {
-            mockUtils.when(Utils::generateCustomNonce).thenReturn(Mono.just(nonce));
-        }
-        when(cacheStore.add(anyString(), anyString())).thenReturn(Mono.just(transactionCode));
-        when(deferredCredentialMetadataRepository.save(any(DeferredCredentialMetadata.class))).thenReturn(Mono.just(new DeferredCredentialMetadata()));
-
-        // Act
-        StepVerifier.create(deferredCredentialMetadataService.createDeferredCredentialMetadata(procedureId, "A", null))
-                .expectNext(transactionCode)
-                .verifyComplete();
-
-        // Assert
-        verify(cacheStore, times(1)).add(anyString(), anyString());
-        verify(deferredCredentialMetadataRepository, times(1)).save(any(DeferredCredentialMetadata.class));
     }
 
     @Test

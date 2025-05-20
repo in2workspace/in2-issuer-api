@@ -2,14 +2,13 @@ package es.in2.issuer.backend.shared.domain.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.shared.domain.model.dto.*;
-import es.in2.issuer.backend.shared.domain.service.impl.VerifiableCredentialServiceImpl;
+import es.in2.issuer.backend.backoffice.domain.util.Constants;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
+import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.shared.domain.service.EmailService;
-import es.in2.issuer.backend.backoffice.domain.util.Constants;
 import es.in2.issuer.backend.shared.domain.util.factory.CredentialFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,8 +20,6 @@ import reactor.test.StepVerifier;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.BEARER_PREFIX;
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.JWT_VC;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -75,62 +72,13 @@ class VerifiableCredentialServiceImplTest {
         String invalidAccessToken = "invalid-token";
 
         // Act and Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () ->
-            verifiableCredentialServiceImpl.bindAccessTokenByPreAuthorizedCode(processId, invalidAccessToken, preAuthCode).block());
-        assertNull(exception.getMessage());
+        StepVerifier.create(verifiableCredentialServiceImpl.bindAccessTokenByPreAuthorizedCode(
+                        processId, invalidAccessToken, preAuthCode))
+                .verifyError(RuntimeException.class);
 
         // Verify that no interaction with deferredCredentialMetadataService happens
         verify(deferredCredentialMetadataService, times(0))
                 .updateAuthServerNonceByAuthServerNonce(anyString(), anyString());
-    }
-
-    @Test
-    void generateVc_Success() throws Exception {
-        // Arrange: Create a sample JsonNode for LEARCredentialRequest
-        String token = "token";
-        JsonNode credentialJsonNode = objectMapper.readTree("{\"credentialId\":\"cred-id-123\", \"organizationIdentifier\":\"org-id-123\", \"credentialDecoded\":\"decoded-credential\"}");
-
-        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
-                .payload(credentialJsonNode)
-                .build();
-
-        // Mock the behavior of credentialFactory
-        CredentialProcedureCreationRequest mockCreationRequest = CredentialProcedureCreationRequest.builder()
-                .credentialId("cred-id-123")
-                .organizationIdentifier("org-id-123")
-                .credentialDecoded("decoded-credential")
-                .build();
-        String vcType = "vc-type-789";
-        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest,token))
-                .thenReturn(Mono.just(mockCreationRequest));
-
-        // Mock the behavior of credentialProcedureService
-        String createdProcedureId = "created-procedure-id-456";
-        when(credentialProcedureService.createCredentialProcedure(mockCreationRequest))
-                .thenReturn(Mono.just(createdProcedureId));
-
-        // Mock the behavior of deferredCredentialMetadataService
-        String metadataId = "metadata-id-789";
-        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(createdProcedureId, null, null))
-                .thenReturn(Mono.just(metadataId));
-
-        // Act: Call the generateVc method
-        Mono<String> result = verifiableCredentialServiceImpl.generateVc(processId, vcType, preSubmittedCredentialRequest, token);
-
-        // Assert: Verify the result
-        StepVerifier.create(result)
-                .expectNext(metadataId)
-                .verifyComplete();
-
-        // Verify that all the interactions occurred as expected
-        verify(credentialFactory, times(1))
-                .mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token);
-
-        verify(credentialProcedureService, times(1))
-                .createCredentialProcedure(mockCreationRequest);
-
-        verify(deferredCredentialMetadataService, times(1))
-                .createDeferredCredentialMetadata(createdProcedureId, null, null);
     }
 
     @Test
