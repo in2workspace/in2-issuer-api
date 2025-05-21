@@ -360,7 +360,6 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
     private void applyDtoToEntity(SignatureConfiguration entity,
                                   CompleteSignatureConfiguration dto) {
-        entity.setEnableRemoteSignature(dto.enableRemoteSignature());
         entity.setSignatureMode(dto.signatureMode());
         entity.setCloudProviderId(dto.cloudProviderId());
         entity.setClientId(dto.clientId());
