@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [v1.6.9](https://github.com/in2workspace/in2-issuer-api/releases/tag/v1.6.9)
 ### Fixed
-- Store Verifiable certification metadata after creation
+- Store Verifiable certification metadata after issuance
 - Send Verifiable certification to responseUri after remote signature
 - Modify the message sent after successful remote signature; adapt it to Verifiable Certification
 
