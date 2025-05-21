@@ -56,7 +56,6 @@ public class Constants {
     public static final String DID_KEY = "did:key:";
     public static final String ASYNC = "A";
     public static final String SYNC = "S";
-    public static final String VERIFIABLE_CERTIFICATION = "VerifiableCertification";
     public static final String VERIFIABLE_CERTIFICATION_PROCEDURE_TYPE = "VERIFIABLE_CERTIFICATION";
     public static final String LEAR_CREDENTIAL_EMPLOYEE_PROCEDURE_TYPE = "LEAR_CREDENTIAL_EMPLOYEE";
     public static final long MSB = 0x80L;

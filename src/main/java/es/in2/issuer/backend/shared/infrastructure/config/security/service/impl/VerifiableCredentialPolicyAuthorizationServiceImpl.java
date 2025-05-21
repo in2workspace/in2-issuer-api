@@ -24,6 +24,7 @@ import java.util.stream.StreamSupport;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
 import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.backend.shared.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 import static es.in2.issuer.backend.shared.domain.util.Utils.extractMandator;
 import static es.in2.issuer.backend.shared.domain.util.Utils.extractPowers;
 

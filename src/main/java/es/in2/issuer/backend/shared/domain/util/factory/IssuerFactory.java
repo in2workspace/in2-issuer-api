@@ -1,6 +1,5 @@
 package es.in2.issuer.backend.shared.domain.util.factory;
 
-import es.in2.issuer.backend.backoffice.domain.util.Constants;
 import es.in2.issuer.backend.shared.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.backend.shared.domain.service.impl.RemoteSignatureServiceImpl;
@@ -67,7 +66,7 @@ public class IssuerFactory {
                                                                         )
                                                         );
 
-                                        case Constants.VERIFIABLE_CERTIFICATION ->
+                                        case VERIFIABLE_CERTIFICATION ->
                                                 remoteSignatureServiceImpl.getMailForVerifiableCertification(procedureId)
                                                         .flatMap(mail ->
                                                                 remoteSignatureServiceImpl.requestAccessToken(null, SIGNATURE_REMOTE_SCOPE_SERVICE)

@@ -23,6 +23,7 @@ import reactor.test.StepVerifier;
 import java.util.UUID;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.backend.shared.domain.util.Constants.*;
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.VERIFIABLE_CERTIFICATION_PROCEDURE_TYPE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

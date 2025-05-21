@@ -14,11 +14,7 @@ import es.in2.issuer.backend.shared.infrastructure.config.WebClientConfig;
 import es.in2.issuer.backend.shared.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,8 +23,7 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
-import static es.in2.issuer.backend.shared.domain.util.Constants.JWT_VC_JSON;
-import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.backend.shared.domain.util.Constants.*;
 
 @Slf4j
 @Service
