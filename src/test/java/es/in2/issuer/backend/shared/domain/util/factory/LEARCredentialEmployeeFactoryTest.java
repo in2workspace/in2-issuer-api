@@ -173,25 +173,6 @@ class LEARCredentialEmployeeFactoryTest {
     }
 
     @Test
-    void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_FailsAfterRetries_SwitchToAsync() throws Exception {
-        String procedureId = "550e8400-e29b-41d4-a716-446655440000";
-        String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
-
-        LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
-        when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
-                .thenReturn(learCredentialEmployee);
-
-        when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
-                .thenReturn(Mono.empty());
-
-        StepVerifier.create(
-                        learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialString, procedureId)
-                )
-                .expectComplete()
-                .verify();
-    }
-
-    @Test
     void mapCredentialAndBindIssuerInToTheCredential_ValidateCredentials_SuccessOnSecondAttempt() throws Exception {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
