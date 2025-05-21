@@ -66,7 +66,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                                                 data.email,
                                                 "Credential Ready",
                                                 data.firstName,
-                                                data.sentence
+                                                data.additionalInfo
                                         );
                                     })
                     );
@@ -84,12 +84,12 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
             JsonNode m = subj.get(MANDATE).get(MANDATEE);
             d.email     = m.path(EMAIL).asText(null);
             d.firstName = m.path(FIRST_NAME).asText(null);
-            d.sentence  = "You can now use it with your Wallet.";
+            d.additionalInfo  = "You can now use it with your Wallet.";
         } else if (subj.has("company")) {
             JsonNode c = subj.get("company");
             d.email     = c.path(EMAIL).asText(null);
             d.firstName = c.path("commonName").asText(null);
-            d.sentence  = "It is now ready to be applied to your product.";
+            d.additionalInfo  = "It is now ready to be applied to your product.";
         }
 
         if (d.email == null || d.firstName == null) {
@@ -105,7 +105,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     private static class NotificationData {
         String email;
         String firstName;
-        String sentence;
+        String additionalInfo;
     }
 
 

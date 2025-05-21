@@ -195,14 +195,14 @@ class DeferredCredentialWorkflowImplTest {
         Class<?> ndClass = result.getClass();
         Field emailF     = ndClass.getDeclaredField("email");
         Field firstNameF = ndClass.getDeclaredField("firstName");
-        Field sentenceF  = ndClass.getDeclaredField("sentence");
+        Field additionalInfoF  = ndClass.getDeclaredField("additionalInfo");
         emailF.setAccessible(true);
         firstNameF.setAccessible(true);
-        sentenceF.setAccessible(true);
+        additionalInfoF.setAccessible(true);
 
         assertEquals("foo@example.com", emailF.get(result));
         assertEquals("Foo",              firstNameF.get(result));
-        assertEquals("You can now use it with your Wallet.", sentenceF.get(result));
+        assertEquals("You can now use it with your Wallet.", additionalInfoF.get(result));
     }
 
     @Test
@@ -231,14 +231,14 @@ class DeferredCredentialWorkflowImplTest {
         Class<?> ndClass      = result.getClass();
         Field emailF          = ndClass.getDeclaredField("email");
         Field firstNameF      = ndClass.getDeclaredField("firstName");
-        Field sentenceF       = ndClass.getDeclaredField("sentence");
+        Field additionalInfoF       = ndClass.getDeclaredField("additionalInfo");
         emailF.setAccessible(true);
         firstNameF.setAccessible(true);
-        sentenceF.setAccessible(true);
+        additionalInfoF.setAccessible(true);
 
         assertEquals("bar@corp.com",                      emailF.get(result));
         assertEquals("BarCorp",                           firstNameF.get(result));
-        assertEquals("It is now ready to be applied to your product.", sentenceF.get(result));
+        assertEquals("It is now ready to be applied to your product.", additionalInfoF.get(result));
     }
 
 

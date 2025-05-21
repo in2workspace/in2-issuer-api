@@ -123,7 +123,7 @@ public class EmailServiceImpl implements EmailService {
         }).subscribeOn(Schedulers.boundedElastic()).then();
     }
     @Override
-    public Mono<Void> sendCredentialSignedNotification(String to, String subject, String firstName, String sentence) {
+    public Mono<Void> sendCredentialSignedNotification(String to, String subject, String firstName, String additionalInfo) {
         firstName = firstName.replace("\"", "");
         final String finalName = firstName;
         return Mono.fromCallable(() -> {
@@ -135,7 +135,7 @@ public class EmailServiceImpl implements EmailService {
 
             Context context = new Context();
             context.setVariable("name", finalName);
-            context.setVariable("sentence", sentence);
+            context.setVariable("additionalInfo", additionalInfo);
             String htmlContent = templateEngine.process("credential-signed-notification", context);
             helper.setText(htmlContent, true);
 
