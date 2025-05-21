@@ -46,58 +46,66 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
                 .then();
     }
 
-    private Mono<Void> processCredential(String jwt){
+    private Mono<Void> processCredential(String jwt) {
         try {
             SignedJWT signedJWT = SignedJWT.parse(jwt);
             String payload = signedJWT.getPayload().toString();
             log.debug("Credential payload: {}", payload);
-            // Parse the credential and extract the ID
             JsonNode credentialNode = objectMapper.readTree(payload);
             String credentialId = credentialNode.get(VC).get("id").asText();
-            // Update the credential in the database
-            return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
-                    .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId)
-                            // Send notification email depending on operationMode
-                            .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
-                            .flatMap(operationMode -> {
-                                if(operationMode.equals(ASYNC)){
-                                    JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
-                                    JsonNode credentialSubjectNode = vcNode.path(CREDENTIAL_SUBJECT);
 
-                                    String email = null;
-                                    String firstName = null;
-                                    String sentence = null;
-
-                                    if (credentialSubjectNode.has(MANDATE) && credentialSubjectNode.get(MANDATE).has(MANDATEE)) {
-                                        JsonNode mandateeNode = credentialSubjectNode.get(MANDATE).get(MANDATEE);
-                                        email = mandateeNode.path(EMAIL).asText(null);
-                                        firstName = mandateeNode.path(FIRST_NAME).asText(null);
-                                        sentence = "You can now use it with your Wallet";
-                                    }
-                                    else if (credentialSubjectNode.has("company")) {
-                                        JsonNode companyNode = credentialSubjectNode.get("company");
-                                        email = companyNode.path(EMAIL).asText(null);
-                                        firstName = companyNode.path("commonName").asText(null);
-                                        sentence = "It is now ready to be applied to your product.";
-                                    }
-
-                                    if (email == null || firstName == null) {
-                                        log.error("Missing email or firstName in credential subject. Skipping email notification.");
-                                        return Mono.error(new ResponseStatusException(
-                                                HttpStatus.BAD_REQUEST,
-                                                "Missing required credentialSubject properties: email and firstName"
-                                        ));
-                                    }
-
-                                    return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName, sentence);
-
-                                }
-                                return Mono.empty();
-                            })
+            return credentialProcedureService
+                    .updatedEncodedCredentialByCredentialId(jwt, credentialId)
+                    .flatMap(procId ->
+                            deferredCredentialMetadataService.updateVcByProcedureId(jwt, procId)
+                                    .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procId))
+                                    .filter(ASYNC::equals)
+                                    .flatMap(mode -> {
+                                        NotificationData data = buildNotificationData(credentialNode);
+                                        return emailService.sendCredentialSignedNotification(
+                                                data.email,
+                                                "Credential Ready",
+                                                data.firstName,
+                                                data.sentence
+                                        );
+                                    })
                     );
         } catch (Exception e) {
             return Mono.error(new RuntimeException("Failed to process signed credential", e));
         }
+    }
+
+    private NotificationData buildNotificationData(JsonNode credentialNode) {
+        JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
+        JsonNode subj = vcNode.path(CREDENTIAL_SUBJECT);
+
+        NotificationData d = new NotificationData();
+        if (subj.has(MANDATE) && subj.get(MANDATE).has(MANDATEE)) {
+            JsonNode m = subj.get(MANDATE).get(MANDATEE);
+            d.email     = m.path(EMAIL).asText(null);
+            d.firstName = m.path(FIRST_NAME).asText(null);
+            d.sentence  = "You can now use it with your Wallet";
+        } else if (subj.has("company")) {
+            JsonNode c = subj.get("company");
+            d.email     = c.path(EMAIL).asText(null);
+            d.firstName = c.path("commonName").asText(null);
+            d.sentence  = "It is now ready to be applied to your product.";
+        }
+
+        if (d.email == null || d.firstName == null) {
+            log.error("Missing email or firstName in credential subject. Skipping email notification.");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Missing required credentialSubject properties: email and firstName"
+            );
+        }
+        return d;
+    }
+
+    private static class NotificationData {
+        String email;
+        String firstName;
+        String sentence;
     }
 
 
