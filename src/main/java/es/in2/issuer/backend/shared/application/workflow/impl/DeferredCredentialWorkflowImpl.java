@@ -47,7 +47,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     }
 
     private Mono<Void> processCredential(String jwt){
-        try {;
+        try {
             SignedJWT signedJWT = SignedJWT.parse(jwt);
             String payload = signedJWT.getPayload().toString();
             log.debug("Credential payload: {}", payload);
