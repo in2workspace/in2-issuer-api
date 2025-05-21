@@ -170,7 +170,6 @@ class DeferredCredentialWorkflowImplTest {
 
     @Test
     void buildNotificationData_mandatee() throws Exception {
-        // muntem un JSON amb credentialSubject.mandate.mandatee
         String json = """
             {
               "vc": {
@@ -193,7 +192,6 @@ class DeferredCredentialWorkflowImplTest {
                 node
         );
 
-        // extraiem valors via reflexió
         Class<?> ndClass = result.getClass();
         Field emailF     = ndClass.getDeclaredField("email");
         Field firstNameF = ndClass.getDeclaredField("firstName");

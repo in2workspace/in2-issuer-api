@@ -44,10 +44,8 @@ class CredentialDeliveryServiceImplTest {
         emailService = mock(EmailService.class);
         appConfig = mock(AppConfig.class);
 
-        // Configuro AppConfig
         when(appConfig.getKnowledgeBaseUploadCertificationGuideUrl()).thenReturn(GUIDE_URL);
 
-        // Creo un WebClient que usa el nostre ExchangeFunction simulat
         webClient = WebClient.builder()
                 .exchangeFunction(exchangeFunction)
                 .build();

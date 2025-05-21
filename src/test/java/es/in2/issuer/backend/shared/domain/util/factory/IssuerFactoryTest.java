@@ -65,13 +65,10 @@ class IssuerFactoryTest {
 
     @Test
     void createIssuer_Remote_CredentialsMismatch_CompletesSilently() {
-        // Preparem el flux perquè caigui a validCredentials()==false
         when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(false));
-        // Stub de post-recovery per evitar NPE i completar
         when(remoteSignatureServiceImpl.handlePostRecoverError(procedureId)).thenReturn(Mono.empty());
 
-        // Ara esperem que completi sense cap error
         StepVerifier.create(
                         issuerFactory.createIssuer(procedureId, learType)
                 )
@@ -130,7 +127,6 @@ class IssuerFactoryTest {
     void createIssuerRemote_UnsupportedCredentialType_EmitsError() {
         when(remoteSignatureConfig.getRemoteSignatureType()).thenReturn(SIGNATURE_REMOTE_TYPE_CLOUD);
         when(remoteSignatureServiceImpl.validateCredentials()).thenReturn(Mono.just(true));
-        // stub post-recovery to avoid NPE and complete
         when(remoteSignatureServiceImpl.handlePostRecoverError(procedureId)).thenReturn(Mono.empty());
 
         StepVerifier.create(

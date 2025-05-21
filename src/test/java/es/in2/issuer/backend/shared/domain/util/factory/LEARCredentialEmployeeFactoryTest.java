@@ -24,11 +24,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -129,17 +128,14 @@ class LEARCredentialEmployeeFactoryTest {
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
         String expectedString = "expectedString";
 
-        // 1) mockeja el parsing del JSON a LEARCredentialEmployee
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) mockeja issuerFactory.createIssuer
         DetailedIssuer mockIssuer = mock(DetailedIssuer.class);
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.just(mockIssuer));
 
-        // 3) mockeja la conversió a String
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class)))
                 .thenReturn(expectedString);
 
@@ -150,7 +146,7 @@ class LEARCredentialEmployeeFactoryTest {
                 .expectNext(expectedString)
                 .verifyComplete();
 
-        // i comprova que no es toca el remoteSignatureServiceImpl
+        // Assert
         verify(remoteSignatureServiceImpl, never()).validateCredentials();
     }
 
@@ -161,12 +157,10 @@ class LEARCredentialEmployeeFactoryTest {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
-        // 1) parsing
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) issuerFactory retorna 'empty' → pipeline acaba sense next
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.empty());
 
@@ -177,7 +171,6 @@ class LEARCredentialEmployeeFactoryTest {
                 .expectComplete()
                 .verify();
 
-        // no ha d’arribar a cridar writeValueAsString
         verify(objectMapper, never()).writeValueAsString(any());
     }
 
@@ -186,12 +179,10 @@ class LEARCredentialEmployeeFactoryTest {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
-        // 1) parsing
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) issuerFactory retorna 'empty' ⇒ completes
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.empty());
 
@@ -208,17 +199,14 @@ class LEARCredentialEmployeeFactoryTest {
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
         String expectedString = "expectedString";
 
-        // 1) parsing
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) issuerFactory retorna un issuer fictici
         DetailedIssuer fakeIssuer = mock(DetailedIssuer.class);
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.just(fakeIssuer));
 
-        // 3) conversió a String
         when(objectMapper.writeValueAsString(any(LEARCredentialEmployee.class)))
                 .thenReturn(expectedString);
 
@@ -235,12 +223,10 @@ class LEARCredentialEmployeeFactoryTest {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
-        // 1) parsing
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) issuerFactory torna 'empty' → completes directament
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.empty());
 
@@ -257,12 +243,10 @@ class LEARCredentialEmployeeFactoryTest {
         String procedureId = "550e8400-e29b-41d4-a716-446655440000";
         String credentialString = "validCredentialStringhttps://trust-framework.dome-marketplace.eu/credentials/learcredentialemployee/v1";
 
-        // 1) parsing
         LEARCredentialEmployee learCredentialEmployee = mock(LEARCredentialEmployee.class);
         when(objectMapper.readValue(credentialString, LEARCredentialEmployee.class))
                 .thenReturn(learCredentialEmployee);
 
-        // 2) issuerFactory falla amb error
         RuntimeException postRecoveryEx = new RuntimeException("Error in post-recovery handling");
         when(issuerFactory.createIssuer(procedureId, Constants.LEAR_CREDENTIAL_EMPLOYEE))
                 .thenReturn(Mono.error(postRecoveryEx));
@@ -344,8 +328,4 @@ class LEARCredentialEmployeeFactoryTest {
 
         assertEquals("Invalid credential format", exception.getMessage());
     }
-
-
-
-
 }

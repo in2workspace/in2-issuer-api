@@ -463,7 +463,6 @@ class VerifiableCredentialServiceImplTest {
         String metadataId  = "metadata-id-123";
         String bindVerifiableCertification = "bind-verifiable-certification-data";
 
-        // 1) PreSubmittedCredentialRequest de mostra
         JsonNode mockCredentialJsonNode = mock(JsonNode.class);
         PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
                 .payload(mockCredentialJsonNode)
@@ -471,14 +470,12 @@ class VerifiableCredentialServiceImplTest {
                 .responseUri("https://example.com/response")
                 .build();
 
-        // 2) CredentialProcedureCreationRequest de mostra
         CredentialProcedureCreationRequest mockCreationRequest = CredentialProcedureCreationRequest.builder()
                 .credentialId("cert-id-123")
                 .organizationIdentifier("org-id-123")
                 .credentialDecoded("decoded-certification")
                 .build();
 
-        // 3) Stubs dels serveis factories i repositoris
         when(credentialFactory
                 .mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token))
                 .thenReturn(Mono.just(mockCreationRequest));
@@ -492,7 +489,6 @@ class VerifiableCredentialServiceImplTest {
                 preSubmittedCredentialRequest.responseUri()))
                 .thenReturn(Mono.just(metadataId));
 
-        // 4) Ara el DetailedIssuer, no LEARCredentialEmployee
         DetailedIssuer mockIssuer = mock(DetailedIssuer.class);
         when(issuerFactory.createIssuer(
                 procedureId,
@@ -519,7 +515,6 @@ class VerifiableCredentialServiceImplTest {
                 .expectNext(procedureId)
                 .verifyComplete();
 
-        // Verificació de totes les interaccions
         verify(credentialFactory, times(1))
                 .mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token);
         verify(credentialProcedureService, times(1))
