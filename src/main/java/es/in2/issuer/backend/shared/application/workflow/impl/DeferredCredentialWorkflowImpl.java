@@ -42,62 +42,63 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
     @Override
     public Mono<Void> updateSignedCredentials(SignedCredentials signedCredentials) {
         return Flux.fromIterable(signedCredentials.credentials())
-                .flatMap(signedCredential -> {
-                    try {
-                        // Extract JWT payload
-                        String jwt = signedCredential.credential();
-                        SignedJWT signedJWT = SignedJWT.parse(jwt);
-                        String payload = signedJWT.getPayload().toString();
-                        log.debug("Credential payload: {}", payload);
-                        // Parse the credential and extract the ID
-                        JsonNode credentialNode = objectMapper.readTree(payload);
-                        String credentialId = credentialNode.get(VC).get("id").asText();
-                        // Update the credential in the database
-                        return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
-                                .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId)
-                                        // Send notification email depending on operationMode
-                                        .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
-                                        .flatMap(operationMode -> {
-                                            if(operationMode.equals(ASYNC)){
-                                                JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
-                                                JsonNode credentialSubjectNode = vcNode.path(CREDENTIAL_SUBJECT);
-
-                                                String email = null;
-                                                String firstName = null;
-                                                String sentence = null;
-
-                                                if (credentialSubjectNode.has(MANDATE) && credentialSubjectNode.get(MANDATE).has(MANDATEE)) {
-                                                    JsonNode mandateeNode = credentialSubjectNode.get(MANDATE).get(MANDATEE);
-                                                    email = mandateeNode.path(EMAIL).asText(null);
-                                                    firstName = mandateeNode.path(FIRST_NAME).asText(null);
-                                                    sentence = "You can now use it with your Wallet";
-                                                }
-                                                else if (credentialSubjectNode.has("company")) {
-                                                    JsonNode companyNode = credentialSubjectNode.get("company");
-                                                    email = companyNode.path(EMAIL).asText(null);
-                                                    firstName = companyNode.path("commonName").asText(null);
-                                                    sentence = "It is now ready to be applied to your product.";
-                                                }
-
-                                                if (email == null || firstName == null) {
-                                                    log.error("Missing email or firstName in credential subject. Skipping email notification.");
-                                                    return Mono.error(new ResponseStatusException(
-                                                            HttpStatus.BAD_REQUEST,
-                                                            "Missing required credentialSubject properties: email and firstName"
-                                                    ));
-                                                }
-
-                                                return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName, sentence);
-
-                                            }
-                                            return Mono.empty();
-                                        })
-                                );
-                    } catch (Exception e) {
-                        return Mono.error(new RuntimeException("Failed to process signed credential", e));
-                    }
-                })
+                .flatMap(sc -> processCredential(sc.credential()))
                 .then();
     }
+
+    private Mono<Void> processCredential(String jwt){
+        try {;
+            SignedJWT signedJWT = SignedJWT.parse(jwt);
+            String payload = signedJWT.getPayload().toString();
+            log.debug("Credential payload: {}", payload);
+            // Parse the credential and extract the ID
+            JsonNode credentialNode = objectMapper.readTree(payload);
+            String credentialId = credentialNode.get(VC).get("id").asText();
+            // Update the credential in the database
+            return credentialProcedureService.updatedEncodedCredentialByCredentialId(jwt, credentialId)
+                    .flatMap(procedureId -> deferredCredentialMetadataService.updateVcByProcedureId(jwt, procedureId)
+                            // Send notification email depending on operationMode
+                            .then(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId))
+                            .flatMap(operationMode -> {
+                                if(operationMode.equals(ASYNC)){
+                                    JsonNode vcNode = credentialNode.has(VC) ? credentialNode.get(VC) : credentialNode;
+                                    JsonNode credentialSubjectNode = vcNode.path(CREDENTIAL_SUBJECT);
+
+                                    String email = null;
+                                    String firstName = null;
+                                    String sentence = null;
+
+                                    if (credentialSubjectNode.has(MANDATE) && credentialSubjectNode.get(MANDATE).has(MANDATEE)) {
+                                        JsonNode mandateeNode = credentialSubjectNode.get(MANDATE).get(MANDATEE);
+                                        email = mandateeNode.path(EMAIL).asText(null);
+                                        firstName = mandateeNode.path(FIRST_NAME).asText(null);
+                                        sentence = "You can now use it with your Wallet";
+                                    }
+                                    else if (credentialSubjectNode.has("company")) {
+                                        JsonNode companyNode = credentialSubjectNode.get("company");
+                                        email = companyNode.path(EMAIL).asText(null);
+                                        firstName = companyNode.path("commonName").asText(null);
+                                        sentence = "It is now ready to be applied to your product.";
+                                    }
+
+                                    if (email == null || firstName == null) {
+                                        log.error("Missing email or firstName in credential subject. Skipping email notification.");
+                                        return Mono.error(new ResponseStatusException(
+                                                HttpStatus.BAD_REQUEST,
+                                                "Missing required credentialSubject properties: email and firstName"
+                                        ));
+                                    }
+
+                                    return emailService.sendCredentialSignedNotification(email, "Credential Ready", firstName, sentence);
+
+                                }
+                                return Mono.empty();
+                            })
+                    );
+        } catch (Exception e) {
+            return Mono.error(new RuntimeException("Failed to process signed credential", e));
+        }
+    }
+
 
 }

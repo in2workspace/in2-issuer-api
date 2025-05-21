@@ -8,7 +8,6 @@ import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflo
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.shared.domain.service.EmailService;
 import es.in2.issuer.backend.backoffice.domain.util.Constants;
 import es.in2.issuer.backend.shared.domain.util.factory.CredentialFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
@@ -457,9 +456,7 @@ class VerifiableCredentialServiceImplTest {
     @Test
     void generateVerifiableCertification_Success() {
         // ─── Arrange ─────────────────────────────────────────────────────────
-        String processId = "process-id-123";
         String token     = "id-token-123";
-        String procedureId = "procedure-id-321";
         String metadataId  = "metadata-id-123";
         String bindVerifiableCertification = "bind-verifiable-certification-data";
 
