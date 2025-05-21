@@ -33,7 +33,7 @@ public class CloudProviderController {
                     @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
             }
     )
-    @PostMapping(path = "/backoffice/v1/signatures/cloud-providers",
+    @PostMapping(path = "/ops/v1/signatures/cloud-providers",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
@@ -54,7 +54,7 @@ public class CloudProviderController {
                     @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
             }
     )
-    @GetMapping(path = "/ops/v1/signatures/cloud-providers",
+    @GetMapping(path = "/backoffice/v1/signatures/cloud-providers",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CloudProvider> getAllCloudProviders(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         log.debug("Fetching all cloud providers");
