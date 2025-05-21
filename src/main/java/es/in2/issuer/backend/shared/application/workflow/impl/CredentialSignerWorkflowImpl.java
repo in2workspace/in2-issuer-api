@@ -68,7 +68,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                     .flatMap(verifiableCertificationFactory::convertVerifiableCertificationJwtPayloadInToString)
                                     .flatMap(unsignedCredential -> signCredentialOnRequestedFormat(unsignedCredential, format, authorizationHeader, procedureId));
                         }
-                        case "LEAR_CREDENTIAL_EMPLOYEE" -> {
+                        case LEAR_CREDENTIAL_EMPLOYEE_TYPE -> {
                             LEARCredentialEmployee learCredentialEmployee = learCredentialEmployeeFactory
                                     .mapStringToLEARCredentialEmployee(credentialProcedure.getCredentialDecoded());
                             yield learCredentialEmployeeFactory.buildLEARCredentialEmployeeJwtPayload(learCredentialEmployee)
@@ -190,7 +190,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                         return credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindCredential, JWT_VC);
                                     });
 
-                    case "LEAR_CREDENTIAL_EMPLOYEE" ->
+                    case LEAR_CREDENTIAL_EMPLOYEE_TYPE ->
                             learCredentialEmployeeFactory.mapCredentialAndBindIssuerInToTheCredential(credentialProcedure.getCredentialDecoded(), procedureId)
                                     .flatMap(bindCredential -> {
                                         log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);

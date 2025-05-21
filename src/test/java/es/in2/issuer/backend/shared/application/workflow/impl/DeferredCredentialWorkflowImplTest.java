@@ -22,6 +22,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +74,7 @@ class DeferredCredentialWorkflowImplTest {
     void updateSignedCredentialsLearCredentialEmployee() throws JsonProcessingException {
         String procedureId = UUID.randomUUID().toString();
         CredentialProcedure credentialProcedure = new CredentialProcedure();
-        credentialProcedure.setCredentialType("LEAR_CREDENTIAL_EMPLOYEE");
+        credentialProcedure.setCredentialType(LEAR_CREDENTIAL_EMPLOYEE_TYPE);
         credentialProcedure.setProcedureId(UUID.fromString(procedureId));
         String credential = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
         String expectedEmail = "juan.perez@mail.com";

@@ -183,7 +183,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                 try {
                     JsonNode credential = objectMapper.readTree(credentialProcedure.getCredentialDecoded());
                     return switch (credentialProcedure.getCredentialType()) {
-                        case "LEAR_CREDENTIAL_EMPLOYEE" -> {
+                        case LEAR_CREDENTIAL_EMPLOYEE_TYPE -> {
                             if (credential.has(VC)) {
                                 JsonNode vcNode = credential.get(VC);
                                 JsonNode mandateNode = vcNode.get(CREDENTIAL_SUBJECT).get(MANDATE);
