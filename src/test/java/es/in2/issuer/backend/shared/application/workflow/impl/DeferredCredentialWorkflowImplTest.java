@@ -3,23 +3,26 @@ package es.in2.issuer.backend.shared.application.workflow.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.shared.application.workflow.impl.DeferredCredentialWorkflowImpl;
 import es.in2.issuer.backend.shared.domain.model.dto.PendingCredentials;
 import es.in2.issuer.backend.shared.domain.model.dto.SignedCredentials;
 import es.in2.issuer.backend.shared.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.shared.domain.service.EmailService;
-import es.in2.issuer.backend.shared.infrastructure.repository.CredentialProcedureRepository;
+import org.junit.jupiter.api.BeforeEach;
+import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,8 +44,12 @@ class DeferredCredentialWorkflowImplTest {
     @InjectMocks
     private DeferredCredentialWorkflowImpl deferredCredentialWorkflow;
 
-    @Mock
-    private CredentialProcedureRepository credentialProcedureRepository;
+    private ObjectMapper realObjectMapper;
+
+    @BeforeEach
+    void setup() {
+        this.realObjectMapper = new ObjectMapper();
+    }
 
     @Test
     void getPendingCredentialsByOrganizationId(){
@@ -158,4 +165,105 @@ class DeferredCredentialWorkflowImplTest {
         StepVerifier.create(deferredCredentialWorkflow.updateSignedCredentials(signedCredentials))
                 .verifyComplete();
     }
+
+    @Test
+    void buildNotificationData_mandatee() throws Exception {
+        // muntem un JSON amb credentialSubject.mandate.mandatee
+        String json = """
+            {
+              "vc": {
+                "credentialSubject": {
+                  "mandate": {
+                    "mandatee": {
+                      "email": "foo@example.com",
+                      "firstName": "Foo"
+                    }
+                  }
+                }
+              }
+            }
+            """;
+        JsonNode node = realObjectMapper.readTree(json);
+
+        Object result = ReflectionTestUtils.invokeMethod(
+                deferredCredentialWorkflow,
+                "buildNotificationData",
+                node
+        );
+
+        // extraiem valors via reflexió
+        Class<?> ndClass = result.getClass();
+        Field emailF     = ndClass.getDeclaredField("email");
+        Field firstNameF = ndClass.getDeclaredField("firstName");
+        Field sentenceF  = ndClass.getDeclaredField("sentence");
+        emailF.setAccessible(true);
+        firstNameF.setAccessible(true);
+        sentenceF.setAccessible(true);
+
+        assertEquals("foo@example.com", emailF.get(result));
+        assertEquals("Foo",              firstNameF.get(result));
+        assertEquals("You can now use it with your Wallet", sentenceF.get(result));
+    }
+
+    @Test
+    void buildNotificationData_company() throws Exception {
+        // Muntem un JSON amb credentialSubject.company
+        String json = """
+        {
+          "vc": {
+            "credentialSubject": {
+              "company": {
+                "email": "bar@corp.com",
+                "commonName": "BarCorp"
+              }
+            }
+          }
+        }
+        """;
+        JsonNode node = realObjectMapper.readTree(json);
+
+        Object result = ReflectionTestUtils.invokeMethod(
+                deferredCredentialWorkflow,
+                "buildNotificationData",
+                node
+        );
+
+        Class<?> ndClass      = result.getClass();
+        Field emailF          = ndClass.getDeclaredField("email");
+        Field firstNameF      = ndClass.getDeclaredField("firstName");
+        Field sentenceF       = ndClass.getDeclaredField("sentence");
+        emailF.setAccessible(true);
+        firstNameF.setAccessible(true);
+        sentenceF.setAccessible(true);
+
+        assertEquals("bar@corp.com",                      emailF.get(result));
+        assertEquals("BarCorp",                           firstNameF.get(result));
+        assertEquals("It is now ready to be applied to your product.", sentenceF.get(result));
+    }
+
+
+    @Test
+    void buildNotificationData_missingFields_throws() throws Exception {
+        // ni mandate ni company
+        String json = """
+            {
+              "vc": {
+                "credentialSubject": {
+                  "other": {}
+                }
+              }
+            }
+            """;
+        JsonNode node = realObjectMapper.readTree(json);
+
+        assertThrows(
+                ResponseStatusException.class,
+                () -> ReflectionTestUtils.invokeMethod(
+                        deferredCredentialWorkflow,
+                        "buildNotificationData",
+                        node
+                )
+        );
+    }
 }
+
