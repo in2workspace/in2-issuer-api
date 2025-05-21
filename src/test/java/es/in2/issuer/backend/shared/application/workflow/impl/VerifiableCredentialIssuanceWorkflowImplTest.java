@@ -36,7 +36,6 @@ import java.util.List;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
 import static es.in2.issuer.backend.shared.domain.util.Constants.JWT_VC_JSON;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -350,12 +349,6 @@ class VerifiableCredentialIssuanceServiceImplTest {
         )).thenReturn(Mono.empty());
         // Mock webClient
         ExchangeFunction exchangeFunction = mock(ExchangeFunction.class);
-        // Create a mock ClientResponse for a successful response
-        ClientResponse clientResponse = ClientResponse.create(HttpStatus.OK)
-                .header("Content-Type", "application/json")
-                .build();
-        // Stub the exchange function to return the mock ClientResponse
-        WebClient webClient = WebClient.builder().exchangeFunction(exchangeFunction).build();
 
         StepVerifier.create(verifiableCredentialIssuanceWorkflow.execute(processId, preSubmittedCredentialRequest, token, idToken))
                 .verifyComplete();

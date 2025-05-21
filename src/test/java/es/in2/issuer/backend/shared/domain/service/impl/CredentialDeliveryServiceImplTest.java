@@ -1,12 +1,10 @@
 package es.in2.issuer.backend.shared.domain.service.impl;
 
-import es.in2.issuer.backend.shared.domain.model.dto.ResponseUriRequest;
 import es.in2.issuer.backend.shared.domain.service.EmailService;
 import es.in2.issuer.backend.shared.infrastructure.config.AppConfig;
 import es.in2.issuer.backend.shared.infrastructure.config.WebClientConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -20,7 +18,6 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.net.URI;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -73,7 +70,7 @@ class CredentialDeliveryServiceImplTest {
                 .thenReturn(Mono.just(clientResponse));
 
         when(emailService.sendResponseUriAcceptedWithHtml(
-                eq(COMPANY_EMAIL), eq(PRODUCT_ID), eq("<html>missing docs</html>")
+                COMPANY_EMAIL, PRODUCT_ID, "<html>missing docs</html>"
         )).thenReturn(Mono.empty());
 
         StepVerifier.create(
@@ -114,7 +111,7 @@ class CredentialDeliveryServiceImplTest {
                 .thenReturn(Mono.just(clientResponse));
 
         when(emailService.sendResponseUriFailed(
-                eq(COMPANY_EMAIL), eq(PRODUCT_ID), eq(GUIDE_URL)
+                COMPANY_EMAIL, PRODUCT_ID, GUIDE_URL
         )).thenReturn(Mono.empty());
 
         StepVerifier.create(
@@ -140,7 +137,7 @@ class CredentialDeliveryServiceImplTest {
                 ));
 
         when(emailService.sendResponseUriFailed(
-                eq(COMPANY_EMAIL), eq(PRODUCT_ID), eq(GUIDE_URL)
+                COMPANY_EMAIL, PRODUCT_ID, GUIDE_URL
         )).thenReturn(Mono.empty());
 
         StepVerifier.create(

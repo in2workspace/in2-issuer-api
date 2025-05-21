@@ -125,54 +125,6 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
     }
 
-    private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {
-        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
-                .encodedVc(encodedVc)
-                .build();
-        log.debug("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedCredentialRequest.responseUri(), encodedVc, token);
-
-        // Extract the product ID from the payload
-        String productId = preSubmittedCredentialRequest.payload()
-                .get(CREDENTIAL_SUBJECT)
-                .get(PRODUCT)
-                .get(PRODUCT_ID)
-                .asText();
-        // Extract the company email from the payload
-        String companyEmail = preSubmittedCredentialRequest.payload()
-                .get(CREDENTIAL_SUBJECT)
-                .get(COMPANY)
-                .get(EMAIL)
-                .asText();
-
-        return webClient.commonWebClient()
-                .patch()
-                .uri(preSubmittedCredentialRequest.responseUri())
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                .bodyValue(responseUriRequest)
-                .exchangeToMono(response -> {
-                    if (response.statusCode().is2xxSuccessful()) {
-                        if (HttpStatus.ACCEPTED.equals(response.statusCode())) {
-                            log.info("Received 202 from response_uri. Extracting HTML and sending specific mail for missing documents");
-                            // Retrieve the HTML body from the response
-                            return response.bodyToMono(String.class)
-                                    .flatMap(htmlResponseBody -> emailService.sendResponseUriAcceptedWithHtml(companyEmail, productId, htmlResponseBody))
-                                    .then();
-                        }
-                        return Mono.empty();
-                    } else {
-                        log.error("Non-2xx status code received: {}. Sending failure email...", response.statusCode());
-                        return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
-                                .then();
-                    }
-                })
-                .onErrorResume(WebClientRequestException.class, ex -> {
-                    log.error("Network error while sending VC to response_uri", ex);
-                    return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
-                            .then();
-                });
-    }
-
     @Override
     public Mono<VerifiableCredentialResponse> generateVerifiableCredentialResponse(String processId,
                                                                                    CredentialRequest credentialRequest,

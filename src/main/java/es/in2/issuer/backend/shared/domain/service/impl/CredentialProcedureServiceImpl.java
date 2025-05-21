@@ -198,7 +198,7 @@ public class CredentialProcedureServiceImpl implements CredentialProcedureServic
                                 yield Mono.just(email.equals("jesus.ruiz@in2.es") ? "domesupport@in2.es" : email);
                             }
                         }
-                        case "VERIFIABLE_CERTIFICATION" -> Mono.just("domesupport@in2.es");
+                        case VERIFIABLE_CERTIFICATION_TYPE -> Mono.just("domesupport@in2.es");
 
                         default -> Mono.error(new IllegalArgumentException("Unsupported credential type: " + credentialProcedure.getCredentialType()));
                     };

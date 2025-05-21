@@ -59,7 +59,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                     String credentialType = credentialProcedure.getCredentialType();
                     log.info("Building JWT payload for credential signing for credential with type: {}", credentialType);
                     return switch (credentialType) {
-                        case "VERIFIABLE_CERTIFICATION" -> {
+                        case VERIFIABLE_CERTIFICATION_TYPE -> {
                             VerifiableCertification verifiableCertification = verifiableCertificationFactory
                                     .mapStringToVerifiableCertification(credentialProcedure.getCredentialDecoded());
                             yield verifiableCertificationFactory.buildVerifiableCertificationJwtPayload(verifiableCertification)
@@ -86,7 +86,6 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
             })
             .flatMap(signedCredential -> {
                 log.info("Update Signed Credential");
-                //todo error aquí
                 return updateSignedCredential(signedCredential)
                         .thenReturn(signedCredential);
             })
@@ -181,7 +180,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
         return credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId))
                 .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
                 .flatMap(credentialProcedure -> switch (credentialProcedure.getCredentialType()) {
-                    case "VERIFIABLE_CERTIFICATION" ->
+                    case VERIFIABLE_CERTIFICATION_TYPE ->
                             learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
                                     .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
                                     .flatMap(bindCredential -> {
@@ -214,7 +213,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                         })
                         .flatMap(updatedCredentialProcedure -> {
                             String credentialType = updatedCredentialProcedure.getCredentialType();
-                            if (!"VERIFIABLE_CERTIFICATION".equals(updatedCredentialProcedure.getCredentialType())) {
+                            if (!VERIFIABLE_CERTIFICATION_TYPE.equals(credentialType)) {
                                 return Mono.empty(); //don't send message if it isn't VERIFIABLE_CERTIFICATION
                             }
 
@@ -225,7 +224,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                                             JsonNode root = new ObjectMapper().readTree(updatedCredentialProcedure.getCredentialDecoded());
                                             String productId = root.get("credentialSubject").get("product").get("productId").asText();
                                             String companyEmail = root.get("credentialSubject").get("company").get("email").asText();
-                                            byte[] bytes = companyEmail.getBytes(StandardCharsets.UTF_8);
+
                                             return m2mTokenService.getM2MToken()
                                                     .flatMap(m2mToken -> credentialDeliveryService.sendVcToResponseUri(
                                                             responseUri,

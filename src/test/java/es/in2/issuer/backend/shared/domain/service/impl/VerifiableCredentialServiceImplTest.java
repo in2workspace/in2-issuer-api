@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.DetailedIssuer;
-import es.in2.issuer.backend.shared.domain.service.impl.VerifiableCredentialServiceImpl;
 import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
@@ -49,8 +48,6 @@ class VerifiableCredentialServiceImplTest {
     private CredentialSignerWorkflow credentialSignerWorkflow;
     @Mock
     private ObjectMapper objectMapper;
-    @Mock
-    private EmailService emailService;
     @Mock
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     @Mock
@@ -498,13 +495,13 @@ class VerifiableCredentialServiceImplTest {
         // 4) Ara el DetailedIssuer, no LEARCredentialEmployee
         DetailedIssuer mockIssuer = mock(DetailedIssuer.class);
         when(learCredentialEmployeeFactory.createIssuer(
-                eq(procedureId),
-                eq(VERIFIABLE_CERTIFICATION)))
+                procedureId,
+                VERIFIABLE_CERTIFICATION))
                 .thenReturn(Mono.just(mockIssuer));
 
         when(verifiableCertificationFactory.mapIssuerAndSigner(
-                eq(procedureId),
-                eq(mockIssuer)))
+                procedureId,
+                mockIssuer))
                 .thenReturn(Mono.just(bindVerifiableCertification));
 
         when(credentialProcedureService.updateDecodedCredentialByProcedureId(
@@ -533,9 +530,9 @@ class VerifiableCredentialServiceImplTest {
                         preSubmittedCredentialRequest.operationMode(),
                         preSubmittedCredentialRequest.responseUri());
         verify(learCredentialEmployeeFactory, times(1))
-                .createIssuer(eq(procedureId), eq(VERIFIABLE_CERTIFICATION));
+                .createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
         verify(verifiableCertificationFactory, times(1))
-                .mapIssuerAndSigner(eq(procedureId), eq(mockIssuer));
+                .mapIssuerAndSigner(procedureId, mockIssuer);
         verify(credentialProcedureService, times(1))
                 .updateDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification, JWT_VC);
     }
@@ -611,83 +608,6 @@ class VerifiableCredentialServiceImplTest {
         verify(credentialProcedureService, never())
                 .updateDecodedCredentialByProcedureId(any(), any(), any());
     }
-
-//    @Test
-//    void generateVerifiableCertification_IncompleteFlowWithErrors() {
-//        // Arrange
-//        String token = "id-token-123";
-//        JsonNode mockCredentialJsonNode = mock(JsonNode.class);
-//
-//        PreSubmittedCredentialRequest preSubmittedCredentialRequest = PreSubmittedCredentialRequest.builder()
-//                .payload(mockCredentialJsonNode)
-//                .operationMode("SYNC")
-//                .responseUri("https://example.com/response")
-//                .build();
-//
-//        // Mock the credential factory behavior
-//        CredentialProcedureCreationRequest mockCreationRequest = CredentialProcedureCreationRequest.builder()
-//                .credentialId("cert-id-123")
-//                .organizationIdentifier("org-id-123")
-//                .credentialDecoded("decoded-certification")
-//                .build();
-//
-//        when(credentialFactory.mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token))
-//                .thenReturn(Mono.just(mockCreationRequest));
-//
-//        // Mock the credential procedure service
-//        when(credentialProcedureService.createCredentialProcedure(mockCreationRequest))
-//                .thenReturn(Mono.just(procedureId));
-//
-//        // Mock the deferred credential metadata service
-//        String metadataId = "metadata-id-123";
-//        when(deferredCredentialMetadataService.createDeferredCredentialMetadata(
-//                procedureId,
-//                preSubmittedCredentialRequest.operationMode(),
-//                preSubmittedCredentialRequest.responseUri()))
-//                .thenReturn(Mono.just(metadataId));
-//
-//        // Mock the LEAR credential employee factory
-//        LEARCredentialEmployee mockIssuer = mock(LEARCredentialEmployee.class);
-//        when(learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION))
-//                .thenReturn(Mono.just(mockIssuer));
-//
-//        // Mock the verifiable certification factory to throw an error
-//        RuntimeException mockException = new RuntimeException("Error mapping issuer and signer");
-//        when(verifiableCertificationFactory.mapIssuerAndSigner(procedureId, mockIssuer))
-//                .thenReturn(Mono.error(mockException));
-//
-//        // Act
-//        Mono<String> result = verifiableCredentialServiceImpl.generateVerifiableCertification(
-//                processId, preSubmittedCredentialRequest, token);
-//
-//        // Assert
-//        StepVerifier.create(result)
-//                .expectNext(procedureId)  // Should still return the procedureId despite the error
-//                .verifyComplete();
-//
-//        // Verify interactions
-//        verify(credentialFactory, times(1))
-//                .mapCredentialIntoACredentialProcedureRequest(processId, preSubmittedCredentialRequest, token);
-//
-//        verify(credentialProcedureService, times(1))
-//                .createCredentialProcedure(mockCreationRequest);
-//
-//        verify(deferredCredentialMetadataService, times(1))
-//                .createDeferredCredentialMetadata(
-//                        procedureId,
-//                        preSubmittedCredentialRequest.operationMode(),
-//                        preSubmittedCredentialRequest.responseUri());
-//
-//        verify(learCredentialEmployeeFactory, times(1))
-//                .createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
-//
-//        verify(verifiableCertificationFactory, times(1))
-//                .mapIssuerAndSigner(procedureId, mockIssuer);
-//
-//        // This should not be called due to the error
-//        verify(credentialProcedureService, never())
-//                .updateDecodedCredentialByProcedureId(any(), any(), any());
-//    }
 
     @Test
     void generateVerifiableCertification_InitialFlowError() {
