@@ -23,7 +23,6 @@ public class SignUnsignedCredentialController {
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
             @PathVariable("procedure_id") String procedureId) {
 
-        log.info("SignUnsignedCredentialController");
         return credentialSignerWorkflow.retrySignUnsignedCredential(authorizationHeader, procedureId);
     }
 }
