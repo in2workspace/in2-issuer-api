@@ -150,7 +150,7 @@ class DeferredCredentialWorkflowImplTest {
         when(deferredCredentialMetadataService.updateVcByProcedureId(credential,procedureId))
                 .thenReturn(Mono.empty());
 
-        when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready",expectedFirstName))
+        when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready", expectedFirstName, "You can now use it with your Wallet"))
                 .thenReturn(Mono.empty());
 
         when(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("A"));
