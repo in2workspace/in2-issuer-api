@@ -1,6 +1,5 @@
 package es.in2.issuer.backend.backoffice.domain.service.impl;
 
-import es.in2.issuer.backend.backoffice.domain.service.impl.NotificationServiceImpl;
 import es.in2.issuer.backend.shared.domain.exception.EmailCommunicationException;
 import es.in2.issuer.backend.shared.domain.model.enums.CredentialStatus;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;

@@ -5,37 +5,27 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import es.in2.issuer.backend.shared.domain.exception.InvalidCredentialFormatException;
-import es.in2.issuer.backend.shared.domain.exception.RemoteSignatureException;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialProcedureCreationRequest;
 import es.in2.issuer.backend.shared.domain.model.dto.LEARCredentialEmployeeJwtPayload;
-import es.in2.issuer.backend.shared.domain.model.dto.SignatureRequest;
-import es.in2.issuer.backend.shared.domain.model.dto.credential.DetailedIssuer;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.Power;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.enums.CredentialType;
 import es.in2.issuer.backend.shared.domain.service.AccessTokenService;
-import es.in2.issuer.backend.shared.domain.service.impl.RemoteSignatureServiceImpl;
-import es.in2.issuer.backend.shared.infrastructure.config.DefaultSignerConfig;
-import es.in2.issuer.backend.shared.infrastructure.config.RemoteSignatureConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
-import reactor.util.retry.Retry;
 
 import java.sql.Timestamp;
-import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE_DESCRIPTION;
 import static es.in2.issuer.backend.shared.domain.util.Constants.*;
-import static es.in2.issuer.backend.shared.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 
 @Slf4j
 @Component

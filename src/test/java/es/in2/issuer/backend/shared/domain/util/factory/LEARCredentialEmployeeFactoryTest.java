@@ -15,7 +15,6 @@ import es.in2.issuer.backend.shared.domain.service.impl.RemoteSignatureServiceIm
 import es.in2.issuer.backend.shared.domain.util.Constants;
 import es.in2.issuer.backend.shared.infrastructure.config.DefaultSignerConfig;
 import es.in2.issuer.backend.shared.infrastructure.config.RemoteSignatureConfig;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +25,6 @@ import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
 import java.util.List;
-
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;

@@ -18,8 +18,7 @@ import org.thymeleaf.context.Context;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.io.*;
-
+import java.io.InputStream;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.UTF_8;
 

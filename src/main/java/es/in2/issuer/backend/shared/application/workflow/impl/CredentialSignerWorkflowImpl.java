@@ -26,9 +26,13 @@ import reactor.core.scheduler.Schedulers;
 import java.io.ByteArrayOutputStream;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 
-import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.CWT_VC;
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.JWT_VC;
 import static es.in2.issuer.backend.shared.domain.util.Constants.*;
 
 @Service

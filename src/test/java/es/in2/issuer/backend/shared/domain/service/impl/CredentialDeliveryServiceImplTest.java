@@ -18,7 +18,7 @@ import reactor.test.StepVerifier;
 import java.io.IOException;
 import java.net.URI;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CredentialDeliveryServiceImplTest {

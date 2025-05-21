@@ -27,7 +27,6 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import javax.naming.OperationNotSupportedException;
-
 import java.util.List;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;

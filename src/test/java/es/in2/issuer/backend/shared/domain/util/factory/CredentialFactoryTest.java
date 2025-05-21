@@ -6,8 +6,6 @@ import es.in2.issuer.backend.shared.domain.model.dto.CredentialProcedureCreation
 import es.in2.issuer.backend.shared.domain.model.dto.PreSubmittedCredentialRequest;
 import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
-import es.in2.issuer.backend.shared.domain.util.factory.CredentialFactory;
-import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

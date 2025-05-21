@@ -34,7 +34,8 @@ import java.util.List;
 import java.util.Map;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
-import static es.in2.issuer.backend.shared.domain.util.Constants.*;
+import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.backend.shared.domain.util.Constants.VERIFIABLE_CERTIFICATION;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 

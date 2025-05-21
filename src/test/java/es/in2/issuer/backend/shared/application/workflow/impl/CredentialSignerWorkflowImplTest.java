@@ -22,9 +22,10 @@ import reactor.test.StepVerifier;
 
 import java.util.UUID;
 
-import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.CWT_VC;
+import static es.in2.issuer.backend.backoffice.domain.util.Constants.JWT_VC;
 import static es.in2.issuer.backend.shared.domain.util.Constants.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
