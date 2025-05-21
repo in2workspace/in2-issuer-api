@@ -118,7 +118,7 @@ class NotificationServiceImplTest {
                 .thenReturn(Mono.just(user));
         when(credentialProcedureService.getMandatorOrganizationFromDecodedCredentialByProcedureId(procedureId))
                 .thenReturn(Mono.just(organization));
-        when(emailService.sendCredentialSignedNotification(email, "Credential Ready", user, "You can now use it with your wallet"))
+        when(emailService.sendCredentialSignedNotification(email, "Credential Ready", user, "You can now use it with your wallet."))
                 .thenReturn(Mono.empty());
 
         Mono<Void> result = notificationService.sendNotification(processId, procedureId);

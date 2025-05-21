@@ -159,7 +159,7 @@ class DeferredCredentialWorkflowImplTest {
         when(deferredCredentialMetadataService.updateVcByProcedureId(credential,procedureId))
                 .thenReturn(Mono.empty());
 
-        when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready", expectedFirstName, "You can now use it with your Wallet"))
+        when(emailService.sendCredentialSignedNotification(expectedEmail,"Credential Ready", expectedFirstName, "You can now use it with your Wallet."))
                 .thenReturn(Mono.empty());
 
         when(deferredCredentialMetadataService.getOperationModeByProcedureId(procedureId)).thenReturn(Mono.just("A"));
@@ -204,7 +204,7 @@ class DeferredCredentialWorkflowImplTest {
 
         assertEquals("foo@example.com", emailF.get(result));
         assertEquals("Foo",              firstNameF.get(result));
-        assertEquals("You can now use it with your Wallet", sentenceF.get(result));
+        assertEquals("You can now use it with your Wallet.", sentenceF.get(result));
     }
 
     @Test

@@ -84,7 +84,7 @@ public class DeferredCredentialWorkflowImpl implements DeferredCredentialWorkflo
             JsonNode m = subj.get(MANDATE).get(MANDATEE);
             d.email     = m.path(EMAIL).asText(null);
             d.firstName = m.path(FIRST_NAME).asText(null);
-            d.sentence  = "You can now use it with your Wallet";
+            d.sentence  = "You can now use it with your Wallet.";
         } else if (subj.has("company")) {
             JsonNode c = subj.get("company");
             d.email     = c.path(EMAIL).asText(null);
