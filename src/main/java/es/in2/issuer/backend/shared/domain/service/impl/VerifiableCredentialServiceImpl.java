@@ -10,6 +10,7 @@ import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.shared.domain.service.VerifiableCredentialService;
 import es.in2.issuer.backend.shared.domain.util.factory.CredentialFactory;
+import es.in2.issuer.backend.shared.domain.util.factory.IssuerFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
     private final CredentialSignerWorkflow credentialSignerWorkflow;
     private final LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     private final VerifiableCertificationFactory verifiableCertificationFactory;
+    private final IssuerFactory issuerFactory;
 
     @Override
     public Mono<String> generateVc(String processId, String vcType, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token) {
@@ -56,7 +58,7 @@ public class VerifiableCredentialServiceImpl implements VerifiableCredentialServ
                                 .thenReturn(procedureId)
                 )
                 .flatMap(procedureId ->
-                        learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
+                        issuerFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
                                 .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
                                 .flatMap(bindVerifiableCertification ->
                                         credentialProcedureService.updateDecodedCredentialByProcedureId(procedureId, bindVerifiableCertification, JWT_VC)

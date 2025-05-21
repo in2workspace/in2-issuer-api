@@ -44,9 +44,7 @@ public class LEARCredentialEmployeeFactory {
 
     private final ObjectMapper objectMapper;
     private final AccessTokenService accessTokenService;
-    private final RemoteSignatureConfig remoteSignatureConfig;
-    private final DefaultSignerConfig defaultSignerConfig;
-    private final RemoteSignatureServiceImpl remoteSignatureServiceImpl;
+    private final IssuerFactory issuerFactory;
 
     public Mono<String> mapCredentialAndBindMandateeIdInToTheCredential(String decodedCredentialString, String mandateeId){
         LEARCredentialEmployee decodedCredential = mapStringToLEARCredentialEmployee(decodedCredentialString);
@@ -141,70 +139,6 @@ public class LEARCredentialEmployeeFactory {
                 .toList();
     }
 
-    //todo move to generic credential factory
-    public Mono<DetailedIssuer> createIssuer(String procedureId, String credentialType) {
-        if (remoteSignatureConfig.getRemoteSignatureType().equals(SIGNATURE_REMOTE_TYPE_SERVER)) {
-            return Mono.just(DetailedIssuer.builder()
-                    .id(DID_ELSI + defaultSignerConfig.getOrganizationIdentifier())
-                    .organizationIdentifier(defaultSignerConfig.getOrganizationIdentifier())
-                    .organization(defaultSignerConfig.getOrganization())
-                    .country(defaultSignerConfig.getCountry())
-                    .commonName(defaultSignerConfig.getCommonName())
-                    .emailAddress(defaultSignerConfig.getEmail())
-                    .serialNumber(defaultSignerConfig.getSerialNumber())
-                    .build());
-        } else {
-            return createIssuerRemote(procedureId, credentialType);
-        }
-    }
-
-    //todo move to generic credential factory
-    private Mono<DetailedIssuer> createIssuerRemote(String procedureId, String credentialType) {
-        return Mono.defer(() -> remoteSignatureServiceImpl.validateCredentials()
-                .flatMap(valid -> {
-                    if (Boolean.FALSE.equals(valid)) {
-                        log.error("Credentials mismatch. Signature process aborted.");
-                        return Mono.error(new RemoteSignatureException("Credentials mismatch. Signature process aborted."));
-                    }
-
-                    return switch (credentialType) {
-                        case LEAR_CREDENTIAL_EMPLOYEE -> remoteSignatureServiceImpl.getMandatorMail(procedureId)
-                                .flatMap(mandatorMail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
-                                        .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
-                                        .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mandatorMail)));
-
-                        case VERIFIABLE_CERTIFICATION -> remoteSignatureServiceImpl.getMailForVerifiableCertification(procedureId)
-                                .flatMap(mail -> remoteSignatureServiceImpl.requestAccessToken(SignatureRequest.builder().build(), SIGNATURE_REMOTE_SCOPE_SERVICE)
-                                        .flatMap(accessToken -> remoteSignatureServiceImpl.requestCertificateInfo(accessToken, remoteSignatureConfig.getRemoteSignatureCredentialId()))
-                                        .flatMap(certificateInfo -> remoteSignatureServiceImpl.extractIssuerFromCertificateInfo(certificateInfo, mail)));
-
-                        default -> {
-                            log.error("Unsupported credentialType: {}", credentialType);
-                            yield Mono.error(new RemoteSignatureException("Unsupported credentialType: " + credentialType));
-                        }
-                    };
-                }))
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))
-                        .maxBackoff(Duration.ofSeconds(5))
-                        .jitter(0.5)
-                        .filter(remoteSignatureServiceImpl::isRecoverableError)
-                        .doBeforeRetry(retrySignal -> {
-                            long attempt = retrySignal.totalRetries() + 1;
-                            log.info("Retrying credential validation due to recoverable error (Attempt #{} of 3)", attempt);
-                        }))
-                .onErrorResume(throwable -> {
-                    boolean isRetryExhausted = !(throwable instanceof RemoteSignatureException &&
-                            throwable.getMessage().contains("Credentials mismatch"));
-
-                    if (isRetryExhausted) {
-                        log.error("Error after 3 retries, switching to ASYNC mode.");
-                    }
-                    log.error("Error Time: {}", new Date());
-                    return remoteSignatureServiceImpl.handlePostRecoverError(procedureId)
-                            .then(Mono.empty());
-                });
-    }
-
     private LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee createMandatee(
             LEARCredentialEmployee.CredentialSubject baseCredentialSubject) {
         return LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee.builder()
@@ -290,7 +224,7 @@ public class LEARCredentialEmployeeFactory {
     }
 
     private Mono<LEARCredentialEmployee> bindIssuerToLearCredentialEmployee(LEARCredentialEmployee decodedCredential, String procedureId) {
-        return createIssuer(procedureId, LEAR_CREDENTIAL_EMPLOYEE)
+        return issuerFactory.createIssuer(procedureId, LEAR_CREDENTIAL_EMPLOYEE)
                 .map(issuer -> LEARCredentialEmployee.builder()
                     .context(decodedCredential.context())
                     .id(decodedCredential.id())

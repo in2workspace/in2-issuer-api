@@ -10,6 +10,7 @@ import es.in2.issuer.backend.shared.domain.service.CredentialProcedureService;
 import es.in2.issuer.backend.shared.domain.service.DeferredCredentialMetadataService;
 import es.in2.issuer.backend.backoffice.domain.util.Constants;
 import es.in2.issuer.backend.shared.domain.util.factory.CredentialFactory;
+import es.in2.issuer.backend.shared.domain.util.factory.IssuerFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import org.junit.jupiter.api.Test;
@@ -51,6 +52,8 @@ class VerifiableCredentialServiceImplTest {
     private LEARCredentialEmployeeFactory learCredentialEmployeeFactory;
     @Mock
     private VerifiableCertificationFactory verifiableCertificationFactory;
+    @Mock
+    private IssuerFactory issuerFactory;
     @InjectMocks
     private VerifiableCredentialServiceImpl verifiableCredentialServiceImpl;
 
@@ -491,7 +494,7 @@ class VerifiableCredentialServiceImplTest {
 
         // 4) Ara el DetailedIssuer, no LEARCredentialEmployee
         DetailedIssuer mockIssuer = mock(DetailedIssuer.class);
-        when(learCredentialEmployeeFactory.createIssuer(
+        when(issuerFactory.createIssuer(
                 procedureId,
                 VERIFIABLE_CERTIFICATION))
                 .thenReturn(Mono.just(mockIssuer));
@@ -526,7 +529,7 @@ class VerifiableCredentialServiceImplTest {
                         procedureId,
                         preSubmittedCredentialRequest.operationMode(),
                         preSubmittedCredentialRequest.responseUri());
-        verify(learCredentialEmployeeFactory, times(1))
+        verify(issuerFactory, times(1))
                 .createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
         verify(verifiableCertificationFactory, times(1))
                 .mapIssuerAndSigner(procedureId, mockIssuer);
@@ -570,7 +573,7 @@ class VerifiableCredentialServiceImplTest {
 
         // Mock the LEAR credential employee factory to throw an error
         RuntimeException mockException = new RuntimeException("Error generating issuer");
-        when(learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION))
+        when(issuerFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION))
                 .thenReturn(Mono.error(mockException));
 
         // Act
@@ -595,7 +598,7 @@ class VerifiableCredentialServiceImplTest {
                         preSubmittedCredentialRequest.operationMode(),
                         preSubmittedCredentialRequest.responseUri());
 
-        verify(learCredentialEmployeeFactory, times(1))
+        verify(issuerFactory, times(1))
                 .createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
 
         // These should not be called due to the error
@@ -637,7 +640,7 @@ class VerifiableCredentialServiceImplTest {
         verify(deferredCredentialMetadataService, never())
                 .createDeferredCredentialMetadata(any(), any(), any());
 
-        verify(learCredentialEmployeeFactory, never())
+        verify(issuerFactory, never())
                 .createIssuer(any(), any());
 
         verify(verifiableCertificationFactory, never())

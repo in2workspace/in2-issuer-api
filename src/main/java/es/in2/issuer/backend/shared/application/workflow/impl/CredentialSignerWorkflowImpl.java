@@ -10,6 +10,7 @@ import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
 import es.in2.issuer.backend.shared.domain.model.enums.SignatureType;
 import es.in2.issuer.backend.shared.domain.service.*;
+import es.in2.issuer.backend.shared.domain.util.factory.IssuerFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.backend.shared.infrastructure.repository.CredentialProcedureRepository;
@@ -45,6 +46,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
     private final M2MTokenService m2mTokenService;
     private final CredentialDeliveryService credentialDeliveryService;
     private final DeferredCredentialMetadataService deferredCredentialMetadataService;
+    private final IssuerFactory issuerFactory;
 
     @Override
     public Mono<String> signAndUpdateCredentialByProcedureId(String authorizationHeader, String procedureId, String format) {
@@ -181,7 +183,7 @@ public class CredentialSignerWorkflowImpl implements CredentialSignerWorkflow {
                 .switchIfEmpty(Mono.error(new RuntimeException("Procedure not found")))
                 .flatMap(credentialProcedure -> switch (credentialProcedure.getCredentialType()) {
                     case VERIFIABLE_CERTIFICATION_TYPE ->
-                            learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
+                            issuerFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION)
                                     .flatMap(issuer -> verifiableCertificationFactory.mapIssuerAndSigner(procedureId, issuer))
                                     .flatMap(bindCredential -> {
                                         log.info("ProcessID: {} - Credential mapped and bind to the issuer: {}", procedureId, bindCredential);

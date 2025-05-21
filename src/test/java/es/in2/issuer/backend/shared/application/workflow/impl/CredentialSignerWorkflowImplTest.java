@@ -7,6 +7,7 @@ import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LE
 import es.in2.issuer.backend.shared.domain.model.entities.CredentialProcedure;
 import es.in2.issuer.backend.shared.domain.model.enums.SignatureType;
 import es.in2.issuer.backend.shared.domain.service.*;
+import es.in2.issuer.backend.shared.domain.util.factory.IssuerFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.LEARCredentialEmployeeFactory;
 import es.in2.issuer.backend.shared.domain.util.factory.VerifiableCertificationFactory;
 import es.in2.issuer.backend.shared.infrastructure.repository.CredentialProcedureRepository;
@@ -40,6 +41,9 @@ class CredentialSignerWorkflowImplTest {
 
     @Mock
     private VerifiableCertificationFactory verifiableCertificationFactory;
+
+    @Mock
+    private IssuerFactory issuerFactory;
 
     @Mock
     CredentialProcedureRepository credentialProcedureRepository;
@@ -383,7 +387,7 @@ class CredentialSignerWorkflowImplTest {
         // Flux principal
         when(credentialProcedureRepository.findByProcedureId(UUID.fromString(procedureId)))
                 .thenReturn(Mono.just(credentialProcedure));
-        when(learCredentialEmployeeFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION))
+        when(issuerFactory.createIssuer(procedureId, VERIFIABLE_CERTIFICATION))
                 .thenReturn(Mono.just(detailedIssuer));
 
         when(verifiableCertificationFactory.mapIssuerAndSigner(procedureId, detailedIssuer))
@@ -420,7 +424,7 @@ class CredentialSignerWorkflowImplTest {
                 .verifyComplete();
 
         // Verifiquem que s’han cridat tots els passos
-        verify(learCredentialEmployeeFactory).createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
+        verify(issuerFactory).createIssuer(procedureId, VERIFIABLE_CERTIFICATION);
         verify(verifiableCertificationFactory).mapIssuerAndSigner(procedureId, detailedIssuer);
         verify(credentialProcedureService).updateDecodedCredentialByProcedureId(procedureId, "bindedVc", JWT_VC);
         verify(credentialSignerWorkflow).signAndUpdateCredentialByProcedureId(authorizationHeader, procedureId, JWT_VC);
@@ -442,7 +446,7 @@ class CredentialSignerWorkflowImplTest {
 
         // Simulem el mapping fins a decoded-update
         doReturn(Mono.just(detailedIssuer))
-                .when(learCredentialEmployeeFactory)
+                .when(issuerFactory)
                 .createIssuer(eq(procedureId), anyString());
         when(verifiableCertificationFactory.mapIssuerAndSigner(procedureId, detailedIssuer))
                 .thenReturn(Mono.just("bindedVc"));
