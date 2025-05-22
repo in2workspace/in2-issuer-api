@@ -74,7 +74,7 @@ class SignatureConfigurationControllerTest {
 
         sampleWithProvider = new SignatureConfigWithProviderName(
                 CONFIG_ID, ORG_ID, true, SignatureMode.LOCAL,
-                null, null, null, null
+                null, null, null, null, null
         );
 
         sampleResponse = SignatureConfigurationResponse.builder()
