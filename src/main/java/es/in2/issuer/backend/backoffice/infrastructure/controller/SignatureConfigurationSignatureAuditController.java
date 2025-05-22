@@ -18,30 +18,11 @@ public class SignatureConfigurationSignatureAuditController {
 
     private final SignatureConfigurationAuditService auditService;
 
-    @Operation(
-            summary = "Get all signature configuration audits",
-            description = "Returns all audit logs for signature configurations.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Signature configuration deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content)
-            }
-    )
     @GetMapping
     public Flux<SignatureConfigAudit> getAllAudits(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
         return auditService.getAllAudits();
     }
 
-    @Operation(
-            summary = "Get signature configuration audits by organization",
-            description = "Returns audit logs filtered by organization identifier.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Audits retrieved successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid organization identifier", content = @Content),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @GetMapping(params = "organizationIdentifier")
     public Flux<SignatureConfigAudit> getAuditsByOrganization(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,

@@ -32,16 +32,6 @@ public class SignatureConfigurationController {
     private final SignatureConfigurationService signatureConfigurationService;
     private final AccessTokenService accessTokenService;
 
-    @Operation(
-            summary = "Create a new signature configuration",
-            description = "Creates a new signature configuration, stores the secrets in Vault, and persists the configuration identifier.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Signature configuration created successfully"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public Mono<ResponseEntity<SignatureConfiguration>> createSignatureConfiguration(
@@ -56,16 +46,6 @@ public class SignatureConfigurationController {
 
     }
 
-    @Operation(
-            summary = "Get signature configurations for a specific organization",
-            description = "Returns a list of all signature configurations filtered by the given organization identifier.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "All configurations for the specified organization returned"),
-                    @ApiResponse(responseCode = "400", description = "Missing or invalid organization identifier", content = @Content),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<SignatureConfigWithProviderName> getAllSignatureConfigurations(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
@@ -75,16 +55,6 @@ public class SignatureConfigurationController {
                 .flatMapMany(orgId ->signatureConfigurationService.findAllByOrganizationIdentifierAndMode(orgId, signatureMode));
     }
 
-    @Operation(
-            summary = "Get complete signature configuration by ID",
-            description = "Returns a complete signature configuration, including secrets stored in Vault, for the given configuration ID.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Complete signature configuration returned successfully"),
-                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<ResponseEntity<SignatureConfigurationResponse>> getCompleteConfigurationById(
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader,
@@ -97,16 +67,6 @@ public class SignatureConfigurationController {
                         .switchIfEmpty(Mono.just(ResponseEntity.notFound().build())));
     }
 
-    @Operation(
-            summary = "Update an existing signature configuration",
-            description = "Partially updates the signature configuration and secrets in Vault if provided.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Signature configuration updated successfully"),
-                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content),
-                    @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content)
-            }
-    )
     @PatchMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> updateSignatureConfiguration(
@@ -124,15 +84,6 @@ public class SignatureConfigurationController {
                                 .flatMap(userEmail -> signatureConfigurationService.updateSignatureConfiguration(id, organizationId, updateRequest.toCompleteSignatureConfiguration(),updateRequest.rationale(), userEmail)));
     }
 
-    @Operation(
-            summary = "Delete an existing signature configuration",
-            description = "Deletes the signature configuration and its secrets from Vault if present.",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "204", description = "Signature configuration deleted successfully"),
-                    @ApiResponse(responseCode = "404", description = "Configuration not found", content = @Content)
-            }
-    )
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public Mono<Void> deleteSignatureConfiguration(

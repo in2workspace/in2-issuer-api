@@ -23,16 +23,6 @@ import reactor.core.publisher.Mono;
 public class CloudProviderController {
     private final CloudProviderService cloudProviderService;
 
-    @Operation(
-            summary = "Create a new cloud provider",
-            description = "Registers a new cloud signature provider",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "201", description = "Cloud provider created"),
-                    @ApiResponse(responseCode = "400", description = "Invalid input", content = @Content),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @PostMapping(path = "/ops/v1/signatures/cloud-providers",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -45,15 +35,6 @@ public class CloudProviderController {
                 .map(saved -> ResponseEntity.status(HttpStatus.CREATED).body(saved));
     }
 
-    @Operation(
-            summary = "List all cloud providers",
-            description = "Returns all cloud providers currently registered",
-            tags = {SwaggerConfig.TAG_PRIVATE},
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "List of cloud providers returned successfully"),
-                    @ApiResponse(responseCode = "500", description = "Server error", content = @Content)
-            }
-    )
     @GetMapping(path = "/backoffice/v1/signatures/cloud-providers",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public Flux<CloudProvider> getAllCloudProviders(@RequestHeader(HttpHeaders.AUTHORIZATION) String authorizationHeader) {
