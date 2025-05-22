@@ -358,12 +358,28 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         }
     }
 
+    /**
+     * Applies all non-null, non-secret fields from the DTO to the entity.
+     */
     private void applyDtoToEntity(SignatureConfiguration entity,
                                   CompleteSignatureConfiguration dto) {
-        entity.setSignatureMode(dto.signatureMode());
-        entity.setCloudProviderId(dto.cloudProviderId());
-        entity.setClientId(dto.clientId());
-        entity.setCredentialId(dto.credentialId());
-        entity.setCredentialName(dto.credentialName());
+        if (dto.enableRemoteSignature() != null) {
+            entity.setEnableRemoteSignature(dto.enableRemoteSignature());
+        }
+        if (dto.signatureMode() != null) {
+            entity.setSignatureMode(dto.signatureMode());
+        }
+        if (dto.cloudProviderId() != null) {
+            entity.setCloudProviderId(dto.cloudProviderId());
+        }
+        if (dto.clientId() != null) {
+            entity.setClientId(dto.clientId());
+        }
+        if (dto.credentialId() != null) {
+            entity.setCredentialId(dto.credentialId());
+        }
+        if (dto.credentialName() != null) {
+            entity.setCredentialName(dto.credentialName());
+        }
     }
 }
