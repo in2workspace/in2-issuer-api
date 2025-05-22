@@ -3,7 +3,6 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.ChangeSet;
-import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
 import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;

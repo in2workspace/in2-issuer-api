@@ -396,8 +396,12 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
         Map<String,Object> olds = new HashMap<>();
         Map<String,Object> news = new HashMap<>();
 
-        for (String key : oldMap.keySet()) {
-            Object o = oldMap.get(key), n = newMap.get(key);
+        for (Map.Entry<String,Object> entry : oldMap.entrySet()) {
+            String key = entry.getKey();
+            Object o = entry.getValue();
+
+            Object n = newMap.get(key);
+
             if (!Objects.equals(o, n)) {
                 olds.put(key, o);
                 news.put(key, n);
@@ -408,8 +412,6 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     }
 
     private SignatureConfigWithProviderName mapToWithProviderName(SignatureConfiguration config, String providerName) {
-        //TODO
-        log.info(config.getVaultHashedSecretValues());
         return new SignatureConfigWithProviderName(
                 config.getId(),
                 config.getOrganizationIdentifier(),
@@ -418,8 +420,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 providerName,
                 config.getClientId(),
                 config.getCredentialId(),
-                config.getCredentialName(),
-                config.getVaultHashedSecretValues()
+                config.getCredentialName()
         );
     }
 
