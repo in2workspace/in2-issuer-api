@@ -131,9 +131,7 @@ class SignatureConfigurationControllerTest {
                 controller.getAllSignatureConfigurations(AUTH, SignatureMode.CLOUD);
 
         StepVerifier.create(result)
-                .assertNext(item -> {
-                    assertThat(item).isEqualTo(sampleWithProvider);
-                })
+                .assertNext(item -> assertThat(item).isEqualTo(sampleWithProvider))
                 .verifyComplete();
 
         verify(accessTokenService).getOrganizationId(AUTH);
@@ -181,9 +179,7 @@ class SignatureConfigurationControllerTest {
                 null, null, null, null, null, null, null, null, null, null,null,null,null);
 
         StepVerifier.create(controller.updateSignatureConfiguration(AUTH, CONFIG_ID.toString(), req))
-                .expectErrorSatisfies(e -> {
-                    assertThat(e).isInstanceOf(MissingRequiredDataException.class);
-                })
+                .expectErrorSatisfies(e -> assertThat(e).isInstanceOf(MissingRequiredDataException.class))
                 .verify();
     }
 
