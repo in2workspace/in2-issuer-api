@@ -55,6 +55,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     public Mono<Void> execute(String processId, PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest, String bearerToken, String idToken) {
         return accessTokenService.getCleanBearerToken(bearerToken).flatMap(
                 token ->
+                        // TODO: In the future the policy authorization will be done by an authorized filter
                         verifiableCredentialPolicyAuthorizationService.authorize(token, preSubmittedDataCredentialRequest.schema(), preSubmittedDataCredentialRequest.payload(), idToken)
                                 .then(Mono.defer(() -> {
                                     if (preSubmittedDataCredentialRequest.schema().equals(VERIFIABLE_CERTIFICATION)) {
