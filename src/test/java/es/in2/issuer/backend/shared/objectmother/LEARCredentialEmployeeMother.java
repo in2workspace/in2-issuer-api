@@ -7,7 +7,7 @@ public final class LEARCredentialEmployeeMother {
     private LEARCredentialEmployeeMother() {
     }
 
-    public static LEARCredentialEmployee withIdAndMandatorOrganizationIdentifier() {
+    public static LEARCredentialEmployee withIdAndMandatorOrganizationIdentifierAndMandateeEmail() {
         return LEARCredentialEmployee
                 .builder()
                 .id("lear")
@@ -17,6 +17,12 @@ public final class LEARCredentialEmployeeMother {
                                 .mandate(
                                         LEARCredentialEmployee.CredentialSubject.Mandate.
                                                 builder()
+                                                .mandatee(
+                                                        LEARCredentialEmployee.CredentialSubject.Mandate.Mandatee
+                                                                .builder()
+                                                                .email("example@example.org")
+                                                                .build()
+                                                )
                                                 .mandator(
                                                         Mandator
                                                                 .builder()
