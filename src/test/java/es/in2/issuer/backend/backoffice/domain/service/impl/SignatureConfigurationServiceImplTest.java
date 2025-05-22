@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import es.in2.issuer.backend.backoffice.domain.exception.InvalidSignatureConfigurationException;
 import es.in2.issuer.backend.backoffice.domain.exception.NoSuchEntityException;
 import es.in2.issuer.backend.backoffice.domain.exception.OrganizationIdentifierMismatchException;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.ChangeSet;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
 import es.in2.issuer.backend.backoffice.domain.model.entities.CloudProvider;
@@ -372,10 +373,13 @@ class SignatureConfigurationServiceImplTest {
         when(repository.save(any()))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        when(auditService.saveAudit(any(SignatureConfigurationResponse.class),
-                any(CompleteSignatureConfiguration.class),
-                eq("rationale"), eq("user@mail")))
-                .thenReturn(Mono.empty());
+        // Now auditService expects a ChangeSet, not the DTO:
+        when(auditService.saveAudit(
+                any(SignatureConfigurationResponse.class),
+                any(ChangeSet.class),
+                eq("rationale"),
+                eq("user@mail")
+        )).thenReturn(Mono.empty());
 
         String fakeJson = "{\"dummy\":\"h\"}";
         when(mockObjectMapper.writeValueAsString(anyMap()))
@@ -405,12 +409,14 @@ class SignatureConfigurationServiceImplTest {
         StepVerifier.create(result)
                 .verifyComplete();
 
+        // Vault was patched with the plain secrets:
         verify(vaultService).patchSecrets(eq(path), argThat(map ->
                 "sec1".equals(map.get(CLIENT_SECRET)) &&
                         "pass1".equals(map.get(CREDENTIAL_PASSWORD)) &&
                         "totp1".equals(map.get(SECRET))
         ));
 
+        // Repository save includes the fakeJson for the updated hash JSON:
         ArgumentCaptor<SignatureConfiguration> saveCap =
                 ArgumentCaptor.forClass(SignatureConfiguration.class);
         verify(repository).save(saveCap.capture());
@@ -419,11 +425,15 @@ class SignatureConfigurationServiceImplTest {
         assertThat(saved.getClientId()).isEqualTo("c");
         assertThat(saved.getCredentialName()).isEqualTo("cname");
 
+        // Capture the ChangeSet passed to auditService:
+        ArgumentCaptor<ChangeSet> csCap =
+                ArgumentCaptor.forClass(ChangeSet.class);
         ArgumentCaptor<SignatureConfigurationResponse> oldRespCap =
                 ArgumentCaptor.forClass(SignatureConfigurationResponse.class);
+
         verify(auditService).saveAudit(
                 oldRespCap.capture(),
-                eq(newCfg),
+                csCap.capture(),
                 eq("rationale"),
                 eq("user@mail")
         );
@@ -431,8 +441,15 @@ class SignatureConfigurationServiceImplTest {
         SignatureConfigurationResponse oldResp = oldRespCap.getValue();
         assertThat(oldResp.id()).isEqualTo(id);
         assertThat(oldResp.organizationIdentifier()).isEqualTo(ORG);
-    }
 
+        ChangeSet cs = csCap.getValue();
+        // The ChangeSet.newValues() should contain only the fields that changed:
+        assertThat(cs.newValues())
+                .containsEntry("clientId", "c")
+                .containsEntry("credentialId", "cid")
+                .containsEntry("credentialName", "cname")
+                .containsEntry("vaultHashedSecretValues", fakeJson);
+    }
 
     // helper to compute the same SHA-256 + Base64URL without padding
     private static String sha256Base64Url(String value) {

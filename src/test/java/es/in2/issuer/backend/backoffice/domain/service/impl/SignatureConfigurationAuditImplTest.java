@@ -3,7 +3,7 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.ChangeSet;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
 import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigurationAudit;
@@ -21,6 +21,7 @@ import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +36,7 @@ class SignatureConfigurationAuditImplTest {
     @InjectMocks SignatureConfigurationAuditImpl service;
 
     private SignatureConfigurationResponse oldConfig;
-    private CompleteSignatureConfiguration newConfig;
+    private ChangeSet changes;
     private final String rationale = "rationale";
     private final String userEmail = "user@example.com";
 
@@ -53,20 +54,11 @@ class SignatureConfigurationAuditImplTest {
                 .credentialName("cname")
                 .build();
 
-        newConfig = CompleteSignatureConfiguration.builder()
-                .id(id)
-                .organizationIdentifier("org-1")
-                .enableRemoteSignature(false)
-                .signatureMode(es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode.LOCAL)
-                .cloudProviderId(id)
-                .clientId("cid2")
-                .credentialId("crid2")
-                .credentialName("cname2")
-                .secretRelativePath("path")
-                .clientSecret("csec")
-                .credentialPassword("pwd")
-                .secret("sec")
-                .build();
+        // Simulate that only clientId changed
+        changes = new ChangeSet(
+                Map.of("clientId", oldConfig.clientId()),
+                Map.of("clientId", "cid-updated")
+        );
     }
 
     @Test
@@ -74,12 +66,13 @@ class SignatureConfigurationAuditImplTest {
         String oldJson = "{\"old\":true}";
         String newJson = "{\"new\":true}";
 
-        when(objectMapper.writeValueAsString(oldConfig)).thenReturn(oldJson);
-        when(objectMapper.writeValueAsString(newConfig)).thenReturn(newJson);
+        // Stub JSON serialization of the two maps
+        when(objectMapper.writeValueAsString(changes.oldValues())).thenReturn(oldJson);
+        when(objectMapper.writeValueAsString(changes.newValues())).thenReturn(newJson);
         when(auditRepository.save(any(SignatureConfigurationAudit.class)))
                 .thenAnswer(inv -> Mono.just(inv.getArgument(0)));
 
-        Mono<Void> result = service.saveAudit(oldConfig, newConfig, rationale, userEmail);
+        Mono<Void> result = service.saveAudit(oldConfig, changes, rationale, userEmail);
 
         StepVerifier.create(result)
                 .verifyComplete();
@@ -89,9 +82,11 @@ class SignatureConfigurationAuditImplTest {
         verify(auditRepository).save(captor.capture());
         SignatureConfigurationAudit audit = captor.getValue();
 
-        assertThat(audit.getSignatureConfigurationId()).isEqualTo(oldConfig.id().toString());
+        assertThat(audit.getSignatureConfigurationId())
+                .isEqualTo(oldConfig.id().toString());
         assertThat(audit.getUserEmail()).isEqualTo(userEmail);
-        assertThat(audit.getOrganizationIdentifier()).isEqualTo(oldConfig.organizationIdentifier());
+        assertThat(audit.getOrganizationIdentifier())
+                .isEqualTo(oldConfig.organizationIdentifier());
         assertThat(audit.getOldValues()).isEqualTo(oldJson);
         assertThat(audit.getNewValues()).isEqualTo(newJson);
         assertThat(audit.getRationale()).isEqualTo(rationale);
@@ -100,16 +95,17 @@ class SignatureConfigurationAuditImplTest {
     }
 
     @Test
-    void saveAudit_serializeOldConfigError() throws JsonProcessingException {
-        when(objectMapper.writeValueAsString(oldConfig))
-                .thenThrow(new JsonProcessingException("fail"){});
+    void saveAudit_serializeOldValuesError() throws JsonProcessingException {
+        // Simulate error when serializing oldValues()
+        when(objectMapper.writeValueAsString(changes.oldValues()))
+                .thenThrow(new JsonProcessingException("fail") {});
 
-        Mono<Void> result = service.saveAudit(oldConfig, newConfig, rationale, userEmail);
+        Mono<Void> result = service.saveAudit(oldConfig, changes, rationale, userEmail);
 
         StepVerifier.create(result)
                 .expectErrorSatisfies(e -> {
                     assertThat(e).isInstanceOf(RuntimeException.class);
-                    assertThat(e).hasMessageContaining("Error serializing config audit JSON");
+                    assertThat(e).hasMessageContaining("Error serializing audit change set");
                     assertThat(e.getCause()).isInstanceOf(JsonProcessingException.class);
                 })
                 .verify();

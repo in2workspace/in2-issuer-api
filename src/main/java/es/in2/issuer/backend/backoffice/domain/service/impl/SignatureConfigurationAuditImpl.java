@@ -2,6 +2,7 @@ package es.in2.issuer.backend.backoffice.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.ChangeSet;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.CompleteSignatureConfiguration;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigurationResponse;
@@ -25,15 +26,13 @@ public class SignatureConfigurationAuditImpl implements SignatureConfigurationAu
 
 
     @Override
-    public Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig,
-                                CompleteSignatureConfiguration newConfig,
-                                String rationale,
-                                String userEmail) {
+    public Mono<Void> saveAudit(SignatureConfigurationResponse oldConfig, ChangeSet changes, String rationale, String userEmail) {
+
         try {
-            String oldJson = objectMapper.writeValueAsString(oldConfig);
-            String newJson = newConfig != null
-                    ? objectMapper.writeValueAsString(newConfig)
-                    : "{}";
+            // Serialize only the changed fields
+            String oldJson = objectMapper.writeValueAsString(changes.oldValues());
+            String newJson = objectMapper.writeValueAsString(changes.newValues());
+
             SignatureConfigurationAudit audit = SignatureConfigurationAudit.builder()
                     .signatureConfigurationId(oldConfig.id().toString())
                     .userEmail(userEmail)
@@ -46,8 +45,10 @@ public class SignatureConfigurationAuditImpl implements SignatureConfigurationAu
                     .build();
 
             return auditRepository.save(audit).then();
+
         } catch (JsonProcessingException e) {
-            return Mono.error(new RuntimeException("Error serializing config audit JSON", e));
+            return Mono.error(new RuntimeException(
+                    "Error serializing audit change set", e));
         }
     }
 

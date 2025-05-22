@@ -14,6 +14,8 @@ public record SignatureConfigurationResponse(UUID id,
                                              UUID cloudProviderId,
                                              String clientId,
                                              String credentialId,
-                                             String credentialName
+                                             String credentialName,
+                                             String vaultHashedSecretValues,
+                                             String secretRelativePath
 ) {
 }
