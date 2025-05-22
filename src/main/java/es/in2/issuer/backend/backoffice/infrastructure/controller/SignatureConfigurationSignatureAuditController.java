@@ -2,10 +2,6 @@ package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
 import es.in2.issuer.backend.backoffice.domain.model.dtos.SignatureConfigAudit;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationAuditService;
-import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.*;

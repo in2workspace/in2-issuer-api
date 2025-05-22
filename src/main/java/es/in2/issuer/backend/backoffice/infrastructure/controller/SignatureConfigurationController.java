@@ -9,10 +9,6 @@ import es.in2.issuer.backend.backoffice.domain.model.entities.SignatureConfigura
 import es.in2.issuer.backend.backoffice.domain.model.enums.SignatureMode;
 import es.in2.issuer.backend.backoffice.domain.service.SignatureConfigurationService;
 import es.in2.issuer.backend.shared.domain.service.AccessTokenService;
-import es.in2.issuer.backend.shared.infrastructure.config.SwaggerConfig;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
