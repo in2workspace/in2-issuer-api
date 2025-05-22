@@ -1,6 +1,7 @@
 package es.in2.issuer.backend.shared.domain.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jwt.SignedJWT;
 import es.in2.issuer.backend.shared.domain.exception.ParseErrorException;
@@ -50,23 +51,44 @@ public class CredentialIssuanceRecordServiceImpl implements CredentialIssuanceRe
                         cacheStoreForTransactionCode.add(activationCode, credentialIssuanceRecordId));
     }
 
-    private Mono<CredentialIssuanceRecord> buildCredentialIssuanceRecord(PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest, String token) {
+    private Mono<CredentialIssuanceRecord> buildCredentialIssuanceRecord(
+            PreSubmittedDataCredentialRequest preSubmittedDataCredentialRequest,
+            String token) {
         return getOrganizationIdentifierFromToken(token)
-                .map(organizationIdentifier -> {
-                    Instant now = Instant.now();
-                    CredentialIssuanceRecord credentialIssuanceRecord = new CredentialIssuanceRecord();
-                    credentialIssuanceRecord.setId(UUID.randomUUID());
-                    credentialIssuanceRecord.setOrganizationIdentifier(organizationIdentifier);
-                    credentialIssuanceRecord.setCredentialFormat(preSubmittedDataCredentialRequest.format());
-                    credentialIssuanceRecord.setCredentialType(preSubmittedDataCredentialRequest.schema());
-                    credentialIssuanceRecord.setCredentialData(preSubmittedDataCredentialRequest.payload().toString());
-                    credentialIssuanceRecord.setOperationMode(preSubmittedDataCredentialRequest.operationMode());
-                    // TODO: get signature mode from DDBB
-                    credentialIssuanceRecord.setSignatureMode("TODO");
-                    credentialIssuanceRecord.setCreatedAt(Timestamp.from(now));
-                    credentialIssuanceRecord.setUpdatedAt(Timestamp.from(now));
-                    return credentialIssuanceRecord;
-                });
+                .flatMap(organizationIdentifier ->
+                        getEmailFromLearCredentialEmployee(preSubmittedDataCredentialRequest.payload())
+                                .map(email -> {
+                                    Instant now = Instant.now();
+                                    CredentialIssuanceRecord credentialIssuanceRecord = new CredentialIssuanceRecord();
+                                    credentialIssuanceRecord.setId(UUID.randomUUID());
+                                    credentialIssuanceRecord.setOrganizationIdentifier(organizationIdentifier);
+                                    credentialIssuanceRecord.setEmail(email);
+                                    credentialIssuanceRecord.setCredentialFormat(
+                                            preSubmittedDataCredentialRequest.format());
+                                    credentialIssuanceRecord.setCredentialType(
+                                            preSubmittedDataCredentialRequest.schema());
+                                    credentialIssuanceRecord.setCredentialData(
+                                            preSubmittedDataCredentialRequest.payload().toString());
+                                    credentialIssuanceRecord.setOperationMode(
+                                            preSubmittedDataCredentialRequest.operationMode());
+                                    // TODO: get signature mode from DDBB
+                                    credentialIssuanceRecord.setSignatureMode("TODO");
+                                    credentialIssuanceRecord.setCreatedAt(Timestamp.from(now));
+                                    credentialIssuanceRecord.setUpdatedAt(Timestamp.from(now));
+                                    return credentialIssuanceRecord;
+                                }));
+    }
+
+    private Mono<String> getEmailFromLearCredentialEmployee(JsonNode payload) {
+        try {
+            return Mono.just(objectMapper.treeToValue(payload, LEARCredentialEmployee.class)
+                    .credentialSubject()
+                    .mandate()
+                    .mandatee()
+                    .email());
+        } catch (JsonProcessingException e) {
+            return Mono.error(new ParseErrorException("Error parsing preSubmittedDataCredentialRequest payload: " + e));
+        }
     }
 
     private Mono<String> getOrganizationIdentifierFromToken(String token) {
@@ -85,7 +107,8 @@ public class CredentialIssuanceRecordServiceImpl implements CredentialIssuanceRe
             SignedJWT signedJWT = jwtService.parseJWT(token);
             String vcClaim = jwtService.getClaimFromPayload(signedJWT.getPayload(), "vc_json");
             String processedVc = objectMapper.readValue(vcClaim, String.class);
-            LEARCredentialEmployee learCredentialEmployee = objectMapper.readValue(processedVc, LEARCredentialEmployee.class);
+            LEARCredentialEmployee learCredentialEmployee =
+                    objectMapper.readValue(processedVc, LEARCredentialEmployee.class);
             return Mono.just(learCredentialEmployee);
         } catch (JsonProcessingException e) {
             return Mono.error(new ParseErrorException("Error parsing token credential: " + e));

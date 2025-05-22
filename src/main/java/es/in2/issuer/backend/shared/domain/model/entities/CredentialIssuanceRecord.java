@@ -26,6 +26,9 @@ public class CredentialIssuanceRecord {
     @Column("subject")
     private String subject;
 
+    @Column("email")
+    private String email;
+
     // jwt_vc_json
     @Column("credential_format")
     private String credentialFormat;

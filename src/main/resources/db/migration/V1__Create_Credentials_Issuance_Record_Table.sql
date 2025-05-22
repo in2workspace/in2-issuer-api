@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS issuer.credential_issuance_record (
     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
     organization_identifier VARCHAR(255),
     subject VARCHAR(255),
+    email VARCHAR(255),
     credential_format VARCHAR(20),
     credential_type VARCHAR(50),
     credential_status VARCHAR(20),
