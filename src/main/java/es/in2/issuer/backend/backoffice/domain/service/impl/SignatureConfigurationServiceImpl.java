@@ -336,6 +336,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     }
 
     private SignatureConfigurationResponse mapToSignatureConfigurationResponse(SignatureConfiguration config) {
+        log.info(config.getVaultHashedSecretValues());
         return SignatureConfigurationResponse.builder()
                 .id(config.getId())
                 .organizationIdentifier(config.getOrganizationIdentifier())
