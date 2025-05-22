@@ -26,7 +26,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
                         .build())
                 .collectList()
                 .flatMapMany(configurationRepository::saveAll)
-                .then();
+                .then(Mono.empty());
     }
 
     @Override

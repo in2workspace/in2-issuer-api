@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS issuer.cloud_provider (
-    id UUID PRIMARY KEY UNIQUE DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     provider VARCHAR(255) NOT NULL UNIQUE,
     url TEXT NOT NULL,
     auth_method VARCHAR(100) NOT NULL,

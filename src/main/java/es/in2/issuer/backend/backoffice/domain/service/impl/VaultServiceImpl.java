@@ -23,8 +23,7 @@ public class VaultServiceImpl implements VaultService {
 
     @Override
     public Mono<Void> saveSecrets(String secretRelativePath, Map<String, String> secrets){
-
-        return vaultOperations.put(secretRelativePath,secrets).then();
+        return vaultOperations.put(secretRelativePath,secrets);
     }
 
     @Override
@@ -36,7 +35,7 @@ public class VaultServiceImpl implements VaultService {
 
     @Override
     public Mono<Void> deleteSecret(String secretRelativePath) {
-        return vaultOperations.delete(secretRelativePath).then();
+        return vaultOperations.delete(secretRelativePath);
     }
 
     @Override
@@ -48,7 +47,7 @@ public class VaultServiceImpl implements VaultService {
                     return currentSecrets;
                 })
                 .flatMap(updatedSecrets ->
-                        vaultOperations.put(secretRelativePath, updatedSecrets).then()
+                        vaultOperations.put(secretRelativePath, updatedSecrets)
                 );
     }
 
