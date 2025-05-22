@@ -1,8 +1,8 @@
 package es.in2.issuer.backend.shared.application.workflow.impl;
 
 import com.nimbusds.jose.JWSObject;
-import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.application.workflow.CredentialIssuanceWorkflow;
+import es.in2.issuer.backend.shared.application.workflow.CredentialSignerWorkflow;
 import es.in2.issuer.backend.shared.domain.exception.*;
 import es.in2.issuer.backend.shared.domain.model.dto.*;
 import es.in2.issuer.backend.shared.domain.model.dto.credential.lear.employee.LEARCredentialEmployee;
@@ -14,11 +14,7 @@ import es.in2.issuer.backend.shared.infrastructure.config.WebClientConfig;
 import es.in2.issuer.backend.shared.infrastructure.config.security.service.VerifiableCredentialPolicyAuthorizationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -27,8 +23,7 @@ import javax.naming.OperationNotSupportedException;
 import java.text.ParseException;
 
 import static es.in2.issuer.backend.backoffice.domain.util.Constants.*;
-import static es.in2.issuer.backend.shared.domain.util.Constants.JWT_VC_JSON;
-import static es.in2.issuer.backend.shared.domain.util.Constants.LEAR_CREDENTIAL_EMPLOYEE;
+import static es.in2.issuer.backend.shared.domain.util.Constants.*;
 
 @Slf4j
 @Service
@@ -48,6 +43,7 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
     private final LEARCredentialEmployeeFactory credentialEmployeeFactory;
     private final IssuerApiClientTokenService issuerApiClientTokenService;
     private final M2MTokenService m2mTokenService;
+    private final CredentialDeliveryService credentialDeliveryService;
 
     @Override
     public Mono<Void> execute(String processId, PreSubmittedCredentialRequest preSubmittedCredentialRequest, String token, String idToken) {
@@ -77,6 +73,18 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                         if (preSubmittedCredentialRequest.responseUri() == null || preSubmittedCredentialRequest.responseUri().isBlank()) {
                             return Mono.error(new OperationNotSupportedException("For schema: " + preSubmittedCredentialRequest.schema() + " response_uri is required"));
                         }
+                        // Extract values from payload
+                        String productId = preSubmittedCredentialRequest.payload()
+                                .get(CREDENTIAL_SUBJECT)
+                                .get(PRODUCT)
+                                .get(PRODUCT_ID)
+                                .asText();
+
+                        String companyEmail = preSubmittedCredentialRequest.payload()
+                                .get(CREDENTIAL_SUBJECT)
+                                .get(COMPANY)
+                                .get(EMAIL)
+                                .asText();
                         return verifiableCredentialService.generateVerifiableCertification(processId, preSubmittedCredentialRequest, idToken)
                                 .flatMap(procedureId -> issuerApiClientTokenService.getClientToken()
                                         .flatMap(internalToken -> credentialSignerWorkflow.signAndUpdateCredentialByProcedureId(BEARER_PREFIX + internalToken, procedureId, JWT_VC))
@@ -84,9 +92,11 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
                                         .flatMap(encodedVc -> credentialProcedureService.updateCredentialProcedureCredentialStatusToValidByProcedureId(procedureId)
                                                 .then(m2mTokenService.getM2MToken()
                                                         .flatMap(m2mAccessToken ->
-                                                                sendVcToResponseUri(
-                                                                        preSubmittedCredentialRequest,
+                                                                credentialDeliveryService.sendVcToResponseUri(
+                                                                        preSubmittedCredentialRequest.responseUri(),
                                                                         encodedVc,
+                                                                        productId,
+                                                                        companyEmail,
                                                                         m2mAccessToken.accessToken())))));
                     }
                     return Mono.error(new CredentialTypeUnsupportedException(preSubmittedCredentialRequest.schema()));
@@ -108,54 +118,6 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         return emailService.sendCredentialActivationEmail(email, CREDENTIAL_ACTIVATION_EMAIL_SUBJECT, credentialOfferUrl, appConfig.getKnowledgebaseWalletUrl(), user, organization)
                 .onErrorMap(exception ->
                         new EmailCommunicationException(MAIL_ERROR_COMMUNICATION_EXCEPTION_MESSAGE));
-    }
-
-    private Mono<Void> sendVcToResponseUri(PreSubmittedCredentialRequest preSubmittedCredentialRequest, String encodedVc, String token) {
-        ResponseUriRequest responseUriRequest = ResponseUriRequest.builder()
-                .encodedVc(encodedVc)
-                .build();
-        log.debug("Sending to response_uri: {} the VC: {} with the received token: {}", preSubmittedCredentialRequest.responseUri(), encodedVc, token);
-
-        // Extract the product ID from the payload
-        String productId = preSubmittedCredentialRequest.payload()
-                .get(CREDENTIAL_SUBJECT)
-                .get(PRODUCT)
-                .get(PRODUCT_ID)
-                .asText();
-        // Extract the company email from the payload
-        String companyEmail = preSubmittedCredentialRequest.payload()
-                .get(CREDENTIAL_SUBJECT)
-                .get(COMPANY)
-                .get(EMAIL)
-                .asText();
-
-        return webClient.commonWebClient()
-                .patch()
-                .uri(preSubmittedCredentialRequest.responseUri())
-                .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, BEARER_PREFIX + token)
-                .bodyValue(responseUriRequest)
-                .exchangeToMono(response -> {
-                    if (response.statusCode().is2xxSuccessful()) {
-                        if (HttpStatus.ACCEPTED.equals(response.statusCode())) {
-                            log.info("Received 202 from response_uri. Extracting HTML and sending specific mail for missing documents");
-                            // Retrieve the HTML body from the response
-                            return response.bodyToMono(String.class)
-                                    .flatMap(htmlResponseBody -> emailService.sendResponseUriAcceptedWithHtml(companyEmail, productId, htmlResponseBody))
-                                    .then();
-                        }
-                        return Mono.empty();
-                    } else {
-                        log.error("Non-2xx status code received: {}. Sending failure email...", response.statusCode());
-                        return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
-                                .then();
-                    }
-                })
-                .onErrorResume(WebClientRequestException.class, ex -> {
-                    log.error("Network error while sending VC to response_uri", ex);
-                    return emailService.sendResponseUriFailed(companyEmail, productId, appConfig.getKnowledgeBaseUploadCertificationGuideUrl())
-                            .then();
-                });
     }
 
     @Override

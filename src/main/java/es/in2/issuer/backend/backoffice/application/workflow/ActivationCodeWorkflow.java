@@ -1,6 +1,6 @@
 package es.in2.issuer.backend.backoffice.application.workflow;
 
-import es.in2.issuer.backend.backoffice.domain.model.dtos.CredentialOfferUriResponse;
+import es.in2.issuer.backend.backoffice.domain.model.CredentialOfferUriResponse;
 import reactor.core.publisher.Mono;
 
 public interface ActivationCodeWorkflow {
