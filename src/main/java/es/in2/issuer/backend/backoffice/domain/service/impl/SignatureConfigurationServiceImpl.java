@@ -345,6 +345,7 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 .clientId(config.getClientId())
                 .credentialId(config.getCredentialId())
                 .credentialName(config.getCredentialName())
+                .vaultHashedSecretValues(config.getVaultHashedSecretValues())
                 .build();
     }
 
