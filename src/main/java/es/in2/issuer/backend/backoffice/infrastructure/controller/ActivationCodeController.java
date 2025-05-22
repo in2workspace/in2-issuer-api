@@ -12,12 +12,21 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
+// TODO: Canviar a tot arreu "transaction-code" per "activation-code"
+// TODO: Canviar per /backoffice/v1/credentials/activate i al Frontend
+// TODO: Demanar canviar al Frontend
 @RequestMapping("/oid4vci/v1/credential-offer")
 @RequiredArgsConstructor
 public class ActivationCodeController {
 
     private final ActivationCodeWorkflow activationCodeWorkflow;
 
+    // TODO: re aprofitar matei objecte post fent jsonignore
+    //TODO: POST -> body
+// {
+//     "activationCode": "1234567890"
+//}
+    // Body -> ActivationCodeRequest
     @GetMapping("/transaction-code/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialOfferUriResponse> getCredentialOfferByTransactionCode(@PathVariable("id") String transactionCode) {
@@ -31,6 +40,12 @@ public class ActivationCodeController {
                 );
     }
 
+    //TODO: POST -> body
+// {
+//     "c_activationCode": "1234567890"
+//}
+    // Body -> ActivationCodeRequest
+    // TODO: activation
     @GetMapping("/c-transaction-code/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Mono<CredentialOfferUriResponse> getCredentialOfferByCTransactionCode(@PathVariable("id") String cTransactionCode) {

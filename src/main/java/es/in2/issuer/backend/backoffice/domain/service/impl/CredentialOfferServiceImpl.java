@@ -27,6 +27,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
     private final AppConfig appConfig;
 
     @Override
+    // TODO: Return CredentialOffer NOT CredentialOfferData
     public Mono<CredentialOfferData> buildCustomCredentialOffer(String credentialType, Grants grants, String employeeEmail, String pin) {
         return Mono.just(
 
@@ -34,6 +35,7 @@ public class CredentialOfferServiceImpl implements CredentialOfferService {
                         .credentialOffer(CredentialOffer.builder()
                                 .credentialIssuer(appConfig.getIssuerBackendUrl())
                                 .credentialConfigurationIds(List.of(LEAR_CREDENTIAL_EMPLOYEE))
+                                //TODO construir grants tal com es fa ara al preaAuthorized...
                                 .grants(Map.of(GRANT_TYPE, grants))
                                 .build()
                         )

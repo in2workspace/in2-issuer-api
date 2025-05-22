@@ -25,6 +25,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
     private final SecureRandom random;
     private final CacheStore<CredentialIdAndTxCode> credentialIdAndTxCodeByPreAuthorizedCodeCacheStore;
 
+    // TODO: retornar preauthorizedcode
     @Override
     public Mono<PreAuthorizedCodeResponse> generatePreAuthorizedCode(String processId, Mono<UUID> credentialIdMono) {
         return generateCodes()
@@ -69,6 +70,7 @@ public class PreAuthorizedCodeServiceImpl implements PreAuthorizedCodeService {
         return Mono.just(String.valueOf(i));
     }
 
+    // TODO: NOMÉS retorna preAuthorizedCode i pin
     private Mono<PreAuthorizedCodeResponse> buildPreAuthorizedCodeResponse(String preAuthorizedCode, String txCode) {
         Grants.TxCode grantTxCode = new Grants.TxCode(TX_CODE_SIZE, TX_INPUT_MODE, TX_CODE_DESCRIPTION);
         Grants grants = new Grants(preAuthorizedCode, grantTxCode);

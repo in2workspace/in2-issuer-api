@@ -9,10 +9,10 @@ import lombok.Builder;
 
 @Builder
 public record PreSubmittedDataCredentialRequest(
-        @JsonProperty("schema") @CredentialConfigurationsSupportedConstraint String schema,
-        @JsonProperty("format") @JwtVcJsonFormatConstraint String format,
-        @JsonProperty("payload") JsonNode payload,
-        @JsonProperty("operation_mode") @SyncOperationModeConstraint String operationMode,
+        @JsonProperty(value = "schema", required = true) @CredentialConfigurationsSupportedConstraint String schema,
+        @JsonProperty(value = "format", required = true) @JwtVcJsonFormatConstraint String format,
+        @JsonProperty(value = "payload", required = true) JsonNode payload,
+        @JsonProperty(value = "operation_mode", required = true) @SyncOperationModeConstraint String operationMode,
         @JsonProperty("validity_period") int validityPeriod,
         @JsonProperty("response_uri") String responseUri
 ) {

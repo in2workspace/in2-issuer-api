@@ -111,9 +111,10 @@ public class CredentialIssuanceWorkflowImpl implements CredentialIssuanceWorkflo
         String organization = preSubmittedDataCredentialRequest.payload().get(MANDATOR).get(ORGANIZATION).asText();
         // todo: CHANGE IN FRONTEND
         // todo: change to https
+        // TODO: Canviar test
         String credentialOfferUrl = UriComponentsBuilder
                 .fromHttpUrl(appConfig.getIssuerFrontendUrl())
-                .path("/credential-offer/activation-code/" + activationCode)
+                .path("/credentials/activation/" + activationCode)
                 .build()
                 .toUriString();
 
