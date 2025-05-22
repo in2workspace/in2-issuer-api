@@ -11,7 +11,8 @@ public record SignatureConfigWithProviderName(UUID id,
                                               String cloudProviderName,
                                               String clientId,
                                               String credentialId,
-                                              String credentialName
+                                              String credentialName,
+                                              String vaultHashedSecretValues
 ) {
 
 }

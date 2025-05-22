@@ -307,6 +307,8 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
 
 
     private SignatureConfigWithProviderName mapToWithProviderName(SignatureConfiguration config, String providerName) {
+        //TODO
+        log.info(config.getVaultHashedSecretValues());
         return new SignatureConfigWithProviderName(
                 config.getId(),
                 config.getOrganizationIdentifier(),
@@ -315,7 +317,8 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 providerName,
                 config.getClientId(),
                 config.getCredentialId(),
-                config.getCredentialName()
+                config.getCredentialName(),
+                config.getVaultHashedSecretValues()
         );
     }
 
@@ -336,7 +339,6 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
     }
 
     private SignatureConfigurationResponse mapToSignatureConfigurationResponse(SignatureConfiguration config) {
-        log.info(config.getVaultHashedSecretValues());
         return SignatureConfigurationResponse.builder()
                 .id(config.getId())
                 .organizationIdentifier(config.getOrganizationIdentifier())
@@ -346,7 +348,6 @@ public class SignatureConfigurationServiceImpl implements SignatureConfiguration
                 .clientId(config.getClientId())
                 .credentialId(config.getCredentialId())
                 .credentialName(config.getCredentialName())
-                .vaultHashedSecretValues(config.getVaultHashedSecretValues())
                 .build();
     }
 
