@@ -2,11 +2,10 @@ package es.in2.issuer.backend.backoffice.infrastructure.controller;
 
 
 import es.in2.issuer.backend.backoffice.domain.exception.*;
-import es.in2.issuer.backend.backoffice.domain.model.dtos.ApiErrorResponse;
+import es.in2.issuer.backend.backoffice.domain.model.dtos.GlobalErrorMessage;
 import es.in2.issuer.backend.backoffice.domain.util.CredentialResponseErrorCodes;
 import es.in2.issuer.backend.shared.domain.exception.*;
 import es.in2.issuer.backend.shared.domain.model.dto.CredentialErrorResponse;
-import es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
@@ -410,7 +409,7 @@ class GlobalExceptionHandlerTest {
         String errorMessage = "Notification service unavailable";
         EmailCommunicationException exception = new EmailCommunicationException(errorMessage);
 
-        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
+        Mono<es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
 
         StepVerifier.create(result)
                 .assertNext(globalErrorMessage -> {
@@ -424,7 +423,7 @@ class GlobalExceptionHandlerTest {
     void handleEmailCommunicationException_withoutMessage() {
         EmailCommunicationException exception = new EmailCommunicationException(null);
 
-        Mono<GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
+        Mono<es.in2.issuer.backend.shared.domain.model.dto.GlobalErrorMessage> result = globalExceptionHandler.handleEmailCommunicationException(exception);
 
         StepVerifier.create(result)
                 .assertNext(globalErrorMessage -> {
@@ -485,13 +484,13 @@ class GlobalExceptionHandlerTest {
         OrganizationIdentifierMismatchException ex =
                 new OrganizationIdentifierMismatchException(msg);
 
-        Mono<ResponseEntity<ApiErrorResponse>> result =
+        Mono<ResponseEntity<GlobalErrorMessage>> result =
                 globalExceptionHandler.handleOrganizationIdentifierMismatchException(ex, request);
 
         StepVerifier.create(result)
                 .assertNext(resp -> {
                     assertEquals(HttpStatus.FORBIDDEN, resp.getStatusCode());
-                    ApiErrorResponse er = resp.getBody();
+                    GlobalErrorMessage er = resp.getBody();
                     assertNotNull(er);
                     assertEquals("Unauthorized", er.type());
                     assertEquals(OrganizationIdentifierMismatchException.class.toString(), er.title());
@@ -515,13 +514,13 @@ class GlobalExceptionHandlerTest {
         String msg = "Not found!";
         NoSuchEntityException ex = new NoSuchEntityException(msg);
 
-        Mono<ResponseEntity<ApiErrorResponse>> result =
+        Mono<ResponseEntity<GlobalErrorMessage>> result =
                 globalExceptionHandler.handleNoSuchEntityException(ex, request);
 
         StepVerifier.create(result)
                 .assertNext(resp -> {
                     assertEquals(HttpStatus.NOT_FOUND, resp.getStatusCode());
-                    ApiErrorResponse er = resp.getBody();
+                    GlobalErrorMessage er = resp.getBody();
                     assertNotNull(er);
                     assertEquals("Not Found", er.type());
                     // note: code uses FORBIDDEN.value() as the body.status
@@ -546,13 +545,13 @@ class GlobalExceptionHandlerTest {
         String errorMessage = "Required data is missing";
         MissingRequiredDataException exception = new MissingRequiredDataException(errorMessage);
 
-        Mono<ResponseEntity<ApiErrorResponse>> result =
+        Mono<ResponseEntity<GlobalErrorMessage>> result =
                 globalExceptionHandler.handleMissingRequiredDataException(exception, request);
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
-                    ApiErrorResponse responseBody = responseEntity.getBody();
+                    GlobalErrorMessage responseBody = responseEntity.getBody();
                     assertNotNull(responseBody);
                     assertEquals("Bad Request", responseBody.type());
                     assertEquals(MissingRequiredDataException.class.toString(), responseBody.title());
@@ -574,13 +573,13 @@ class GlobalExceptionHandlerTest {
         String errorMessage = "Invalid signature configuration";
         InvalidSignatureConfigurationException exception = new InvalidSignatureConfigurationException(errorMessage);
 
-        Mono<ResponseEntity<ApiErrorResponse>> result =
+        Mono<ResponseEntity<GlobalErrorMessage>> result =
                 globalExceptionHandler.handleInvalidSignatureConfigurationException(exception, request);
 
         StepVerifier.create(result)
                 .assertNext(responseEntity -> {
                     assertEquals(HttpStatus.BAD_REQUEST, responseEntity.getStatusCode());
-                    ApiErrorResponse responseBody = responseEntity.getBody();
+                    GlobalErrorMessage responseBody = responseEntity.getBody();
                     assertNotNull(responseBody);
                     assertEquals("Bad Request", responseBody.type());
                     assertEquals(InvalidSignatureConfigurationException.class.toString(), responseBody.title());
